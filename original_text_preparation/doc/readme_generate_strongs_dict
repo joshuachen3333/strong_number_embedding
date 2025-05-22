@@ -1,0 +1,12 @@
+1, the strong number words' dictionaries are with bible_little.db
+2, to extract the dictionary and write it to a json file, do the following:
+  A, in current dictionary, copy 
+helper_scripts/batch_extract_strong_dictionary_words2.sh
+source_sqlite/bible_little.db
+(in current directory, you need to have batch_extract_strong_dictionary_words2.sh and bible_little.db files)
+  B, run
+./batch_extract_strong_dictionary_words2.sh 1 9015 ot
+will produce strong_number_words_dict_1_9015_ot.json
+
+./batch_extract_strong_dictionary_words2.sh 1 7008 nt
+will produce strong_number_words_dict_1_7008_nt.json

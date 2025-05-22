@@ -1,0 +1,11 @@
+#all
+sqlite3 bible_kjv.db "SELECT engs, sec, txt FROM kjv;" | grep -E '[0-9]{3,5}>' |wc -l
+31102
+
+#OT
+sqlite3 bible_kjv.db "SELECT engs, sec, txt FROM kjv;" | grep -E '[0-9]{3,5}>' |grep -v -E 'G[0-9]{3,5}>' | wc -l
+23145
+
+#NT
+sqlite3 bible_kjv.db "SELECT engs, sec, txt FROM kjv;" | grep -E '[0-9]{3,5}>' |grep -v -E 'H[0-9]{3,5}>' | wc -l
+7957

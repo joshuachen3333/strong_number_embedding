@@ -1,0 +1,53 @@
+# knowing compiled options
+sqlite3 :memory: "PRAGMA compile_options;"
+
+# see what tables are in the dbase 
+sqlite3 bible_cbol.db ".tables"
+sqlite3 bible_kjv.db ".tables"
+
+# 輸入以下指令來檢查 cbol 表的欄位名稱及其數據類型：
+sqlite3 bible_cbol.db "PRAGMA table_info(cbol);"
+sqlite3 bible_kjv.db "PRAGMA table_info(kjv);"
+sqlite3 bible_kjv.db "PRAGMA table_info(main);"
+sqlite3 bible_kjv.db "PRAGMA table_info(nstrkjv);"
+sqlite3 bible_kjv.db "PRAGMA table_info(version);"
+
+# count verses for each chapter for each book
+sqlite3 bible_cbol.db "SELECT engs, chap, COUNT(*) AS verse_count FROM cbol GROUP BY engs, chap;"
+sqlite3 bible_kjv.db "SELECT engs, chap, COUNT(*) AS verse_count FROM nstrkjv GROUP BY engs, chap;"
+
+
+
+# for Gen chat1's all verses
+sqlite3 bible_cbol.db "SELECT sec, txt FROM cbol WHERE engs = 'Gen' AND chap = 1 ORDER BY sec;"
+sqlite3 bible_cbol.db "SELECT * FROM cbol WHERE engs = 'Gen' AND chap = 1 ORDER BY sec LIMIT 5;"
+
+
+# print special chapter and special version
+sqlite3 bible_cbol.db "SELECT txt FROM cbol WHERE engs = 'John' AND chap = 3 AND sec = 16;"
+sqlite3 bible_kjv.db "SELECT txt FROM nstrkjv WHERE engs = 'John' AND chap = 3 AND sec = 16;"
+
+# with strong number (kjv)
+sqlite3 bible_kjv.db "SELECT sec, txt FROM kjv WHERE engs = 'Gen' AND chap = 1 ORDER BY sec;"
+# without strong number (nstrkjv)
+sqlite3 bible_kjv.db "SELECT sec, txt FROM nstrkjv WHERE engs = 'Gen' AND chap = 1 ORDER BY sec;"
+
+
+# strong number pattern
+sqlite3 bible_kjv.db "SELECT engs, sec, txt FROM kjv;" | grep -v  -E '<W?T?[HG][0-9]{3,5}>'
+
+# retrieve all Hebrew dictionary words
+sqlite3 bible_little.db "SELECT hsnum,orig,orig_fhl, txt FROM hfhl ORDER by hsnum;"
+# see how many words
+sqlite3 bible_little.db "SELECT hsnum FROM hfhl ORDER by hsnum;"
+
+# retrieve all Greek dictionary words
+sqlite3 bible_little.db "SELECT gsnum,orig,orig_fhl, txt FROM gfhl ORDER by gsnum;" 
+# see how many words
+sqlite3 bible_little.db "SELECT gsnum FROM gfhl ORDER by gsnum;"
+
+# retrieve only one word
+sqlite3 bible_little.db "SELECT hsnum, orig, orig_fhl, txt FROM hfhl WHERE hsnum = '01457';"
+sqlite3 bible_little.db "SELECT gsnum, orig, orig_fhl, txt FROM gfhl WHERE gsnum = '01457';"
+
+

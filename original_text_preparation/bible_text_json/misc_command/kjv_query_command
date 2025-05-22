@@ -1,0 +1,161 @@
+# knowing compiled options
+sqlite3 :memory: "PRAGMA compile_options;"
+
+# see what tables are in the dbase 
+sqlite3 bible_kjv.db ".tables"
+
+# 輸入以下指令來檢查 cbol 表的欄位名稱及其數據類型：
+sqlite3 bible_kjv.db "PRAGMA table_info(kjv);"
+sqlite3 bible_kjv.db "PRAGMA table_info(main);"
+sqlite3 bible_kjv.db "PRAGMA table_info(nstrkjv);"
+sqlite3 bible_kjv.db "PRAGMA table_info(version);"
+
+# count verses for each chapter for each book
+sqlite3 bible_kjv.db "SELECT engs, chap, COUNT(*) AS verse_count FROM kjv GROUP BY engs, chap;"
+sqlite3 bible_kjv.db "SELECT engs, chap, COUNT(*) AS verse_count FROM nstrkjv GROUP BY engs, chap;"
+
+# show the books (in chanonical order) found in table 'main'.
+sqlite3 bible_kjv.db "SELECT engs, id FROM main ORDER BY id;"
+# show the books and chapters count
+sqlite3 bible_kjv.db "
+SELECT m.engs, MAX(n.chap) AS chapter_count
+FROM nstrkjv AS n
+JOIN main AS m ON n.engs = m.engs
+GROUP BY m.engs
+ORDER BY m.id;
+"
+
+# for Gen chat1's all verses
+sqlite3 bible_kjv.db "SELECT sec, txt FROM kjv WHERE engs = 'Gen' AND chap = 1 ORDER BY sec;"
+# show only 5 verses
+sqlite3 bible_kjv.db "SELECT * FROM nstrkjv WHERE engs = 'Gen' AND chap = 1 ORDER BY sec LIMIT 5;"
+# for all book of Gen
+sqlite3 bible_kjv.db "SELECT chap, sec, txt FROM nstrkjv WHERE engs = 'Gen' ORDER BY chap, sec;" 
+
+
+# the whole bible in books order in table main
+sqlite3 bible_kjv.db "
+SELECT m.engs, n.chap, n.sec, n.txt
+FROM nstrkjv AS n
+JOIN main AS m ON n.engs = m.engs
+ORDER BY m.id, n.chap, n.sec;"
+
+
+
+
+# print special chapter and special version
+sqlite3 bible_kjv.db "SELECT txt FROM kjv WHERE engs = 'John' AND chap = 3 AND sec = 16;"
+sqlite3 bible_kjv.db "SELECT txt FROM nstrkjv WHERE engs = 'John' AND chap = 3 AND sec = 16;"
+
+# with strong number (kjv)
+sqlite3 bible_kjv.db "SELECT sec, txt FROM kjv WHERE engs = 'Gen' AND chap = 1 ORDER BY sec;"
+# without strong number (nstrkjv)
+sqlite3 bible_kjv.db "SELECT sec, txt FROM nstrkjv WHERE engs = 'Gen' AND chap = 1 ORDER BY sec;"
+
+
+# extract the whole table of kjv to a json file
+sqlite3 bible_kjv.db "SELECT '[' || GROUP_CONCAT(
+  JSON_OBJECT(
+    'id', id,
+    'engs', engs,
+    'chap', chap,
+    'sec', sec,
+    'txt', txt,
+    'username', username,
+    'origuser', origuser
+  )
+) || ']' FROM kjv;"| jq -r 
+
+
+# engs goes higher level
+sqlite3 bible_kjv.db "
+SELECT '[' || GROUP_CONCAT(
+  JSON_OBJECT(
+    'engs', engs,
+    'chapters', (
+      SELECT '[' || GROUP_CONCAT(
+        JSON_OBJECT(
+          'chap', chap,
+          'verses', (
+            SELECT '[' || GROUP_CONCAT(
+              JSON_OBJECT(
+                'sec', sec,
+                'txt', txt
+              )
+            ) || ']'
+            FROM nstrkjv AS v
+            WHERE v.engs = b.engs AND v.chap = c.chap
+          )
+        )
+      ) || ']'
+      FROM (
+        SELECT DISTINCT chap
+        FROM nstrkjv
+        WHERE engs = b.engs
+      ) AS c
+    )
+  )
+) || ']' AS json_output
+FROM (
+  SELECT DISTINCT engs
+  FROM nstrkjv
+) AS b
+ORDER BY (
+  SELECT id
+  FROM main
+  WHERE main.engs = b.engs
+);
+" | jq -r
+
+
+#extract the whole kjv with sqlite output format
+sqlite3 bible_kjv.db "
+SELECT m.engs, n.chap, n.sec, n.txt
+FROM nstrkjv AS n
+JOIN main AS m ON n.engs = m.engs
+ORDER BY m.id, n.chap, n.sec;" | less
+[cschen@genesis text]$ sqlite3 bible_kjv.db "
+SELECT m.engs, n.chap, n.sec, n.txt
+FROM nstrkjv AS n
+JOIN main AS m ON n.engs = m.engs
+ORDER BY m.id, n.chap, n.sec;"
+
+
+
+
+
+
+# or just run the python program
+nstrkjv_db_2_json.py
+kjv_db_2_json.py
+
+
+
+
+
+
+
+
+
+
+
+
+
+# strong number pattern
+sqlite3 bible_kjv.db "SELECT engs, sec, txt FROM kjv;" | grep -v  -E '<W?T?[HG][0-9]{3,5}>'
+
+# retrieve all Hebrew dictionary words
+sqlite3 bible_little.db "SELECT hsnum,orig,orig_fhl, txt FROM hfhl ORDER by hsnum;"
+# see how many words
+sqlite3 bible_little.db "SELECT hsnum FROM hfhl ORDER by hsnum;"
+
+# retrieve all Greek dictionary words
+sqlite3 bible_little.db "SELECT gsnum,orig,orig_fhl, txt FROM gfhl ORDER by gsnum;" 
+# see how many words
+sqlite3 bible_little.db "SELECT gsnum FROM gfhl ORDER by gsnum;"
+
+# retrieve only one word
+sqlite3 bible_little.db "SELECT hsnum, orig, orig_fhl, txt FROM hfhl WHERE hsnum = '01457';"
+sqlite3 bible_little.db "SELECT gsnum, orig, orig_fhl, txt FROM gfhl WHERE gsnum = '01457';"
+
+

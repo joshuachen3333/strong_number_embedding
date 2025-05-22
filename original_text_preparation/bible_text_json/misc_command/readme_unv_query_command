@@ -1,0 +1,204 @@
+# knowing compiled options
+sqlite3 :memory: "PRAGMA compile_options;"
+
+# see what tables are in the dbase
+sqlite3 bible_little.db ".tables"
+
+gfhl     hfhl     main     nstrunv  unv      version
+
+# 輸入以下指令來檢查 cbol 表的欄位名稱及其數據類型：
+sqlite3 bible_little.db "PRAGMA table_info(gfhl);"
+sqlite3 bible_little.db "PRAGMA table_info(hfhl);"
+sqlite3 bible_little.db "PRAGMA table_info(main);"
+sqlite3 bible_little.db "PRAGMA table_info(nstrunv);"
+sqlite3 bible_little.db "PRAGMA table_info(unv);"
+sqlite3 bible_little.db "PRAGMA table_info(version);"
+
+# count verses for each chapter for each book
+sqlite3 bible_little.db "SELECT engs, chap, COUNT(*) AS verse_count FROM unv GROUP BY engs, chap;"
+sqlite3 bible_little.db "SELECT engs, chap, COUNT(*) AS verse_count FROM nstrunv GROUP BY engs, chap;"
+
+# show the books (in chanonical order) found in table 'main'.
+sqlite3 bible_little.db "SELECT engs, id FROM main ORDER BY id;"
+
+# show the books and chapters count
+sqlite3 bible_little.db "
+SELECT m.engs, MAX(n.chap) AS chapter_count
+FROM nstrunv AS n
+JOIN main AS m ON n.engs = m.engs
+GROUP BY m.engs
+ORDER BY m.id;
+"
+
+# for Gen chat1's all verses
+sqlite3 bible_little.db "SELECT sec, txt FROM unv WHERE engs = 'Gen' AND chap = 1 ORDER BY sec;"
+# show only 5 verses
+sqlite3 bible_little.db "SELECT * FROM nstrunv WHERE engs = 'Gen' AND chap = 1 ORDER BY sec LIMIT 5;"
+# for all book of Gen
+sqlite3 bible_little.db "SELECT chap, sec, txt FROM nstrunv WHERE engs = 'Gen' ORDER BY chap, sec;"
+
+# the whole bible in books order in table main
+sqlite3 bible_little.db "
+SELECT m.engs, n.chap, n.sec, n.txt
+FROM nstrunv AS n
+JOIN main AS m ON n.engs = m.engs
+ORDER BY m.id, n.chap, n.sec;"
+
+# the whole bible to a json format
+
+sqlite3 bible_little.db "
+WITH
+-- 1) Gather all verses for each (book, chapter) into a small JSON array
+OrderedVerses AS (
+  SELECT
+    m.id    AS book_id,
+    m.engs  AS engs,
+    n.chap  AS chap,
+    n.sec   AS sec,
+    n.txt   AS txt
+  FROM nstrunv n
+  JOIN main m ON n.engs = m.engs
+),
+
+VerseGroups AS (
+  SELECT
+    book_id,
+    engs,
+    chap,
+    '[' || GROUP_CONCAT(
+      JSON_OBJECT('sec', sec, 'txt', txt)
+    ) || ']' AS verses
+  FROM OrderedVerses
+  GROUP BY engs, chap
+),
+
+-- 2) Combine each book's chapters into a JSON array of chapter objects
+ChapterGroups AS (
+  SELECT
+    book_id,
+    engs,
+    '[' || GROUP_CONCAT(
+      JSON_OBJECT(
+        'chap', chap,
+        'verses', json(verses)  -- parse verses string as JSON
+      )
+    ) || ']' AS chapters
+  FROM VerseGroups
+  GROUP BY engs
+),
+
+-- 3) Build a JSON object for each book
+FinalBooks AS (
+  SELECT
+    book_id,
+    JSON_OBJECT(
+      'engs', engs,
+      'chapters', json(chapters)
+    ) AS book_obj
+  FROM ChapterGroups
+),
+
+-- 4) Make a top-level array of all books in canonical order
+AllBooks AS (
+  SELECT
+    '[' || GROUP_CONCAT(book_obj) || ']' AS bible
+  FROM (
+    SELECT book_id, book_obj
+    FROM FinalBooks
+    ORDER BY book_id
+  )
+)
+
+-- 5) Wrap it all under a top-level JSON object with version and text
+SELECT
+  JSON_OBJECT(
+    'version', 'nstrunv',
+    'text', json(bible)
+  ) AS final_json
+FROM AllBooks;
+" | jq -r .
+
+# with strong number
+# sqlite format
+sqlite3 bible_little.db "
+SELECT m.engs, n.chap, n.sec, n.txt
+FROM unv AS n
+JOIN main AS m ON n.engs = m.engs
+ORDER BY m.id, n.chap, n.sec;"
+
+
+# json format
+sqlite3 bible_little.db "
+WITH
+-- 1) Gather all verses for each (book, chapter) into a small JSON array
+OrderedVerses AS (
+  SELECT
+    m.id    AS book_id,
+    m.engs  AS engs,
+    n.chap  AS chap,
+    n.sec   AS sec,
+    n.txt   AS txt
+  FROM unv n
+  JOIN main m ON n.engs = m.engs
+),
+
+VerseGroups AS (
+  SELECT
+    book_id,
+    engs,
+    chap,
+    '[' || GROUP_CONCAT(
+      JSON_OBJECT('sec', sec, 'txt', txt)
+    ) || ']' AS verses
+  FROM OrderedVerses
+  GROUP BY engs, chap
+),
+
+-- 2) Combine each book's chapters into a JSON array of chapter objects
+ChapterGroups AS (
+  SELECT
+    book_id,
+    engs,
+    '[' || GROUP_CONCAT(
+      JSON_OBJECT(
+        'chap', chap,
+        'verses', json(verses)  -- parse verses string as JSON
+      )
+    ) || ']' AS chapters
+  FROM VerseGroups
+  GROUP BY engs
+),
+
+-- 3) Build a JSON object for each book
+FinalBooks AS (
+  SELECT
+    book_id,
+    JSON_OBJECT(
+      'engs', engs,
+      'chapters', json(chapters)
+    ) AS book_obj
+  FROM ChapterGroups
+),
+
+
+-- 4) Make a top-level array of all books in canonical order
+AllBooks AS (
+  SELECT
+    '[' || GROUP_CONCAT(book_obj) || ']' AS bible
+  FROM (
+    SELECT book_id, book_obj
+    FROM FinalBooks
+    ORDER BY book_id
+  )
+)
+
+-- 5) Wrap it all under a top-level JSON object with version and text
+SELECT
+  JSON_OBJECT(
+    'version', 'unv',
+    'text', json(bible)
+  ) AS final_json
+FROM AllBooks;
+" | jq -r .
+
+

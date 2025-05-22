@@ -1,0 +1,23 @@
+to extract the whole book of bible of a version from a bible_ver.db file, do the following
+1, copy the db file and the helper script
+cp helper_scripts/extract_whole_bible_db2json2.sh .
+cp source_sqlite/bible_little.db .
+
+2, run the helper script
+./extract_whole_bible_db2json2.sh -f bible_little.db -d unv
+(will produce bible_nstrunv.json, unv with strong's number)
+
+./extract_whole_bible_db2json2.sh -f bible_little.db -d nstrunv
+(will produce bible_nstrunv.json, unv version without strong's number)
+
+./extract_whole_bible_db2json2.sh -f bible_kjv.db -d kjv
+(will produce bible_kjv.json, kjv with strong's number)
+
+./extract_whole_bible_db2json2.sh -f bible_kjv.db -d nstrkjv
+(will produce bible_nstrkjv.json, kjv without strong's number)
+
+./extract_whole_bible_db2json2.sh -f bible_bhs.db -d bhs
+(will produce bible_bhs.json, bhs the OT Masoretic Text)
+
+./extract_whole_bible_db2json2.sh -f bible_fhlwh.db -d fhlwh
+(will produce bible_fhlwh.json, fhlwh the NT Greek Bible text)

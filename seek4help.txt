@@ -1,0 +1,66 @@
+Dear all,
+  我來向大家求教與求救.
+  我是聖經原文資源, 信望愛網站義工之一, 義工們致力於讓聖經原文(舊約的原文是希伯來文;新約的原文是希臘文), 協助更多翻譯後的各種語文的各國讀者, 能更深入試著接近原文語意來理解聖經.
+
+  舉個例子:
+
+  先請看看這個網站, 中文和合本 路 12:1-3
+
+頁面1 https://bible.fhl.net/new/read.php?id=25519&&SSS=0&VERSION1=unv&TABFLAG=1&strongflag=0 
+
+  以目前中文版最為廣泛使用的<和合本聖經>路加福音12章1-3節為例, 已經完成了原文字編號置入, 成果如下
+(把相對應的原文字甚至字典 show 出來)
+
+
+
+頁面2 
+https://bible.fhl.net/new/read.php?id=25519&&SSS=0&VERSION1=unv&TABFLAG=1&strongflag=1
+
+或者我拍一張結果的網頁照片出來如下
+頁面1 與 頁面2 差異在於
+https://photos.app.goo.gl/gUmwPhuGe86YWSfbA
+
+
+工工整整的頁面1, 一但開啟原文顯示模試, 就會出現如同頁面2 的樣子
+多出了 <3478> <5272> 這一類的原文編號或者原文字角括號 （這個叫做 strong’s number）, 甚至如果滑鼠駐留在這個角括號數字 (strong’s number) 內, 還會出現字典解釋用法,與同樣這字其它聖經出處這種的 tooltip metadata. 大家有空玩一下這種 strong number 出現, 隱沒的體驗. 在左下方幾乎最底下.
+
+
+https://photos.app.goo.gl/T4kBBihc65Mm3Pd6A
+https://photos.app.goo.gl/3sjM3RgqKUzYHjtTA
+
+
+
+
+
+在所有的八十多個聖經翻譯本中, 已經有 “中文和合本”, “英王欽定本” 兩個版本完成了這個 “加插原文字編號 strong’s number” 的任務.
+
+
+“中文和合本”
+https://bible.fhl.net/new/read.php?chap=12&ssn=1&VERSION=unv&strongflag=1&TABFLAG=1&TAIU=0&chineses=%E8%B7%AF&chap=12
+
+
+“英王欽定本”
+https://bible.fhl.net/new/read.php?chap=12&ssn=1&VERSION=kjv&strongflag=1&TABFLAG=1&TAIU=0&chineses=%E8%B7%AF&chap=12
+
+
+我的專案目的是
+如何拿第三個聖經版本, 仿照前兩個已經完工的作法, 也插入原文字的編號 （strong’s number）.
+
+我手上已經有六個 json 文檔, 分別是
+已經插入好 strong number 的和合本中文聖經全文
+已經插入好 strong number 的英王欽定本聖經全文
+全部是希伯來文原文的聖經舊約全文 （馬索拉譯本）
+全部是希臘文原文的聖經新約全文 （FHL 版新約希臘文）
+希伯來文strong’s number原文字的字典
+希臘文strong’s number原文字的字典
+
+想請教大家的，是如何用目前的AI或LLM技術，來協助以下幾件事：
+如何自動化地將Strong’s Number插入其他聖經譯本，減少人工負擔？
+如何精準地對齊翻譯版經文與Strong’s Number？現在已知一定可以對齊的是, 聖經當中每一節（verse）一定是對齊的
+如何善用已有的資料（中、英文已完成的版本）來訓練或協助新的標記過程？
+針對這個任務，大家有更基礎的考量點或基礎功需要建議的嗎？
+
+
+
+
+

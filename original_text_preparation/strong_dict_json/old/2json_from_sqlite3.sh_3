@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# Check if the first argument (Strong Number) is provided
+if [ -z "$1" ]; then
+  echo "Usage: $0 <StrongNumber> [nt|ot]"
+  exit 1
+fi
+
+# Database file
+DB_FILE="bible_little.db"
+
+# Check if the database file exists
+if [ ! -f "$DB_FILE" ]; then
+  echo "Error: Database file '$DB_FILE' not found."
+  exit 1
+fi
+
+# Format the Strong Number to 5 digits (e.g., 493 -> 00493)
+STRONG_NUMBER=$(printf "%05d" "$1")
+
+# Determine if the second argument is provided; default to 'ot'
+MODE=${2:-ot}
+
+# Validate the second argument
+if [[ "$MODE" != "nt" && "$MODE" != "ot" ]]; then
+  echo "Error: Invalid mode. Use 'nt' for New Testament or 'ot' for Old Testament."
+  exit 1
+fi
+
+# Query and construct JSON based on the mode
+if [ "$MODE" == "nt" ]; then
+  # New Testament (nt) mode query
+  result=$(sqlite3 "$DB_FILE" "
+    SELECT
+      json_object(
+        'sn', gsnum,
+        'dic_text', txt,
+        'dic_type', 0,
+        'orig', orig
+      )
+    FROM gfhl WHERE gsnum = '$STRONG_NUMBER';
+  ")
+else
+  # Old Testament (ot) mode query
+  result=$(sqlite3 "$DB_FILE" "
+    SELECT
+      json_object(
+        'sn', hsnum,
+        'dic_text', txt,
+        'dic_type', 1,
+        'orig', orig
+      )
+    FROM hfhl WHERE hsnum = '$STRONG_NUMBER';
+  ")
+fi
+
+# Check if the result is empty
+if [ -z "$result" ]; then
+  echo "No results found for Strong Number $STRONG_NUMBER in mode $MODE."
+else
+  # Beautify the JSON output (requires `jq` installed)
+  echo "$result" | jq .
+fi

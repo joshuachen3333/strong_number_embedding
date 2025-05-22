@@ -1,0 +1,31 @@
+echo -en `curl https://bible.fhl.net/json/qb.php?chineses=創&chap=1` | jq .
+echo -en `curl https://bible.fhl.net/json/qb.php?chineses=創&chap=1` | jq -r '.record[] | "\(.sec) \(.bible_text)"'
+echo -en `curl https://bible.fhl.net/json/qb.php?chineses=創&chap=1` | jq -r '.record[] | "\(.sec) \(.bible_text)"' | sed 's/^[0-9]* //'
+
+
+
+
+# all bible versions and their abbrivation.
+echo -en `curl https://bible.fhl.net/json/abv.php`
+echo -en `curl https://bible.fhl.net/json/abv.php` | jq -r
+
+echo -en `curl https://bible.fhl.net/json/rt.php?engs=Gen&chap=1&version=unv`
+echo -en `curl https://bible.fhl.net/json/sc.php?engs=Gen&chap=1&sec=10`
+echo -en `curl https://bible.fhl.net/json/ssc.php?key=天地` | jq -r
+
+# strong number dictionary
+curl "https://bible.fhl.net/json/sd.php?N=1&k=1458" | jq '.record[0]'
+curl "https://bible.fhl.net/json/sd.php?N=1&k=493"  | jq -r '.record[0]'
+curl "https://bible.fhl.net/json/sd.php?N=1&k=1458" | jq    '.record[0] | {sn, dic_text, edic_text, orig}'
+curl "https://bible.fhl.net/json/sd.php?N=1&k=1458" | jq -r '.record[0] | {sn, dic_text, edic_text, orig}'
+curl "https://bible.fhl.net/json/sd.php?N=1&k=1458" | jq -r '.record[0] | "\(.sn)\n\(.dic_text)\n\(.edic_text)\n\(.orig)"'
+
+# nonfree strong number dictionary
+echo -en `curl "https://bible.fhl.net/json/sbdag.php?k=1458&N=1"`
+
+
+
+
+echo -en  `curl "https://bible.fhl.net/json/qb.php?version=kjv&chineses=創&chap=1&strong=1"` | jq -r
+echo -en  `curl "https://bible.fhl.net/json/qb.php?version=unv&chineses=創&chap=1&strong=1"` | jq -r
+echo -en  `curl "https://bible.fhl.net/json/qb.php?version=unv&chineses=創&chap=1&strong=1"` | jq -r '.record[] | "\(.sec) \(.bible_text)"' | sed 's/^[0-9]* //'

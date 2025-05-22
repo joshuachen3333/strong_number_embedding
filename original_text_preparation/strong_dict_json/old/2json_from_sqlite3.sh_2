@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Check if an argument is provided
+if [ -z "$1" ]; then
+  echo "Usage: $0 <StrongNumber>"
+  exit 1
+fi
+
+# Database file
+DB_FILE="bible_little.db"
+
+# Check if the database file exists
+if [ ! -f "$DB_FILE" ]; then
+  echo "Error: Database file '$DB_FILE' not found."
+  exit 1
+fi
+
+# Format the Strong Number to 5 digits (e.g., 493 -> 00493)
+STRONG_NUMBER=$(printf "%05d" "$1")
+
+# Execute SQLite query and capture the result
+result=$(sqlite3 "$DB_FILE" "
+SELECT
+  json_object(
+    'sn', hsnum,
+    'dic_text', txt,
+    'dic_type', 1,
+    'orig', orig
+  )
+FROM hfhl WHERE hsnum = '$STRONG_NUMBER';
+")
+
+# Check if the result is empty
+if [ -z "$result" ]; then
+  echo "No results found for Strong Number $STRONG_NUMBER."
+else
+  # Beautify the JSON output (requires `jq` installed)
+  echo "$result" | jq .
+fi
