@@ -1,3 +1,5 @@
+We don't modify any existing translated version or create one. We strictly follow the snapshot of the zip sqlite data at FHL
+
 1, bible_little.db 中文和合本含/不含strong number 經文, 與新舊約原文字典(unv, Chinese Union Version with/without strong number and both OT and NT strong's word dictionaries)
 https://ftp.fhl.net/FHL/COBS/data/bible_little.zip
 
@@ -10,3 +12,4 @@ https://ftp.fhl.net/FHL/COBS/data/bible_bhs.zip
 4, 新約原文 (fhlwh, fhl collection of NT text from authorized various sources )
 https://ftp.fhl.net/FHL/COBS/data/bible_fhlwh.zip
 
+And there must be regular re-download of these files since FHL might revise them.
