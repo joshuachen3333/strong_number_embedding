@@ -35,16 +35,16 @@ This project builds upon existing work and data:
 
 The core challenge is to accurately and efficiently embed Strong's Numbers into new Bible translations. The project aims to address this by:
 
-1.  **Automation:** Developing methods to automatically insert Strong's Numbers, significantly reducing the laborious manual effort traditionally required for such tasks.
+1.  **(Semi)automation:** Developing methods to (semi)automatically insert Strong's Numbers, significantly reducing the laborious manual effort traditionally required for such tasks.
 2.  **Alignment:** Ensuring that words or phrases in the target translation are accurately aligned with the correct Strong's Numbers from the original Hebrew or Greek texts. While verse-level alignment is a given (i.e., we know which verse in the translation corresponds to which verse in the original), word-level alignment is the critical task.
 3.  **Leveraging Existing Data:** Utilizing the already annotated UNV (Chinese Union Version) and KJV (King James Version) versions as training data, reference guides, or validation sets to improve the annotation process for new translations.
 4.  **AI/LLM Exploration:** Actively exploring and applying state-of-the-art AI and LLM technologies to tackle the automation and alignment challenges. This includes investigating how these models can learn from the existing data to predict Strong's Number placements in untagged texts.
-
+5.  **An aid environment/tool for a human translators is even more valuable when he/she is doing the job manually, providing enough room for human decisions and conveniences.
 ## Project Structure
 
 The project is organized as follows:
 
-*   **`original_text_preparation/`**: This subdirectory is crucial. It contains all the necessary scripts, source data (primarily SQLite databases), and documentation for generating the clean, structured JSON data resources listed above. The tools in this directory handle the extraction and formatting of Bible texts and Strong's dictionaries, providing the foundational datasets required for the main Strong's Number embedding task. (See `original_text_preparation/README.txt` for more details on its contents and usage).
+*   **`original_text_preparation/`**: This subdirectory is crucial. It contains all the necessary scripts, source data (primarily SQLite databases), and documentation for generating the clean, structured JSON data resources listed above. It doesn't create any new translation or modify any. It always follows the snapshot of the text at https://bible.fhl.net, and should update the content accordingly from time to time. The tools in this directory handle the extraction and formatting of Bible texts and Strong's dictionaries, providing the foundational datasets required for the main Strong's Number embedding task. (See `original_text_preparation/README.txt` for more details on its contents and usage).
 
 *   **(Future Directories):** As the project evolves, directories for AI model development, training scripts, evaluation tools, and output for newly annotated Bible versions will be added.
 
