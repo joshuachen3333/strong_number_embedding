@@ -2,7 +2,7 @@
 
 ## Main Purpose
 
-The primary goal of the `strong_number_embedding` project is to develop a system, envisioned to leverage Artificial Intelligence (AI) and Large Language Models (LLM), to automate the insertion of Strong's Numbers into various Bible translations that currently lack them. This will make deep linguistic study of the Bible more accessible across different languages.
+The primary goal of the `strong_number_embedding` project is to develop a system, envisioned to leverage Artificial Intelligence (AI) and Large Language Models (LLM), to (semi)automate the insertion of Strong's Numbers into various Bible translations that currently lack them. This will make deep linguistic study of the Bible more accessible across different languages.
 
 ## Background - What are Strong's Numbers?
 
