@@ -1,5 +1,12 @@
 Here's a summary of the GitHub project `strong_number_embedding`'s `original_text_preparation` directory:
 
+We don't create any new bible translation or modify any existing translated version. We strictly follow the current snapshot of different versions at (https://ftp.fhl.net/FHL/COBS/data/).
+So keep in mind that this subdirectory is empty at the beginning, then we download zip sqlite file like
+wget https://ftp.fhl.net/FHL/COBS/data/bible_little.zip
+wget https://ftp.fhl.net/FHL/COBS/data/bible_kjv.zip
+
+All tasks start from the downloaded sqlite zip data.
+
 **Purpose of `original_text_preparation`:**
 
 This directory contains tools and data for processing biblical texts as a foundational step for the broader `strong_number_embedding` project. Its primary goal is to prepare various Bible versions and Strong's Number resources, making them ready for the main project task, which is to embed Strong's Numbers into other Bible translations that do not yet have them. The scripts and data here allow for:
@@ -37,3 +44,5 @@ The structured JSON data produced by these preparation scripts can be valuable f
 *   **Natural Language Processing (NLP) and AI Applications:** Providing datasets for training machine translation models or developing semantic search for biblical texts.
 
 In essence, the `original_text_preparation` directory provides a command-line toolkit to transform raw biblical data from SQLite databases into more accessible JSON formats, enriched with Strong's Numbers, ready for the primary embedding task or other scholarly and technical applications.
+
+And FHL might revise the above .zip sqlite source data, so we need to renew and re-process everything.
