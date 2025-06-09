@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual Bible Reader</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <h1>Dual Synchronized Bible Reader</h1>
+
+    <div class="container">
+        <div id="main-reader-component-container">
+            <h2>Main Reader</h2>
+            <!-- Main Reader HTML will be injected here by main_reader_frontend.js,
+                 or defined directly if preferred for static parts -->
+            <div id="main-reader-component">
+                <div class="reader-controls">
+                    <label for="main-reader-book">Book:</label>
+                    <select id="main-reader-book"></select>
+                    <label for="main-reader-chapter">Chapter:</label>
+                    <input type="number" id="main-reader-chapter" value="1" min="1">
+                    <input type="hidden" id="main-reader-version" value="unv">
+                    <input type="hidden" id="main-reader-strong" value="1">
+                    <button id="main-reader-load">Load Chapter</button>
+                </div>
+                <div id="main-reader-content-area" class="reader-content">
+                    <p>Loading content...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="second-reader-component-container">
+            <h2>Second Reader</h2>
+            <!-- Second Reader HTML will be injected here by second_reader_frontend.js,
+                 or defined directly -->
+            <div id="second-reader-component">
+                <div class="reader-controls">
+                    <label for="second-reader-version-select">Version:</label>
+                    <select id="second-reader-version-select">
+                        <option value="unv">UNV (Union Version)</option>
+                        <option value="kjv">KJV (King James Version)</option>
+                        <option value="esv">ESV (English Standard Version)</option>
+                        <!-- Add other versions as needed -->
+                    </select>
+                    <label for="second-reader-strong-toggle">Strong's Numbers:</label>
+                    <input type="checkbox" id="second-reader-strong-toggle" checked>
+                </div>
+                <div id="second-reader-content-area" class="reader-content">
+                    <p>Waiting for main reader...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/mock_mediator.js"></script>
+    <script src="js/main_reader_frontend.js"></script>
+    <script src="js/second_reader_frontend.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.container {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+#main-reader-component-container,
+#second-reader-component-container {
+    width: 45%;
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.reader-controls {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.reader-controls label,
+.reader-controls select,
+.reader-controls input,
+.reader-controls button {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.reader-content {
+    height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+    background-color: #f9f9f9;
+}
+
+h1, h2 {
+    color: #333;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+/* Basic styling for verse numbers and Strong's numbers */
+.verse .verse-number {
+    font-weight: bold;
+    color: #007bff; /* Blue color for verse numbers */
+}
+
+.verse .strongs-number {
+    color: #28a745; /* Green color for Strong's numbers */
+    font-size: 0.9em;
+    cursor: pointer;
+}
+
+.verse .strongs-number:hover {
+    text-decoration: underline;
+}
