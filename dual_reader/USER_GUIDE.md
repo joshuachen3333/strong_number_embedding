@@ -12,30 +12,39 @@ The Dual Synchronized Bible Reader allows you to view two Bible text readers sid
 
 As this is a client-side application, setup is straightforward:
 
-1.  **Download Files:** Ensure you have all the application files:
-    *   `index.html`
-    *   `css/style.css`
-    *   `js/mock_mediator.js`
-    *   `js/main_reader_frontend.js`
-    *   `js/second_reader_frontend.js`
-    *   `js/app.js`
-    (These should typically be downloaded together, perhaps as a ZIP archive from a repository, or cloned using Git.)
+1.  **Obtain Application Files:** Ensure you have the `dual_reader` directory and all its contents. This includes:
+    *   `dual_reader/index.html`
+    *   `dual_reader/DESIGN.md`
+    *   `dual_reader/IMPLEMENTATION.md`
+    *   `dual_reader/USER_GUIDE.md` (this file)
+    *   `dual_reader/css/style.css`
+    *   `dual_reader/js/mock_mediator.js`
+    *   `dual_reader/js/main_reader_frontend.js`
+    *   `dual_reader/js/second_reader_frontend.js`
+    *   `dual_reader/js/app.js`
+    (These files would typically be acquired by downloading and extracting a ZIP archive of the project or by cloning the Git repository.)
 
-2.  **Maintain File Structure:** Keep the files in their intended directory structure:
+2.  **Directory Structure:**
+    If you downloaded a ZIP, extract it. You should have a main project folder, and inside it, a `dual_reader` directory structured as follows:
     ```
-    your_download_folder/
-    ├── index.html
-    ├── css/
-    │   └── style.css
-    └── js/
-        ├── mock_mediator.js
-        ├── main_reader_frontend.js
-        ├── second_reader_frontend.js
-        └── app.js
+    your_project_root_folder/
+    └── dual_reader/
+        ├── index.html
+        ├── DESIGN.md
+        ├── IMPLEMENTATION.md
+        ├── USER_GUIDE.md
+        ├── css/
+        │   └── style.css
+        └── js/
+            ├── mock_mediator.js
+            ├── main_reader_frontend.js
+            ├── second_reader_frontend.js
+            └── app.js
     ```
+    (If you cloned a Git repository that also contains an `original_text_preparation` folder at the root, the `dual_reader` folder will be alongside it.)
 
-3.  **Open in Browser:** Open the `index.html` file in a modern web browser (e.g., Chrome, Firefox, Edge, Safari).
-    *   You can usually do this by double-clicking `index.html` or using your browser's "File > Open File..." menu.
+3.  **Open in Browser:** Navigate into the `dual_reader` directory and open the `index.html` file (i.e., `your_project_root_folder/dual_reader/index.html`) in a modern web browser (e.g., Chrome, Firefox, Edge, Safari).
+    *   You can usually do this by double-clicking this `index.html` file or using your browser's "File > Open File..." menu and navigating to it.
 
 No server setup is required for this version.
 
@@ -82,7 +91,7 @@ Once `index.html` is open in your browser, you will see two reader panels: "Main
 
 ## 5. Troubleshooting
 
-*   **Content Not Loading:** Ensure all JavaScript files are present in the `js/` directory and `index.html` can access them. Check your browser's developer console (usually opened with F12) for any error messages.
+*   **Content Not Loading:** Ensure `index.html` and the `js/` and `css/` subdirectories are all correctly placed within the `dual_reader` folder. Check your browser's developer console (usually opened with F12) for any error messages about missing files.
 *   **Synchronization Issues:** This version is designed for same-page operation. If you've modified the files or are trying to run components separately, synchronization will not work.
 
 Enjoy using the Dual Synchronized Bible Reader!

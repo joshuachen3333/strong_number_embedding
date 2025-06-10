@@ -4,19 +4,25 @@ This document provides details on the implementation of the Dual Synchronized Bi
 
 ## 1. File Structure
 
-The application is organized into the following file structure:
+The application is organized into the following file structure, with all relevant files for this dual reader application residing under the `dual_reader/` directory:
 
 ```
 .
-├── index.html                  # Main HTML page hosting both readers
-├── css/
-│   └── style.css               # Basic CSS for styling
-└── js/
-    ├── mock_mediator.js        # Simulates the backend mediator and API
-    ├── main_reader_frontend.js # JavaScript for the Main Reader component
-    ├── second_reader_frontend.js# JavaScript for the Second Reader component
-    └── app.js                  # Main application script (initialization)
+└── dual_reader/
+    ├── index.html                  # Main HTML page hosting both readers
+    ├── DESIGN.md                   # Software Design Document
+    ├── IMPLEMENTATION.md           # This Implementation Details Document
+    ├── USER_GUIDE.md               # User Guide
+    ├── css/
+    │   └── style.css               # Basic CSS for styling
+    └── js/
+        ├── mock_mediator.js        # Simulates the backend mediator and API
+        ├── main_reader_frontend.js # JavaScript for the Main Reader component
+        ├── second_reader_frontend.js# JavaScript for the Second Reader component
+        └── app.js                  # Main application script (initialization)
 ```
+
+The rest of the document refers to files like `js/mock_mediator.js`. These paths are now implicitly relative to the `dual_reader/` directory if one considers `dual_reader/` as the project root for this specific application part. For clarity within this document, references like "js/mock_mediator.js" mean `dual_reader/js/mock_mediator.js` in the overall repository.
 
 ## 2. Core JavaScript Components
 
