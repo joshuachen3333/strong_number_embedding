@@ -1,0 +1,167 @@
+/**
+ * Second Reader Frontend Logic
+ * Handles the functionality of the second Bible reader component,
+ * which synchronizes with the main reader.
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    const versionSelect = document.getElementById('second-reader-version-select');
+    const strongToggle = document.getElementById('second-reader-strong-toggle');
+    const contentArea = document.getElementById('second-reader-content-area');
+
+    let currentBook = null;
+    let currentChapter = null;
+    let currentVerses = null; // Store verses from main reader
+
+    // Event listeners for controls
+    versionSelect.addEventListener('change', displaySyncedContent);
+    strongToggle.addEventListener('change', displaySyncedContent);
+
+    /**
+     * Subscribes to the main reader's chapter change event.
+     */
+    MockMediator.subscribe('mainReaderChapterChanged', (data) => {
+        console.log('SecondReader: Received chapter change from MainReader:', data);
+        currentBook = data.book;
+        currentChapter = data.chapter;
+        currentVerses = data.verses; // Store the detailed verse data
+        // Display content immediately with current settings or fetch new version
+        displaySyncedContent();
+    });
+
+    /**
+     * Displays the content in the second reader, synchronized with the main reader.
+     * This might involve re-fetching data if a different version is selected,
+     * or re-rendering if only Strong's numbers preference changed.
+     */
+    async function displaySyncedContent() {
+        if (!currentBook || !currentChapter || !currentVerses) {
+            contentArea.innerHTML = '<p>Waiting for main reader to load content...</p>';
+            return;
+        }
+
+        const selectedVersion = versionSelect.value;
+        const showStrongs = strongToggle.checked;
+
+        contentArea.innerHTML = `<p>Loading ${currentBook} chapter ${currentChapter} (${selectedVersion.toUpperCase()})...</p>`;
+
+        try {
+            // If the version is different from what main reader provided (UNV)
+            // or if main reader's version is not what we want, we might need to fetch.
+            // For this example, let's assume main reader always provides UNV with Strong's.
+            // The second reader will then re-render or fetch based on its own controls.
+
+            // If the requested version is the same as main reader's initially loaded (UNV)
+            // AND strongs preference matches what main reader COULD provide, we can re-use main reader's data.
+            // However, the main reader example always fetches 'unv' with strong=true.
+            // The second reader needs to fetch if version is different OR strongs is false (as main gives true).
+
+            // For simplicity in this mock version:
+            // If version is "unv" and strongs is true, use main reader's data directly.
+            // Otherwise, simulate a fetch for the new version/strongs combination.
+            if (selectedVersion === 'unv' && showStrongs && mainReaderProvidedStrongs()) {
+                console.log('SecondReader: Rendering UNV with Strongs from main reader data.');
+                renderChapter({
+                    book: currentBook,
+                    chapter: currentChapter,
+                    version: selectedVersion.toUpperCase(),
+                    strong: showStrongs,
+                    verses: currentVerses // Use the verses passed by the main reader
+                });
+            } else {
+                // Simulate fetching for other versions or if Strong's is off for UNV
+                console.log(`SecondReader: Simulating fetch for ${selectedVersion}, Strongs: ${showStrongs}`);
+                const apiUrl = `/api/bible/${selectedVersion}/${currentBook.toLowerCase().replace(/\s+/g, '')}/${currentChapter}?strong=${showStrongs ? 1 : 0}`;
+                console.log(`SecondReader: Fetching from ${apiUrl}`);
+
+                // Mock API call for other versions
+                const mockVerseText = selectedVersion === 'kjv' ? "In the beginning God created the heaven and the earth (KJV)." : "In the beginning God created the heavens and the earth (ESV).";
+                const mockFetchedData = {
+                    book: currentBook,
+                    chapter: currentChapter,
+                    version: selectedVersion.toUpperCase(),
+                    strong: showStrongs,
+                    verses: currentVerses.map(v => ({ // Re-map based on original verse structure
+                        verse: v.verse,
+                        // Simulate slightly different text and Strong's based on version/preference
+                        text: `[${selectedVersion.toUpperCase()}] Verse ${v.verse}: ${mockVerseText} (Original text: ${v.text.substring(0,30)}...)`,
+                        strongs: showStrongs ? v.strongs : [] // Include strongs only if toggled
+                    }))
+                };
+                await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
+                renderChapter(mockFetchedData);
+            }
+        } catch (error) {
+            console.error('SecondReader: Error loading/displaying chapter content:', error);
+            contentArea.innerHTML = `<p>Error loading content for second reader: ${error.message}</p>`;
+        }
+    }
+
+    /**
+     * Helper to check if the main reader's data included Strong's numbers.
+     * This is a simplified check based on the current main_reader_frontend.js behavior.
+     */
+    function mainReaderProvidedStrongs() {
+        // The main reader currently fetches with strong=1 (true) for UNV.
+        // So if currentVerses exist and have strongs data, it was provided.
+        return currentVerses && currentVerses.length > 0 && currentVerses[0].strongs && currentVerses[0].strongs.length > 0;
+    }
+
+
+    /**
+     * Renders the chapter content in the second reader's content area.
+     * @param {object} data - The chapter data.
+     */
+    function renderChapter(data) {
+        let htmlContent = `<h3>${data.book} ${data.chapter} (${data.version})`;
+        htmlContent += data.strong ? " - Strong's On" : " - Strong's Off";
+        htmlContent += `</h3>`;
+
+        data.verses.forEach(verse => {
+            htmlContent += `<p class="verse" data-verse="${verse.verse}">`;
+            htmlContent += `<span class="verse-number">${verse.verse}</span> `;
+
+            let verseText = verse.text;
+            if (data.strong && verse.strongs && verse.strongs.length > 0) {
+                verse.strongs.forEach(strongObj => {
+                    for (const strongNum in strongObj) {
+                        const word = strongObj[strongNum];
+                        verseText = verseText.replace(word, `${word} <span class="strongs-number" data-strong="${strongNum}">(${strongNum})</span>`);
+                    }
+                });
+            }
+            htmlContent += verseText;
+            htmlContent += `</p>`;
+        });
+        contentArea.innerHTML = htmlContent;
+
+        if (data.strong) {
+            attachStrongsEventListenersSecondReader();
+        }
+    }
+
+    /**
+     * Attaches event listeners to Strong's number elements in the second reader.
+     */
+    function attachStrongsEventListenersSecondReader() {
+        const strongsElements = contentArea.querySelectorAll('.strongs-number');
+        strongsElements.forEach(el => {
+            el.addEventListener('click', () => {
+                const strongNum = el.dataset.strong;
+                console.log(`SecondReader: Strong's number ${strongNum} clicked.`);
+                // Publish an event (could be the same or a different event name)
+                MockMediator.publish('strongsNumberClicked', {
+                    strongNumber: strongNum,
+                    version: versionSelect.value // Version from this reader
+                });
+                alert(`Strong's number clicked (Second Reader): ${strongNum}. Definition lookup not yet implemented.`);
+            });
+        });
+    }
+
+    // Subscribe to Strong's number clicks (e.g., if a central definition display is implemented)
+    // MockMediator.subscribe('strongsNumberClicked', (data) => {
+    //    console.log('Second reader also acknowledges Strongs click:', data);
+    //    // This might be useful if the second reader also needs to react,
+    //    // but typically one component would display the definition.
+    // });
+});
