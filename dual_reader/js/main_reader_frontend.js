@@ -47,10 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event listener for the load button
     loadButton.addEventListener('click', loadChapterContent);
 
-    // Add event listeners for automatic content loading on change
-    bookSelect.addEventListener('change', loadChapterContent);
-    chapterInput.addEventListener('change', loadChapterContent);
-    versionSelect.addEventListener('change', loadChapterContent);
+    // Add event listeners for automatic content loading on change - REMOVED
+    // bookSelect.addEventListener('change', loadChapterContent);
+    // chapterInput.addEventListener('change', loadChapterContent);
+    // versionSelect.addEventListener('change', loadChapterContent);
 
     /**
      * Loads the chapter content based on selected book, chapter, version, and Strong's numbers preference.

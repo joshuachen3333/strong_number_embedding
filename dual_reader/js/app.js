@@ -4,7 +4,7 @@ const translations = {
         secondReaderTitle: "Second Reader",
         mainReaderBookLabel: "Book:",
         mainReaderChapterLabel: "Chapter:",
-        mainReaderLoadButton: "Refresh",
+        mainReaderLoadButton: "Load Chapter",
         secondReaderVersionLabel: "Version:",
         secondReaderStrongsLabel: "Strong's Numbers:",
         mainReaderLoadingContent: "Loading content...",
@@ -15,19 +15,20 @@ const translations = {
         strongsOff: "Strong's Off"
     },
     zh: {
-        mainReaderTitle: "主阅读器",
-        secondReaderTitle: "第二阅读器",
-        mainReaderBookLabel: "书卷：",
-        mainReaderChapterLabel: "章：",
-        mainReaderLoadButton: "刷新",
-        secondReaderVersionLabel: "版本：",
-        secondReaderStrongsLabel: "斯特朗编码：",
-        mainReaderLoadingContent: "正在加载内容...",
-        secondReaderWaiting: "等待主阅读器...",
-        pleaseSelectBookAndChapter: "请选择书卷和章节。",
-        loading: "加载中...",
-        strongsOn: "打开斯特朗编码",
-        strongsOff: "关闭斯特朗编码"
+      languageName: "正體中文", // Assuming this should remain as the name in the language dropdown
+      mainReaderTitle: "main reader",
+      secondReaderTitle: "2nd reader",
+      mainReaderBookLabel: "書卷：",
+      mainReaderChapterLabel: "章：",
+      mainReaderLoadButton: "載入章節",
+      secondReaderVersionLabel: "版本：",
+      secondReaderStrongsLabel: "Strong number：",
+      mainReaderLoadingContent: "載入内容...",
+      secondReaderWaiting: "等待main reader...",
+      pleaseSelectBookAndChapter: "請選擇書卷和章節。",
+      loading: "載入中...",
+      strongsOn: "打開 Strong number",
+      strongsOff: "關閉 Strong number"
     }
 };
 
