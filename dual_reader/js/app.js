@@ -26,8 +26,8 @@ const translations = {
         secondReaderWaiting: "等待主阅读器...",
         pleaseSelectBookAndChapter: "请选择书卷和章节。",
         loading: "加载中...",
-        strongsOn: "打开斯特朗编码",
-        strongsOff: "关闭斯特朗编码"
+        strongsOn: "打開 Strong number",
+        strongsOff: "關閉 Strong number"
     }
 };
 
