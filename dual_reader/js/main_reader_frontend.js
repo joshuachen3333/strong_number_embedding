@@ -9,8 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const contentArea = document.getElementById('main-reader-content-area');
     const versionSelect = document.getElementById('main-reader-version-select'); // Changed from versionInput
     const strongInput = document.getElementById('main-reader-strong');   // Hidden input
+    const apiUrlDisplay = document.getElementById('main-reader-api-url-display'); // For displaying FHL.net URL
 
-    // Populate book select options (example, replace with actual book data)
+    // Populate book select options
     const books = [
         "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel",
         "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra", "Nehemiah", "Esther", "Job", "Psalms", "Proverbs",
@@ -20,15 +21,36 @@ document.addEventListener('DOMContentLoaded', () => {
         "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus", "Philemon",
         "Hebrews", "James", "1 Peter", "2 Peter", "1 John", "2 John", "3 John", "Jude", "Revelation"
     ];
-    books.forEach(book => {
-        const option = document.createElement('option');
-        option.value = book.toLowerCase().replace(/\s+/g, ''); // e.g., "genesis", "songofsongs"
-        option.textContent = book;
-        bookSelect.appendChild(option);
-    });
+
+    if (bookSelect && books && books.length > 0) {
+        console.log('Populating book select dropdown...');
+        console.log(`Found bookSelect element: ${bookSelect.id}`);
+        console.log(`Total books to populate: ${books.length}`);
+
+        // Clear existing options first - intentionally NOT doing this for now, as per subtask instruction.
+        // bookSelect.innerHTML = '';
+
+        books.forEach(book => {
+            const option = document.createElement('option');
+            option.value = book.toLowerCase().replace(/\s+/g, ''); // e.g., "genesis", "songofsongs"
+            option.textContent = book;
+            bookSelect.appendChild(option);
+            console.log(`Adding book: ${book}`); // Kept from previous step
+        });
+        console.log(`Finished populating books. Total options: ${bookSelect.options.length}`);
+    } else {
+        console.error('Could not populate book select: bookSelect element not found or books array is empty.');
+        if (!bookSelect) console.error('bookSelect is null or undefined.');
+        if (!books || books.length === 0) console.error('books array is null, undefined, or empty.');
+    }
 
     // Event listener for the load button
     loadButton.addEventListener('click', loadChapterContent);
+
+    // Add event listeners for automatic content loading on change
+    bookSelect.addEventListener('change', loadChapterContent);
+    chapterInput.addEventListener('change', loadChapterContent);
+    versionSelect.addEventListener('change', loadChapterContent);
 
     /**
      * Loads the chapter content based on selected book, chapter, version, and Strong's numbers preference.
@@ -37,7 +59,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const book = bookSelect.value;
         const chapter = chapterInput.value;
         const version = versionSelect.value; // Read from the select dropdown
-        const strong = strongInput.value; // "1" for true, "0" for false
+        const strong = strongInput.value; // "1" for true, "0" for false (Main reader strongs is implicitly on for UNV)
+
+        // Construct and display FHL.net URL
+        const fhlNetBookName = bookSelect.options[bookSelect.selectedIndex].text; // Using English book name as placeholder for 'chineses'
+        // Simplified FHL URL construction for display - actual API parameters might vary
+        const fhlUrl = `https://bible.fhl.net/new/read.php?chineses=${encodeURIComponent(fhlNetBookName)}&chap=${chapter}&VERSION=${version}&strongflag=1&TABFLAG=1`;
+        if (apiUrlDisplay) {
+            apiUrlDisplay.textContent = fhlUrl;
+        }
 
         const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en';
         const langTranslations = translations[selectedLanguage] || translations.en;
