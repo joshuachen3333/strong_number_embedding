@@ -21,9 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     MockMediator.subscribe('mainReaderChapterChanged', (data) => {
         console.log('SecondReader: Received chapter change from MainReader:', data);
-        currentBook = data.book;
+        currentBook = data.book; // This is the display name from main reader
         currentChapter = data.chapter;
         currentVerses = data.verses; // Store the detailed verse data
+        // Store the internal version value from main reader if provided, for potential intelligent fetching
+        // currentMainReaderInternalVersion = data.internalVersionValue || 'unv';
         // Display content immediately with current settings or fetch new version
         displaySyncedContent();
     });
@@ -34,15 +36,18 @@ document.addEventListener('DOMContentLoaded', () => {
      * or re-rendering if only Strong's numbers preference changed.
      */
     async function displaySyncedContent() {
+        const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en';
+        const langTranslations = translations[selectedLanguage] || translations.en;
+
         if (!currentBook || !currentChapter || !currentVerses) {
-            contentArea.innerHTML = '<p>Waiting for main reader to load content...</p>';
+            contentArea.innerHTML = `<p>${langTranslations.secondReaderWaiting}</p>`;
             return;
         }
 
         const selectedVersion = versionSelect.value;
         const showStrongs = strongToggle.checked;
 
-        contentArea.innerHTML = `<p>Loading ${currentBook} chapter ${currentChapter} (${selectedVersion.toUpperCase()})...</p>`;
+        contentArea.innerHTML = `<p>${langTranslations.loading} ${currentBook} ${langTranslations.mainReaderChapterLabel.toLowerCase()} ${currentChapter} (${selectedVersion.toUpperCase()})...</p>`;
 
         try {
             // If the version is different from what main reader provided (UNV)
@@ -74,17 +79,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log(`SecondReader: Fetching from ${apiUrl}`);
 
                 // Mock API call for other versions
-                const mockVerseText = selectedVersion === 'kjv' ? "In the beginning God created the heaven and the earth (KJV)." : "In the beginning God created the heavens and the earth (ESV).";
+                let mockVerseText = `Generic text for ${selectedVersion}.`;
+                let versionDisplayText = selectedVersion.toUpperCase();
+
+                const versionOption = Array.from(versionSelect.options).find(opt => opt.value === selectedVersion);
+                if (versionOption) {
+                    versionDisplayText = versionOption.text;
+                }
+
+
+                if (selectedVersion === 'kjv') {
+                    mockVerseText = "In the beginning God created the heaven and the earth (KJV).";
+                } else if (selectedVersion === 'esv') {
+                    mockVerseText = "In the beginning God created the heavens and the earth (ESV).";
+                } else if (selectedVersion === 'rcuv2010') {
+                    mockVerseText = "起初神創造天地 (和合本2010)。";
+                } else if (selectedVersion === 'lcc') {
+                    mockVerseText = "起初，上帝創造了天地 (呂振中)。";
+                }
+
                 const mockFetchedData = {
-                    book: currentBook,
+                    book: currentBook, // Already display name
                     chapter: currentChapter,
-                    version: selectedVersion.toUpperCase(),
+                    version: versionDisplayText, // Use display text
                     strong: showStrongs,
                     verses: currentVerses.map(v => ({ // Re-map based on original verse structure
                         verse: v.verse,
                         // Simulate slightly different text and Strong's based on version/preference
-                        text: `[${selectedVersion.toUpperCase()}] Verse ${v.verse}: ${mockVerseText} (Original text: ${v.text.substring(0,30)}...)`,
-                        strongs: showStrongs ? v.strongs : [] // Include strongs only if toggled
+                        text: `[${versionDisplayText}] Verse ${v.verse}: ${mockVerseText} (Original text reference: ${v.text.substring(0,30)}...)`,
+                        strongs: showStrongs ? (v.strongs || []) : [] // Include strongs only if toggled, ensure v.strongs exists
                     }))
                 };
                 await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
@@ -101,9 +124,12 @@ document.addEventListener('DOMContentLoaded', () => {
      * This is a simplified check based on the current main_reader_frontend.js behavior.
      */
     function mainReaderProvidedStrongs() {
-        // The main reader currently fetches with strong=1 (true) for UNV.
-        // So if currentVerses exist and have strongs data, it was provided.
-        return currentVerses && currentVerses.length > 0 && currentVerses[0].strongs && currentVerses[0].strongs.length > 0;
+        // Check if the first verse from main reader has some strongs data.
+        // This relies on main_reader_frontend.js providing strongs data if it was loaded.
+        // The structure of `currentVerses` comes from the main reader's `mockData.verses`
+        // which now conditionally includes strongs based on its own strong toggle.
+        // So, if main reader's strong toggle was on for its 'unv' (or other) load, it should be here.
+        return currentVerses && currentVerses.length > 0 && currentVerses[0] && currentVerses[0].strongs && currentVerses[0].strongs.length > 0;
     }
 
 
@@ -112,8 +138,12 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {object} data - The chapter data.
      */
     function renderChapter(data) {
+        const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en';
+        const langTranslations = translations[selectedLanguage] || translations.en;
+
+        // data.version already contains the display text from mockFetchedData or main reader
         let htmlContent = `<h3>${data.book} ${data.chapter} (${data.version})`;
-        htmlContent += data.strong ? " - Strong's On" : " - Strong's Off";
+        htmlContent += data.strong ? ` - ${langTranslations.strongsOn}` : ` - ${langTranslations.strongsOff}`;
         htmlContent += `</h3>`;
 
         data.verses.forEach(verse => {
@@ -164,4 +194,11 @@ document.addEventListener('DOMContentLoaded', () => {
     //    // This might be useful if the second reader also needs to react,
     //    // but typically one component would display the definition.
     // });
+
+    // Update initial placeholder text based on selected language
+    const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en';
+    const langTranslations = translations[selectedLanguage] || translations.en;
+    if (contentArea.firstElementChild && contentArea.firstElementChild.textContent.trim() === "Waiting for main reader...") {
+        contentArea.firstElementChild.textContent = langTranslations.secondReaderWaiting;
+    }
 });

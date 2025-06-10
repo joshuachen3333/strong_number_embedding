@@ -1,3 +1,98 @@
+const translations = {
+    en: {
+        mainReaderTitle: "Main Reader",
+        secondReaderTitle: "Second Reader",
+        mainReaderBookLabel: "Book:",
+        mainReaderChapterLabel: "Chapter:",
+        mainReaderLoadButton: "Load Chapter",
+        secondReaderVersionLabel: "Version:",
+        secondReaderStrongsLabel: "Strong's Numbers:",
+        mainReaderLoadingContent: "Loading content...",
+        secondReaderWaiting: "Waiting for main reader...",
+        pleaseSelectBookAndChapter: "Please select a book and chapter.",
+        loading: "Loading...",
+        strongsOn: "Strong's On",
+        strongsOff: "Strong's Off"
+    },
+    zh: {
+        mainReaderTitle: "主阅读器",
+        secondReaderTitle: "第二阅读器",
+        mainReaderBookLabel: "书卷：",
+        mainReaderChapterLabel: "章：",
+        mainReaderLoadButton: "加载章节",
+        secondReaderVersionLabel: "版本：",
+        secondReaderStrongsLabel: "斯特朗编码：",
+        mainReaderLoadingContent: "正在加载内容...",
+        secondReaderWaiting: "等待主阅读器...",
+        pleaseSelectBookAndChapter: "请选择书卷和章节。",
+        loading: "加载中...",
+        strongsOn: "打开斯特朗编码",
+        strongsOff: "关闭斯特朗编码"
+    }
+};
+
+function updateUIText(language) {
+    const langTranslations = translations[language];
+    if (!langTranslations) {
+        console.error(`Translations not found for language: ${language}`);
+        return;
+    }
+
+    // Update static text elements in index.html
+    const mainReaderTitleEl = document.getElementById('mainReaderTitle');
+    if (mainReaderTitleEl) mainReaderTitleEl.textContent = langTranslations.mainReaderTitle;
+
+    const secondReaderTitleEl = document.getElementById('secondReaderTitle');
+    if (secondReaderTitleEl) secondReaderTitleEl.textContent = langTranslations.secondReaderTitle;
+
+    // Update text elements in main_reader_frontend.js
+    const mainReaderBookLabel = document.querySelector('#main-reader-component .reader-controls label[for="main-reader-book"]');
+    if (mainReaderBookLabel) mainReaderBookLabel.textContent = langTranslations.mainReaderBookLabel;
+
+    const mainReaderChapterLabel = document.querySelector('#main-reader-component .reader-controls label[for="main-reader-chapter"]');
+    if (mainReaderChapterLabel) mainReaderChapterLabel.textContent = langTranslations.mainReaderChapterLabel;
+
+    const mainReaderLoadButton = document.getElementById('main-reader-load');
+    if (mainReaderLoadButton) mainReaderLoadButton.textContent = langTranslations.mainReaderLoadButton;
+
+    // Update text elements in second_reader_frontend.js
+    const secondReaderVersionLabel = document.querySelector('#second-reader-component .reader-controls label[for="second-reader-version-select"]');
+    if (secondReaderVersionLabel) secondReaderVersionLabel.textContent = langTranslations.secondReaderVersionLabel;
+
+    const secondReaderStrongsLabel = document.querySelector('#second-reader-component .reader-controls label[for="second-reader-strong-toggle"]');
+    if (secondReaderStrongsLabel) secondReaderStrongsLabel.textContent = langTranslations.secondReaderStrongsLabel;
+
+    // Update dynamic content placeholders if they exist (initial load)
+    const mainReaderContentArea = document.getElementById('main-reader-content-area');
+    if (mainReaderContentArea && mainReaderContentArea.firstElementChild && mainReaderContentArea.firstElementChild.textContent.trim() === "Loading content...") {
+        mainReaderContentArea.firstElementChild.textContent = langTranslations.mainReaderLoadingContent;
+    }
+
+    const secondReaderContentArea = document.getElementById('second-reader-content-area');
+    if (secondReaderContentArea && secondReaderContentArea.firstElementChild && secondReaderContentArea.firstElementChild.textContent.trim() === "Waiting for main reader...") {
+        secondReaderContentArea.firstElementChild.textContent = langTranslations.secondReaderWaiting;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const languageSelector = document.getElementById('language');
+    if (!languageSelector) {
+        console.error("Language selector not found!");
+        return;
+    }
+
+    // Load saved language or default to English
+    const savedLanguage = localStorage.getItem('selectedLanguage') || 'en';
+    languageSelector.value = savedLanguage;
+    updateUIText(savedLanguage); // Initial UI update
+
+    languageSelector.addEventListener('change', (event) => {
+        const selectedLanguage = event.target.value;
+        localStorage.setItem('selectedLanguage', selectedLanguage);
+        updateUIText(selectedLanguage);
+    });
+});
+
 /**
  * Main Application Script
  * Initializes the Dual Bible Reader application.

@@ -7,11 +7,18 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <div class="language-selector">
+        <label for="language">Language:</label>
+        <select id="language">
+            <option value="en">English</option>
+            <option value="zh">Chinese</option>
+        </select>
+    </div>
     <h1>Dual Synchronized Bible Reader</h1>
 
     <div class="container">
         <div id="main-reader-component-container">
-            <h2>Main Reader</h2>
+            <h2 id="mainReaderTitle">Main Reader</h2>
             <!-- Main Reader HTML will be injected here by main_reader_frontend.js,
                  or defined directly if preferred for static parts -->
             <div id="main-reader-component">
@@ -20,7 +27,14 @@
                     <select id="main-reader-book"></select>
                     <label for="main-reader-chapter">Chapter:</label>
                     <input type="number" id="main-reader-chapter" value="1" min="1">
-                    <input type="hidden" id="main-reader-version" value="unv">
+                    <label for="main-reader-version-select">Version:</label>
+                    <select id="main-reader-version-select">
+                        <option value="unv">UNV (Union Version)</option>
+                        <option value="kjv">KJV (King James Version)</option>
+                        <option value="esv">ESV (English Standard Version)</option>
+                        <option value="rcuv2010">和合本2010</option>
+                        <option value="lcc">呂振中</option>
+                    </select>
                     <input type="hidden" id="main-reader-strong" value="1">
                     <button id="main-reader-load">Load Chapter</button>
                 </div>
@@ -31,7 +45,7 @@
         </div>
 
         <div id="second-reader-component-container">
-            <h2>Second Reader</h2>
+            <h2 id="secondReaderTitle">Second Reader</h2>
             <!-- Second Reader HTML will be injected here by second_reader_frontend.js,
                  or defined directly -->
             <div id="second-reader-component">
@@ -41,7 +55,8 @@
                         <option value="unv">UNV (Union Version)</option>
                         <option value="kjv">KJV (King James Version)</option>
                         <option value="esv">ESV (English Standard Version)</option>
-                        <!-- Add other versions as needed -->
+                        <option value="rcuv2010">和合本2010</option>
+                        <option value="lcc">呂振中</option>
                     </select>
                     <label for="second-reader-strong-toggle">Strong's Numbers:</label>
                     <input type="checkbox" id="second-reader-strong-toggle" checked>
