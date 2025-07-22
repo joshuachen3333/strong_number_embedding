@@ -1,14 +1,14 @@
 const translations = {
     en: {
-        mainReaderTitle: "Main Reader",
-        secondReaderTitle: "Second Reader",
-        mainReaderBookLabel: "Book:",
-        mainReaderChapterLabel: "Chapter:",
-        mainReaderLoadButton: "Load Chapter",
-        secondReaderVersionLabel: "Version:",
-        secondReaderStrongsLabel: "Strong's Numbers:",
-        mainReaderLoadingContent: "Loading content...",
-        secondReaderWaiting: "Waiting for main reader...",
+        leftReaderTitle: "Left Reader",
+        rightReaderTitle: "Right Reader",
+        leftReaderBookLabel: "Book:",
+        leftReaderChapterLabel: "Chapter:",
+        leftReaderLoadButton: "Load Chapter",
+        rightReaderVersionLabel: "Version:",
+        rightReaderStrongsLabel: "Strong's Numbers:",
+        leftReaderLoadingContent: "Loading content...",
+        rightReaderWaiting: "Waiting for left reader...",
         pleaseSelectBookAndChapter: "Please select a book and chapter.",
         loading: "Loading...",
         strongsOn: "Strong's On",
@@ -16,15 +16,15 @@ const translations = {
     },
     zh: {
       languageName: "正體中文", // Assuming this should remain as the name in the language dropdown
-      mainReaderTitle: "main reader",
-      secondReaderTitle: "2nd reader",
-      mainReaderBookLabel: "書卷：",
-      mainReaderChapterLabel: "章：",
-      mainReaderLoadButton: "載入章節",
-      secondReaderVersionLabel: "版本：",
-      secondReaderStrongsLabel: "Strong number：",
-      mainReaderLoadingContent: "載入内容...",
-      secondReaderWaiting: "等待main reader...",
+      leftReaderTitle: "左側 reader",
+      rightReaderTitle: "右側 reader",
+      leftReaderBookLabel: "書卷：",
+      leftReaderChapterLabel: "章：",
+      leftReaderLoadButton: "載入章節",
+      rightReaderVersionLabel: "版本：",
+      rightReaderStrongsLabel: "Strong number：",
+      leftReaderLoadingContent: "載入内容...",
+      rightReaderWaiting: "等待左側 reader...",
       pleaseSelectBookAndChapter: "請選擇書卷和章節。",
       loading: "載入中...",
       strongsOn: "打開 Strong number",
@@ -40,38 +40,38 @@ function updateUIText(language) {
     }
 
     // Update static text elements in index.html
-    const mainReaderTitleEl = document.getElementById('mainReaderTitle');
-    if (mainReaderTitleEl) mainReaderTitleEl.textContent = langTranslations.mainReaderTitle;
+    const leftReaderTitleEl = document.getElementById('leftReaderTitle');
+    if (leftReaderTitleEl) leftReaderTitleEl.textContent = langTranslations.leftReaderTitle;
 
-    const secondReaderTitleEl = document.getElementById('secondReaderTitle');
-    if (secondReaderTitleEl) secondReaderTitleEl.textContent = langTranslations.secondReaderTitle;
+    const rightReaderTitleEl = document.getElementById('rightReaderTitle');
+    if (rightReaderTitleEl) rightReaderTitleEl.textContent = langTranslations.rightReaderTitle;
 
-    // Update text elements in main_reader_frontend.js
-    const mainReaderBookLabel = document.querySelector('#main-reader-component .reader-controls label[for="main-reader-book"]');
-    if (mainReaderBookLabel) mainReaderBookLabel.textContent = langTranslations.mainReaderBookLabel;
+    // Update text elements in left_reader_frontend.js
+    const leftReaderBookLabel = document.querySelector('#left-reader-component .reader-controls label[for="left-reader-book"]');
+    if (leftReaderBookLabel) leftReaderBookLabel.textContent = langTranslations.leftReaderBookLabel;
 
-    const mainReaderChapterLabel = document.querySelector('#main-reader-component .reader-controls label[for="main-reader-chapter"]');
-    if (mainReaderChapterLabel) mainReaderChapterLabel.textContent = langTranslations.mainReaderChapterLabel;
+    const leftReaderChapterLabel = document.querySelector('#left-reader-component .reader-controls label[for="left-reader-chapter"]');
+    if (leftReaderChapterLabel) leftReaderChapterLabel.textContent = langTranslations.leftReaderChapterLabel;
 
-    const mainReaderLoadButton = document.getElementById('main-reader-load');
-    if (mainReaderLoadButton) mainReaderLoadButton.textContent = langTranslations.mainReaderLoadButton;
+    const leftReaderLoadButton = document.getElementById('left-reader-load');
+    if (leftReaderLoadButton) leftReaderLoadButton.textContent = langTranslations.leftReaderLoadButton;
 
-    // Update text elements in second_reader_frontend.js
-    const secondReaderVersionLabel = document.querySelector('#second-reader-component .reader-controls label[for="second-reader-version-select"]');
-    if (secondReaderVersionLabel) secondReaderVersionLabel.textContent = langTranslations.secondReaderVersionLabel;
+    // Update text elements in right_reader_frontend.js
+    const rightReaderVersionLabel = document.querySelector('#right-reader-component .reader-controls label[for="right-reader-version-select"]');
+    if (rightReaderVersionLabel) rightReaderVersionLabel.textContent = langTranslations.rightReaderVersionLabel;
 
-    const secondReaderStrongsLabel = document.querySelector('#second-reader-component .reader-controls label[for="second-reader-strong-toggle"]');
-    if (secondReaderStrongsLabel) secondReaderStrongsLabel.textContent = langTranslations.secondReaderStrongsLabel;
+    const rightReaderStrongsLabel = document.querySelector('#right-reader-component .reader-controls label[for="right-reader-strong-toggle"]');
+    if (rightReaderStrongsLabel) rightReaderStrongsLabel.textContent = langTranslations.rightReaderStrongsLabel;
 
     // Update dynamic content placeholders if they exist (initial load)
-    const mainReaderContentArea = document.getElementById('main-reader-content-area');
-    if (mainReaderContentArea && mainReaderContentArea.firstElementChild && mainReaderContentArea.firstElementChild.textContent.trim() === "Loading content...") {
-        mainReaderContentArea.firstElementChild.textContent = langTranslations.mainReaderLoadingContent;
+    const leftReaderContentArea = document.getElementById('left-reader-content-area');
+    if (leftReaderContentArea && leftReaderContentArea.firstElementChild && leftReaderContentArea.firstElementChild.textContent.trim() === "Loading content...") {
+        leftReaderContentArea.firstElementChild.textContent = langTranslations.leftReaderLoadingContent;
     }
 
-    const secondReaderContentArea = document.getElementById('second-reader-content-area');
-    if (secondReaderContentArea && secondReaderContentArea.firstElementChild && secondReaderContentArea.firstElementChild.textContent.trim() === "Waiting for main reader...") {
-        secondReaderContentArea.firstElementChild.textContent = langTranslations.secondReaderWaiting;
+    const rightReaderContentArea = document.getElementById('right-reader-content-area');
+    if (rightReaderContentArea && rightReaderContentArea.firstElementChild && rightReaderContentArea.firstElementChild.textContent.trim() === "Waiting for left reader...") {
+        rightReaderContentArea.firstElementChild.textContent = langTranslations.rightReaderWaiting;
     }
 }
 
@@ -95,6 +95,95 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
+ * Resize functionality for making areas draggable
+ */
+function initializeResizeHandles() {
+    let isResizing = false;
+    let currentElement = null;
+    let resizeType = null;
+    let startX = 0;
+    let startY = 0;
+    let startWidth = 0;
+    let startHeight = 0;
+
+    console.log("Initializing resize handles...");
+    
+    // Handle southeast resize (width and height)
+    const seHandles = document.querySelectorAll('.resize-handle-se');
+    console.log("Found SE handles:", seHandles.length);
+    seHandles.forEach(handle => {
+        handle.addEventListener('mousedown', (e) => {
+            console.log("SE handle mousedown");
+            isResizing = true;
+            resizeType = 'se';
+            currentElement = handle.parentElement;
+            startX = e.clientX;
+            startY = e.clientY;
+            startWidth = parseInt(document.defaultView.getComputedStyle(currentElement).width, 10);
+            startHeight = parseInt(document.defaultView.getComputedStyle(currentElement).height, 10);
+            console.log("Starting resize:", { startWidth, startHeight });
+            e.preventDefault();
+            e.stopPropagation();
+        });
+    });
+
+    // Handle south resize (height only)
+    const sHandles = document.querySelectorAll('.resize-handle-s');
+    console.log("Found S handles:", sHandles.length);
+    sHandles.forEach(handle => {
+        handle.addEventListener('mousedown', (e) => {
+            console.log("S handle mousedown");
+            isResizing = true;
+            resizeType = 's';
+            currentElement = handle.parentElement;
+            startY = e.clientY;
+            startHeight = parseInt(document.defaultView.getComputedStyle(currentElement).height, 10);
+            console.log("Starting height resize:", { startHeight });
+            e.preventDefault();
+            e.stopPropagation();
+        });
+    });
+
+    // Mouse move handler
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing || !currentElement) return;
+
+        if (resizeType === 'se') {
+            // Southeast resize: adjust both width and height
+            const newWidth = startWidth + (e.clientX - startX);
+            const newHeight = startHeight + (e.clientY - startY);
+            
+            if (newWidth >= 200 && newWidth <= window.innerWidth * 0.9) {
+                currentElement.style.width = newWidth + 'px';
+            }
+            if (newHeight >= 100 && newHeight <= window.innerHeight * 0.9) {
+                currentElement.style.height = newHeight + 'px';
+            }
+        } else if (resizeType === 's') {
+            // South resize: adjust height only
+            const newHeight = startHeight + (e.clientY - startY);
+            
+            if (newHeight >= 40 && newHeight <= window.innerHeight * 0.5) {
+                currentElement.style.height = newHeight + 'px';
+            }
+        }
+        e.preventDefault();
+    });
+
+    // Mouse up handler
+    document.addEventListener('mouseup', (e) => {
+        if (isResizing) {
+            console.log("Resize ended");
+        }
+        isResizing = false;
+        currentElement = null;
+        resizeType = null;
+    });
+
+    console.log("Resize handles initialized");
+}
+
+/**
  * Main Application Script
  * Initializes the Dual Bible Reader application.
  *
@@ -104,6 +193,20 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 document.addEventListener('DOMContentLoaded', () => {
     console.log("Dual Bible Reader application initializing...");
+
+    // Set up debug toggle functionality
+    const debugToggle = document.getElementById('debug-toggle');
+    const debugOutput = document.getElementById('debug-output');
+    
+    if (debugToggle && debugOutput) {
+        debugToggle.addEventListener('change', () => {
+            debugOutput.style.display = debugToggle.checked ? 'block' : 'none';
+        });
+        console.log("Debug toggle initialized");
+    }
+
+    // Initialize resize functionality
+    initializeResizeHandles();
 
     // Example: Check if MockMediator is loaded
     if (typeof MockMediator !== 'undefined') {
