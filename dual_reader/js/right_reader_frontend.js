@@ -373,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectedVersion = versionSelect.value;
         const showStrongs = strongToggle.checked;
 
-        contentArea.innerHTML = `<p>${langTranslations.loading} ${currentBook} ${langTranslations.mainReaderChapterLabel.toLowerCase()} ${currentChapter} (${selectedVersion.toUpperCase()})...</p>`;
+        contentArea.innerHTML = `<p>${langTranslations.loading} ${currentBook} ${langTranslations.leftReaderChapterLabel.toLowerCase()} ${currentChapter} (${selectedVersion.toUpperCase()})...</p>`;
 
         try {
             // Log the API URL being used

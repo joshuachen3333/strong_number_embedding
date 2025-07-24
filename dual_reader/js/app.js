@@ -1,7 +1,5 @@
 const translations = {
     en: {
-        leftReaderTitle: "Left Reader",
-        rightReaderTitle: "Right Reader",
         leftReaderBookLabel: "Book:",
         leftReaderChapterLabel: "Chapter:",
         leftReaderLoadButton: "Load Chapter",
@@ -16,8 +14,6 @@ const translations = {
     },
     zh: {
       languageName: "正體中文", // Assuming this should remain as the name in the language dropdown
-      leftReaderTitle: "左側 reader",
-      rightReaderTitle: "右側 reader",
       leftReaderBookLabel: "書卷：",
       leftReaderChapterLabel: "章：",
       leftReaderLoadButton: "載入章節",
@@ -38,13 +34,6 @@ function updateUIText(language) {
         console.error(`Translations not found for language: ${language}`);
         return;
     }
-
-    // Update static text elements in index.html
-    const leftReaderTitleEl = document.getElementById('leftReaderTitle');
-    if (leftReaderTitleEl) leftReaderTitleEl.textContent = langTranslations.leftReaderTitle;
-
-    const rightReaderTitleEl = document.getElementById('rightReaderTitle');
-    if (rightReaderTitleEl) rightReaderTitleEl.textContent = langTranslations.rightReaderTitle;
 
     // Update text elements in left_reader_frontend.js
     const leftReaderBookLabel = document.querySelector('#left-reader-component .reader-controls label[for="left-reader-book"]');
