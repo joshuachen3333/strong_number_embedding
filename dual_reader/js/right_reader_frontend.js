@@ -9,9 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadButton = document.getElementById('right-reader-load');
     const versionSelect = document.getElementById('right-reader-version-select');
     const strongToggle = document.getElementById('right-reader-strong-toggle');
+    const mainToggle = document.getElementById('right-reader-main-toggle');
     const contentArea = document.getElementById('right-reader-content-area');
     const statusDisplay = document.getElementById('right-reader-status-display');
 
+    let isUpdatingCheckboxes = false; // Flag to prevent infinite loops
     let currentBook = null;
     let currentChapter = null;
     let currentBookChinese = null; // Store Chinese book abbreviation for API calls
@@ -118,18 +120,27 @@ document.addEventListener('DOMContentLoaded', () => {
     loadButton.addEventListener('click', loadChapterContent);
     
     bookSelect.addEventListener('change', () => {
-        MockMediator.setMainReader('right', 'book selection');
+        // Only set as main if this reader is already main (respect checkbox state)
+        if (mainToggle.checked) {
+            MockMediator.setMainReader('right', 'book selection');
+        }
         const selectedBook = bookSelect.options[bookSelect.selectedIndex].text;
         logStatus(`Book selected: ${selectedBook}`);
         loadChapterContent();
     });
     chapterInput.addEventListener('change', () => {
-        MockMediator.setMainReader('right', 'chapter selection');
+        // Only set as main if this reader is already main (respect checkbox state)
+        if (mainToggle.checked) {
+            MockMediator.setMainReader('right', 'chapter selection');
+        }
         logStatus(`Chapter selected: ${chapterInput.value}`);
         loadChapterContent();
     });
     versionSelect.addEventListener('change', () => {
-        MockMediator.setMainReader('right', 'version selection');
+        // Only set as main if this reader is already main (respect checkbox state)
+        if (mainToggle.checked) {
+            MockMediator.setMainReader('right', 'version selection');
+        }
         const selectedVersion = versionSelect.options[versionSelect.selectedIndex].text;
         logStatus(`Version selected: ${selectedVersion}`);
         console.log('RightReader: Version changed to', versionSelect.value);
@@ -138,14 +149,62 @@ document.addEventListener('DOMContentLoaded', () => {
         loadChapterContent();
     });
     strongToggle.addEventListener('change', () => {
-        MockMediator.setMainReader('right', 'Strong\'s toggle');
+        // Only set as main if this reader is already main (respect checkbox state)
+        if (mainToggle.checked) {
+            MockMediator.setMainReader('right', 'Strong\'s toggle');
+        }
         logStatus(`Strong's Numbers: ${strongToggle.checked ? 'ON' : 'OFF'}`);
         console.log('RightReader: Strong toggle changed to', strongToggle.checked);
         loadChapterContent();
     });
+    mainToggle.addEventListener('change', handleRightMainToggle);
 
     // Register with mediator for synchronization updates
     MockMediator.registerRightReaderUpdateCallback(loadPassage);
+
+    /**
+     * Handles right reader main toggle changes
+     */
+    function handleRightMainToggle() {
+        if (isUpdatingCheckboxes) return; // Prevent infinite loops
+        
+        isUpdatingCheckboxes = true;
+        const leftMainToggle = document.getElementById('left-reader-main-toggle');
+        
+        if (mainToggle.checked) {
+            MockMediator.setMainReader('right', 'main checkbox checked');
+            logStatus('📍 Set as MAIN reader (checkbox)');
+            if (leftMainToggle) {
+                leftMainToggle.checked = false;
+            }
+            
+            // If right reader has content, immediately publish chapter change event
+            if (currentBook && currentChapter) {
+                console.log('RightReader: Publishing chapter change event immediately');
+                MockMediator.publish('rightReaderChapterChanged', {
+                    book: currentBook,
+                    chapter: currentChapter,
+                    version: versionSelect.options[versionSelect.selectedIndex]?.text || versionSelect.value,
+                    internalVersionValue: currentBookChinese,
+                    strong: strongToggle.checked,
+                    verses: [] // Will be populated when content loads
+                });
+            }
+            
+            // Also load content to ensure it's fresh and sync position
+            setTimeout(() => {
+                loadChapterContent();
+            }, 10);
+        } else {
+            MockMediator.setMainReader('left', 'right main unchecked');
+            logStatus('📍 Set as FOLLOWER reader (checkbox)');
+            if (leftMainToggle) {
+                leftMainToggle.checked = true;
+            }
+        }
+        
+        setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
+    }
 
     /**
      * Subscribes to chapter change events from the left reader (when it's main).
@@ -154,10 +213,20 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('RightReader: Received chapter change from LeftReader:', data);
         if (MockMediator.getMainReader() === 'left') {
             logStatus(`📨 Following left reader: ${data.book} ${data.chapter}`);
+            
+            // Update our controls to match the left reader
+            const bookOption = Array.from(bookSelect.options).find(opt => opt.textContent === data.book);
+            if (bookOption) {
+                bookSelect.value = bookOption.value;
+            }
+            chapterInput.value = data.chapter;
+            
+            // Update tracking variables
             currentBook = data.book; // This is the display name from left reader
             currentChapter = data.chapter;
             currentBookChinese = data.internalVersionValue; // This should contain Chinese abbreviation
             currentVerses = data.verses; // Store the detailed verse data
+            
             // Display content immediately with current settings or fetch new version
             await displaySyncedContent();
         }
@@ -169,8 +238,20 @@ document.addEventListener('DOMContentLoaded', () => {
     MockMediator.subscribe('mainReaderChanged', (data) => {
         if (data.newMain === 'right') {
             logStatus(`🎯 Now MAIN reader (${data.interaction})`);
+            // Update checkbox to reflect main status only if not from checkbox interaction
+            if (!data.interaction.includes('checkbox') && !mainToggle.checked) {
+                isUpdatingCheckboxes = true;
+                mainToggle.checked = true;
+                setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
+            }
         } else {
             logStatus(`👥 Now FOLLOWER reader (${data.interaction})`);
+            // Update checkbox to reflect follower status only if not from checkbox interaction
+            if (!data.interaction.includes('checkbox') && mainToggle.checked) {
+                isUpdatingCheckboxes = true;
+                mainToggle.checked = false;
+                setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
+            }
         }
     });
 
@@ -181,41 +262,41 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {number} verse - Verse number for scrolling
      */
     function loadPassage(book, chapter, verse) {
-        console.log(`SecondReader: Loading passage ${book} ${chapter}:${verse}`);
-        currentBookChinese = book;
-        currentChapter = chapter;
+        console.log(`RightReader: Loading passage ${book} ${chapter}:${verse} (following left reader)`);
+        
         // Find corresponding English book name for display
-        const bookMapping = [
-            { english: "Genesis", chinese: "創" }, { english: "Exodus", chinese: "出" }, { english: "Leviticus", chinese: "利" },
-            { english: "Numbers", chinese: "民" }, { english: "Deuteronomy", chinese: "申" }, { english: "Joshua", chinese: "書" },
-            { english: "Judges", chinese: "士" }, { english: "Ruth", chinese: "得" }, { english: "1 Samuel", chinese: "撒上" },
-            { english: "2 Samuel", chinese: "撒下" }, { english: "1 Kings", chinese: "王上" }, { english: "2 Kings", chinese: "王下" },
-            { english: "1 Chronicles", chinese: "代上" }, { english: "2 Chronicles", chinese: "代下" }, { english: "Ezra", chinese: "拉" },
-            { english: "Nehemiah", chinese: "尼" }, { english: "Esther", chinese: "斯" }, { english: "Job", chinese: "伯" },
-            { english: "Psalms", chinese: "詩" }, { english: "Proverbs", chinese: "箴" }, { english: "Ecclesiastes", chinese: "傳" },
-            { english: "Song of Songs", chinese: "歌" }, { english: "Isaiah", chinese: "賽" }, { english: "Jeremiah", chinese: "耶" },
-            { english: "Lamentations", chinese: "哀" }, { english: "Ezekiel", chinese: "結" }, { english: "Daniel", chinese: "但" },
-            { english: "Hosea", chinese: "何" }, { english: "Joel", chinese: "珥" }, { english: "Amos", chinese: "摩" },
-            { english: "Obadiah", chinese: "俄" }, { english: "Jonah", chinese: "拿" }, { english: "Micah", chinese: "彌" },
-            { english: "Nahum", chinese: "鴻" }, { english: "Habakkuk", chinese: "哈" }, { english: "Zephaniah", chinese: "番" },
-            { english: "Haggai", chinese: "該" }, { english: "Zechariah", chinese: "亞" }, { english: "Malachi", chinese: "瑪" },
-            { english: "Matthew", chinese: "太" }, { english: "Mark", chinese: "可" }, { english: "Luke", chinese: "路" },
-            { english: "John", chinese: "約" }, { english: "Acts", chinese: "徒" }, { english: "Romans", chinese: "羅" },
-            { english: "1 Corinthians", chinese: "林前" }, { english: "2 Corinthians", chinese: "林後" }, { english: "Galatians", chinese: "加" },
-            { english: "Ephesians", chinese: "弗" }, { english: "Philippians", chinese: "腓" }, { english: "Colossians", chinese: "西" },
-            { english: "1 Thessalonians", chinese: "帖前" }, { english: "2 Thessalonians", chinese: "帖後" }, { english: "1 Timothy", chinese: "提前" },
-            { english: "2 Timothy", chinese: "提後" }, { english: "Titus", chinese: "多" }, { english: "Philemon", chinese: "門" },
-            { english: "Hebrews", chinese: "來" }, { english: "James", chinese: "雅" }, { english: "1 Peter", chinese: "彼前" },
-            { english: "2 Peter", chinese: "彼後" }, { english: "1 John", chinese: "約一" }, { english: "2 John", chinese: "約二" },
-            { english: "3 John", chinese: "約三" }, { english: "Jude", chinese: "猶" }, { english: "Revelation", chinese: "啟" }
-        ];
+        const bookEntry = books.find(b => b.chinese === book);
+        const targetBook = bookEntry ? bookEntry.english : book;
         
-        const bookEntry = bookMapping.find(b => b.chinese === book);
-        currentBook = bookEntry ? bookEntry.english : book;
+        // Check if we need to load new chapter content or just scroll to verse
+        const currentDisplayedBook = bookSelect.options[bookSelect.selectedIndex]?.text;
+        const currentDisplayedChapter = parseInt(chapterInput.value);
         
-        displaySyncedContent().then(() => {
+        if (currentDisplayedBook !== targetBook || currentDisplayedChapter !== chapter) {
+            // Need to load different chapter
+            logStatus(`📨 Following left reader: ${targetBook} ${chapter}`);
+            
+            // Update our controls to match
+            const bookOption = Array.from(bookSelect.options).find(opt => opt.textContent === targetBook);
+            if (bookOption) {
+                bookSelect.value = bookOption.value;
+            }
+            chapterInput.value = chapter;
+            
+            // Update tracking variables
+            currentBookChinese = book;
+            currentChapter = chapter;
+            currentBook = targetBook;
+            
+            // Load the content with our current settings
+            displaySyncedContent().then(() => {
+                // After loading, scroll to the specific verse
+                setTimeout(() => scrollToVerse(verse), 100);
+            });
+        } else {
+            // Same chapter, just scroll to the verse
             scrollToVerse(verse);
-        });
+        }
     }
 
     /**
@@ -282,6 +363,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const chapter = chapterInput.value;
         const version = versionSelect.value;
         const strong = strongToggle.checked ? "1" : "0";
+
+        // Update current state variables for scroll synchronization
+        currentBookChinese = book; // Chinese abbreviation
+        currentChapter = parseInt(chapter);
+        const bookEntry = books.find(b => b.chinese === book);
+        currentBook = bookEntry ? bookEntry.english : book; // English display name
 
         // Log the API URL being used
         const fhlUrl = `https://bible.fhl.net/json/qb.php?version=${version}&chineses=${encodeURIComponent(book)}&chap=${chapter}&strong=${strong}`;
@@ -517,9 +604,73 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Add scroll event listener for synchronization
-    contentArea.addEventListener('scroll', () => {
-        MockMediator.setMainReader('right', 'scroll');
-    });
+    contentArea.addEventListener('scroll', handleRightScroll);
+
+    /**
+     * Handles scroll events to detect current verse and sync with left reader
+     */
+    let scrollTimeout;
+    function handleRightScroll() {
+        // Only sync position if this reader is main (respect checkbox state)
+        if (!mainToggle.checked) return;
+        
+        // Debounce scroll events
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            const currentVerse = getRightTopmostVerseReference();
+            if (currentVerse) {
+                syncRightPositionWithMediator(currentVerse.book, currentVerse.chapter, currentVerse.verse);
+            }
+        }, 100);
+    }
+
+    /**
+     * Gets the topmost visible verse in the right reader
+     * @returns {object|null} Object with book, chapter, verse properties
+     */
+    function getRightTopmostVerseReference() {
+        const verses = contentArea.querySelectorAll('.verse[data-verse]');
+        const containerRect = contentArea.getBoundingClientRect();
+        const containerTop = containerRect.top;
+
+        for (const verse of verses) {
+            const verseRect = verse.getBoundingClientRect();
+            if (verseRect.top >= containerTop && verseRect.top <= containerTop + 100) {
+                return {
+                    book: currentBookChinese, // Use Chinese abbreviation for API consistency
+                    chapter: currentChapter,
+                    verse: parseInt(verse.getAttribute('data-verse'))
+                };
+            }
+        }
+        
+        // If no verse is in the top area, return the first visible verse
+        if (verses.length > 0) {
+            const firstVerse = verses[0];
+            return {
+                book: currentBookChinese,
+                chapter: currentChapter,
+                verse: parseInt(firstVerse.getAttribute('data-verse'))
+            };
+        }
+        
+        return null;
+    }
+
+    /**
+     * Syncs the current position with the mediator for left reader
+     * @param {string} book - Chinese book abbreviation
+     * @param {number} chapter - Chapter number
+     * @param {number} verse - Verse number
+     */
+    function syncRightPositionWithMediator(book, chapter, verse) {
+        MockMediator.syncPosition({
+            book: book,
+            chapter: chapter,
+            verse: verse,
+            rightReaderVersion: versionSelect.value
+        });
+    }
 
     // Initial setup - set default values but don't auto-load (left reader is main initially)
     setTimeout(() => {

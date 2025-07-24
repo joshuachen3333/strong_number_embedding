@@ -19,6 +19,7 @@ const MockMediator = {
     events: {},
     _currentSynchedVerse: { book: '', chapter: 1, verse: 1 },
     _rightReaderUpdateFn: null,
+    _leftReaderUpdateFn: null,
     _bookDataCache: {},
     _mainReader: 'left', // Track which reader is currently main ('left' or 'right')
     _lastInteraction: null, // Track last interaction for debugging
@@ -196,10 +197,15 @@ const MockMediator = {
             verse: payload.verse
         };
         
-        console.log(`MockMediator: Syncing to ${payload.book} ${payload.chapter}:${payload.verse}`);
+        console.log(`MockMediator: Syncing to ${payload.book} ${payload.chapter}:${payload.verse} from ${this._mainReader} reader`);
         
-        if (this._rightReaderUpdateFn) {
+        // Call the appropriate follower reader's update function based on which reader is main
+        if (this._mainReader === 'left' && this._rightReaderUpdateFn) {
+            // Left is main, update right (follower)
             this._rightReaderUpdateFn(payload.book, payload.chapter, payload.verse);
+        } else if (this._mainReader === 'right' && this._leftReaderUpdateFn) {
+            // Right is main, update left (follower)
+            this._leftReaderUpdateFn(payload.book, payload.chapter, payload.verse);
         }
         
         return { status: "success", message: "Position synchronized" };
@@ -212,6 +218,15 @@ const MockMediator = {
     registerRightReaderUpdateCallback: function(callback) {
         this._rightReaderUpdateFn = callback;
         console.log('MockMediator: Right reader update callback registered');
+    },
+
+    /**
+     * Registers the left reader's update callback
+     * @param {Function} callback - Update function from left reader
+     */
+    registerLeftReaderUpdateCallback: function(callback) {
+        this._leftReaderUpdateFn = callback;
+        console.log('MockMediator: Left reader update callback registered');
     },
 
     /**

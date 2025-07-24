@@ -1,5 +1,7 @@
 const translations = {
     en: {
+        leftReaderMainLabel: "Main:",
+        rightReaderMainLabel: "Main:",
         leftReaderBookLabel: "Book:",
         leftReaderChapterLabel: "Chapter:",
         leftReaderLoadButton: "Load Chapter",
@@ -14,6 +16,8 @@ const translations = {
     },
     zh: {
       languageName: "正體中文", // Assuming this should remain as the name in the language dropdown
+      leftReaderMainLabel: "主要：",
+      rightReaderMainLabel: "主要：",
       leftReaderBookLabel: "書卷：",
       leftReaderChapterLabel: "章：",
       leftReaderLoadButton: "載入章節",
@@ -36,6 +40,9 @@ function updateUIText(language) {
     }
 
     // Update text elements in left_reader_frontend.js
+    const leftReaderMainLabel = document.querySelector('#left-reader-component .reader-controls label[for="left-reader-main-toggle"]');
+    if (leftReaderMainLabel) leftReaderMainLabel.textContent = langTranslations.leftReaderMainLabel;
+
     const leftReaderBookLabel = document.querySelector('#left-reader-component .reader-controls label[for="left-reader-book"]');
     if (leftReaderBookLabel) leftReaderBookLabel.textContent = langTranslations.leftReaderBookLabel;
 
@@ -46,6 +53,9 @@ function updateUIText(language) {
     if (leftReaderLoadButton) leftReaderLoadButton.textContent = langTranslations.leftReaderLoadButton;
 
     // Update text elements in right_reader_frontend.js
+    const rightReaderMainLabel = document.querySelector('#right-reader-component .reader-controls label[for="right-reader-main-toggle"]');
+    if (rightReaderMainLabel) rightReaderMainLabel.textContent = langTranslations.rightReaderMainLabel;
+
     const rightReaderVersionLabel = document.querySelector('#right-reader-component .reader-controls label[for="right-reader-version-select"]');
     if (rightReaderVersionLabel) rightReaderVersionLabel.textContent = langTranslations.rightReaderVersionLabel;
 

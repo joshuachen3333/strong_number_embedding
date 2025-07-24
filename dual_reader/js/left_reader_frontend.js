@@ -9,7 +9,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const contentArea = document.getElementById('left-reader-content-area');
     const versionSelect = document.getElementById('left-reader-version-select'); // Changed from versionInput
     const strongToggle = document.getElementById('left-reader-strong-toggle'); // Strong's checkbox
+    const mainToggle = document.getElementById('left-reader-main-toggle'); // Main checkbox
     const statusDisplay = document.getElementById('left-reader-status-display'); // For displaying status updates
+
+    let isUpdatingCheckboxes = false; // Flag to prevent infinite loops
 
     // Book mapping with Chinese abbreviations for bible.fhl.net API
     const books = [
@@ -109,18 +112,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add event listeners for automatic content loading on change
     bookSelect.addEventListener('change', () => {
-        MockMediator.setMainReader('left', 'book selection');
+        // Only set as main if this reader is already main (respect checkbox state)
+        if (mainToggle.checked) {
+            MockMediator.setMainReader('left', 'book selection');
+        }
         const selectedBook = bookSelect.options[bookSelect.selectedIndex].text;
         logStatus(`Book selected: ${selectedBook}`);
         loadChapterContent();
     });
     chapterInput.addEventListener('change', () => {
-        MockMediator.setMainReader('left', 'chapter selection');
+        // Only set as main if this reader is already main (respect checkbox state)
+        if (mainToggle.checked) {
+            MockMediator.setMainReader('left', 'chapter selection');
+        }
         logStatus(`Chapter selected: ${chapterInput.value}`);
         loadChapterContent();
     });
     versionSelect.addEventListener('change', () => {
-        MockMediator.setMainReader('left', 'version selection');
+        // Only set as main if this reader is already main (respect checkbox state)
+        if (mainToggle.checked) {
+            MockMediator.setMainReader('left', 'version selection');
+        }
         const selectedVersion = versionSelect.options[versionSelect.selectedIndex].text;
         logStatus(`Version selected: ${selectedVersion}`);
         console.log('LeftReader: Version changed, clearing cache');
@@ -128,13 +140,122 @@ document.addEventListener('DOMContentLoaded', () => {
         loadChapterContent();
     });
     strongToggle.addEventListener('change', () => {
-        MockMediator.setMainReader('left', 'Strong\'s toggle');
+        // Only set as main if this reader is already main (respect checkbox state)
+        if (mainToggle.checked) {
+            MockMediator.setMainReader('left', 'Strong\'s toggle');
+        }
         logStatus(`Strong's Numbers: ${strongToggle.checked ? 'ON' : 'OFF'}`);
         loadChapterContent();
     });
+    mainToggle.addEventListener('change', handleLeftMainToggle);
 
     // Add scroll event listener for synchronization
     contentArea.addEventListener('scroll', handleScroll);
+
+    // Register with mediator for synchronization updates (when right reader is main)
+    MockMediator.registerLeftReaderUpdateCallback(loadLeftPassage);
+
+    /**
+     * Load passage callback for mediator synchronization (when right reader is main)
+     * @param {string} book - Chinese book abbreviation
+     * @param {number} chapter - Chapter number
+     * @param {number} verse - Verse number for scrolling
+     */
+    function loadLeftPassage(book, chapter, verse) {
+        console.log(`LeftReader: Loading passage ${book} ${chapter}:${verse} (following right reader)`);
+        
+        // Find corresponding English book name for display
+        const bookEntry = books.find(b => b.chinese === book);
+        const currentBook = bookEntry ? bookEntry.english : book;
+        
+        // Check if we need to load new chapter content or just scroll to verse
+        const currentDisplayedBook = bookSelect.options[bookSelect.selectedIndex]?.text;
+        const currentDisplayedChapter = parseInt(chapterInput.value);
+        
+        if (currentDisplayedBook !== currentBook || currentDisplayedChapter !== chapter) {
+            // Need to load different chapter
+            logStatus(`📨 Following right reader: ${currentBook} ${chapter}`);
+            
+            // Update our controls to match
+            const bookOption = Array.from(bookSelect.options).find(opt => opt.textContent === currentBook);
+            if (bookOption) {
+                bookSelect.value = bookOption.value;
+            }
+            chapterInput.value = chapter;
+            
+            // Load the content with our current settings
+            loadChapterContent().then(() => {
+                // After loading, scroll to the specific verse
+                setTimeout(() => scrollLeftToVerse(verse), 100);
+            });
+        } else {
+            // Same chapter, just scroll to the verse
+            scrollLeftToVerse(verse);
+        }
+    }
+
+    /**
+     * Scrolls to a specific verse in the left reader
+     * @param {number} verse - Verse number to scroll to
+     */
+    function scrollLeftToVerse(verse) {
+        const verseElement = contentArea.querySelector(`[data-verse="${verse}"]`);
+        if (verseElement) {
+            verseElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Add highlighting to show which verse is being followed
+            contentArea.querySelectorAll('.verse-highlighted').forEach(el => el.classList.remove('verse-highlighted'));
+            verseElement.classList.add('verse-highlighted');
+            logStatus(`📍 Scrolled to verse ${verse}`);
+        }
+    }
+
+    /**
+     * Handles left reader main toggle changes
+     */
+    function handleLeftMainToggle() {
+        if (isUpdatingCheckboxes) return; // Prevent infinite loops
+        
+        isUpdatingCheckboxes = true;
+        const rightMainToggle = document.getElementById('right-reader-main-toggle');
+        
+        if (mainToggle.checked) {
+            MockMediator.setMainReader('left', 'main checkbox checked');
+            logStatus('📍 Set as MAIN reader (checkbox)');
+            if (rightMainToggle) {
+                rightMainToggle.checked = false;
+            }
+            
+            // If left reader has content, immediately publish chapter change event
+            const currentDisplayedBook = bookSelect.options[bookSelect.selectedIndex]?.text;
+            const currentDisplayedChapter = parseInt(chapterInput.value);
+            const currentBookChinese = bookSelect.value;
+            
+            if (currentDisplayedBook && currentDisplayedChapter && currentBookChinese) {
+                console.log('LeftReader: Publishing chapter change event immediately');
+                MockMediator.publish('leftReaderChapterChanged', {
+                    book: currentDisplayedBook,
+                    chapter: currentDisplayedChapter,
+                    version: versionSelect.options[versionSelect.selectedIndex]?.text || versionSelect.value,
+                    internalVersionValue: currentBookChinese,
+                    strong: strongToggle.checked,
+                    verses: [] // Will be populated when content loads
+                });
+            }
+            
+            // Also load content to ensure it's fresh and sync position
+            setTimeout(() => {
+                loadChapterContent();
+            }, 10);
+        } else {
+            MockMediator.setMainReader('right', 'left main unchecked'); 
+            logStatus('📍 Set as FOLLOWER reader (checkbox)');
+            if (rightMainToggle) {
+                rightMainToggle.checked = true;
+            }
+        }
+        
+        setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
+    }
 
     /**
      * Logs status updates to the main reader status display
@@ -266,16 +387,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             renderChapter(data);
             
-            // Always publish events when loading content (remove the main reader check for now to debug)
-            console.log('LeftReader: Publishing leftReaderChapterChanged event');
-            MockMediator.publish('leftReaderChapterChanged', {
-                book: data.book,
-                chapter: parseInt(chapter),
-                version: data.version, // This should be the actual version value (e.g., 'unv', 'kjv') for consistency if right reader fetches
-                internalVersionValue: book, // Pass the Chinese book abbreviation for API calls
-                strong: data.strong,
-                verses: data.verses // Pass the actual verses
-            });
+            // Publish an event that the left reader's content has changed (only if this is the main reader)
+            if (MockMediator.getMainReader() === 'left') {
+                console.log('LeftReader: Publishing leftReaderChapterChanged event');
+                MockMediator.publish('leftReaderChapterChanged', {
+                    book: data.book,
+                    chapter: parseInt(chapter),
+                    version: data.version,
+                    internalVersionValue: book, // Pass the Chinese book abbreviation for API calls
+                    strong: data.strong,
+                    verses: data.verses
+                });
+            }
 
             // Also sync position with mediator for right reader
             MockMediator.syncPosition({
@@ -338,8 +461,8 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     let scrollTimeout;
     function handleScroll() {
-        // Set this reader as main when user scrolls
-        MockMediator.setMainReader('left', 'scroll');
+        // Only sync position if this reader is main (respect checkbox state)
+        if (!mainToggle.checked) return;
         
         // Debounce scroll events
         clearTimeout(scrollTimeout);
@@ -448,8 +571,20 @@ document.addEventListener('DOMContentLoaded', () => {
     MockMediator.subscribe('mainReaderChanged', (data) => {
         if (data.newMain === 'left') {
             logStatus(`🎯 Now MAIN reader (${data.interaction})`);
+            // Update checkbox to reflect main status only if not from checkbox interaction
+            if (!data.interaction.includes('checkbox') && !mainToggle.checked) {
+                isUpdatingCheckboxes = true;
+                mainToggle.checked = true;
+                setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
+            }
         } else {
             logStatus(`👥 Now FOLLOWER reader (${data.interaction})`);
+            // Update checkbox to reflect follower status only if not from checkbox interaction
+            if (!data.interaction.includes('checkbox') && mainToggle.checked) {
+                isUpdatingCheckboxes = true;
+                mainToggle.checked = false;
+                setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
+            }
         }
     });
 
