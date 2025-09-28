@@ -403,6 +403,14 @@ const MockMediator = {
                 definition_en: "Definition not yet implemented"
             }
         };
+    },
+
+    /**
+     * Gets the current synchronized verse position
+     * @returns {Object} Current verse position with book, chapter, verse
+     */
+    getCurrentSyncPosition: function() {
+        return { ...this._currentSynchedVerse };
     }
 };
 

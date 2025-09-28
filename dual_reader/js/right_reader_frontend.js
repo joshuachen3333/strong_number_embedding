@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadButton = document.getElementById('right-reader-load');
     const versionSelect = document.getElementById('right-reader-version-select');
     const strongToggle = document.getElementById('right-reader-strong-toggle');
+    const followScrollToggle = document.getElementById('right-reader-follow-scroll');
     const mainToggle = document.getElementById('right-reader-main-toggle');
     const contentArea = document.getElementById('right-reader-content-area');
     const statusDisplay = document.getElementById('right-reader-status-display');
@@ -157,6 +158,21 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('RightReader: Strong toggle changed to', strongToggle.checked);
         loadChapterContent();
     });
+    followScrollToggle.addEventListener('change', () => {
+        const status = followScrollToggle.checked ? 'ENABLED' : 'DISABLED';
+        logStatus(`📍 Follow verse scroll: ${status}`);
+        console.log('RightReader: Follow scroll toggle changed to', followScrollToggle.checked);
+
+        // If follow scroll is enabled and left reader is main, immediately sync to current position
+        if (followScrollToggle.checked && MockMediator.getMainReader() === 'left') {
+            const currentPosition = MockMediator.getCurrentSyncPosition();
+            if (currentPosition.book && currentPosition.chapter) {
+                console.log('RightReader: Immediately syncing to current left reader position');
+                logStatus(`📨 Syncing to left reader: ${currentPosition.book} ${currentPosition.chapter}:${currentPosition.verse}`);
+                loadPassage(currentPosition.book, currentPosition.chapter, currentPosition.verse);
+            }
+        }
+    });
     mainToggle.addEventListener('change', handleRightMainToggle);
 
     // Register with mediator for synchronization updates
@@ -263,7 +279,14 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function loadPassage(book, chapter, verse) {
         console.log(`RightReader: Loading passage ${book} ${chapter}:${verse} (following left reader)`);
-        
+
+        // Check if follow scroll is enabled
+        if (!followScrollToggle.checked) {
+            console.log('RightReader: Follow scroll disabled, ignoring sync request');
+            logStatus('📍 Follow scroll disabled - not following left reader');
+            return;
+        }
+
         // Find corresponding English book name for display
         const bookEntry = books.find(b => b.chinese === book);
         const targetBook = bookEntry ? bookEntry.english : book;
