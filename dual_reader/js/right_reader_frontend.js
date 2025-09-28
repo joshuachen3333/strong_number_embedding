@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const versionSelect = document.getElementById('right-reader-version-select');
     const strongToggle = document.getElementById('right-reader-strong-toggle');
     const followScrollToggle = document.getElementById('right-reader-follow-scroll');
+    const followSelectionToggle = document.getElementById('right-reader-follow-selection');
     const mainToggle = document.getElementById('right-reader-main-toggle');
     const contentArea = document.getElementById('right-reader-content-area');
     const statusDisplay = document.getElementById('right-reader-status-display');
@@ -159,9 +160,19 @@ document.addEventListener('DOMContentLoaded', () => {
         loadChapterContent();
     });
     followScrollToggle.addEventListener('change', () => {
+        if (isUpdatingCheckboxes) return; // Prevent infinite loops
+
         const status = followScrollToggle.checked ? 'ENABLED' : 'DISABLED';
         logStatus(`📍 Follow verse scroll: ${status}`);
         console.log('RightReader: Follow scroll toggle changed to', followScrollToggle.checked);
+
+        // Logic: If Follow Verse Scroll is checked, Follow Text Selection must be checked
+        if (followScrollToggle.checked && !followSelectionToggle.checked) {
+            isUpdatingCheckboxes = true;
+            followSelectionToggle.checked = true;
+            logStatus('📍 Follow text selection: ENABLED (required for verse scroll)');
+            setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
+        }
 
         // If follow scroll is enabled and left reader is main, immediately sync to current position
         if (followScrollToggle.checked && MockMediator.getMainReader() === 'left') {
@@ -170,6 +181,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('RightReader: Immediately syncing to current left reader position');
                 logStatus(`📨 Syncing to left reader: ${currentPosition.book} ${currentPosition.chapter}:${currentPosition.verse}`);
                 loadPassage(currentPosition.book, currentPosition.chapter, currentPosition.verse);
+            }
+        }
+    });
+
+    followSelectionToggle.addEventListener('change', () => {
+        if (isUpdatingCheckboxes) return; // Prevent infinite loops
+
+        const status = followSelectionToggle.checked ? 'ENABLED' : 'DISABLED';
+        logStatus(`📍 Follow text selection: ${status}`);
+        console.log('RightReader: Follow selection toggle changed to', followSelectionToggle.checked);
+
+        if (followSelectionToggle.checked) {
+            // When Follow Text Selection is checked, enable Follow Verse Scroll by default
+            if (!followScrollToggle.checked) {
+                isUpdatingCheckboxes = true;
+                followScrollToggle.checked = true;
+                logStatus('📍 Follow verse scroll: ENABLED (default with text selection)');
+                setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
+            }
+
+            // Immediately sync to current left reader position if left is main
+            if (MockMediator.getMainReader() === 'left') {
+                const currentPosition = MockMediator.getCurrentSyncPosition();
+                if (currentPosition.book && currentPosition.chapter) {
+                    console.log('RightReader: Immediately syncing to current left reader position');
+                    logStatus(`📨 Syncing to left reader: ${currentPosition.book} ${currentPosition.chapter}:${currentPosition.verse}`);
+                    loadPassage(currentPosition.book, currentPosition.chapter, currentPosition.verse);
+                }
+            }
+        } else {
+            // When Follow Text Selection is unchecked, Follow Verse Scroll must be unchecked
+            if (followScrollToggle.checked) {
+                isUpdatingCheckboxes = true;
+                followScrollToggle.checked = false;
+                logStatus('📍 Follow verse scroll: DISABLED (text selection disabled)');
+                setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
             }
         }
     });
@@ -228,21 +275,28 @@ document.addEventListener('DOMContentLoaded', () => {
     MockMediator.subscribe('leftReaderChapterChanged', async (data) => {
         console.log('RightReader: Received chapter change from LeftReader:', data);
         if (MockMediator.getMainReader() === 'left') {
+            // Check if follow text selection is enabled
+            if (!followSelectionToggle.checked) {
+                console.log('RightReader: Follow text selection disabled, ignoring chapter change event');
+                logStatus('📍 Follow text selection disabled - ignoring left reader chapter change');
+                return;
+            }
+
             logStatus(`📨 Following left reader: ${data.book} ${data.chapter}`);
-            
+
             // Update our controls to match the left reader
             const bookOption = Array.from(bookSelect.options).find(opt => opt.textContent === data.book);
             if (bookOption) {
                 bookSelect.value = bookOption.value;
             }
             chapterInput.value = data.chapter;
-            
+
             // Update tracking variables
             currentBook = data.book; // This is the display name from left reader
             currentChapter = data.chapter;
             currentBookChinese = data.internalVersionValue; // This should contain Chinese abbreviation
             currentVerses = data.verses; // Store the detailed verse data
-            
+
             // Display content immediately with current settings or fetch new version
             await displaySyncedContent();
         }
@@ -280,21 +334,30 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadPassage(book, chapter, verse) {
         console.log(`RightReader: Loading passage ${book} ${chapter}:${verse} (following left reader)`);
 
-        // Check if follow scroll is enabled
-        if (!followScrollToggle.checked) {
-            console.log('RightReader: Follow scroll disabled, ignoring sync request');
-            logStatus('📍 Follow scroll disabled - not following left reader');
-            return;
-        }
-
         // Find corresponding English book name for display
         const bookEntry = books.find(b => b.chinese === book);
         const targetBook = bookEntry ? bookEntry.english : book;
-        
+
         // Check if we need to load new chapter content or just scroll to verse
         const currentDisplayedBook = bookSelect.options[bookSelect.selectedIndex]?.text;
         const currentDisplayedChapter = parseInt(chapterInput.value);
-        
+
+        if (currentDisplayedBook !== targetBook || currentDisplayedChapter !== chapter) {
+            // Need to load different chapter - check if follow text selection is enabled
+            if (!followSelectionToggle.checked) {
+                console.log('RightReader: Follow text selection disabled, ignoring book/chapter change');
+                logStatus('📍 Follow text selection disabled - not following book/chapter changes');
+                return;
+            }
+        } else {
+            // Same chapter, just verse scrolling - check if follow verse scroll is enabled
+            if (!followScrollToggle.checked) {
+                console.log('RightReader: Follow verse scroll disabled, ignoring verse scroll');
+                logStatus('📍 Follow verse scroll disabled - not following verse changes');
+                return;
+            }
+        }
+
         if (currentDisplayedBook !== targetBook || currentDisplayedChapter !== chapter) {
             // Need to load different chapter
             logStatus(`📨 Following left reader: ${targetBook} ${chapter}`);
