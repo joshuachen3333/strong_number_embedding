@@ -86,18 +86,29 @@ Strong's numbers are rendered as clickable spans when enabled:
 <span class="strongs-number" data-strong="G1722" title="Strong's G1722">[G1722]</span>
 ```
 
-### Synchronization Mechanism
+### Main Checkbox Synchronization System
 
-**Cross-reader synchronization works through:**
-1. Scroll detection in active reader
-2. Position reporting to MockMediator
-3. MockMediator broadcasting to follower reader
-4. Follower reader updating display and scrolling to verse
+The application features a sophisticated **bidirectional main/follower system** controlled by exclusive checkboxes:
+
+**Core Features:**
+- **Exclusive Main Control**: Only one reader can be main at a time via checkboxes
+- **Dynamic Role Switching**: Either reader can become main based on user interaction
+- **Immediate Synchronization**: When reader becomes main, follower immediately updates book/chapter/verse
+- **Scroll Following**: Main reader's scrolling is followed in real-time by follower reader
+- **Smart Content Loading**: Detects book/chapter changes vs verse-only scrolling for performance
+
+**Synchronization Flow:**
+1. **Checkbox Selection**: User checks left/right main checkbox
+2. **Role Assignment**: MockMediator updates internal main/follower state
+3. **Immediate Sync**: Follower reader updates to match main reader's current position
+4. **Ongoing Sync**: Scroll events in main reader trigger verse-level following
+5. **Navigation Sync**: Book/chapter changes in main reader update follower reader
 
 **Event Types:**
-- `leftReaderChapterChanged` / `rightReaderChapterChanged` - Chapter navigation
-- `mainReaderChanged` - Reader role switching
+- `leftReaderChapterChanged` / `rightReaderChapterChanged` - Chapter navigation events
+- `mainReaderChanged` - Reader role switching notifications
 - `strongsNumberClicked` - Strong's number interaction
+- `MockMediator.syncPosition()` - Verse-level scroll synchronization
 
 ### Internationalization
 
@@ -136,6 +147,33 @@ When working on this codebase, focus on these key files:
 - Strong's numbers are not consistently available via JSON API (web interface has more complete data)
 - API responses use `record` array with `bible_text` field for verse content
 
+## Recent Development Summary
+
+### Main Checkbox System Implementation (Latest Feature)
+
+**Development Period**: Recent major enhancement to the dual reader system.
+
+**Key Achievements:**
+- **Complete Bidirectional Sync**: Both readers can now act as main or follower
+- **Real-time Scroll Following**: Verse-level synchronization with visual highlighting
+- **Smart Content Management**: Efficient loading based on content differences
+- **UI Consistency**: Controls update to reflect main/follower status
+- **Bug Fixes**: Resolved asymmetric behavior between left and right readers
+
+**Technical Implementation:**
+- Added main checkboxes with exclusive behavior logic
+- Enhanced MockMediator with bidirectional callback support
+- Implemented comprehensive event publishing system
+- Added scroll detection and verse identification algorithms
+- Created smart content loading with difference detection
+
+**Files Modified:**
+- `dual_reader/index.html` - Main checkbox UI elements
+- `dual_reader/js/app.js` - Translation support for main labels
+- `dual_reader/js/mock_mediator.js` - Bidirectional synchronization logic
+- `dual_reader/js/left_reader_frontend.js` - Complete main/follower implementation
+- `dual_reader/js/right_reader_frontend.js` - Complete main/follower implementation
+
 ## Common Development Tasks
 
 When modifying this codebase:
@@ -145,6 +183,8 @@ When modifying this codebase:
 3. **UI Changes**: Update both HTML structure and corresponding JavaScript selectors
 4. **API Integration**: Modify `MockMediator.fetchChapter()` method for data source changes
 5. **Strong's Number Handling**: Update the parsing regex patterns in both reader files
+6. **Main/Follower Logic**: Ensure both readers handle role changes consistently
+7. **Event Publishing**: Maintain conditional publishing based on main/follower status
 
 ## Data Processing Workflow
 
