@@ -9,8 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const contentArea = document.getElementById('left-reader-content-area');
     const versionSelect = document.getElementById('left-reader-version-select'); // Changed from versionInput
     const strongToggle = document.getElementById('left-reader-strong-toggle'); // Strong's checkbox
-    const mainToggle = document.getElementById('left-reader-main-toggle'); // Main checkbox
+    const followScrollToggle = document.getElementById('left-reader-follow-scroll'); // Follow scroll checkbox
+    const followSelectionToggle = document.getElementById('left-reader-follow-selection'); // Follow selection checkbox
     const statusDisplay = document.getElementById('left-reader-status-display'); // For displaying status updates
+
+    // References to right reader checkboxes for cross-reader control
+    const rightFollowScrollToggle = document.getElementById('right-reader-follow-scroll');
+    const rightFollowSelectionToggle = document.getElementById('right-reader-follow-selection');
 
     let isUpdatingCheckboxes = false; // Flag to prevent infinite loops
 
@@ -112,8 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add event listeners for automatic content loading on change
     bookSelect.addEventListener('change', () => {
-        // Only set as main if this reader is already main (respect checkbox state)
-        if (mainToggle.checked) {
+        // Only set as main if this reader is not following (both follow checkboxes unchecked)
+        if (!followScrollToggle.checked && !followSelectionToggle.checked) {
             MockMediator.setMainReader('left', 'book selection');
         }
         const selectedBook = bookSelect.options[bookSelect.selectedIndex].text;
@@ -121,16 +126,16 @@ document.addEventListener('DOMContentLoaded', () => {
         loadChapterContent();
     });
     chapterInput.addEventListener('change', () => {
-        // Only set as main if this reader is already main (respect checkbox state)
-        if (mainToggle.checked) {
+        // Only set as main if this reader is not following (both follow checkboxes unchecked)
+        if (!followScrollToggle.checked && !followSelectionToggle.checked) {
             MockMediator.setMainReader('left', 'chapter selection');
         }
         logStatus(`Chapter selected: ${chapterInput.value}`);
         loadChapterContent();
     });
     versionSelect.addEventListener('change', () => {
-        // Only set as main if this reader is already main (respect checkbox state)
-        if (mainToggle.checked) {
+        // Only set as main if this reader is not following (both follow checkboxes unchecked)
+        if (!followScrollToggle.checked && !followSelectionToggle.checked) {
             MockMediator.setMainReader('left', 'version selection');
         }
         const selectedVersion = versionSelect.options[versionSelect.selectedIndex].text;
@@ -140,14 +145,148 @@ document.addEventListener('DOMContentLoaded', () => {
         loadChapterContent();
     });
     strongToggle.addEventListener('change', () => {
-        // Only set as main if this reader is already main (respect checkbox state)
-        if (mainToggle.checked) {
+        // Only set as main if this reader is not following (both follow checkboxes unchecked)
+        if (!followScrollToggle.checked && !followSelectionToggle.checked) {
             MockMediator.setMainReader('left', 'Strong\'s toggle');
         }
         logStatus(`Strong's Numbers: ${strongToggle.checked ? 'ON' : 'OFF'}`);
         loadChapterContent();
     });
-    mainToggle.addEventListener('change', handleLeftMainToggle);
+
+    followScrollToggle.addEventListener('change', () => {
+        if (isUpdatingCheckboxes) return; // Prevent infinite loops
+
+        const status = followScrollToggle.checked ? 'ENABLED' : 'DISABLED';
+        logStatus(`📍 Follow verse scroll: ${status}`);
+        console.log('LeftReader: Follow scroll toggle changed to', followScrollToggle.checked);
+
+        // When left reader becomes follower, make right reader main by unchecking its follow boxes
+        if (followScrollToggle.checked) {
+            isUpdatingCheckboxes = true;
+            // Auto-uncheck right reader follow checkboxes to make it main
+            rightFollowScrollToggle.checked = false;
+            rightFollowSelectionToggle.checked = false;
+            // Also ensure this reader's text selection is checked (parent control)
+            if (!followSelectionToggle.checked) {
+                followSelectionToggle.checked = true;
+                logStatus('📍 Follow text selection: ENABLED (required for verse scroll)');
+            }
+            logStatus('📍 Left reader is now FOLLOWER, right reader is now MAIN');
+
+            // Update MockMediator to know right reader is now main
+            MockMediator.setMainReader('right', 'left follow scroll checked');
+
+            setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
+        }
+
+        // If follow scroll is enabled, immediately sync to current right reader position
+        if (followScrollToggle.checked) {
+            // Get right reader's current state directly from its controls
+            const rightBookSelect = document.getElementById('right-reader-book');
+            const rightChapterInput = document.getElementById('right-reader-chapter');
+
+            if (rightBookSelect && rightChapterInput && rightBookSelect.value && rightChapterInput.value) {
+                const rightBook = rightBookSelect.value; // Chinese abbreviation
+                const rightChapter = parseInt(rightChapterInput.value);
+
+                // Try to get current verse from right reader's scroll position
+                const rightContentArea = document.getElementById('right-reader-content-area');
+                let rightVerse = 1; // Default to verse 1
+
+                if (rightContentArea) {
+                    // Try to find the topmost verse in right reader
+                    const verses = rightContentArea.querySelectorAll('.verse[data-verse]');
+                    if (verses.length > 0) {
+                        const containerRect = rightContentArea.getBoundingClientRect();
+                        const containerTop = containerRect.top;
+
+                        for (const verse of verses) {
+                            const verseRect = verse.getBoundingClientRect();
+                            if (verseRect.top >= containerTop) {
+                                rightVerse = parseInt(verse.getAttribute('data-verse')) || 1;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                console.log('LeftReader: Immediately syncing to current right reader position');
+                logStatus(`📨 Syncing to right reader: ${rightBook} ${rightChapter}:${rightVerse}`);
+                loadLeftPassage(rightBook, rightChapter, rightVerse);
+            }
+        }
+    });
+
+    followSelectionToggle.addEventListener('change', () => {
+        if (isUpdatingCheckboxes) return; // Prevent infinite loops
+
+        const status = followSelectionToggle.checked ? 'ENABLED' : 'DISABLED';
+        logStatus(`📍 Follow text selection: ${status}`);
+        console.log('LeftReader: Follow selection toggle changed to', followSelectionToggle.checked);
+
+        if (followSelectionToggle.checked) {
+            isUpdatingCheckboxes = true;
+            // Auto-uncheck right reader follow checkboxes to make it main
+            rightFollowScrollToggle.checked = false;
+            rightFollowSelectionToggle.checked = false;
+            // Enable Follow Verse Scroll by default when text selection is enabled
+            if (!followScrollToggle.checked) {
+                followScrollToggle.checked = true;
+                logStatus('📍 Follow verse scroll: ENABLED (default with text selection)');
+            }
+            logStatus('📍 Left reader is now FOLLOWER, right reader is now MAIN');
+
+            // Update MockMediator to know right reader is now main
+            MockMediator.setMainReader('right', 'left follow selection checked');
+
+            setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
+
+            // Immediately sync to current right reader position
+            {
+                // Get right reader's current state directly from its controls
+                const rightBookSelect = document.getElementById('right-reader-book');
+                const rightChapterInput = document.getElementById('right-reader-chapter');
+
+                if (rightBookSelect && rightChapterInput && rightBookSelect.value && rightChapterInput.value) {
+                    const rightBook = rightBookSelect.value; // Chinese abbreviation
+                    const rightChapter = parseInt(rightChapterInput.value);
+
+                    // Try to get current verse from right reader's scroll position
+                    const rightContentArea = document.getElementById('right-reader-content-area');
+                    let rightVerse = 1; // Default to verse 1
+
+                    if (rightContentArea) {
+                        // Try to find the topmost verse in right reader
+                        const verses = rightContentArea.querySelectorAll('.verse[data-verse]');
+                        if (verses.length > 0) {
+                            const containerRect = rightContentArea.getBoundingClientRect();
+                            const containerTop = containerRect.top;
+
+                            for (const verse of verses) {
+                                const verseRect = verse.getBoundingClientRect();
+                                if (verseRect.top >= containerTop) {
+                                    rightVerse = parseInt(verse.getAttribute('data-verse')) || 1;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    console.log('LeftReader: Immediately syncing to current right reader position');
+                    logStatus(`📨 Syncing to right reader: ${rightBook} ${rightChapter}:${rightVerse}`);
+                    loadLeftPassage(rightBook, rightChapter, rightVerse);
+                }
+            }
+        } else {
+            // When Follow Text Selection is unchecked, Follow Verse Scroll must be unchecked
+            if (followScrollToggle.checked) {
+                isUpdatingCheckboxes = true;
+                followScrollToggle.checked = false;
+                logStatus('📍 Follow verse scroll: DISABLED (text selection disabled)');
+                setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
+            }
+        }
+    });
 
     // Add scroll event listener for synchronization
     contentArea.addEventListener('scroll', handleScroll);
@@ -163,15 +302,31 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function loadLeftPassage(book, chapter, verse) {
         console.log(`LeftReader: Loading passage ${book} ${chapter}:${verse} (following right reader)`);
-        
+
         // Find corresponding English book name for display
         const bookEntry = books.find(b => b.chinese === book);
         const currentBook = bookEntry ? bookEntry.english : book;
-        
+
         // Check if we need to load new chapter content or just scroll to verse
         const currentDisplayedBook = bookSelect.options[bookSelect.selectedIndex]?.text;
         const currentDisplayedChapter = parseInt(chapterInput.value);
-        
+
+        if (currentDisplayedBook !== currentBook || currentDisplayedChapter !== chapter) {
+            // Need to load different chapter - check if follow text selection is enabled
+            if (!followSelectionToggle.checked) {
+                console.log('LeftReader: Follow text selection disabled, ignoring book/chapter change');
+                logStatus('📍 Follow text selection disabled - not following book/chapter changes');
+                return;
+            }
+        } else {
+            // Same chapter, just verse scrolling - check if follow verse scroll is enabled
+            if (!followScrollToggle.checked) {
+                console.log('LeftReader: Follow verse scroll disabled, ignoring verse scroll');
+                logStatus('📍 Follow verse scroll disabled - not following verse changes');
+                return;
+            }
+        }
+
         if (currentDisplayedBook !== currentBook || currentDisplayedChapter !== chapter) {
             // Need to load different chapter
             logStatus(`📨 Following right reader: ${currentBook} ${chapter}`);
@@ -209,53 +364,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Handles left reader main toggle changes
-     */
-    function handleLeftMainToggle() {
-        if (isUpdatingCheckboxes) return; // Prevent infinite loops
-        
-        isUpdatingCheckboxes = true;
-        const rightMainToggle = document.getElementById('right-reader-main-toggle');
-        
-        if (mainToggle.checked) {
-            MockMediator.setMainReader('left', 'main checkbox checked');
-            logStatus('📍 Set as MAIN reader (checkbox)');
-            if (rightMainToggle) {
-                rightMainToggle.checked = false;
-            }
-            
-            // If left reader has content, immediately publish chapter change event
-            const currentDisplayedBook = bookSelect.options[bookSelect.selectedIndex]?.text;
-            const currentDisplayedChapter = parseInt(chapterInput.value);
-            const currentBookChinese = bookSelect.value;
-            
-            if (currentDisplayedBook && currentDisplayedChapter && currentBookChinese) {
-                console.log('LeftReader: Publishing chapter change event immediately');
-                MockMediator.publish('leftReaderChapterChanged', {
-                    book: currentDisplayedBook,
-                    chapter: currentDisplayedChapter,
-                    version: versionSelect.options[versionSelect.selectedIndex]?.text || versionSelect.value,
-                    internalVersionValue: currentBookChinese,
-                    strong: strongToggle.checked,
-                    verses: [] // Will be populated when content loads
-                });
-            }
-            
-            // Also load content to ensure it's fresh and sync position
-            setTimeout(() => {
-                loadChapterContent();
-            }, 10);
-        } else {
-            MockMediator.setMainReader('right', 'left main unchecked'); 
-            logStatus('📍 Set as FOLLOWER reader (checkbox)');
-            if (rightMainToggle) {
-                rightMainToggle.checked = true;
-            }
-        }
-        
-        setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
-    }
 
     /**
      * Logs status updates to the main reader status display
@@ -461,8 +569,8 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     let scrollTimeout;
     function handleScroll() {
-        // Only sync position if this reader is main (respect checkbox state)
-        if (!mainToggle.checked) return;
+        // Only sync position if this reader is main (both follow checkboxes unchecked)
+        if (followScrollToggle.checked || followSelectionToggle.checked) return;
         
         // Debounce scroll events
         clearTimeout(scrollTimeout);
@@ -571,20 +679,8 @@ document.addEventListener('DOMContentLoaded', () => {
     MockMediator.subscribe('mainReaderChanged', (data) => {
         if (data.newMain === 'left') {
             logStatus(`🎯 Now MAIN reader (${data.interaction})`);
-            // Update checkbox to reflect main status only if not from checkbox interaction
-            if (!data.interaction.includes('checkbox') && !mainToggle.checked) {
-                isUpdatingCheckboxes = true;
-                mainToggle.checked = true;
-                setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
-            }
         } else {
             logStatus(`👥 Now FOLLOWER reader (${data.interaction})`);
-            // Update checkbox to reflect follower status only if not from checkbox interaction
-            if (!data.interaction.includes('checkbox') && mainToggle.checked) {
-                isUpdatingCheckboxes = true;
-                mainToggle.checked = false;
-                setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
-            }
         }
     });
 
@@ -594,6 +690,13 @@ document.addEventListener('DOMContentLoaded', () => {
     MockMediator.subscribe('rightReaderChapterChanged', async (data) => {
         console.log('LeftReader: Received chapter change from RightReader:', data);
         if (MockMediator.getMainReader() === 'right') {
+            // Check if follow text selection is enabled
+            if (!followSelectionToggle.checked) {
+                console.log('LeftReader: Follow text selection disabled, ignoring chapter change event');
+                logStatus('📍 Follow text selection disabled - ignoring right reader chapter change');
+                return;
+            }
+
             logStatus(`📨 Following right reader: ${data.book} ${data.chapter}`);
             // Update our controls to match
             const bookOption = Array.from(bookSelect.options).find(opt => opt.textContent === data.book);
