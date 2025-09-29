@@ -558,6 +558,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         contentArea.innerHTML = htmlContent;
 
+        // Re-add resize handle (SE only - S handle is now outside content area)
+        if (!contentArea.querySelector('.resize-handle-se')) {
+            const seHandle = document.createElement('div');
+            seHandle.className = 'resize-handle-se';
+            contentArea.appendChild(seHandle);
+        }
+
         // Add event listeners for Strong's numbers if they are displayed
         if (data.strong) {
             attachStrongsEventListeners();

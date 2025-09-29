@@ -46,10 +46,10 @@
                     <p>Loading content...</p>
                     <div class="resize-handle-se"></div>
                 </div>
-                <div id="left-reader-status-display" class="resizable-height" style="margin-top: 10px; padding: 5px; border: 1px solid #ccc; font-size: 0.9em; word-wrap: break-word; height: 60px; overflow-y: auto; background: #f9f9f9; position: relative;">
+                <div class="resize-handle-s" data-target="left-content" style="position: relative; margin: 0 auto; width: 80px;"></div>
+                <div id="left-reader-status-display" class="status-area" style="margin-top: 10px; padding: 5px; border: 1px solid #ccc; font-size: 0.9em; word-wrap: break-word; height: 60px; overflow-y: auto; background: #f9f9f9;">
                     <div><strong>Left Reader Status:</strong></div>
                     <div>Ready...</div>
-                    <div class="resize-handle-s"></div>
                 </div>
             </div>
         </div>
@@ -83,10 +83,10 @@
                     <p>Waiting for left reader...</p>
                     <div class="resize-handle-se"></div>
                 </div>
-                <div id="right-reader-status-display" class="resizable-height" style="margin-top: 10px; padding: 5px; border: 1px solid #ccc; font-size: 0.9em; word-wrap: break-word; height: 60px; overflow-y: auto; background: #f9f9f9; position: relative;">
+                <div class="resize-handle-s" data-target="right-content" style="position: relative; margin: 0 auto; width: 80px;"></div>
+                <div id="right-reader-status-display" class="status-area" style="margin-top: 10px; padding: 5px; border: 1px solid #ccc; font-size: 0.9em; word-wrap: break-word; height: 60px; overflow-y: auto; background: #f9f9f9;">
                     <div><strong>Right Reader Status:</strong></div>
                     <div>Waiting for left reader...</div>
-                    <div class="resize-handle-s"></div>
                 </div>
             </div>
         </div>
@@ -96,6 +96,9 @@
     <div style="margin: 20px; padding: 10px;">
         <label for="debug-toggle">
             <input type="checkbox" id="debug-toggle"> Show Debug Output
+        </label>
+        <label for="status-toggle" style="margin-left: 20px;">
+            <input type="checkbox" id="status-toggle" checked> Show Status
         </label>
     </div>
 

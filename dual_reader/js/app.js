@@ -1,3 +1,142 @@
+// Simplified vertical resizing for content areas only
+class VerticalResizer {
+    constructor() {
+        this.isResizing = false;
+        this.startY = 0;
+        this.startHeight = 0;
+        this.currentHandle = null;
+        this.targetElement = null;
+
+        this.initializeResizers();
+    }
+
+    initializeResizers() {
+        this.attachEventListeners();
+
+        document.addEventListener('mousemove', this.doResize.bind(this));
+        document.addEventListener('mouseup', this.stopResize.bind(this));
+
+        // Re-attach event listeners when new handles are added
+        const observer = new MutationObserver(() => {
+            this.attachEventListeners();
+        });
+
+        // Observe both content areas for changes
+        const leftContent = document.getElementById('left-reader-content-area');
+        const rightContent = document.getElementById('right-reader-content-area');
+
+        if (leftContent) observer.observe(leftContent, { childList: true });
+        if (rightContent) observer.observe(rightContent, { childList: true });
+    }
+
+    attachEventListeners() {
+        // Remove existing listeners to prevent duplicates
+        const handles = document.querySelectorAll('.resize-handle-s[data-target$="content"]');
+
+        handles.forEach(handle => {
+            // Remove any existing listener first
+            handle.removeEventListener('mousedown', this.startResize);
+            // Add the listener
+            handle.addEventListener('mousedown', this.startResize.bind(this));
+        });
+    }
+
+    startResize(e) {
+        e.preventDefault();
+
+        this.isResizing = true;
+        this.currentHandle = e.target;
+        this.startY = e.clientY;
+
+        const target = this.currentHandle.getAttribute('data-target');
+        this.targetElement = this.getTargetElement(target);
+
+        if (this.targetElement) {
+            this.startHeight = parseInt(getComputedStyle(this.targetElement).height, 10);
+            document.body.style.cursor = 's-resize';
+            document.body.style.userSelect = 'none';
+        }
+    }
+
+    doResize(e) {
+        if (!this.isResizing || !this.targetElement) return;
+
+        e.preventDefault();
+
+        const deltaY = e.clientY - this.startY;
+        const newHeight = Math.max(100, this.startHeight + deltaY); // Minimum height of 100px
+
+        // Set height on current element
+        this.targetElement.style.height = newHeight + 'px';
+
+        // Synchronize with the corresponding element in the other reader
+        this.synchronizeHeight(newHeight);
+    }
+
+    stopResize() {
+        if (this.isResizing) {
+            this.isResizing = false;
+            this.currentHandle = null;
+            this.targetElement = null;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
+    }
+
+    getTargetElement(target) {
+        switch(target) {
+            case 'left-content':
+                return document.getElementById('left-reader-content-area');
+            case 'right-content':
+                return document.getElementById('right-reader-content-area');
+            default:
+                return null;
+        }
+    }
+
+    synchronizeHeight(newHeight) {
+        if (!this.currentHandle) return;
+
+        const target = this.currentHandle.getAttribute('data-target');
+        let correspondingElement = null;
+
+        // Determine which element to synchronize with
+        switch(target) {
+            case 'left-content':
+                correspondingElement = document.getElementById('right-reader-content-area');
+                break;
+            case 'right-content':
+                correspondingElement = document.getElementById('left-reader-content-area');
+                break;
+        }
+
+        // Apply the same height to the corresponding element
+        if (correspondingElement) {
+            correspondingElement.style.height = newHeight + 'px';
+        }
+    }
+}
+
+// Status area toggle functionality
+function initializeStatusToggle() {
+    const statusToggle = document.getElementById('status-toggle');
+    const statusAreas = document.querySelectorAll('.status-area');
+
+    if (statusToggle) {
+        statusToggle.addEventListener('change', function() {
+            statusAreas.forEach(area => {
+                area.style.display = this.checked ? 'block' : 'none';
+            });
+        });
+    }
+}
+
+// Initialize both functionalities when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    new VerticalResizer();
+    initializeStatusToggle();
+});
+
 const translations = {
     en: {
         leftReaderMainLabel: "Main:",
