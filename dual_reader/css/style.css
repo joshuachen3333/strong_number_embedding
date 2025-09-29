@@ -1,7 +1,7 @@
 body {
     font-family: Arial, sans-serif;
     margin: 0;
-    padding: 20px;
+    padding: 10px;
     background-color: #f4f4f4;
     color: #333;
 }
@@ -9,7 +9,7 @@ body {
 .container {
     display: flex;
     justify-content: space-around;
-    margin-top: 20px;
+    margin-top: 10px;
 }
 
 #left-reader-component-container,
@@ -46,7 +46,7 @@ h1, h2 {
 
 h1 {
     text-align: center;
-    margin-bottom: 30px;
+    margin: 0;
 }
 
 /* Basic styling for verse numbers and Strong's numbers */

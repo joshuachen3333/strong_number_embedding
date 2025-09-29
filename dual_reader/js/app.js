@@ -142,8 +142,11 @@ const translations = {
         leftReaderMainLabel: "Main:",
         rightReaderMainLabel: "Main:",
         leftReaderBookLabel: "Book:",
+        rightReaderBookLabel: "Book:",
         leftReaderChapterLabel: "Chapter:",
+        rightReaderChapterLabel: "Chapter:",
         leftReaderLoadButton: "Load Chapter",
+        rightReaderLoadButton: "Load Chapter",
         rightReaderVersionLabel: "Version:",
         rightReaderStrongsLabel: "Strong's Numbers:",
         leftReaderLoadingContent: "Loading content...",
@@ -151,15 +154,20 @@ const translations = {
         pleaseSelectBookAndChapter: "Please select a book and chapter.",
         loading: "Loading...",
         strongsOn: "Strong's On",
-        strongsOff: "Strong's Off"
+        strongsOff: "Strong's Off",
+        followVerseScroll: "Follow Verse Scroll:",
+        followTextSelection: "Follow Text Selection:"
     },
     zh: {
       languageName: "正體中文", // Assuming this should remain as the name in the language dropdown
       leftReaderMainLabel: "主要：",
       rightReaderMainLabel: "主要：",
       leftReaderBookLabel: "書卷：",
+      rightReaderBookLabel: "書卷：",
       leftReaderChapterLabel: "章：",
+      rightReaderChapterLabel: "章：",
       leftReaderLoadButton: "載入章節",
+      rightReaderLoadButton: "載入章節",
       rightReaderVersionLabel: "版本：",
       rightReaderStrongsLabel: "Strong number：",
       leftReaderLoadingContent: "載入内容...",
@@ -167,7 +175,9 @@ const translations = {
       pleaseSelectBookAndChapter: "請選擇書卷和章節。",
       loading: "載入中...",
       strongsOn: "打開 Strong number",
-      strongsOff: "關閉 Strong number"
+      strongsOff: "關閉 Strong number",
+      followVerseScroll: "跟隨詩節滾動：",
+      followTextSelection: "跟隨文本選擇："
     }
 };
 
@@ -200,6 +210,29 @@ function updateUIText(language) {
 
     const rightReaderStrongsLabel = document.querySelector('#right-reader-component .reader-controls label[for="right-reader-strong-toggle"]');
     if (rightReaderStrongsLabel) rightReaderStrongsLabel.textContent = langTranslations.rightReaderStrongsLabel;
+
+    // Update right reader labels
+    const rightReaderBookLabel = document.querySelector('label[for="right-reader-book"]');
+    if (rightReaderBookLabel) rightReaderBookLabel.textContent = langTranslations.rightReaderBookLabel;
+
+    const rightReaderChapterLabel = document.querySelector('label[for="right-reader-chapter"]');
+    if (rightReaderChapterLabel) rightReaderChapterLabel.textContent = langTranslations.rightReaderChapterLabel;
+
+    const rightReaderLoadButton = document.getElementById('right-reader-load');
+    if (rightReaderLoadButton) rightReaderLoadButton.textContent = langTranslations.rightReaderLoadButton;
+
+    // Update follow checkbox labels
+    const leftFollowScrollLabel = document.querySelector('label[for="left-reader-follow-scroll"]');
+    if (leftFollowScrollLabel) leftFollowScrollLabel.textContent = langTranslations.followVerseScroll;
+
+    const leftFollowSelectionLabel = document.querySelector('label[for="left-reader-follow-selection"]');
+    if (leftFollowSelectionLabel) leftFollowSelectionLabel.textContent = langTranslations.followTextSelection;
+
+    const rightFollowScrollLabel = document.querySelector('label[for="right-reader-follow-scroll"]');
+    if (rightFollowScrollLabel) rightFollowScrollLabel.textContent = langTranslations.followVerseScroll;
+
+    const rightFollowSelectionLabel = document.querySelector('label[for="right-reader-follow-selection"]');
+    if (rightFollowSelectionLabel) rightFollowSelectionLabel.textContent = langTranslations.followTextSelection;
 
     // Update dynamic content placeholders if they exist (initial load)
     const leftReaderContentArea = document.getElementById('left-reader-content-area');
