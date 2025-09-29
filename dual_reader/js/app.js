@@ -198,8 +198,7 @@ function updateUIText(language) {
     const leftReaderChapterLabel = document.querySelector('#left-reader-component .reader-controls label[for="left-reader-chapter"]');
     if (leftReaderChapterLabel) leftReaderChapterLabel.textContent = langTranslations.leftReaderChapterLabel;
 
-    const leftReaderLoadButton = document.getElementById('left-reader-load');
-    if (leftReaderLoadButton) leftReaderLoadButton.textContent = langTranslations.leftReaderLoadButton;
+    // Load buttons removed from layout
 
     // Update text elements in right_reader_frontend.js
     const rightReaderMainLabel = document.querySelector('#right-reader-component .reader-controls label[for="right-reader-main-toggle"]');
@@ -218,8 +217,7 @@ function updateUIText(language) {
     const rightReaderChapterLabel = document.querySelector('label[for="right-reader-chapter"]');
     if (rightReaderChapterLabel) rightReaderChapterLabel.textContent = langTranslations.rightReaderChapterLabel;
 
-    const rightReaderLoadButton = document.getElementById('right-reader-load');
-    if (rightReaderLoadButton) rightReaderLoadButton.textContent = langTranslations.rightReaderLoadButton;
+    // Load buttons removed from layout
 
     // Update follow checkbox labels
     const leftFollowScrollLabel = document.querySelector('label[for="left-reader-follow-scroll"]');

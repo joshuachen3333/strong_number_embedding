@@ -5,7 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const bookSelect = document.getElementById('left-reader-book');
     const chapterInput = document.getElementById('left-reader-chapter');
-    const loadButton = document.getElementById('left-reader-load');
+    // Load button removed - auto-loading on selection changes
     const contentArea = document.getElementById('left-reader-content-area');
     const versionSelect = document.getElementById('left-reader-version-select'); // Changed from versionInput
     const strongToggle = document.getElementById('left-reader-strong-toggle'); // Strong's checkbox
@@ -113,7 +113,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Event listener for the load button
-    loadButton.addEventListener('click', loadChapterContent);
+    // Auto-load when book or chapter changes
+    bookSelect.addEventListener('change', loadChapterContent);
+    chapterInput.addEventListener('change', loadChapterContent);
+    versionSelect.addEventListener('change', loadChapterContent);
 
     // Add event listeners for automatic content loading on change
     bookSelect.addEventListener('change', () => {

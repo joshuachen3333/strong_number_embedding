@@ -24,25 +24,28 @@
                  or defined directly if preferred for static parts -->
             <div id="left-reader-component">
                 <div class="reader-controls">
-                    <label for="left-reader-book">Book:</label>
-                    <select id="left-reader-book"></select>
-                    <label for="left-reader-chapter">Chapter:</label>
-                    <input type="number" id="left-reader-chapter" value="1" min="1">
-                    <label for="left-reader-version-select">Version:</label>
-                    <select id="left-reader-version-select">
-                        <option value="unv">UNV (Union Version)</option>
-                        <option value="kjv">KJV (King James Version)</option>
-                        <option value="esv">ESV (English Standard Version)</option>
-                        <option value="rcuv2010">和合本2010</option>
-                        <option value="lcc">呂振中譯本</option>
-                    </select>
-                    <label for="left-reader-strong-toggle">Strong's Numbers:</label>
-                    <input type="checkbox" id="left-reader-strong-toggle">
-                    <label for="left-reader-follow-scroll">Follow Verse Scroll:</label>
-                    <input type="checkbox" id="left-reader-follow-scroll">
-                    <label for="left-reader-follow-selection">Follow Text Selection:</label>
-                    <input type="checkbox" id="left-reader-follow-selection">
-                    <button id="left-reader-load">Load Chapter</button>
+                    <div class="control-line-1" style="margin-bottom: 8px;">
+                        <label for="left-reader-version-select">Version:</label>
+                        <select id="left-reader-version-select" style="margin-right: 15px;">
+                            <option value="unv">UNV (Union Version)</option>
+                            <option value="kjv">KJV (King James Version)</option>
+                            <option value="esv">ESV (English Standard Version)</option>
+                            <option value="rcuv2010">和合本2010</option>
+                            <option value="lcc">呂振中譯本</option>
+                        </select>
+                        <label for="left-reader-book">Book:</label>
+                        <select id="left-reader-book" style="margin-right: 15px;"></select>
+                        <label for="left-reader-chapter">Chapter:</label>
+                        <input type="number" id="left-reader-chapter" value="1" min="1" style="width: 60px;">
+                    </div>
+                    <div class="control-line-2">
+                        <input type="checkbox" id="left-reader-strong-toggle">
+                        <label for="left-reader-strong-toggle" style="margin-right: 15px;">Strong's Numbers</label>
+                        <input type="checkbox" id="left-reader-follow-selection">
+                        <label for="left-reader-follow-selection" style="margin-right: 15px;">FL Tx Sel</label>
+                        <input type="checkbox" id="left-reader-follow-scroll">
+                        <label for="left-reader-follow-scroll">FL Ver Scrl</label>
+                    </div>
                 </div>
                 <div id="left-reader-content-area" class="reader-content resizable" style="width: 100%; height: 400px; border: 1px solid #ccc; overflow-y: auto; resize: none; position: relative;">
                     <p>Loading content...</p>
@@ -61,25 +64,28 @@
                  or defined directly -->
             <div id="right-reader-component">
                 <div class="reader-controls">
-                    <label for="right-reader-book">Book:</label>
-                    <select id="right-reader-book"></select>
-                    <label for="right-reader-chapter">Chapter:</label>
-                    <input type="number" id="right-reader-chapter" value="1" min="1">
-                    <label for="right-reader-version-select">Version:</label>
-                    <select id="right-reader-version-select">
-                        <option value="unv">UNV (Union Version)</option>
-                        <option value="kjv">KJV (King James Version)</option>
-                        <option value="esv">ESV (English Standard Version)</option>
-                        <option value="rcuv2010">和合本2010</option>
-                        <option value="lcc">呂振中譯本</option>
-                    </select>
-                    <label for="right-reader-strong-toggle">Strong's Numbers:</label>
-                    <input type="checkbox" id="right-reader-strong-toggle">
-                    <label for="right-reader-follow-scroll">Follow Verse Scroll:</label>
-                    <input type="checkbox" id="right-reader-follow-scroll" checked>
-                    <label for="right-reader-follow-selection">Follow Text Selection:</label>
-                    <input type="checkbox" id="right-reader-follow-selection" checked>
-                    <button id="right-reader-load">Load Chapter</button>
+                    <div class="control-line-1" style="margin-bottom: 8px;">
+                        <label for="right-reader-version-select">Version:</label>
+                        <select id="right-reader-version-select" style="margin-right: 15px;">
+                            <option value="unv">UNV (Union Version)</option>
+                            <option value="kjv">KJV (King James Version)</option>
+                            <option value="esv">ESV (English Standard Version)</option>
+                            <option value="rcuv2010">和合本2010</option>
+                            <option value="lcc">呂振中譯本</option>
+                        </select>
+                        <label for="right-reader-book">Book:</label>
+                        <select id="right-reader-book" style="margin-right: 15px;"></select>
+                        <label for="right-reader-chapter">Chapter:</label>
+                        <input type="number" id="right-reader-chapter" value="1" min="1" style="width: 60px;">
+                    </div>
+                    <div class="control-line-2">
+                        <input type="checkbox" id="right-reader-strong-toggle">
+                        <label for="right-reader-strong-toggle" style="margin-right: 15px;">Strong's Numbers</label>
+                        <input type="checkbox" id="right-reader-follow-selection" checked>
+                        <label for="right-reader-follow-selection" style="margin-right: 15px;">FL Tx Sel</label>
+                        <input type="checkbox" id="right-reader-follow-scroll" checked>
+                        <label for="right-reader-follow-scroll">FL Ver Scrl</label>
+                    </div>
                 </div>
                 <div id="right-reader-content-area" class="reader-content resizable" style="width: 100%; height: 400px; border: 1px solid #ccc; overflow-y: auto; resize: none; position: relative;">
                     <p>Waiting for left reader...</p>

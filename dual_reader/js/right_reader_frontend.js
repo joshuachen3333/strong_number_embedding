@@ -6,7 +6,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const bookSelect = document.getElementById('right-reader-book');
     const chapterInput = document.getElementById('right-reader-chapter');
-    const loadButton = document.getElementById('right-reader-load');
+    // Load button removed - auto-loading on selection changes
     const versionSelect = document.getElementById('right-reader-version-select');
     const strongToggle = document.getElementById('right-reader-strong-toggle');
     const followScrollToggle = document.getElementById('right-reader-follow-scroll');
@@ -122,7 +122,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Event listeners for controls
-    loadButton.addEventListener('click', loadChapterContent);
+    // Auto-load when book or chapter changes
+    bookSelect.addEventListener('change', loadChapterContent);
+    chapterInput.addEventListener('change', loadChapterContent);
+    versionSelect.addEventListener('change', loadChapterContent);
     
     bookSelect.addEventListener('change', () => {
         // Only set as main if this reader is not following (both follow checkboxes unchecked)
