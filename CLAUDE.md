@@ -86,23 +86,29 @@ Strong's numbers are rendered as clickable spans when enabled:
 <span class="strongs-number" data-strong="G1722" title="Strong's G1722">[G1722]</span>
 ```
 
-### Main Checkbox Synchronization System
+### Follow Checkbox Synchronization System
 
-The application features a sophisticated **bidirectional main/follower system** controlled by exclusive checkboxes:
+The application features a sophisticated **bidirectional main/follower system** controlled by granular follow checkboxes:
 
 **Core Features:**
-- **Exclusive Main Control**: Only one reader can be main at a time via checkboxes
-- **Dynamic Role Switching**: Either reader can become main based on user interaction
-- **Immediate Synchronization**: When reader becomes main, follower immediately updates book/chapter/verse
-- **Scroll Following**: Main reader's scrolling is followed in real-time by follower reader
+- **Granular Follow Controls**: Two checkbox types per reader - "Follow Text Selection" and "Follow Verse Scroll"
+- **Intuitive Follow Logic**: Checked = follower, unchecked = independent/main
+- **Last Checkbox Wins**: When any follow checkbox is checked, that reader becomes follower and the other becomes main
+- **Parent-Child Relationship**: "Follow Text Selection" is parent control, "Follow Verse Scroll" is child
+- **Immediate Synchronization**: When reader becomes follower, immediately updates to match main reader's position
 - **Smart Content Loading**: Detects book/chapter changes vs verse-only scrolling for performance
 
+**Follow Checkbox Hierarchy:**
+- **Follow Text Selection**: Controls book/chapter following (parent control)
+- **Follow Verse Scroll**: Controls verse-level scroll following (child control)
+- **Logic Rules**: Child cannot be checked without parent; parent checked enables child by default
+
 **Synchronization Flow:**
-1. **Checkbox Selection**: User checks left/right main checkbox
-2. **Role Assignment**: MockMediator updates internal main/follower state
-3. **Immediate Sync**: Follower reader updates to match main reader's current position
-4. **Ongoing Sync**: Scroll events in main reader trigger verse-level following
-5. **Navigation Sync**: Book/chapter changes in main reader update follower reader
+1. **Checkbox Selection**: User checks any follow checkbox on left/right reader
+2. **Role Assignment**: MockMediator sets that reader as follower, other becomes main
+3. **Cross-Reader Update**: Other reader's follow checkboxes are auto-unchecked
+4. **Immediate Sync**: Follower reader updates to match main reader's current position
+5. **Ongoing Sync**: Main reader's scroll/navigation events trigger follower updates
 
 **Event Types:**
 - `leftReaderChapterChanged` / `rightReaderChapterChanged` - Chapter navigation events
@@ -149,30 +155,34 @@ When working on this codebase, focus on these key files:
 
 ## Recent Development Summary
 
-### Main Checkbox System Implementation (Latest Feature)
+### Follow Checkbox System Implementation (Latest Feature)
 
-**Development Period**: Recent major enhancement to the dual reader system.
+**Development Period**: Recent major enhancement evolving from main checkboxes to intuitive follow controls.
 
 **Key Achievements:**
-- **Complete Bidirectional Sync**: Both readers can now act as main or follower
+- **Intuitive Follow Controls**: Replaced confusing "main" checkboxes with clear "follow" checkboxes
+- **Granular Control**: Separate checkboxes for text selection following vs verse scroll following
+- **Complete Bidirectional Sync**: Both readers can act as main or follower with "last checkbox wins" logic
+- **Parent-Child Checkbox Logic**: Follow Text Selection enables Follow Verse Scroll functionality
 - **Real-time Scroll Following**: Verse-level synchronization with visual highlighting
 - **Smart Content Management**: Efficient loading based on content differences
-- **UI Consistency**: Controls update to reflect main/follower status
-- **Bug Fixes**: Resolved asymmetric behavior between left and right readers
+- **Bug Fixes**: Resolved asymmetric behavior and infinite loop issues
 
 **Technical Implementation:**
-- Added main checkboxes with exclusive behavior logic
-- Enhanced MockMediator with bidirectional callback support
-- Implemented comprehensive event publishing system
+- Replaced main checkboxes with two follow checkboxes per reader
+- Implemented parent-child checkbox relationship logic
+- Enhanced MockMediator with bidirectional callback support and role management
+- Added `isUpdatingCheckboxes` flag to prevent infinite loops
+- Implemented comprehensive event publishing system with follow checkbox validation
 - Added scroll detection and verse identification algorithms
 - Created smart content loading with difference detection
 
 **Files Modified:**
-- `dual_reader/index.html` - Main checkbox UI elements
-- `dual_reader/js/app.js` - Translation support for main labels
-- `dual_reader/js/mock_mediator.js` - Bidirectional synchronization logic
-- `dual_reader/js/left_reader_frontend.js` - Complete main/follower implementation
-- `dual_reader/js/right_reader_frontend.js` - Complete main/follower implementation
+- `dual_reader/index.html` - Follow checkbox UI elements replacing main checkboxes
+- `dual_reader/js/app.js` - Translation support for follow labels
+- `dual_reader/js/mock_mediator.js` - Bidirectional synchronization with follow logic
+- `dual_reader/js/left_reader_frontend.js` - Complete follow/main implementation
+- `dual_reader/js/right_reader_frontend.js` - Complete follow/main implementation
 
 ## Common Development Tasks
 
@@ -183,8 +193,8 @@ When modifying this codebase:
 3. **UI Changes**: Update both HTML structure and corresponding JavaScript selectors
 4. **API Integration**: Modify `MockMediator.fetchChapter()` method for data source changes
 5. **Strong's Number Handling**: Update the parsing regex patterns in both reader files
-6. **Main/Follower Logic**: Ensure both readers handle role changes consistently
-7. **Event Publishing**: Maintain conditional publishing based on main/follower status
+6. **Follow Checkbox Logic**: Ensure both readers handle follow checkbox changes and parent-child relationships consistently
+7. **Event Publishing**: Maintain conditional publishing based on main/follower status determined by follow checkboxes
 
 ## Data Processing Workflow
 
