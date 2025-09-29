@@ -16,14 +16,23 @@ body {
 #right-reader-component-container {
     width: 45%;
     background-color: #fff;
-    padding: 20px;
+    padding: 0;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    overflow: hidden;
 }
 
 .reader-controls {
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #eee;
+    position: sticky;
+    top: 0;
+    background-color: white;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-bottom: 2px solid #ddd;
+    z-index: 100;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .reader-controls label,
@@ -38,6 +47,8 @@ body {
     overflow-y: auto;
     padding: 10px;
     background-color: #f9f9f9;
+    flex: 1;
+    min-height: 300px;
 }
 
 h1, h2 {
@@ -129,6 +140,37 @@ h1 {
 .resize-handle-s:hover {
     background-color: #ff4400;
     transform: translateX(-50%) scale(1.1);
+}
+
+/* Special highlighting for Follow Verse Scroll checkbox */
+#left-reader-follow-scroll,
+#right-reader-follow-scroll {
+    transform: scale(1.2);
+    accent-color: #1e40af;
+}
+
+/* Default highlighting for Follow Verse Scroll labels (will be overridden by JavaScript) */
+label[for="left-reader-follow-scroll"],
+label[for="right-reader-follow-scroll"] {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    /* Colors will be set by JavaScript based on main/follower status */
+}
+
+/* Hover effect - lighter version of current color */
+label[for="left-reader-follow-scroll"]:hover,
+label[for="right-reader-follow-scroll"]:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+/* Status area styling */
+.status-area {
+    flex-shrink: 0;
+    margin-top: 0;
 }
 
 /* Make containers resizable */

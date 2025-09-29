@@ -131,10 +131,82 @@ function initializeStatusToggle() {
     }
 }
 
-// Initialize both functionalities when DOM is loaded
+// Follow Verse Scroll special highlighting based on main/follower status
+function initializeFollowVerseScrollHighlighting() {
+    const leftFollowScroll = document.getElementById('left-reader-follow-scroll');
+    const rightFollowScroll = document.getElementById('right-reader-follow-scroll');
+    const leftLabel = document.querySelector('label[for="left-reader-follow-scroll"]');
+    const rightLabel = document.querySelector('label[for="right-reader-follow-scroll"]');
+
+    function updateHighlighting() {
+        // Get current main reader from MockMediator
+        const mainReader = MockMediator ? MockMediator.getMainReader() : 'left';
+
+        // Update left reader highlighting
+        if (leftLabel) {
+            if (mainReader === 'left') {
+                // Left is MAIN - deep blue highlighting
+                leftLabel.style.backgroundColor = '#1e40af';
+                leftLabel.style.color = 'white';
+                leftLabel.style.borderColor = '#1d4ed8';
+                leftLabel.style.boxShadow = '0 2px 4px rgba(30, 64, 175, 0.3)';
+            } else {
+                // Left is FOLLOWER - orange-red highlighting
+                leftLabel.style.backgroundColor = '#ea580c';
+                leftLabel.style.color = 'white';
+                leftLabel.style.borderColor = '#dc2626';
+                leftLabel.style.boxShadow = '0 2px 4px rgba(234, 88, 12, 0.3)';
+            }
+        }
+
+        // Update right reader highlighting
+        if (rightLabel) {
+            if (mainReader === 'right') {
+                // Right is MAIN - deep blue highlighting
+                rightLabel.style.backgroundColor = '#1e40af';
+                rightLabel.style.color = 'white';
+                rightLabel.style.borderColor = '#1d4ed8';
+                rightLabel.style.boxShadow = '0 2px 4px rgba(30, 64, 175, 0.3)';
+            } else {
+                // Right is FOLLOWER - orange-red highlighting
+                rightLabel.style.backgroundColor = '#ea580c';
+                rightLabel.style.color = 'white';
+                rightLabel.style.borderColor = '#dc2626';
+                rightLabel.style.boxShadow = '0 2px 4px rgba(234, 88, 12, 0.3)';
+            }
+        }
+    }
+
+    // Initial highlighting
+    setTimeout(updateHighlighting, 100); // Wait for MockMediator to be ready
+
+    // Listen for main reader changes
+    if (typeof MockMediator !== 'undefined') {
+        // Override the setMainReader method to trigger highlighting updates
+        const originalSetMainReader = MockMediator.setMainReader;
+        MockMediator.setMainReader = function(readerType, interaction) {
+            originalSetMainReader.call(this, readerType, interaction);
+            updateHighlighting();
+        };
+    }
+
+    // Also listen for checkbox changes to update highlighting
+    if (leftFollowScroll) {
+        leftFollowScroll.addEventListener('change', () => setTimeout(updateHighlighting, 50));
+    }
+    if (rightFollowScroll) {
+        rightFollowScroll.addEventListener('change', () => setTimeout(updateHighlighting, 50));
+    }
+
+    // Global function to update highlighting (can be called from other scripts)
+    window.updateFollowVerseScrollHighlighting = updateHighlighting;
+}
+
+// Initialize all functionalities when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     new VerticalResizer();
     initializeStatusToggle();
+    initializeFollowVerseScrollHighlighting();
 });
 
 const translations = {
@@ -176,7 +248,7 @@ const translations = {
       loading: "載入中...",
       strongsOn: "打開 Strong number",
       strongsOff: "關閉 Strong number",
-      followVerseScroll: "跟隨詩節滾動：",
+      followVerseScroll: "跟隨經節滾動：",
       followTextSelection: "跟隨文本選擇："
     }
 };
