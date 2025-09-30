@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual Bible Reader</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="header-container" style="display: flex; justify-content: center; align-items: center; margin: 10px 0;">
+        <h1 style="margin: 0; flex-grow: 1; text-align: center;">Dual Synchronized Bible Reader</h1>
+        <div class="language-selector" style="margin-left: 20px;">
+            <label for="language">Language:</label>
+            <select id="language">
+                <option value="en">English</option>
+                <option value="zh">正體中文</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="left-reader-component-container">
+            <!-- Left Reader HTML will be injected here by left_reader_frontend.js,
+                 or defined directly if preferred for static parts -->
+            <div id="left-reader-component">
+                <div class="reader-controls">
+                    <div class="control-line-1" style="margin-bottom: 8px;">
+                        <label for="left-reader-version-select">Version:</label>
+                        <select id="left-reader-version-select" style="margin-right: 15px;">
+                            <option value="unv">UNV (Union Version)</option>
+                            <option value="kjv">KJV (King James Version)</option>
+                            <option value="esv">ESV (English Standard Version)</option>
+                            <option value="rcuv2010">和合本2010</option>
+                            <option value="lcc">呂振中譯本</option>
+                        </select>
+                        <label for="left-reader-book">Book:</label>
+                        <select id="left-reader-book" style="margin-right: 15px;"></select>
+                        <label for="left-reader-chapter">Chapter:</label>
+                        <input type="number" id="left-reader-chapter" value="1" min="1" style="width: 60px;">
+                    </div>
+                    <div class="control-line-2">
+                        <input type="checkbox" id="left-reader-strong-toggle">
+                        <label for="left-reader-strong-toggle" style="margin-right: 15px;">Strong's Numbers</label>
+                        <input type="checkbox" id="left-reader-follow-selection">
+                        <label for="left-reader-follow-selection" style="margin-right: 15px;">FL Tx Sel</label>
+                        <input type="checkbox" id="left-reader-follow-scroll">
+                        <label for="left-reader-follow-scroll">FL Ver Scrl</label>
+                    </div>
+                </div>
+                <div id="left-reader-content-area" class="reader-content resizable" style="width: 100%; height: 400px; border: 1px solid #ccc; overflow-y: auto; resize: none; position: relative;">
+                    <p>Loading content...</p>
+                    <div class="resize-handle-se"></div>
+                </div>
+                <div class="resize-handle-s" data-target="left-content" style="position: relative; margin: 0 auto; width: 80px;"></div>
+                <div id="left-reader-status-display" class="status-area" style="margin-top: 10px; padding: 5px; border: 1px solid #ccc; font-size: 0.9em; word-wrap: break-word; height: 60px; overflow-y: auto; background: #f9f9f9;">
+                    <div><strong>Left Reader Status:</strong></div>
+                    <div>Ready...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="right-reader-component-container">
+            <!-- Right Reader HTML will be injected here by right_reader_frontend.js,
+                 or defined directly -->
+            <div id="right-reader-component">
+                <div class="reader-controls">
+                    <div class="control-line-1" style="margin-bottom: 8px;">
+                        <label for="right-reader-version-select">Version:</label>
+                        <select id="right-reader-version-select" style="margin-right: 15px;">
+                            <option value="unv">UNV (Union Version)</option>
+                            <option value="kjv">KJV (King James Version)</option>
+                            <option value="esv">ESV (English Standard Version)</option>
+                            <option value="rcuv2010">和合本2010</option>
+                            <option value="lcc">呂振中譯本</option>
+                        </select>
+                        <label for="right-reader-book">Book:</label>
+                        <select id="right-reader-book" style="margin-right: 15px;"></select>
+                        <label for="right-reader-chapter">Chapter:</label>
+                        <input type="number" id="right-reader-chapter" value="1" min="1" style="width: 60px;">
+                    </div>
+                    <div class="control-line-2">
+                        <input type="checkbox" id="right-reader-strong-toggle">
+                        <label for="right-reader-strong-toggle" style="margin-right: 15px;">Strong's Numbers</label>
+                        <input type="checkbox" id="right-reader-follow-selection" checked>
+                        <label for="right-reader-follow-selection" style="margin-right: 15px;">FL Tx Sel</label>
+                        <input type="checkbox" id="right-reader-follow-scroll" checked>
+                        <label for="right-reader-follow-scroll" style="margin-right: 15px;">FL Ver Scrl</label>
+                        <input type="checkbox" id="right-reader-edit-mode">
+                        <label for="right-reader-edit-mode" style="margin-right: 15px;">Edit Mode</label>
+                    </div>
+                    <div class="control-line-3 editor-controls" id="right-reader-editor-controls" style="margin-top: 8px; display: none;">
+                        <button id="insert-strong-btn" style="margin-right: 10px;">Insert Strong's</button>
+                        <input type="text" id="strong-number-input" placeholder="H1234 or G5678" style="width: 100px; margin-right: 10px;">
+                        <button id="save-text-btn" style="margin-right: 10px;">Save Text</button>
+                        <button id="export-json-btn" style="margin-right: 10px;">Export JSON</button>
+                        <button id="load-text-btn">Load Text</button>
+                        <input type="file" id="file-input" accept=".json,.txt" style="display: none;">
+                    </div>
+                </div>
+                <div id="right-reader-content-area" class="reader-content resizable" style="width: 100%; height: 400px; border: 1px solid #ccc; overflow-y: auto; resize: none; position: relative;">
+                    <p>Waiting for left reader...</p>
+                    <div class="resize-handle-se"></div>
+                </div>
+                <div class="resize-handle-s" data-target="right-content" style="position: relative; margin: 0 auto; width: 80px;"></div>
+                <div id="right-reader-status-display" class="status-area" style="margin-top: 10px; padding: 5px; border: 1px solid #ccc; font-size: 0.9em; word-wrap: break-word; height: 60px; overflow-y: auto; background: #f9f9f9;">
+                    <div><strong>Right Reader Status:</strong></div>
+                    <div>Waiting for left reader...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Debug Controls -->
+    <div style="margin: 20px; padding: 10px;">
+        <label for="debug-toggle">
+            <input type="checkbox" id="debug-toggle"> Show Debug Output
+        </label>
+        <label for="status-toggle" style="margin-left: 20px;">
+            <input type="checkbox" id="status-toggle" checked> Show Status
+        </label>
+    </div>
+
+    <!-- Debug Output Area -->
+    <div id="debug-output" class="resizable-height" style="margin: 20px; padding: 10px; background: #f0f0f0; border: 1px solid #ccc; font-family: monospace; font-size: 12px; height: 60px; overflow-y: auto; display: none; position: relative;">
+        <h4>Debug Output:</h4>
+        <div id="debug-content">Ready for debugging...</div>
+        <div class="resize-handle-s"></div>
+    </div>
+
+    <script src="js/mock_mediator.js"></script>
+    <script src="js/left_reader_frontend.js"></script>
+    <script src="js/right_reader_frontend.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
