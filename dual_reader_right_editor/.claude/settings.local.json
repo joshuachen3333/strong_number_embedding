@@ -10,9 +10,7 @@
       "Bash(git checkout:*)",
       "Bash(git switch:*)",
       "Bash(git reset:*)",
-      "Bash(git push:*)",
-      "Bash(curl -s \"https://bible.fhl.net/json/qb.php?version=lcc&chineses=創&chap=1&strong=0\")",
-      "WebFetch(domain:bible.fhl.net)"
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

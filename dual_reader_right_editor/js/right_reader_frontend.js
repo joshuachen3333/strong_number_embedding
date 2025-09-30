@@ -14,6 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const contentArea = document.getElementById('right-reader-content-area');
     const statusDisplay = document.getElementById('right-reader-status-display');
 
+    // Edit Mode controls
+    const editModeToggle = document.getElementById('right-reader-edit-mode');
+
     // References to left reader checkboxes for cross-reader control
     const leftFollowScrollToggle = document.getElementById('left-reader-follow-scroll');
     const leftFollowSelectionToggle = document.getElementById('left-reader-follow-selection');
@@ -23,6 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentChapter = null;
     let currentBookChinese = null; // Store Chinese book abbreviation for API calls
     let currentVerses = null; // Store verses from main reader
+
+    // Edit Mode state (minimal)
+    let isEditMode = false;
 
     // Book mapping with Chinese abbreviations for bible.fhl.net API (same as left reader)
     const books = [
@@ -765,6 +771,110 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add scroll event listener for synchronization
     contentArea.addEventListener('scroll', handleRightScroll);
+
+    // Add Edit Mode event listener
+    editModeToggle.addEventListener('change', handleEditModeToggle);
+
+    // Add click listener for verse editing
+    contentArea.addEventListener('click', handleVerseClick);
+
+    /**
+     * Handles Edit Mode toggle - minimal implementation
+     */
+    function handleEditModeToggle() {
+        if (isUpdatingCheckboxes) return; // Prevent infinite loops
+
+        isEditMode = editModeToggle.checked;
+        logStatus(`📝 Edit Mode: ${isEditMode ? 'ENABLED' : 'DISABLED'}`);
+
+        if (isEditMode) {
+            // When edit mode is enabled, make right reader main and left reader follower
+            isUpdatingCheckboxes = true;
+
+            // Right reader (this reader) must uncheck follow boxes to become main
+            followScrollToggle.checked = false;
+            followSelectionToggle.checked = false;
+
+            // Left reader must CHECK follow boxes to become follower
+            leftFollowScrollToggle.checked = true;
+            leftFollowSelectionToggle.checked = true;
+
+            // Set right reader as main
+            MockMediator.setMainReader('right', 'edit mode enabled');
+            logStatus('📍 Right reader is now MAIN (edit mode), left reader is now FOLLOWER');
+
+            setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
+
+            // Immediately sync left reader to current right reader position
+            if (currentBook && currentChapter) {
+                // Try to get current verse from right reader's scroll position
+                let currentVerse = 1; // Default to verse 1
+
+                // Try to find the topmost verse in right reader
+                const verses = contentArea.querySelectorAll('.verse[data-verse]');
+                if (verses.length > 0) {
+                    const containerRect = contentArea.getBoundingClientRect();
+                    const containerTop = containerRect.top;
+
+                    for (const verse of verses) {
+                        const verseRect = verse.getBoundingClientRect();
+                        if (verseRect.top >= containerTop) {
+                            currentVerse = parseInt(verse.getAttribute('data-verse')) || 1;
+                            break;
+                        }
+                    }
+                }
+
+                console.log('RightReader: Immediately syncing left reader to current position');
+                logStatus(`📨 Syncing left reader to: ${currentBookChinese} ${currentChapter}:${currentVerse}`);
+
+                // Use MockMediator to sync the position
+                MockMediator.syncPosition({
+                    book: currentBookChinese,
+                    chapter: currentChapter,
+                    verse: currentVerse
+                });
+            }
+
+        } else {
+            // If edit mode is disabled, make any currently editing verse non-editable
+            const editableVerses = contentArea.querySelectorAll('.verse[contenteditable="true"]');
+            editableVerses.forEach(verse => {
+                verse.contentEditable = false;
+                verse.style.backgroundColor = '';
+                verse.style.border = '';
+            });
+        }
+    }
+
+    /**
+     * Handles clicks on verses when in edit mode - minimal implementation
+     */
+    function handleVerseClick(event) {
+        // Only handle clicks when edit mode is enabled
+        if (!isEditMode) return;
+
+        // Find the verse element that was clicked
+        const verseElement = event.target.closest('.verse');
+        if (!verseElement) return;
+
+        // Make this verse editable
+        verseElement.contentEditable = true;
+        verseElement.style.backgroundColor = '#fff9c4';
+        verseElement.style.border = '2px solid #007cba';
+        verseElement.focus();
+
+        logStatus(`📝 Editing verse ${verseElement.getAttribute('data-verse')}`);
+
+        // Add blur event to save when clicking outside
+        verseElement.addEventListener('blur', function saveOnBlur() {
+            verseElement.contentEditable = false;
+            verseElement.style.backgroundColor = '';
+            verseElement.style.border = '';
+            verseElement.removeEventListener('blur', saveOnBlur);
+            logStatus(`💾 Saved verse ${verseElement.getAttribute('data-verse')}`);
+        }, { once: true });
+    }
 
     /**
      * Handles scroll events to detect current verse and sync with left reader
