@@ -414,25 +414,25 @@ document.addEventListener('DOMContentLoaded', () => {
         // Format 1: {<WH1234>} or {<WG5678>}
         result = result.replace(/\{<W([HG])(\d+)>\}/g, (match, lang, number) => {
             const strongsId = `${lang}${number}`;
-            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">[${strongsId}]</span>`;
+            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">&lt;${strongsId}&gt;</span>`;
         });
-        
+
         // Format 2: {H1234} or {G5678}
         result = result.replace(/\{([HG])(\d+)\}/g, (match, lang, number) => {
             const strongsId = `${lang}${number}`;
-            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">[${strongsId}]</span>`;
+            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">&lt;${strongsId}&gt;</span>`;
         });
-        
+
         // Format 3: <WH1234> or <WG5678>
         result = result.replace(/<W([HG])(\d+)>/g, (match, lang, number) => {
             const strongsId = `${lang}${number}`;
-            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">[${strongsId}]</span>`;
+            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">&lt;${strongsId}&gt;</span>`;
         });
-        
+
         // Format 4: (H1234) or (G5678)
         result = result.replace(/\(([HG])(\d+)\)/g, (match, lang, number) => {
             const strongsId = `${lang}${number}`;
-            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">[${strongsId}]</span>`;
+            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">&lt;${strongsId}&gt;</span>`;
         });
         
         return result;
@@ -719,4 +719,55 @@ document.addEventListener('DOMContentLoaded', () => {
             loadChapterContent();
         }
     });
+
+    // Initialize left reader defaults
+    function initializeLeftReaderDefaults() {
+        console.log('LeftReader: Initializing defaults...');
+
+        // 1. Set Strong's Numbers ON
+        strongToggle.checked = true;
+        logStatus('📍 Strong\'s Numbers: ENABLED (default)');
+
+        // 2. Set version to UNV (Union Version)
+        versionSelect.value = 'unv';
+        logStatus('📍 Version: UNV (default)');
+
+        // 3. Restore last book/chapter from localStorage or default to Genesis 1
+        const savedBook = localStorage.getItem('leftReader_lastBook') || '創'; // Genesis
+        const savedChapter = localStorage.getItem('leftReader_lastChapter') || '1';
+
+        // Set book select
+        bookSelect.value = savedBook;
+        chapterInput.value = savedChapter;
+
+        const bookOption = Array.from(bookSelect.options).find(opt => opt.value === savedBook);
+        const bookName = bookOption ? bookOption.textContent : 'Genesis';
+        logStatus(`📖 Restored position: ${bookName} ${savedChapter} (last session)`);
+
+        console.log('LeftReader: Defaults initialized, loading initial content...');
+
+        // Load initial content
+        setTimeout(() => {
+            loadChapterContent();
+        }, 100);
+    }
+
+    // Save current position to localStorage whenever book/chapter changes
+    function saveCurrentPosition() {
+        if (bookSelect.value && chapterInput.value) {
+            localStorage.setItem('leftReader_lastBook', bookSelect.value);
+            localStorage.setItem('leftReader_lastChapter', chapterInput.value);
+        }
+    }
+
+    // Add position saving to existing event listeners
+    const originalBookListener = bookSelect.addEventListener;
+    const originalChapterListener = chapterInput.addEventListener;
+
+    // Override to also save position
+    bookSelect.addEventListener('change', saveCurrentPosition);
+    chapterInput.addEventListener('change', saveCurrentPosition);
+
+    // Initialize after a short delay to ensure all elements are ready
+    setTimeout(initializeLeftReaderDefaults, 50);
 });

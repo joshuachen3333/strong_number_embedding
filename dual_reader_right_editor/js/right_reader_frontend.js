@@ -490,25 +490,25 @@ document.addEventListener('DOMContentLoaded', () => {
         // Format 1: {<WH1234>} or {<WG5678>}
         result = result.replace(/\{<W([HG])(\d+)>\}/g, (match, lang, number) => {
             const strongsId = `${lang}${number}`;
-            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">[${strongsId}]</span>`;
+            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">&lt;${strongsId}&gt;</span>`;
         });
-        
+
         // Format 2: {H1234} or {G5678}
         result = result.replace(/\{([HG])(\d+)\}/g, (match, lang, number) => {
             const strongsId = `${lang}${number}`;
-            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">[${strongsId}]</span>`;
+            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">&lt;${strongsId}&gt;</span>`;
         });
-        
+
         // Format 3: <WH1234> or <WG5678>
         result = result.replace(/<W([HG])(\d+)>/g, (match, lang, number) => {
             const strongsId = `${lang}${number}`;
-            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">[${strongsId}]</span>`;
+            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">&lt;${strongsId}&gt;</span>`;
         });
-        
+
         // Format 4: (H1234) or (G5678)
         result = result.replace(/\(([HG])(\d+)\)/g, (match, lang, number) => {
             const strongsId = `${lang}${number}`;
-            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">[${strongsId}]</span>`;
+            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">&lt;${strongsId}&gt;</span>`;
         });
         
         return result;
@@ -942,14 +942,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Initial setup - set default values but don't auto-load (left reader is main initially)
-    setTimeout(() => {
-        if (bookSelect.options.length > 0) {
-            bookSelect.selectedIndex = 0; // Select first book (Genesis)
-            chapterInput.value = 1;
-            // Don't auto-load, wait for left reader to lead or manual interaction
+    // Initialize right reader defaults
+    function initializeRightReaderDefaults() {
+        console.log('RightReader: Initializing defaults...');
+
+        // 1. Set version to LCC (呂振中譯本)
+        versionSelect.value = 'lcc';
+        logStatus('📍 Version: LCC (default)');
+
+        // 2. Set right reader to follow left reader (check follow boxes)
+        isUpdatingCheckboxes = true;
+        followScrollToggle.checked = true;
+        followSelectionToggle.checked = true;
+        logStatus('📍 Follow text selection: ENABLED (default)');
+        logStatus('📍 Follow verse scroll: ENABLED (default)');
+
+        // 3. Make left reader main by unchecking its follow boxes
+        const leftFollowScrollToggle = document.getElementById('left-reader-follow-scroll');
+        const leftFollowSelectionToggle = document.getElementById('left-reader-follow-selection');
+        if (leftFollowScrollToggle && leftFollowSelectionToggle) {
+            leftFollowScrollToggle.checked = false;
+            leftFollowSelectionToggle.checked = false;
         }
-    }, 500);
+
+        // 4. Set Mediator to know left is main, right is follower
+        MockMediator.setMainReader('left', 'right reader default initialization');
+        logStatus('📍 Left reader is MAIN, right reader is FOLLOWER (default)');
+
+        setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
+
+        console.log('RightReader: Defaults initialized, waiting for left reader...');
+    }
 
     // Update initial placeholder text based on selected language
     const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en';
@@ -957,4 +980,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (contentArea.firstElementChild && contentArea.firstElementChild.textContent.trim() === "Waiting for left reader...") {
         contentArea.firstElementChild.textContent = langTranslations.rightReaderWaiting;
     }
+
+    // Initialize defaults after a short delay to ensure all elements are ready
+    setTimeout(initializeRightReaderDefaults, 100);
 });
