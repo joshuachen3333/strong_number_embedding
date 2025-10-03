@@ -35,6 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let isEditMode = false;
     let currentEditingVerse = null; // Track which verse is being edited
 
+    // Highlighting timeout management
+    let highlightTimer = null;
+
     // Undo/Redo system
     let undoStack = []; // Array of {verseId, content, cursorPos}
     let redoStack = [];
@@ -882,12 +885,107 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Highlights matching Strong's numbers in left reader for visual confirmation
      */
-    function highlightStrongsInLeftReader(strongsNumber, verseNum) {
+    function highlightStrongsInLeftReader(strongsNumber, verseNum, shouldClear = true) {
         try {
-            console.log(`[DEBUG] Attempting to highlight Strong's number: ${strongsNumber} in verse ${verseNum}`);
+            console.log(`[DEBUG] Attempting to highlight Strong's number: ${strongsNumber} in verse ${verseNum} (clear: ${shouldClear})`);
 
-            // Clear any existing Strong's highlights first
-            clearStrongsHighlighting();
+            // Clear any existing Strong's highlights first (if requested)
+            if (shouldClear) {
+                clearStrongsHighlighting();
+            }
+
+            // Get left reader content area
+            const leftContentArea = document.getElementById('left-reader-content-area');
+            if (!leftContentArea) {
+                console.log('[DEBUG] Left reader content area not found');
+                logStatus('❌ Left reader not found for highlighting');
+                return;
+            }
+
+            console.log('[DEBUG] Left reader content area found');
+
+            // Debug: Check what Strong's numbers exist in left reader
+            const allStrongsElements = leftContentArea.querySelectorAll('.strongs-number');
+            console.log(`[DEBUG] Found ${allStrongsElements.length} total Strong's elements in left reader`);
+
+            if (allStrongsElements.length === 0) {
+                // Check if left reader has Strong's toggle enabled
+                const leftStrongToggle = document.getElementById('left-reader-strong-toggle');
+                if (leftStrongToggle && !leftStrongToggle.checked) {
+                    console.log('[DEBUG] Left reader Strong\'s toggle is OFF - enabling it');
+                    leftStrongToggle.checked = true;
+                    // Trigger a reload of left reader content
+                    leftStrongToggle.dispatchEvent(new Event('change'));
+                    logStatus('🔧 Enabled Strong\'s numbers in left reader for highlighting');
+
+                    // Wait a moment for content to reload, then try again
+                    setTimeout(() => highlightStrongsInLeftReader(strongsNumber, verseNum, false), 1000);
+                    return;
+                } else {
+                    console.log('[DEBUG] Left reader has no Strong\'s numbers available');
+                    logStatus('⚠️ No Strong\'s numbers found in left reader (may need to reload with Strong\'s enabled)');
+                    return;
+                }
+            }
+
+            if (allStrongsElements.length > 0) {
+                console.log('[DEBUG] First few Strong\'s numbers in left reader:');
+                for (let i = 0; i < Math.min(5, allStrongsElements.length); i++) {
+                    const el = allStrongsElements[i];
+                    console.log(`  - ${el.getAttribute('data-strong')}: "${el.textContent}"`);
+                }
+            }
+
+            // Find matching Strong's numbers in left reader
+            const strongsElements = leftContentArea.querySelectorAll(`.strongs-number[data-strong="${strongsNumber}"]`);
+            console.log(`[DEBUG] Found ${strongsElements.length} matching elements for ${strongsNumber}`);
+            let highlightCount = 0;
+
+            strongsElements.forEach(strongEl => {
+                // Add highlight class for easier clearing
+                strongEl.classList.add('strongs-highlighted');
+
+                // Add highlight styling
+                strongEl.style.backgroundColor = '#ff6b35';
+                strongEl.style.color = 'white';
+                strongEl.style.padding = '2px 4px';
+                strongEl.style.borderRadius = '3px';
+                strongEl.style.fontWeight = 'bold';
+                strongEl.style.border = '2px solid #ff6b35';
+
+                // Add pulsing animation
+                strongEl.style.animation = 'strongsPulse 2s ease-in-out infinite';
+                highlightCount++;
+            });
+
+            // Add CSS animation if it doesn't exist
+            if (!document.getElementById('strongs-animation-style')) {
+                const style = document.createElement('style');
+                style.id = 'strongs-animation-style';
+                style.textContent = `
+                    @keyframes strongsPulse {
+                        0%, 100% { opacity: 1; }
+                        50% { opacity: 0.7; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            if (highlightCount > 0) {
+                logStatus(`🔍 Highlighted ${highlightCount} matching ${strongsNumber} instances in left reader`);
+                // Note: Highlighting timeout now managed by caller
+            } else {
+                logStatus(`🔍 No matching ${strongsNumber} found in left reader to highlight`);
+            }
+        } catch (error) {
+            console.error('[DEBUG] Error in highlightStrongsInLeftReader:', error);
+            logStatus(`❌ Highlighting failed: ${error.message}`);
+        }
+    }
+
+    function highlightStrongsInLeftReaderNoClearing(strongsNumber, verseNum) {
+        try {
+            console.log(`[DEBUG] Highlighting Strong's number (no clearing): ${strongsNumber} in verse ${verseNum}`);
 
             // Get left reader content area
             const leftContentArea = document.getElementById('left-reader-content-area');
@@ -971,10 +1069,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (highlightCount > 0) {
                 logStatus(`🔍 Highlighted ${highlightCount} matching ${strongsNumber} instances in left reader`);
 
-                // Auto-clear highlighting after 5 seconds if no action taken
-                setTimeout(() => {
-                    clearStrongsHighlighting();
-                }, 5000);
+                // Note: Highlighting timeout now managed by caller
             } else {
                 logStatus(`🔍 No matching ${strongsNumber} found in left reader to highlight`);
             }
@@ -989,11 +1084,19 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function clearStrongsHighlighting() {
         try {
+            console.log('[DEBUG] clearStrongsHighlighting called');
             const leftContentArea = document.getElementById('left-reader-content-area');
-            if (!leftContentArea) return;
+            if (!leftContentArea) {
+                console.log('[DEBUG] Left content area not found');
+                return;
+            }
 
             const highlightedElements = leftContentArea.querySelectorAll('.strongs-highlighted');
-            highlightedElements.forEach(el => {
+            console.log(`[DEBUG] Found ${highlightedElements.length} highlighted elements to clear`);
+
+            highlightedElements.forEach((el, index) => {
+                console.log(`[DEBUG] Clearing highlight ${index + 1}: ${el.getAttribute('data-strong')} - "${el.textContent}"`);
+
                 // Remove highlight styling
                 el.style.backgroundColor = '';
                 el.style.color = '';
@@ -1007,6 +1110,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 el.style.animation = '';
                 el.classList.remove('strongs-highlighted');
             });
+
+            console.log(`[DEBUG] Cleared ${highlightedElements.length} highlighted elements`);
 
         } catch (error) {
             console.error('Error clearing Strong\'s highlighting:', error);
@@ -2487,7 +2592,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const suggestion = this.findStrongsByWordContext(leftVerse, rightVerse, cursorPosition);
 
                 if (suggestion) {
-                    logStatus(`💡 Suggestion: Found ${suggestion.strong} for word "${suggestion.word}" (confidence: ${suggestion.confidence})`);
+                    const strongDisplay = Array.isArray(suggestion.strong) ? suggestion.strong.join(', ') : suggestion.strong;
+                    logStatus(`💡 Suggestion: Found ${strongDisplay} for word "${suggestion.word}" (confidence: ${suggestion.confidence})`);
                     return suggestion.strong;
                 }
 
@@ -2513,16 +2619,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Look for this word or its translation in the left verse
                 const leftWords = this.extractWordsWithStrongs(leftVerse);
 
-                // Strategy 1: Direct match (same language)
+                // Strategy 1: Direct match (same language) - collect ALL matches
+                const directMatches = [];
                 for (const leftWord of leftWords) {
                     if (leftWord.word === wordAtCursor.word) {
                         console.log(`[DEBUG] Direct match found: ${leftWord.word} → ${leftWord.strong}`);
-                        return {
-                            word: wordAtCursor.word,
-                            strong: leftWord.strong,
-                            confidence: 1.0
-                        };
+                        // Handle both single Strong's numbers and arrays
+                        if (Array.isArray(leftWord.strong)) {
+                            directMatches.push(...leftWord.strong);
+                        } else {
+                            directMatches.push(leftWord.strong);
+                        }
                     }
+                }
+
+                // Strategy 1.5: Check for multi-character words that contain the clicked character
+                for (const leftWord of leftWords) {
+                    if (leftWord.word.includes(wordAtCursor.word) && leftWord.word.length > 1) {
+                        console.log(`[DEBUG] Multi-char match found: "${leftWord.word}" contains "${wordAtCursor.word}" → ${Array.isArray(leftWord.strong) ? leftWord.strong.join(', ') : leftWord.strong}`);
+                        // Handle both single Strong's numbers and arrays
+                        if (Array.isArray(leftWord.strong)) {
+                            directMatches.push(...leftWord.strong);
+                        } else {
+                            directMatches.push(leftWord.strong);
+                        }
+                    }
+                }
+
+                if (directMatches.length > 0) {
+                    // Remove duplicates
+                    const uniqueMatches = [...new Set(directMatches)];
+                    console.log(`[DEBUG] Found ${uniqueMatches.length} Strong's numbers for "${wordAtCursor.word}": ${uniqueMatches.join(', ')}`);
+                    return {
+                        word: wordAtCursor.word,
+                        strong: uniqueMatches.length === 1 ? uniqueMatches[0] : uniqueMatches,
+                        confidence: 1.0
+                    };
                 }
 
                 // Strategy 2: Cross-language translation
@@ -2667,59 +2799,149 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Look for Chinese characters near this position
                     if (strongPosition >= 0) {
-                        // Check characters before the Strong's position
-                        const beforeText = verseText.substring(Math.max(0, strongPosition - 10), strongPosition);
+                        // Check characters immediately before the Strong's position (most accurate)
+                        const beforeText = verseText.substring(Math.max(0, strongPosition - 3), strongPosition);
                         const beforeChars = beforeText.match(/[\u4e00-\u9fff]/g) || [];
                         console.log(`[DEBUG] Characters before ${strong}: ${beforeChars.join('')}`);
 
-                        // Take last 2 characters before (most likely associated)
-                        const recentChars = beforeChars.slice(-2);
-                        recentChars.forEach(char => {
-                            words.push({ word: char, strong, position: 'before', distance: 'near' });
-                            console.log(`[DEBUG] Added Chinese char (before): "${char}" → ${strong}`);
-                        });
+                        // For multi-SN patterns like "創造<H01254><H0853>",
+                        // H0853 may not have chars immediately before it but should associate with "創"
+                        if (beforeChars.length > 0) {
+                            const lastChar = beforeChars[beforeChars.length - 1];
+                            words.push({ word: lastChar, strong, position: 'before', distance: 'immediate' });
+                            console.log(`[DEBUG] Added Chinese char (before): "${lastChar}" → ${strong}`);
+                        } else {
+                            // Check if this is a consecutive Strong's number (like H0853 after H01254)
+                            // Look further back for Chinese characters
+                            const extendedBeforeText = verseText.substring(Math.max(0, strongPosition - 15), strongPosition);
+                            const extendedChars = extendedBeforeText.match(/[\u4e00-\u9fff]/g) || [];
+                            console.log(`[DEBUG] Extended characters before ${strong}: ${extendedChars.join('')}`);
 
-                        // Check characters after the Strong's position
-                        const afterText = verseText.substring(strongPosition + 10, strongPosition + 20);
+                            if (extendedChars.length > 0) {
+                                // Take the last 2 characters to handle multi-char words like "創造"
+                                const lastTwoChars = extendedChars.slice(-2);
+                                if (lastTwoChars.length >= 2) {
+                                    // Associate with the first character of the pair (e.g., "創" in "創造")
+                                    const firstChar = lastTwoChars[0];
+                                    words.push({ word: firstChar, strong, position: 'extended', distance: 'near' });
+                                    console.log(`[DEBUG] Added Chinese char (extended): "${firstChar}" → ${strong}`);
+                                } else if (lastTwoChars.length === 1) {
+                                    const singleChar = lastTwoChars[0];
+                                    words.push({ word: singleChar, strong, position: 'extended', distance: 'near' });
+                                    console.log(`[DEBUG] Added Chinese char (extended single): "${singleChar}" → ${strong}`);
+                                }
+                            }
+                        }
+
+                        // Check characters immediately after the Strong's position (less reliable)
+                        const afterText = verseText.substring(strongPosition + 10, strongPosition + 13);
                         const afterChars = afterText.match(/[\u4e00-\u9fff]/g) || [];
                         console.log(`[DEBUG] Characters after ${strong}: ${afterChars.join('')}`);
 
-                        // Take first 2 characters after
-                        const earlyChars = afterChars.slice(0, 2);
-                        earlyChars.forEach(char => {
-                            words.push({ word: char, strong, position: 'after', distance: 'near' });
-                            console.log(`[DEBUG] Added Chinese char (after): "${char}" → ${strong}`);
-                        });
-                    }
-                });
-
-                // Remove duplicates while preferring 'before' position associations (more accurate)
-                const uniqueWords = [];
-                const wordMap = new Map();
-
-                words.forEach(item => {
-                    const wordKey = item.word;
-
-                    if (!wordMap.has(wordKey)) {
-                        wordMap.set(wordKey, item);
-                        console.log(`[DEBUG] First association for "${wordKey}": ${item.strong} (${item.position})`);
-                    } else {
-                        const existing = wordMap.get(wordKey);
-                        // Prefer 'before' position over 'after' (more accurate for Chinese)
-                        if (item.position === 'before' && existing.position === 'after') {
-                            console.log(`[DEBUG] Replacing "${wordKey}": ${existing.strong} → ${item.strong} (preferring 'before')`);
-                            wordMap.set(wordKey, item);
-                        } else {
-                            console.log(`[DEBUG] Keeping existing association for "${wordKey}": ${existing.strong} (${existing.position})`);
+                        // Take only the FIRST character after (and only if no character was found before)
+                        if (afterChars.length > 0 && beforeChars.length === 0) {
+                            const firstChar = afterChars[0];
+                            words.push({ word: firstChar, strong, position: 'after', distance: 'immediate' });
+                            console.log(`[DEBUG] Added Chinese char (after): "${firstChar}" → ${strong}`);
                         }
                     }
                 });
 
-                // Convert map to array
-                uniqueWords.push(...wordMap.values());
+                // Group by word but allow multiple Strong's numbers per word
+                const wordStrongsMap = new Map();
+
+                words.forEach(item => {
+                    const wordKey = item.word;
+
+                    if (!wordStrongsMap.has(wordKey)) {
+                        wordStrongsMap.set(wordKey, []);
+                    }
+
+                    const existing = wordStrongsMap.get(wordKey);
+
+                    // Check if this Strong's number is already added for this word
+                    const alreadyExists = existing.some(existingItem => existingItem.strong === item.strong);
+
+                    if (!alreadyExists) {
+                        existing.push(item);
+                        console.log(`[DEBUG] Added association "${wordKey}": ${item.strong} (${item.position})`);
+                    } else {
+                        console.log(`[DEBUG] Skipping duplicate "${wordKey}": ${item.strong} (${item.position})`);
+                    }
+                });
+
+                // Convert to flat array, but preserve multiple Strong's per word information
+                const uniqueWords = [];
+                wordStrongsMap.forEach((strongsArray, word) => {
+                    // Sort by position preference (before > after) then add all
+                    const sorted = strongsArray.sort((a, b) => {
+                        if (a.position === 'before' && b.position === 'after') return -1;
+                        if (a.position === 'after' && b.position === 'before') return 1;
+                        return 0;
+                    });
+                    uniqueWords.push(...sorted);
+                });
+
+                // NEW: Handle multi-character words by detecting consecutive characters with Strong's numbers
+                const multiCharWords = this.detectMultiCharWords(words, leftVerse);
+                multiCharWords.forEach(multiWord => {
+                    uniqueWords.push(multiWord);
+                    console.log(`[DEBUG] Added multi-char word: "${multiWord.word}" with ${Array.isArray(multiWord.strong) ? multiWord.strong.length : 1} Strong's numbers`);
+                });
 
                 console.log(`[DEBUG] Extracted ${uniqueWords.length} unique word-Strong's pairs:`, uniqueWords);
                 return uniqueWords;
+            },
+
+            /**
+             * Detect multi-character words that have multiple Strong's numbers
+             */
+            detectMultiCharWords(words, leftVerse) {
+                const multiCharWords = [];
+                const verseText = leftVerse.textContent;
+
+                // Group words by their characters to find potential multi-char combinations
+                const charStrongMap = new Map();
+                words.forEach(wordItem => {
+                    const char = wordItem.word;
+                    if (!charStrongMap.has(char)) {
+                        charStrongMap.set(char, []);
+                    }
+                    charStrongMap.get(char).push(wordItem.strong);
+                });
+
+                console.log(`[DEBUG] Character-Strong's mapping:`, Array.from(charStrongMap.entries()));
+
+                // Look for consecutive character pairs in the verse text
+                for (let i = 0; i < verseText.length - 1; i++) {
+                    const char1 = verseText[i];
+                    const char2 = verseText[i + 1];
+
+                    // Check if both characters are Chinese and have Strong's numbers
+                    if (char1.match(/[\u4e00-\u9fff]/) && char2.match(/[\u4e00-\u9fff]/)) {
+                        const strongs1 = charStrongMap.get(char1) || [];
+                        const strongs2 = charStrongMap.get(char2) || [];
+
+                        if (strongs1.length > 0 && strongs2.length > 0) {
+                            const combinedWord = char1 + char2;
+                            const allStrongs = [...strongs1, ...strongs2];
+
+                            // Remove duplicates
+                            const uniqueStrongs = [...new Set(allStrongs)];
+
+                            multiCharWords.push({
+                                word: combinedWord,
+                                strong: uniqueStrongs,
+                                position: 'combined',
+                                distance: 'immediate'
+                            });
+
+                            console.log(`[DEBUG] Detected multi-char word: "${combinedWord}" with Strong's: ${uniqueStrongs.join(', ')}`);
+                        }
+                    }
+                }
+
+                return multiCharWords;
             },
 
             /**
@@ -2859,15 +3081,40 @@ document.addEventListener('DOMContentLoaded', () => {
             const suggestion = SuggestionEngine.getSuggestion(context);
 
             if (suggestion) {
-                strongNumberInput.value = suggestion;
-                navigator.clipboard.writeText(`<${suggestion}>`).then(() => {
-                    logStatus(`💡 Suggested: ${suggestion} (copied to clipboard)`);
+                // Handle both single and multiple Strong's numbers
+                const inputValue = Array.isArray(suggestion) ? suggestion.join(' ') : suggestion;
+                const clipboardValue = Array.isArray(suggestion) ?
+                    suggestion.map(sn => `<${sn}>`).join('') :
+                    `<${suggestion}>`;
+
+                strongNumberInput.value = inputValue;
+                navigator.clipboard.writeText(clipboardValue).then(() => {
+                    const displayValue = Array.isArray(suggestion) ? suggestion.join(', ') : suggestion;
+                    logStatus(`💡 Suggested: ${displayValue} (copied to clipboard)`);
                 }).catch(() => {
                     logStatus(`💡 Suggested: ${suggestion}`);
                 });
 
-                // Highlight matching Strong's number in left reader for visual confirmation
-                highlightStrongsInLeftReader(suggestion, verseId);
+                // Highlight matching Strong's number(s) in left reader for visual confirmation
+                if (Array.isArray(suggestion)) {
+                    // Highlight multiple Strong's numbers - clear first, then add all without clearing between
+                    suggestion.forEach((sn, index) => {
+                        highlightStrongsInLeftReader(sn, verseId, index === 0); // Clear only on first one
+                    });
+                } else {
+                    // Highlight single Strong's number
+                    highlightStrongsInLeftReader(suggestion, verseId, true);
+                }
+
+                // Set/reset the highlighting timeout (single timer for all highlights)
+                if (highlightTimer) {
+                    clearTimeout(highlightTimer);
+                }
+                highlightTimer = setTimeout(() => {
+                    clearStrongsHighlighting();
+                    highlightTimer = null;
+                    console.log('[DEBUG] Auto-cleared highlighting after 10 seconds');
+                }, 10000); // 10 seconds
             } else {
                 strongNumberInput.value = '';
                 // Clear highlighting when no suggestion
