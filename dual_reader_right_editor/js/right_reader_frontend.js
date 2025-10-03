@@ -2687,28 +2687,46 @@ document.addEventListener('DOMContentLoaded', () => {
         versionSelect.value = 'lcc';
         logStatus('📍 Version: LCC (default)');
 
-        // 2. Set right reader to follow left reader (check follow boxes)
+        // 2. Enable edit mode by default (this will override follow settings)
         isUpdatingCheckboxes = true;
-        followScrollToggle.checked = true;
-        followSelectionToggle.checked = true;
-        logStatus('📍 Follow text selection: ENABLED (default)');
-        logStatus('📍 Follow verse scroll: ENABLED (default)');
 
-        // 3. Make left reader main by unchecking its follow boxes
-        const leftFollowScrollToggle = document.getElementById('left-reader-follow-scroll');
-        const leftFollowSelectionToggle = document.getElementById('left-reader-follow-selection');
-        if (leftFollowScrollToggle && leftFollowSelectionToggle) {
-            leftFollowScrollToggle.checked = false;
-            leftFollowSelectionToggle.checked = false;
+        // Since edit mode checkbox is already checked in HTML, trigger the edit mode logic
+        if (editModeToggle.checked) {
+            // Trigger edit mode initialization manually with extra delay to ensure left reader is ready
+            setTimeout(() => {
+                console.log('RightReader: Triggering edit mode with left reader elements check...');
+
+                // Verify left reader elements are available
+                const leftScroll = document.getElementById('left-reader-follow-scroll');
+                const leftSelection = document.getElementById('left-reader-follow-selection');
+                console.log('Left reader follow elements:', { leftScroll, leftSelection });
+
+                handleEditModeToggle();
+            }, 300);
+            logStatus('📝 Edit Mode: ENABLED (default)');
+        } else {
+            // Fallback: Set right reader to follow left reader if edit mode not enabled
+            followScrollToggle.checked = true;
+            followSelectionToggle.checked = true;
+            logStatus('📍 Follow text selection: ENABLED (default)');
+            logStatus('📍 Follow verse scroll: ENABLED (default)');
+
+            // Make left reader main by unchecking its follow boxes
+            const leftFollowScrollToggle = document.getElementById('left-reader-follow-scroll');
+            const leftFollowSelectionToggle = document.getElementById('left-reader-follow-selection');
+            if (leftFollowScrollToggle && leftFollowSelectionToggle) {
+                leftFollowScrollToggle.checked = false;
+                leftFollowSelectionToggle.checked = false;
+            }
+
+            // Set Mediator to know left is main, right is follower
+            MockMediator.setMainReader('left', 'right reader default initialization');
+            logStatus('📍 Left reader is MAIN, right reader is FOLLOWER (default)');
         }
 
-        // 4. Set Mediator to know left is main, right is follower
-        MockMediator.setMainReader('left', 'right reader default initialization');
-        logStatus('📍 Left reader is MAIN, right reader is FOLLOWER (default)');
+        setTimeout(() => { isUpdatingCheckboxes = false; }, 200);
 
-        setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
-
-        console.log('RightReader: Defaults initialized, waiting for left reader...');
+        console.log('RightReader: Defaults initialized with edit mode preference...');
     }
 
     // Update initial placeholder text based on selected language
