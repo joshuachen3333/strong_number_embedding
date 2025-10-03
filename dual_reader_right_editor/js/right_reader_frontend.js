@@ -558,6 +558,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const bookEntry = books.find(b => b.chinese === book);
         currentBook = bookEntry ? bookEntry.english : book; // English display name
 
+        // Check if we have saved edited content first (especially important on reload)
+        if (isEditMode) {
+            const currentBookChapter = `${currentBookChinese}_${currentChapter}`;
+            const saveKey = `rightReader_edited_${currentBookChapter}`;
+            const savedData = localStorage.getItem(saveKey);
+
+            if (savedData) {
+                console.log(`[LOAD] Found saved edited content for ${currentBookChapter}, skipping API fetch`);
+                logStatus(`📚 Restoring edited content: ${bookSelect.options[bookSelect.selectedIndex].text} ${chapter} (edited)`);
+
+                // Load the saved content directly instead of fetching from API
+                try {
+                    await loadSavedEditedContent(savedData);
+                    return; // Skip API fetch since we loaded saved content
+                } catch (error) {
+                    console.error('[LOAD] Error loading saved content, falling back to API:', error);
+                    // Continue to API fetch as fallback
+                }
+            }
+        }
+
         // Log the API URL being used
         const fhlUrl = `https://bible.fhl.net/json/qb.php?version=${version}&chineses=${encodeURIComponent(book)}&chap=${chapter}&strong=${strong}`;
         logStatus(`API URL: ${fhlUrl}`);
@@ -1291,6 +1312,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         hasUnsavedChanges = false;
+    }
+
+    /**
+     * Load saved edited content directly without fetching from API
+     */
+    async function loadSavedEditedContent(savedData) {
+        const editedContent = JSON.parse(savedData);
+        console.log(`[LOAD_SAVED] Loading edited content:`, editedContent);
+
+        // First, we need to create the basic verse structure to populate with saved content
+        const verses = Object.keys(editedContent).sort((a, b) => parseInt(a) - parseInt(b));
+        const bookEntry = books.find(b => b.chinese === currentBookChinese);
+        const bookName = bookEntry ? bookEntry.english : currentBookChinese;
+
+        let htmlContent = `<h3>${bookName} ${currentChapter}</h3>`;
+
+        verses.forEach(verseNum => {
+            const verseContent = editedContent[verseNum];
+            htmlContent += `
+                <div class="verse-container" data-verse="${verseNum}">
+                    <span class="verse-number" data-verse="${verseNum}">${verseNum}</span>
+                    <span class="verse-text" data-verse="${verseNum}" contenteditable="true">${verseContent}</span>
+                </div>
+            `;
+        });
+
+        contentArea.innerHTML = htmlContent;
+
+        // Add verse editing listeners
+        addVerseEditingListeners();
+
+        // Create mapping for Strong's number highlighting (if needed)
+        setTimeout(() => {
+            createWordMapping();
+        }, 100);
+
+        logStatus(`✅ Restored ${verses.length} edited verses from localStorage`);
+        console.log(`[LOAD_SAVED] Successfully loaded ${verses.length} edited verses`);
     }
 
     function restoreEditedContent() {
