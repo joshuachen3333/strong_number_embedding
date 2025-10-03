@@ -31,8 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentBookChinese = null; // Store Chinese book abbreviation for API calls
     let currentVerses = null; // Store verses from main reader
 
-    // Edit Mode state (minimal)
-    let isEditMode = false;
+    // Edit Mode state (minimal) - will be synced with HTML checkbox during initialization
+    let isEditMode = false; // Will be set from editModeToggle.checked during init
     let currentEditingVerse = null; // Track which verse is being edited
 
     // Highlighting timeout management
@@ -558,26 +558,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const bookEntry = books.find(b => b.chinese === book);
         currentBook = bookEntry ? bookEntry.english : book; // English display name
 
-        // Check if we have saved edited content first (especially important on reload)
-        if (isEditMode) {
-            const currentBookChapter = `${currentBookChinese}_${currentChapter}`;
-            const saveKey = `rightReader_edited_${currentBookChapter}`;
-            const savedData = localStorage.getItem(saveKey);
+        // Priority order: 1. Local JSON file, 2. localStorage, 3. API fetch
 
-            if (savedData) {
-                console.log(`[LOAD] Found saved edited content for ${currentBookChapter}, skipping API fetch`);
-                logStatus(`📚 Restoring edited content: ${bookSelect.options[bookSelect.selectedIndex].text} ${chapter} (edited)`);
+        // 1. Check for local JSON file first
+        const versionName = version.toUpperCase();
+        const localJsonFile = `${currentBookChinese}_${currentChapter}_${versionName}_edited.json`;
 
-                // Load the saved content directly instead of fetching from API
-                try {
-                    await loadSavedEditedContent(savedData);
-                    return; // Skip API fetch since we loaded saved content
-                } catch (error) {
-                    console.error('[LOAD] Error loading saved content, falling back to API:', error);
-                    // Continue to API fetch as fallback
-                }
+        try {
+            console.log(`[LOAD] Checking for local JSON file: ${localJsonFile}`);
+            const response = await fetch(localJsonFile);
+            if (response.ok) {
+                const jsonData = await response.json();
+                console.log(`[LOAD] Found local JSON file: ${localJsonFile}`);
+                logStatus(`📁 Loading from file: ${localJsonFile}`);
+
+                await loadFromJsonFile(jsonData);
+                return; // Skip localStorage and API fetch
             }
+        } catch (error) {
+            console.log(`[LOAD] No local JSON file found (${localJsonFile}), checking localStorage...`);
         }
+
 
         // Log the API URL being used
         const fhlUrl = `https://bible.fhl.net/json/qb.php?version=${version}&chineses=${encodeURIComponent(book)}&chap=${chapter}&strong=${strong}`;
@@ -1239,6 +1240,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Export to JSON file hotkey (Cmd+E)
+        if (cmdKey && e.key === 'e' && isEditMode) {
+            e.preventDefault();
+            console.log('[EXPORT] Export to JSON triggered via hotkey');
+            exportToJsonFile();
+            return;
+        }
+
         // Only handle undo/redo shortcuts when in edit mode and a verse is being edited
         if (!isEditMode || !currentEditingVerse) return;
 
@@ -1314,22 +1323,29 @@ document.addEventListener('DOMContentLoaded', () => {
         hasUnsavedChanges = false;
     }
 
-    /**
-     * Load saved edited content directly without fetching from API
-     */
-    async function loadSavedEditedContent(savedData) {
-        const editedContent = JSON.parse(savedData);
-        console.log(`[LOAD_SAVED] Loading edited content:`, editedContent);
 
-        // First, we need to create the basic verse structure to populate with saved content
-        const verses = Object.keys(editedContent).sort((a, b) => parseInt(a) - parseInt(b));
-        const bookEntry = books.find(b => b.chinese === currentBookChinese);
-        const bookName = bookEntry ? bookEntry.english : currentBookChinese;
+    /**
+     * Load content from FHL-compatible JSON file
+     */
+    async function loadFromJsonFile(jsonData) {
+        console.log(`[LOAD_JSON] Loading from JSON file:`, jsonData);
+
+        if (!jsonData.record || !Array.isArray(jsonData.record)) {
+            throw new Error('Invalid JSON format: missing record array');
+        }
+
+        const bookEntry = books.find(b => b.chinese === jsonData.book_chinese || b.chinese === currentBookChinese);
+        const bookName = bookEntry ? bookEntry.english : (jsonData.book || currentBook);
 
         let htmlContent = `<h3>${bookName} ${currentChapter}</h3>`;
 
-        verses.forEach(verseNum => {
-            const verseContent = editedContent[verseNum];
+        // Sort verses by verse number
+        const sortedRecords = jsonData.record.sort((a, b) => a.sec - b.sec);
+
+        sortedRecords.forEach(record => {
+            const verseNum = record.sec;
+            const verseContent = record.bible_text;
+
             htmlContent += `
                 <div class="verse-container" data-verse="${verseNum}">
                     <span class="verse-number" data-verse="${verseNum}">${verseNum}</span>
@@ -1340,16 +1356,89 @@ document.addEventListener('DOMContentLoaded', () => {
 
         contentArea.innerHTML = htmlContent;
 
-        // Add verse editing listeners
-        addVerseEditingListeners();
+        // Attach Strong's number event listeners for click functionality
+        if (strongToggle.checked) {
+            attachStrongsEventListenersSecondReader();
+        }
 
-        // Create mapping for Strong's number highlighting (if needed)
+        // Apply proactive word mapping highlighting
         setTimeout(() => {
-            createWordMapping();
-        }, 100);
+            triggerWordMapping(currentChapter);
+        }, 200);
 
-        logStatus(`✅ Restored ${verses.length} edited verses from localStorage`);
-        console.log(`[LOAD_SAVED] Successfully loaded ${verses.length} edited verses`);
+        // Restore edited content after rendering if in edit mode
+        if (isEditMode) {
+            setTimeout(() => {
+                restoreEditedContent();
+            }, 100);
+        }
+
+        logStatus(`✅ Loaded ${sortedRecords.length} verses from JSON file (${jsonData.version})`);
+        console.log(`[LOAD_JSON] Successfully loaded ${sortedRecords.length} verses from JSON file`);
+    }
+
+    /**
+     * Export edited content to FHL-compatible JSON file
+     */
+    function exportToJsonFile() {
+        if (!isEditMode || !currentBookChinese || !currentChapter) {
+            logStatus('❌ Cannot export: No active editing session');
+            return;
+        }
+
+        const currentBookChapter = `${currentBookChinese}_${currentChapter}`;
+        const saveKey = `rightReader_edited_${currentBookChapter}`;
+        const savedData = localStorage.getItem(saveKey);
+
+        if (!savedData) {
+            logStatus('❌ No edited content to export');
+            return;
+        }
+
+        try {
+            const editedContent = JSON.parse(savedData);
+            const bookEntry = books.find(b => b.chinese === currentBookChinese);
+            const versionName = versionSelect.value.toUpperCase();
+
+            // Convert to FHL API format
+            const fhlFormat = {
+                book: bookEntry ? bookEntry.english : currentBookChinese,
+                book_chinese: currentBookChinese,
+                chapter: currentChapter,
+                version: versionName,
+                strong_enabled: strongToggle.checked,
+                record: []
+            };
+
+            // Convert edited verses to FHL record format
+            Object.keys(editedContent).sort((a, b) => parseInt(a) - parseInt(b)).forEach(verseNum => {
+                fhlFormat.record.push({
+                    bible_text: editedContent[verseNum],
+                    sec: parseInt(verseNum)
+                });
+            });
+
+            // Create filename
+            const filename = `${currentBookChinese}_${currentChapter}_${versionName}_edited.json`;
+
+            // Download file
+            const blob = new Blob([JSON.stringify(fhlFormat, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            logStatus(`📁 Exported: ${filename} (${Object.keys(editedContent).length} verses)`);
+            console.log(`[EXPORT] Successfully exported ${filename}`);
+
+        } catch (error) {
+            console.error('[EXPORT] Error exporting to JSON:', error);
+            logStatus('❌ Export failed: ' + error.message);
+        }
     }
 
     function restoreEditedContent() {
@@ -3265,6 +3354,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize right reader defaults
     function initializeRightReaderDefaults() {
         console.log('RightReader: Initializing defaults...');
+
+        // 0. Sync JavaScript state with HTML checkbox states
+        isEditMode = editModeToggle.checked;
+        console.log(`RightReader: Synced isEditMode = ${isEditMode} from HTML checkbox`);
 
         // 1. Set version to LCC (呂振中譯本)
         versionSelect.value = 'lcc';
