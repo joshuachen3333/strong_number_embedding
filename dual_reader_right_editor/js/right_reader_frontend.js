@@ -973,7 +973,41 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(`[DEBUG] Found ${strongsElements.length} matching elements for ${strongsNumber}`);
             let highlightCount = 0;
 
-            strongsElements.forEach(strongEl => {
+            // Check left reader's highlight mode preference
+            const leftHighlightModeToggle = document.getElementById('left-reader-highlight-mode');
+            const isSingleMode = leftHighlightModeToggle && leftHighlightModeToggle.checked;
+            const mode = isSingleMode ? 'SINGLE' : 'MULTIPLE';
+            console.log(`[DEBUG] Using highlight mode: ${mode}`);
+
+            let elementsToHighlight = strongsElements;
+
+            // If single mode is enabled, find the best match (same verse or closest)
+            if (isSingleMode && strongsElements.length > 1) {
+                const targetVerse = parseInt(verseNum);
+                let bestMatch = null;
+                let bestDistance = Infinity;
+
+                for (const strongEl of strongsElements) {
+                    // Find the verse this Strong's number belongs to
+                    const verseContainer = strongEl.closest('[data-verse]');
+                    if (verseContainer) {
+                        const elementVerse = parseInt(verseContainer.getAttribute('data-verse'));
+                        const distance = Math.abs(elementVerse - targetVerse);
+
+                        if (distance < bestDistance) {
+                            bestDistance = distance;
+                            bestMatch = strongEl;
+                        }
+                    }
+                }
+
+                if (bestMatch) {
+                    elementsToHighlight = [bestMatch];
+                    console.log(`[DEBUG] Single mode: Selected nearest match in verse ${bestMatch.closest('[data-verse]')?.getAttribute('data-verse')}`);
+                }
+            }
+
+            elementsToHighlight.forEach(strongEl => {
                 // Add highlight class for easier clearing
                 strongEl.classList.add('strongs-highlighted');
 
@@ -1004,7 +1038,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (highlightCount > 0) {
-                logStatus(`🔍 Highlighted ${highlightCount} matching ${strongsNumber} instances in left reader`);
+                const modeText = isSingleMode ? '(single mode)' : '(multiple mode)';
+                logStatus(`🔍 Highlighted ${highlightCount} matching ${strongsNumber} instances in left reader ${modeText}`);
                 // Note: Highlighting timeout now managed by caller
             } else {
                 logStatus(`🔍 No matching ${strongsNumber} found in left reader to highlight`);

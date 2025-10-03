@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const strongToggle = document.getElementById('left-reader-strong-toggle'); // Strong's checkbox
     const followScrollToggle = document.getElementById('left-reader-follow-scroll'); // Follow scroll checkbox
     const followSelectionToggle = document.getElementById('left-reader-follow-selection'); // Follow selection checkbox
+    const highlightModeToggle = document.getElementById('left-reader-highlight-mode'); // Single/multiple highlight mode
     const statusDisplay = document.getElementById('left-reader-status-display'); // For displaying status updates
 
     // References to right reader checkboxes for cross-reader control
@@ -18,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const rightFollowSelectionToggle = document.getElementById('right-reader-follow-selection');
 
     let isUpdatingCheckboxes = false; // Flag to prevent infinite loops
+    let isHighlightModeSingle = false; // Strong's highlighting mode: false = multiple, true = single
 
     // Book mapping with Chinese abbreviations for bible.fhl.net API
     const books = [
@@ -154,6 +156,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         logStatus(`Strong's Numbers: ${strongToggle.checked ? 'ON' : 'OFF'}`);
         loadChapterContent();
+    });
+
+    highlightModeToggle.addEventListener('change', () => {
+        isHighlightModeSingle = highlightModeToggle.checked;
+        const mode = isHighlightModeSingle ? 'SINGLE' : 'MULTIPLE';
+        logStatus(`💡 Strong's highlight mode: ${mode}`);
+        console.log('LeftReader: Highlight mode changed to', mode);
+
+        // Publish event to notify system of highlight mode change
+        MockMediator.publish('leftReaderHighlightModeChanged', {
+            isSingleMode: isHighlightModeSingle,
+            mode: mode
+        });
     });
 
     followScrollToggle.addEventListener('change', () => {
@@ -723,6 +738,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize left reader defaults
     function initializeLeftReaderDefaults() {
         console.log('LeftReader: Initializing defaults...');
+
+        // 0. Sync JavaScript state with HTML checkbox states
+        isHighlightModeSingle = highlightModeToggle.checked;
+        console.log(`LeftReader: Synced isHighlightModeSingle = ${isHighlightModeSingle} from HTML checkbox`);
 
         // 1. Set Strong's Numbers ON
         strongToggle.checked = true;
