@@ -40,6 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let redoStack = [];
     let isUndoRedoAction = false; // Prevent undo/redo from creating new history
 
+    // Auto-save system
+    let autoSaveTimer = null;
+    let hasUnsavedChanges = false;
+    const AUTO_SAVE_INTERVAL = 10 * 1000; // 10 seconds for testing (was 3 minutes)
+    const MANUAL_SAVE_ENABLED = true; // Enable immediate save for debugging
+
     // Book mapping with Chinese abbreviations for bible.fhl.net API (same as left reader)
     const books = [
         { english: "Genesis", chinese: "創" },
@@ -737,6 +743,13 @@ document.addEventListener('DOMContentLoaded', () => {
             attachStrongsEventListenersSecondReader();
         }
 
+        // Restore edited content after rendering if in edit mode
+        if (isEditMode) {
+            setTimeout(() => {
+                restoreEditedContent();
+            }, 100);
+        }
+
         // Apply proactive word mapping highlighting
         setTimeout(() => {
             triggerWordMapping(data.chapter);
@@ -1076,13 +1089,22 @@ document.addEventListener('DOMContentLoaded', () => {
     strongNumberInput.addEventListener('focus', handleStrongsInputChange);
     strongNumberInput.addEventListener('blur', clearStrongsHighlighting);
 
-    // Add keyboard shortcuts for undo/redo
+    // Add keyboard shortcuts for undo/redo and manual save
     document.addEventListener('keydown', function(e) {
-        // Only handle shortcuts when in edit mode and a verse is being edited
-        if (!isEditMode || !currentEditingVerse) return;
-
         const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
         const cmdKey = isMac ? e.metaKey : e.ctrlKey;
+
+        // Manual save hotkey - works in edit mode
+        if (cmdKey && e.key === 's' && isEditMode) {
+            e.preventDefault();
+            console.log('[MANUAL-SAVE] Manual save triggered via hotkey');
+            saveEditedContent();
+            logStatus('💾 Manual save completed (Ctrl+S)');
+            return;
+        }
+
+        // Only handle undo/redo shortcuts when in edit mode and a verse is being edited
+        if (!isEditMode || !currentEditingVerse) return;
 
         if (cmdKey && e.key === 'z' && !e.shiftKey) {
             e.preventDefault();
@@ -1092,6 +1114,173 @@ document.addEventListener('DOMContentLoaded', () => {
             handleRedo();
         }
     });
+
+    /**
+     * Auto-save system functions
+     */
+    function saveEditedContent() {
+        console.log(`[AUTO-SAVE] saveEditedContent called. isEditMode: ${isEditMode}, currentBookChinese: ${currentBookChinese}, currentChapter: ${currentChapter}`);
+
+        if (!isEditMode) {
+            console.log('[AUTO-SAVE] Not in edit mode, skipping save');
+            return;
+        }
+
+        if (!currentBookChinese || !currentChapter) {
+            console.log('[AUTO-SAVE] Missing book/chapter info, skipping save');
+            return;
+        }
+
+        const editedContent = {};
+        const currentBookChapter = `${currentBookChinese}_${currentChapter}`;
+        console.log(`[AUTO-SAVE] Checking for edited content in ${currentBookChapter}`);
+
+        // Find all verses that have been edited (have contentEditable attribute or modified content)
+        const allVerses = contentArea.querySelectorAll('[data-verse]');
+        console.log(`[AUTO-SAVE] Found ${allVerses.length} verses to check`);
+
+        allVerses.forEach(verse => {
+            const verseNum = verse.getAttribute('data-verse');
+            const originalContent = verse.getAttribute('data-original') || '';
+            const currentContent = verse.innerHTML;
+
+            console.log(`[AUTO-SAVE] Verse ${verseNum}:`);
+            console.log(`  Original: "${originalContent.substring(0, 50)}..."`);
+            console.log(`  Current:  "${currentContent.substring(0, 50)}..."`);
+            console.log(`  ContentEditable: ${verse.contentEditable}`);
+
+            // Save if content has been modified or if it's different from original
+            if (currentContent !== originalContent || verse.contentEditable === 'true') {
+                editedContent[verseNum] = {
+                    content: currentContent,
+                    original: originalContent,
+                    lastModified: Date.now()
+                };
+                console.log(`  -> SAVING verse ${verseNum} (modified)`);
+            } else {
+                console.log(`  -> SKIPPING verse ${verseNum} (unchanged)`);
+            }
+        });
+
+        // Save to localStorage with book/chapter key
+        if (Object.keys(editedContent).length > 0) {
+            const saveKey = `rightReader_edited_${currentBookChapter}`;
+            localStorage.setItem(saveKey, JSON.stringify(editedContent));
+
+            const timestamp = new Date().toLocaleTimeString();
+            logStatus(`💾 Auto-saved ${Object.keys(editedContent).length} edited verses at ${timestamp}`);
+            console.log(`[AUTO-SAVE] ✅ SAVED edited content for ${currentBookChapter}:`, editedContent);
+            console.log(`[AUTO-SAVE] LocalStorage key: ${saveKey}`);
+        } else {
+            console.log('[AUTO-SAVE] No edited content to save');
+        }
+
+        hasUnsavedChanges = false;
+    }
+
+    function restoreEditedContent() {
+        console.log(`[RESTORE] restoreEditedContent called. isEditMode: ${isEditMode}, currentBookChinese: ${currentBookChinese}, currentChapter: ${currentChapter}`);
+
+        if (!isEditMode || !currentBookChinese || !currentChapter) {
+            console.log('[RESTORE] Conditions not met, skipping restore');
+            return;
+        }
+
+        const currentBookChapter = `${currentBookChinese}_${currentChapter}`;
+        const saveKey = `rightReader_edited_${currentBookChapter}`;
+        console.log(`[RESTORE] Looking for localStorage key: ${saveKey}`);
+
+        const savedData = localStorage.getItem(saveKey);
+        console.log(`[RESTORE] Retrieved data: ${savedData ? 'FOUND' : 'NOT FOUND'}`);
+
+        if (!savedData) {
+            console.log('[RESTORE] No saved data found');
+            return;
+        }
+
+        try {
+            const editedContent = JSON.parse(savedData);
+            console.log(`[RESTORE] Parsed edited content:`, editedContent);
+
+            let restoredCount = 0;
+            const allVerses = contentArea.querySelectorAll('[data-verse]');
+            console.log(`[RESTORE] Found ${allVerses.length} verses in DOM`);
+
+            Object.keys(editedContent).forEach(verseNum => {
+                console.log(`[RESTORE] Attempting to restore verse ${verseNum}`);
+                const verse = contentArea.querySelector(`[data-verse="${verseNum}"]`);
+
+                if (verse && editedContent[verseNum]) {
+                    console.log(`[RESTORE] Found verse ${verseNum} in DOM`);
+
+                    // Store original content as data attribute if not already stored
+                    if (!verse.getAttribute('data-original')) {
+                        console.log(`[RESTORE] Storing original content for verse ${verseNum}`);
+                        verse.setAttribute('data-original', verse.innerHTML);
+                    }
+
+                    console.log(`[RESTORE] Restoring content for verse ${verseNum}:`);
+                    console.log(`  From: "${verse.innerHTML.substring(0, 50)}..."`);
+                    console.log(`  To:   "${editedContent[verseNum].content.substring(0, 50)}..."`);
+
+                    // Restore edited content
+                    verse.innerHTML = editedContent[verseNum].content;
+                    restoredCount++;
+
+                    console.log(`[RESTORE] ✅ Successfully restored verse ${verseNum}`);
+                } else {
+                    console.log(`[RESTORE] ❌ Could not find verse ${verseNum} in DOM or no saved content`);
+                }
+            });
+
+            if (restoredCount > 0) {
+                logStatus(`📂 Restored ${restoredCount} edited verses from previous session`);
+                console.log(`[RESTORE] ✅ SUCCESSFULLY restored ${restoredCount} verses for ${currentBookChapter}`);
+            } else {
+                console.log(`[RESTORE] ⚠️ No verses were restored`);
+            }
+        } catch (error) {
+            console.error('[RESTORE] Error restoring edited content:', error);
+            logStatus('⚠️ Error restoring previous edits');
+        }
+    }
+
+    function startAutoSave() {
+        if (autoSaveTimer) {
+            clearInterval(autoSaveTimer);
+        }
+
+        autoSaveTimer = setInterval(() => {
+            if (hasUnsavedChanges && isEditMode) {
+                saveEditedContent();
+            }
+        }, AUTO_SAVE_INTERVAL);
+
+        logStatus(`🕐 Auto-save enabled: every ${AUTO_SAVE_INTERVAL / 60000} minutes`);
+        console.log('[AUTO-SAVE] Timer started');
+    }
+
+    function stopAutoSave() {
+        if (autoSaveTimer) {
+            clearInterval(autoSaveTimer);
+            autoSaveTimer = null;
+            logStatus('🛑 Auto-save disabled');
+            console.log('[AUTO-SAVE] Timer stopped');
+        }
+    }
+
+    function markContentAsModified() {
+        hasUnsavedChanges = true;
+        console.log('[AUTO-SAVE] Content marked as modified');
+
+        // Immediate save for debugging (in addition to timer)
+        if (MANUAL_SAVE_ENABLED) {
+            setTimeout(() => {
+                console.log('[AUTO-SAVE] Triggering immediate save for debugging');
+                saveEditedContent();
+            }, 5000);
+        }
+    }
 
     /**
      * Handles Edit Mode toggle - minimal implementation
@@ -1122,6 +1311,9 @@ document.addEventListener('DOMContentLoaded', () => {
             MockMediator.setMainReader('right', 'edit mode enabled');
             logStatus('📍 Right reader is now MAIN (edit mode), left reader is now FOLLOWER');
             logStatus('🔧 Strong\'s insertion controls: ENABLED');
+
+            // Start auto-save timer
+            startAutoSave();
 
             setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
 
@@ -1157,6 +1349,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } else {
+            // Stop auto-save when edit mode is disabled
+            stopAutoSave();
+
             // If edit mode is disabled, make any currently editing verse non-editable
             if (currentEditingVerse) {
                 currentEditingVerse.contentEditable = false;
@@ -1203,6 +1398,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Save initial state for undo
         saveToUndoStack(verseElement);
+
+        // Store original content for auto-save if not already stored
+        if (!verseElement.getAttribute('data-original')) {
+            verseElement.setAttribute('data-original', verseElement.innerHTML);
+        }
 
         // Make this verse editable
         verseElement.contentEditable = true;
@@ -1416,6 +1616,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 strongNumberInput.value = '';
                 const verseNum = editingVerse.getAttribute('data-verse');
                 const preciseStatus = formatPreciseInsertionStatus(normalizedNumber, verseNum, insertionContext);
+
+                // Mark content as modified for auto-save
+                markContentAsModified();
                 logStatus(preciseStatus);
                 console.log('Successfully inserted Strong\'s number');
 
@@ -1449,6 +1652,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 strongNumberInput.value = '';
                 const verseNum = editingVerse.getAttribute('data-verse');
                 const preciseStatus = formatPreciseInsertionStatus(normalizedNumber, verseNum, endContext);
+
+                // Mark content as modified for auto-save
+                markContentAsModified();
                 logStatus(preciseStatus);
                 console.log('Inserted at end of verse (no cursor position)');
 
@@ -1679,6 +1885,9 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function handleVerseInput(e) {
         if (!isUndoRedoAction && currentEditingVerse) {
+            // Mark content as modified for auto-save
+            markContentAsModified();
+
             // Debounce saving to undo stack during typing
             clearTimeout(window.verseInputTimeout);
             window.verseInputTimeout = setTimeout(() => {
@@ -2448,36 +2657,94 @@ document.addEventListener('DOMContentLoaded', () => {
                     const strong = strongEl.getAttribute('data-strong');
                     console.log(`[DEBUG] Processing Strong's #${index + 1}: ${strong}`);
 
-                    // Look for words before this Strong's number
-                    let prevNode = strongEl.previousSibling;
-                    while (prevNode && prevNode.nodeType !== Node.TEXT_NODE) {
-                        prevNode = prevNode.previousSibling;
-                    }
+                    // Get the full text content of the verse to find context
+                    const verseText = leftVerse.textContent;
+                    console.log(`[DEBUG] Full verse text: "${verseText}"`);
 
-                    if (prevNode && prevNode.textContent) {
-                        const text = prevNode.textContent.trim();
-                        console.log(`[DEBUG] Text before ${strong}: "${text}"`);
+                    // Find the position of this Strong's number in the overall text
+                    const strongPosition = this.getElementTextPosition(leftVerse, strongEl);
+                    console.log(`[DEBUG] ${strong} appears at text position: ${strongPosition}`);
 
-                        // Try individual Chinese characters and English words
-                        const chineseChars = text.match(/[\u4e00-\u9fff]/g) || [];
-                        const englishWords = text.match(/[a-zA-Z]+/g) || [];
+                    // Look for Chinese characters near this position
+                    if (strongPosition >= 0) {
+                        // Check characters before the Strong's position
+                        const beforeText = verseText.substring(Math.max(0, strongPosition - 10), strongPosition);
+                        const beforeChars = beforeText.match(/[\u4e00-\u9fff]/g) || [];
+                        console.log(`[DEBUG] Characters before ${strong}: ${beforeChars.join('')}`);
 
-                        // Add individual Chinese characters
-                        chineseChars.forEach(char => {
-                            words.push({ word: char, strong });
-                            console.log(`[DEBUG] Added Chinese char: "${char}" → ${strong}`);
+                        // Take last 2 characters before (most likely associated)
+                        const recentChars = beforeChars.slice(-2);
+                        recentChars.forEach(char => {
+                            words.push({ word: char, strong, position: 'before', distance: 'near' });
+                            console.log(`[DEBUG] Added Chinese char (before): "${char}" → ${strong}`);
                         });
 
-                        // Add English words
-                        englishWords.forEach(word => {
-                            words.push({ word, strong });
-                            console.log(`[DEBUG] Added English word: "${word}" → ${strong}`);
+                        // Check characters after the Strong's position
+                        const afterText = verseText.substring(strongPosition + 10, strongPosition + 20);
+                        const afterChars = afterText.match(/[\u4e00-\u9fff]/g) || [];
+                        console.log(`[DEBUG] Characters after ${strong}: ${afterChars.join('')}`);
+
+                        // Take first 2 characters after
+                        const earlyChars = afterChars.slice(0, 2);
+                        earlyChars.forEach(char => {
+                            words.push({ word: char, strong, position: 'after', distance: 'near' });
+                            console.log(`[DEBUG] Added Chinese char (after): "${char}" → ${strong}`);
                         });
                     }
                 });
 
-                console.log(`[DEBUG] Extracted ${words.length} word-Strong's pairs:`, words);
-                return words;
+                // Remove duplicates while preferring 'before' position associations (more accurate)
+                const uniqueWords = [];
+                const wordMap = new Map();
+
+                words.forEach(item => {
+                    const wordKey = item.word;
+
+                    if (!wordMap.has(wordKey)) {
+                        wordMap.set(wordKey, item);
+                        console.log(`[DEBUG] First association for "${wordKey}": ${item.strong} (${item.position})`);
+                    } else {
+                        const existing = wordMap.get(wordKey);
+                        // Prefer 'before' position over 'after' (more accurate for Chinese)
+                        if (item.position === 'before' && existing.position === 'after') {
+                            console.log(`[DEBUG] Replacing "${wordKey}": ${existing.strong} → ${item.strong} (preferring 'before')`);
+                            wordMap.set(wordKey, item);
+                        } else {
+                            console.log(`[DEBUG] Keeping existing association for "${wordKey}": ${existing.strong} (${existing.position})`);
+                        }
+                    }
+                });
+
+                // Convert map to array
+                uniqueWords.push(...wordMap.values());
+
+                console.log(`[DEBUG] Extracted ${uniqueWords.length} unique word-Strong's pairs:`, uniqueWords);
+                return uniqueWords;
+            },
+
+            /**
+             * Get the text position of an element within its parent
+             */
+            getElementTextPosition(parent, element) {
+                const walker = document.createTreeWalker(
+                    parent,
+                    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+                    null,
+                    false
+                );
+
+                let position = 0;
+                let node;
+
+                while (node = walker.nextNode()) {
+                    if (node === element) {
+                        return position;
+                    }
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        position += node.textContent.length;
+                    }
+                }
+                return -1;
             },
 
             /**
