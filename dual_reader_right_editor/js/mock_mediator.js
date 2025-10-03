@@ -21,7 +21,7 @@ const MockMediator = {
     _rightReaderUpdateFn: null,
     _leftReaderUpdateFn: null,
     _bookDataCache: {},
-    _mainReader: 'left', // Track which reader is currently main ('left' or 'right')
+    _mainReader: 'right', // Track which reader is currently main ('left' or 'right') - right reader is default main for editing
     _lastInteraction: null, // Track last interaction for debugging
 
     /**

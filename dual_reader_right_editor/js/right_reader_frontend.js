@@ -153,6 +153,11 @@ document.addEventListener('DOMContentLoaded', () => {
     versionSelect.addEventListener('change', loadChapterContent);
     
     bookSelect.addEventListener('change', () => {
+        // Save current position to localStorage whenever book changes
+        localStorage.setItem('rightReader_lastBook', bookSelect.value);
+        localStorage.setItem('rightReader_lastChapter', chapterInput.value);
+        console.log(`RightReader: Saved book/chapter to localStorage: ${bookSelect.value}/${chapterInput.value}`);
+
         // Only set as main if this reader is not following (both follow checkboxes unchecked)
         if (!followScrollToggle.checked && !followSelectionToggle.checked) {
             MockMediator.setMainReader('right', 'book selection');
@@ -162,6 +167,11 @@ document.addEventListener('DOMContentLoaded', () => {
         loadChapterContent();
     });
     chapterInput.addEventListener('change', () => {
+        // Save current position to localStorage whenever chapter changes
+        localStorage.setItem('rightReader_lastBook', bookSelect.value);
+        localStorage.setItem('rightReader_lastChapter', chapterInput.value);
+        console.log(`RightReader: Saved book/chapter to localStorage: ${bookSelect.value}/${chapterInput.value}`);
+
         // Only set as main if this reader is already main (respect checkbox state)
         if (!followScrollToggle.checked && !followSelectionToggle.checked) {
             MockMediator.setMainReader('right', 'chapter selection');
@@ -3201,46 +3211,68 @@ document.addEventListener('DOMContentLoaded', () => {
         versionSelect.value = 'lcc';
         logStatus('📍 Version: LCC (default)');
 
-        // 2. Enable edit mode by default (this will override follow settings)
-        isUpdatingCheckboxes = true;
+        // 1.5. Restore last book/chapter from localStorage or default to Genesis 1
+        const savedBook = localStorage.getItem('rightReader_lastBook') || '創'; // Genesis
+        const savedChapter = localStorage.getItem('rightReader_lastChapter') || '1';
 
-        // Since edit mode checkbox is already checked in HTML, trigger the edit mode logic
-        if (editModeToggle.checked) {
-            // Trigger edit mode initialization manually with extra delay to ensure left reader is ready
-            setTimeout(() => {
-                console.log('RightReader: Triggering edit mode with left reader elements check...');
-
-                // Verify left reader elements are available
-                const leftScroll = document.getElementById('left-reader-follow-scroll');
-                const leftSelection = document.getElementById('left-reader-follow-selection');
-                console.log('Left reader follow elements:', { leftScroll, leftSelection });
-
-                handleEditModeToggle();
-            }, 300);
-            logStatus('📝 Edit Mode: ENABLED (default)');
+        // Set the saved book and chapter
+        if (bookSelect && bookSelect.querySelector(`option[value="${savedBook}"]`)) {
+            bookSelect.value = savedBook;
+            console.log(`RightReader: Restored book to ${savedBook}`);
         } else {
-            // Fallback: Set right reader to follow left reader if edit mode not enabled
-            followScrollToggle.checked = true;
-            followSelectionToggle.checked = true;
-            logStatus('📍 Follow text selection: ENABLED (default)');
-            logStatus('📍 Follow verse scroll: ENABLED (default)');
-
-            // Make left reader main by unchecking its follow boxes
-            const leftFollowScrollToggle = document.getElementById('left-reader-follow-scroll');
-            const leftFollowSelectionToggle = document.getElementById('left-reader-follow-selection');
-            if (leftFollowScrollToggle && leftFollowSelectionToggle) {
-                leftFollowScrollToggle.checked = false;
-                leftFollowSelectionToggle.checked = false;
-            }
-
-            // Set Mediator to know left is main, right is follower
-            MockMediator.setMainReader('left', 'right reader default initialization');
-            logStatus('📍 Left reader is MAIN, right reader is FOLLOWER (default)');
+            bookSelect.value = '創'; // Default to Genesis if saved book not found
+            console.log('RightReader: Using default book (Genesis)');
         }
 
-        setTimeout(() => { isUpdatingCheckboxes = false; }, 200);
+        if (chapterInput) {
+            chapterInput.value = savedChapter;
+            console.log(`RightReader: Restored chapter to ${savedChapter}`);
+        }
 
-        console.log('RightReader: Defaults initialized with edit mode preference...');
+        // 2. Load saved content first before enabling edit mode
+        console.log('RightReader: Loading saved content before edit mode...');
+        loadChapterContent().then(() => {
+            console.log('RightReader: Saved content loaded, now enabling edit mode...');
+
+            // 3. Enable edit mode by default (this will override follow settings)
+            isUpdatingCheckboxes = true;
+
+            // Since edit mode checkbox is already checked in HTML, trigger the edit mode logic
+            if (editModeToggle.checked) {
+                // Trigger edit mode initialization manually with extra delay to ensure left reader is ready
+                setTimeout(() => {
+                    console.log('RightReader: Triggering edit mode with left reader elements check...');
+
+                    // Verify left reader elements are available
+                    const leftScroll = document.getElementById('left-reader-follow-scroll');
+                    const leftSelection = document.getElementById('left-reader-follow-selection');
+                    console.log('Left reader follow elements:', { leftScroll, leftSelection });
+
+                    handleEditModeToggle();
+                }, 300);
+                logStatus('📝 Edit Mode: ENABLED (default)');
+            } else {
+                // This case should rarely happen since edit mode is default, but if disabled:
+                // Right reader should still be main, just without editing capabilities
+                logStatus('📍 Edit mode disabled - right reader still main but read-only');
+                MockMediator.setMainReader('right', 'right reader default (non-edit mode)');
+            }
+
+            setTimeout(() => { isUpdatingCheckboxes = false; }, 200);
+
+            console.log('RightReader: Defaults initialized with edit mode preference...');
+        }).catch(error => {
+            console.error('RightReader: Error loading saved content:', error);
+            logStatus('❌ Failed to load saved content, proceeding with edit mode...');
+
+            // Continue with edit mode even if content loading fails
+            isUpdatingCheckboxes = true;
+            if (editModeToggle.checked) {
+                setTimeout(() => handleEditModeToggle(), 300);
+                logStatus('📝 Edit Mode: ENABLED (default)');
+            }
+            setTimeout(() => { isUpdatingCheckboxes = false; }, 200);
+        });
     }
 
     // Update initial placeholder text based on selected language

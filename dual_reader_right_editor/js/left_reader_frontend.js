@@ -746,6 +746,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log('LeftReader: Defaults initialized, loading initial content...');
 
+        // 4. Set left reader as follower by default (right reader should be main)
+        const leftFollowScrollToggle = document.getElementById('left-reader-follow-scroll');
+        const leftFollowSelectionToggle = document.getElementById('left-reader-follow-selection');
+        if (leftFollowScrollToggle && leftFollowSelectionToggle) {
+            leftFollowScrollToggle.checked = true;  // Follow right reader by default
+            leftFollowSelectionToggle.checked = true; // Follow right reader by default
+        }
+        logStatus('📍 Left reader: FOLLOWER (following right reader by default)');
+
         // Load initial content
         setTimeout(() => {
             loadChapterContent();
