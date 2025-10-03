@@ -2264,7 +2264,7 @@ document.addEventListener('DOMContentLoaded', () => {
              * Current position-based matching (temporary implementation)
              */
             positionBased(context) {
-                const { leftVerse, cursorPosition, verseId } = context;
+                const { leftVerse, cursorPosition, verseId, rightVerse } = context;
 
                 logStatus(`🔍 Suggestion: Verse ${verseId}, cursor at pos ${cursorPosition}`);
 
@@ -2274,27 +2274,263 @@ document.addEventListener('DOMContentLoaded', () => {
                     return null;
                 }
 
-                // Simple nearest-match algorithm (can be improved)
-                let bestMatch = null;
-                let minDistance = Infinity;
+                // Use word-based matching instead of character position
+                const suggestion = this.findStrongsByWordContext(leftVerse, rightVerse, cursorPosition);
 
-                strongsElements.forEach(strongEl => {
-                    const strongPos = SuggestionEngine.getElementPosition(leftVerse, strongEl);
-                    const distance = Math.abs(strongPos - cursorPosition);
+                if (suggestion) {
+                    logStatus(`💡 Suggestion: Found ${suggestion.strong} for word "${suggestion.word}" (confidence: ${suggestion.confidence})`);
+                    return suggestion.strong;
+                }
 
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        bestMatch = strongEl.getAttribute('data-strong');
+                logStatus(`🔍 Suggestion: No matching word found at cursor position`);
+                return null;
+            },
+
+            /**
+             * Find Strong's number by analyzing word context around cursor
+             */
+            findStrongsByWordContext(leftVerse, rightVerse, cursorPosition) {
+                // Get the word at cursor position in right verse
+                const rightText = rightVerse.textContent;
+                const wordAtCursor = this.getWordAtPosition(rightText, cursorPosition);
+
+                if (!wordAtCursor) {
+                    console.log('[DEBUG] No word found at cursor position');
+                    return null;
+                }
+
+                console.log(`[DEBUG] Word at cursor: "${wordAtCursor.word}" at position ${wordAtCursor.start}-${wordAtCursor.end}`);
+
+                // Look for this word or its translation in the left verse
+                const leftWords = this.extractWordsWithStrongs(leftVerse);
+
+                // Strategy 1: Direct match (same language)
+                for (const leftWord of leftWords) {
+                    if (leftWord.word === wordAtCursor.word) {
+                        console.log(`[DEBUG] Direct match found: ${leftWord.word} → ${leftWord.strong}`);
+                        return {
+                            word: wordAtCursor.word,
+                            strong: leftWord.strong,
+                            confidence: 1.0
+                        };
+                    }
+                }
+
+                // Strategy 2: Cross-language translation
+                const translation = this.getTranslation(wordAtCursor.word);
+                if (translation) {
+                    for (const leftWord of leftWords) {
+                        if (leftWord.word === translation) {
+                            console.log(`[DEBUG] Translation match: ${wordAtCursor.word} → ${translation} → ${leftWord.strong}`);
+                            return {
+                                word: wordAtCursor.word,
+                                strong: leftWord.strong,
+                                confidence: 0.9
+                            };
+                        }
+                    }
+                }
+
+                // Strategy 3: Positional matching (as fallback)
+                const wordPosition = this.getWordPositionInVerse(rightVerse, wordAtCursor);
+                const closestLeftWord = this.getWordAtSimilarPosition(leftWords, wordPosition);
+
+                if (closestLeftWord) {
+                    console.log(`[DEBUG] Positional match: ${wordAtCursor.word} → ${closestLeftWord.word} → ${closestLeftWord.strong}`);
+                    return {
+                        word: wordAtCursor.word,
+                        strong: closestLeftWord.strong,
+                        confidence: 0.7
+                    };
+                }
+
+                return null;
+            },
+
+            /**
+             * Get word at cursor position - check LEFT of cursor first (where user clicked)
+             */
+            getWordAtPosition(text, position) {
+                console.log(`[DEBUG] Getting word at position ${position} in text: "${text}"`);
+
+                // Strategy 1: Check character to the LEFT of cursor (where user clicked)
+                if (position > 0) {
+                    const leftChar = text.charAt(position - 1);
+                    console.log(`[DEBUG] Character to LEFT of cursor (position ${position - 1}): "${leftChar}"`);
+
+                    if (/[\u4e00-\u9fff]/.test(leftChar)) {
+                        console.log(`[DEBUG] Found clicked Chinese character: "${leftChar}"`);
+                        return {
+                            word: leftChar,
+                            start: position - 1,
+                            end: position
+                        };
+                    }
+                }
+
+                // Strategy 2: Check character AT cursor position
+                if (position < text.length) {
+                    const charAtCursor = text.charAt(position);
+                    console.log(`[DEBUG] Character AT cursor: "${charAtCursor}"`);
+
+                    if (/[\u4e00-\u9fff]/.test(charAtCursor)) {
+                        console.log(`[DEBUG] Found Chinese character at cursor: "${charAtCursor}"`);
+                        return {
+                            word: charAtCursor,
+                            start: position,
+                            end: position + 1
+                        };
+                    }
+                }
+
+                // Strategy 3: Look LEFT then RIGHT for nearest Chinese character
+                for (let offset = 1; offset <= 3; offset++) {
+                    // Check LEFT
+                    if (position - offset >= 0) {
+                        const leftChar = text.charAt(position - offset);
+                        if (/[\u4e00-\u9fff]/.test(leftChar)) {
+                            console.log(`[DEBUG] Found Chinese character ${offset} positions LEFT: "${leftChar}"`);
+                            return {
+                                word: leftChar,
+                                start: position - offset,
+                                end: position - offset + 1
+                            };
+                        }
+                    }
+
+                    // Check RIGHT
+                    if (position + offset < text.length) {
+                        const rightChar = text.charAt(position + offset);
+                        if (/[\u4e00-\u9fff]/.test(rightChar)) {
+                            console.log(`[DEBUG] Found Chinese character ${offset} positions RIGHT: "${rightChar}"`);
+                            return {
+                                word: rightChar,
+                                start: position + offset,
+                                end: position + offset + 1
+                            };
+                        }
+                    }
+                }
+
+                // Strategy 4: English word boundaries (fallback)
+                const englishWords = text.match(/[a-zA-Z]+/g) || [];
+                let searchPos = 0;
+
+                for (const word of englishWords) {
+                    const wordStart = text.indexOf(word, searchPos);
+                    const wordEnd = wordStart + word.length;
+
+                    if (position >= wordStart && position <= wordEnd) {
+                        console.log(`[DEBUG] Found English word: "${word}"`);
+                        return {
+                            word: word,
+                            start: wordStart,
+                            end: wordEnd
+                        };
+                    }
+                    searchPos = wordEnd;
+                }
+
+                console.log(`[DEBUG] No word found at position ${position}`);
+                return null;
+            },
+
+            /**
+             * Extract words with their Strong's numbers from left verse
+             */
+            extractWordsWithStrongs(leftVerse) {
+                const words = [];
+                const strongsElements = leftVerse.querySelectorAll('.strongs-number');
+
+                console.log(`[DEBUG] Found ${strongsElements.length} Strong's elements in left verse`);
+
+                strongsElements.forEach((strongEl, index) => {
+                    const strong = strongEl.getAttribute('data-strong');
+                    console.log(`[DEBUG] Processing Strong's #${index + 1}: ${strong}`);
+
+                    // Look for words before this Strong's number
+                    let prevNode = strongEl.previousSibling;
+                    while (prevNode && prevNode.nodeType !== Node.TEXT_NODE) {
+                        prevNode = prevNode.previousSibling;
+                    }
+
+                    if (prevNode && prevNode.textContent) {
+                        const text = prevNode.textContent.trim();
+                        console.log(`[DEBUG] Text before ${strong}: "${text}"`);
+
+                        // Try individual Chinese characters and English words
+                        const chineseChars = text.match(/[\u4e00-\u9fff]/g) || [];
+                        const englishWords = text.match(/[a-zA-Z]+/g) || [];
+
+                        // Add individual Chinese characters
+                        chineseChars.forEach(char => {
+                            words.push({ word: char, strong });
+                            console.log(`[DEBUG] Added Chinese char: "${char}" → ${strong}`);
+                        });
+
+                        // Add English words
+                        englishWords.forEach(word => {
+                            words.push({ word, strong });
+                            console.log(`[DEBUG] Added English word: "${word}" → ${strong}`);
+                        });
                     }
                 });
 
-                if (minDistance < 50 && bestMatch) {
-                    logStatus(`💡 Suggestion: Found ${bestMatch} (distance: ${minDistance})`);
-                    return bestMatch;
-                }
+                console.log(`[DEBUG] Extracted ${words.length} word-Strong's pairs:`, words);
+                return words;
+            },
 
-                logStatus(`🔍 Suggestion: No close match found (min distance: ${minDistance})`);
-                return null;
+            /**
+             * Simple translation lookup
+             */
+            getTranslation(word) {
+                const translations = {
+                    // Genesis 1 key words
+                    '光': 'light',
+                    'light': '光',
+                    '說': 'said',
+                    'said': '說',
+                    '地': 'earth',
+                    'earth': '地',
+                    '神': 'God',
+                    'God': '神',
+                    '起初': 'beginning',
+                    'beginning': '起初',
+                    '創造': 'created',
+                    'created': '創造',
+                    '天': 'heaven',
+                    'heaven': '天',
+                    '水': 'water',
+                    'water': '水',
+                    '好': 'good',
+                    'good': '好',
+                    '分開': 'divided',
+                    'divided': '分開',
+                    '要': 'let',
+                    'let': '要',
+                    '有': 'there',
+                    'there': '有'
+                };
+
+                console.log(`[DEBUG] Looking up translation for: "${word}" → ${translations[word] || 'not found'}`);
+                return translations[word] || null;
+            },
+
+            /**
+             * Get relative position of word in verse (0-1 scale)
+             */
+            getWordPositionInVerse(verse, wordInfo) {
+                const text = verse.textContent;
+                return wordInfo.start / text.length;
+            },
+
+            /**
+             * Find word at similar relative position
+             */
+            getWordAtSimilarPosition(leftWords, targetPosition) {
+                // Simple implementation: return word with closest position
+                // This could be enhanced with better algorithms
+                return leftWords.length > 0 ? leftWords[Math.floor(targetPosition * leftWords.length)] : null;
             }
 
             // Future algorithms can be added here:
