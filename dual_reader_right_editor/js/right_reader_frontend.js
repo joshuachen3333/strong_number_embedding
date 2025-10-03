@@ -16,6 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Edit Mode controls
     const editModeToggle = document.getElementById('right-reader-edit-mode');
+    const strongControlsContainer = document.getElementById('right-reader-strong-controls');
+    const strongNumberInput = document.getElementById('strong-number-input');
+    const insertStrongBtn = document.getElementById('insert-strong-btn');
+    const leftAlignmentSpacer = document.getElementById('left-reader-alignment-spacer');
 
     // References to left reader checkboxes for cross-reader control
     const leftFollowScrollToggle = document.getElementById('left-reader-follow-scroll');
@@ -29,6 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Edit Mode state (minimal)
     let isEditMode = false;
+    let currentEditingVerse = null; // Track which verse is being edited
+
+    // Undo/Redo system
+    let undoStack = []; // Array of {verseId, content, cursorPos}
+    let redoStack = [];
+    let isUndoRedoAction = false; // Prevent undo/redo from creating new history
 
     // Book mapping with Chinese abbreviations for bible.fhl.net API (same as left reader)
     const books = [
@@ -726,6 +736,286 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.strong) {
             attachStrongsEventListenersSecondReader();
         }
+
+        // Apply proactive word mapping highlighting
+        setTimeout(() => {
+            triggerWordMapping(data.chapter);
+        }, 200);
+    }
+
+    /**
+     * Triggers automatic word mapping between left and right readers
+     * @param {number} chapter - Current chapter number
+     */
+    function triggerWordMapping(chapter) {
+        try {
+            // Get left reader content area
+            const leftContentArea = document.getElementById('left-reader-content-area');
+            if (!leftContentArea) {
+                logStatus('🔗 Word mapping: No left reader found');
+                return;
+            }
+
+            // Get all verses in both readers
+            const leftVerses = leftContentArea.querySelectorAll('.verse[data-verse]');
+            const rightVerses = contentArea.querySelectorAll('.verse[data-verse]');
+
+            let mappingsCreated = 0;
+
+            // Process each verse pair
+            leftVerses.forEach(leftVerse => {
+                const verseId = leftVerse.getAttribute('data-verse');
+                const rightVerse = contentArea.querySelector(`[data-verse="${verseId}"]`);
+
+                if (rightVerse) {
+                    // Check if left verse has Strong's numbers
+                    const strongsElements = leftVerse.querySelectorAll('.strongs-number');
+
+                    if (strongsElements.length > 0) {
+                        logStatus(`🔗 Creating word mapping for verse ${verseId}...`);
+
+                        // Create word mapping for this verse pair
+                        const mappings = WordMappingEngine.createWordMapping(leftVerse, rightVerse, verseId);
+
+                        if (mappings.length > 0) {
+                            mappingsCreated += mappings.length;
+                            console.log(`Word mapping created for verse ${verseId}: ${mappings.length} pairs`);
+                        }
+                    }
+                }
+            });
+
+            if (mappingsCreated > 0) {
+                logStatus(`✅ Word mapping complete: ${mappingsCreated} word pairs highlighted across ${leftVerses.length} verses`);
+
+                // Add click listeners to mapped words for instant Strong's suggestions
+                addWordMappingClickListeners();
+            } else {
+                logStatus('🔗 Word mapping: No mappings created (no Strong\'s numbers in reference text)');
+            }
+
+        } catch (error) {
+            logStatus(`❌ Word mapping failed: ${error.message}`);
+            console.error('Word mapping error:', error);
+        }
+    }
+
+    /**
+     * Adds click listeners to mapped words for instant Strong's suggestions
+     */
+    function addWordMappingClickListeners() {
+        try {
+            // Add listeners to highlighted words in right reader
+            const rightHighlights = contentArea.querySelectorAll('.word-mapping-highlight.right-highlight');
+            rightHighlights.forEach(highlight => {
+                highlight.addEventListener('click', handleMappedWordClick);
+                highlight.style.cursor = 'pointer';
+                highlight.title = 'Click to get Strong\'s suggestion for this word';
+            });
+
+            logStatus(`🔗 Added click listeners to ${rightHighlights.length} mapped words`);
+
+        } catch (error) {
+            logStatus(`❌ Error adding word mapping click listeners: ${error.message}`);
+        }
+    }
+
+    /**
+     * Handles clicks on mapped words to provide instant Strong's suggestions
+     */
+    function handleMappedWordClick(event) {
+        if (!isEditMode) {
+            logStatus('💡 Enable Edit Mode to get Strong\'s suggestions for mapped words');
+            return;
+        }
+
+        const clickedWord = event.target.getAttribute('data-mapped-word');
+        const strongsNumber = WordMappingEngine.getStrongsForWord(clickedWord);
+
+        if (strongsNumber) {
+            // Auto-fill Strong's input
+            strongNumberInput.value = strongsNumber;
+
+            // Get verse context for the clicked word
+            const verseElement = event.target.closest('.verse');
+            const verseNum = verseElement ? verseElement.getAttribute('data-verse') : 'unknown';
+
+            // Copy to clipboard for convenience
+            navigator.clipboard.writeText(strongsNumber).then(() => {
+                logStatus(`💡 Clicked "${clickedWord}" in verse ${verseNum} → suggested ${strongsNumber} (copied to clipboard, ready to insert)`);
+            }).catch(() => {
+                logStatus(`💡 Clicked "${clickedWord}" in verse ${verseNum} → suggested ${strongsNumber} (ready to insert)`);
+            });
+
+            // Highlight the input briefly to show it was filled
+            strongNumberInput.style.backgroundColor = '#e3f2fd';
+            setTimeout(() => {
+                strongNumberInput.style.backgroundColor = '';
+            }, 1000);
+
+            // Highlight matching Strong's number in left reader for visual confirmation
+            highlightStrongsInLeftReader(strongsNumber, verseNum);
+
+            // Focus on the input for immediate insertion
+            strongNumberInput.focus();
+
+        } else {
+            const verseElement = event.target.closest('.verse');
+            const verseNum = verseElement ? verseElement.getAttribute('data-verse') : 'unknown';
+            logStatus(`❌ No Strong's number mapping found for "${clickedWord}" in verse ${verseNum}`);
+        }
+    }
+
+    /**
+     * Highlights matching Strong's numbers in left reader for visual confirmation
+     */
+    function highlightStrongsInLeftReader(strongsNumber, verseNum) {
+        try {
+            console.log(`[DEBUG] Attempting to highlight Strong's number: ${strongsNumber} in verse ${verseNum}`);
+
+            // Clear any existing Strong's highlights first
+            clearStrongsHighlighting();
+
+            // Get left reader content area
+            const leftContentArea = document.getElementById('left-reader-content-area');
+            if (!leftContentArea) {
+                console.log('[DEBUG] Left reader content area not found');
+                logStatus('❌ Left reader not found for highlighting');
+                return;
+            }
+
+            console.log('[DEBUG] Left reader content area found');
+
+            // Debug: Check what Strong's numbers exist in left reader
+            const allStrongsElements = leftContentArea.querySelectorAll('.strongs-number');
+            console.log(`[DEBUG] Found ${allStrongsElements.length} total Strong's elements in left reader`);
+
+            if (allStrongsElements.length === 0) {
+                // Check if left reader has Strong's toggle enabled
+                const leftStrongToggle = document.getElementById('left-reader-strong-toggle');
+                if (leftStrongToggle && !leftStrongToggle.checked) {
+                    console.log('[DEBUG] Left reader Strong\'s toggle is OFF - enabling it');
+                    leftStrongToggle.checked = true;
+                    // Trigger a reload of left reader content
+                    leftStrongToggle.dispatchEvent(new Event('change'));
+                    logStatus('🔧 Enabled Strong\'s numbers in left reader for highlighting');
+
+                    // Wait a moment for content to reload, then try again
+                    setTimeout(() => highlightStrongsInLeftReader(strongsNumber, verseNum), 1000);
+                    return;
+                } else {
+                    console.log('[DEBUG] Left reader has no Strong\'s numbers available');
+                    logStatus('⚠️ No Strong\'s numbers found in left reader (may need to reload with Strong\'s enabled)');
+                    return;
+                }
+            }
+
+            if (allStrongsElements.length > 0) {
+                console.log('[DEBUG] First few Strong\'s numbers in left reader:');
+                for (let i = 0; i < Math.min(5, allStrongsElements.length); i++) {
+                    const el = allStrongsElements[i];
+                    console.log(`  - ${el.getAttribute('data-strong')}: "${el.textContent}"`);
+                }
+            }
+
+            // Find matching Strong's numbers in left reader
+            const strongsElements = leftContentArea.querySelectorAll(`.strongs-number[data-strong="${strongsNumber}"]`);
+            console.log(`[DEBUG] Found ${strongsElements.length} matching elements for ${strongsNumber}`);
+            let highlightCount = 0;
+
+            strongsElements.forEach(strongEl => {
+                // Add highlight styling
+                strongEl.style.backgroundColor = '#ff6b35';
+                strongEl.style.color = 'white';
+                strongEl.style.fontWeight = 'bold';
+                strongEl.style.border = '2px solid #ff4500';
+                strongEl.style.borderRadius = '4px';
+                strongEl.style.padding = '2px 4px';
+                strongEl.style.boxShadow = '0 2px 8px rgba(255, 107, 53, 0.4)';
+                strongEl.style.transform = 'scale(1.1)';
+                strongEl.style.transition = 'all 0.3s ease';
+                strongEl.classList.add('strongs-highlighted');
+
+                highlightCount++;
+
+                // Add pulsing animation
+                strongEl.style.animation = 'strongsPulse 2s ease-in-out infinite';
+            });
+
+            // Add CSS animation if it doesn't exist
+            if (!document.getElementById('strongs-animation-style')) {
+                const style = document.createElement('style');
+                style.id = 'strongs-animation-style';
+                style.textContent = `
+                    @keyframes strongsPulse {
+                        0%, 100% { opacity: 1; }
+                        50% { opacity: 0.7; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            if (highlightCount > 0) {
+                logStatus(`🔍 Highlighted ${highlightCount} matching ${strongsNumber} instances in left reader`);
+
+                // Auto-clear highlighting after 5 seconds if no action taken
+                setTimeout(() => {
+                    clearStrongsHighlighting();
+                }, 5000);
+            } else {
+                logStatus(`🔍 No matching ${strongsNumber} found in left reader to highlight`);
+            }
+
+        } catch (error) {
+            console.error('Error highlighting Strong\'s numbers in left reader:', error);
+        }
+    }
+
+    /**
+     * Clears Strong's number highlighting in left reader
+     */
+    function clearStrongsHighlighting() {
+        try {
+            const leftContentArea = document.getElementById('left-reader-content-area');
+            if (!leftContentArea) return;
+
+            const highlightedElements = leftContentArea.querySelectorAll('.strongs-highlighted');
+            highlightedElements.forEach(el => {
+                // Remove highlight styling
+                el.style.backgroundColor = '';
+                el.style.color = '';
+                el.style.fontWeight = '';
+                el.style.border = '';
+                el.style.borderRadius = '';
+                el.style.padding = '';
+                el.style.boxShadow = '';
+                el.style.transform = '';
+                el.style.transition = '';
+                el.style.animation = '';
+                el.classList.remove('strongs-highlighted');
+            });
+
+        } catch (error) {
+            console.error('Error clearing Strong\'s highlighting:', error);
+        }
+    }
+
+    /**
+     * Handles Strong's number input field changes for live highlighting
+     */
+    function handleStrongsInputChange() {
+        const inputValue = strongNumberInput.value.trim().toUpperCase();
+
+        if (inputValue && /^[HG]\d+$/i.test(inputValue)) {
+            // Valid Strong's number format - highlight in left reader
+            if (currentEditingVerse) {
+                const verseNum = currentEditingVerse.getAttribute('data-verse');
+                highlightStrongsInLeftReader(inputValue, verseNum);
+            }
+        } else {
+            // Invalid or empty - clear highlighting
+            clearStrongsHighlighting();
+        }
     }
 
     /**
@@ -778,6 +1068,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add click listener for verse editing
     contentArea.addEventListener('click', handleVerseClick);
 
+    // Add event listener for Strong's insertion
+    insertStrongBtn.addEventListener('click', handleInsertStrong);
+
+    // Add event listener for Strong's number input changes (live highlighting)
+    strongNumberInput.addEventListener('input', handleStrongsInputChange);
+    strongNumberInput.addEventListener('focus', handleStrongsInputChange);
+    strongNumberInput.addEventListener('blur', clearStrongsHighlighting);
+
+    // Add keyboard shortcuts for undo/redo
+    document.addEventListener('keydown', function(e) {
+        // Only handle shortcuts when in edit mode and a verse is being edited
+        if (!isEditMode || !currentEditingVerse) return;
+
+        const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+        const cmdKey = isMac ? e.metaKey : e.ctrlKey;
+
+        if (cmdKey && e.key === 'z' && !e.shiftKey) {
+            e.preventDefault();
+            handleUndo();
+        } else if (cmdKey && e.key === 'r') {
+            e.preventDefault();
+            handleRedo();
+        }
+    });
+
     /**
      * Handles Edit Mode toggle - minimal implementation
      */
@@ -799,9 +1114,14 @@ document.addEventListener('DOMContentLoaded', () => {
             leftFollowScrollToggle.checked = true;
             leftFollowSelectionToggle.checked = true;
 
+            // Show Strong's insertion controls and left alignment spacer
+            if (strongControlsContainer) strongControlsContainer.style.display = 'block';
+            if (leftAlignmentSpacer) leftAlignmentSpacer.style.display = 'block';
+
             // Set right reader as main
             MockMediator.setMainReader('right', 'edit mode enabled');
             logStatus('📍 Right reader is now MAIN (edit mode), left reader is now FOLLOWER');
+            logStatus('🔧 Strong\'s insertion controls: ENABLED');
 
             setTimeout(() => { isUpdatingCheckboxes = false; }, 100);
 
@@ -838,12 +1158,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } else {
             // If edit mode is disabled, make any currently editing verse non-editable
+            if (currentEditingVerse) {
+                currentEditingVerse.contentEditable = false;
+                currentEditingVerse.style.backgroundColor = '';
+                currentEditingVerse.style.border = '';
+                currentEditingVerse = null;
+            }
+
             const editableVerses = contentArea.querySelectorAll('.verse[contenteditable="true"]');
             editableVerses.forEach(verse => {
                 verse.contentEditable = false;
                 verse.style.backgroundColor = '';
                 verse.style.border = '';
             });
+
+            // Hide Strong's insertion controls and left alignment spacer
+            if (strongControlsContainer) strongControlsContainer.style.display = 'none';
+            if (leftAlignmentSpacer) leftAlignmentSpacer.style.display = 'none';
+
+            logStatus('🔧 Strong\'s insertion controls: DISABLED');
         }
     }
 
@@ -858,6 +1191,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const verseElement = event.target.closest('.verse');
         if (!verseElement) return;
 
+        // Clear previous editing verse
+        if (currentEditingVerse && currentEditingVerse !== verseElement) {
+            currentEditingVerse.contentEditable = false;
+            currentEditingVerse.style.backgroundColor = '';
+            currentEditingVerse.style.border = '';
+        }
+
+        // Set current editing verse
+        currentEditingVerse = verseElement;
+
+        // Save initial state for undo
+        saveToUndoStack(verseElement);
+
         // Make this verse editable
         verseElement.contentEditable = true;
         verseElement.style.backgroundColor = '#fff9c4';
@@ -866,15 +1212,1170 @@ document.addEventListener('DOMContentLoaded', () => {
 
         logStatus(`📝 Editing verse ${verseElement.getAttribute('data-verse')}`);
 
-        // Add blur event to save when clicking outside
-        verseElement.addEventListener('blur', function saveOnBlur() {
+        // Add input event listener for cursor position changes and auto-suggestion
+        verseElement.addEventListener('input', handleVerseInput);
+        verseElement.addEventListener('click', handleCursorPositionChange);
+
+        // Add blur event to save when clicking outside (but not when clicking Insert button)
+        verseElement.addEventListener('blur', function saveOnBlur(e) {
+            // Don't save if user clicked on Strong's controls
+            if (e.relatedTarget && (
+                e.relatedTarget === insertStrongBtn ||
+                e.relatedTarget === strongNumberInput ||
+                strongControlsContainer.contains(e.relatedTarget)
+            )) {
+                return; // Keep editing active
+            }
+
             verseElement.contentEditable = false;
             verseElement.style.backgroundColor = '';
             verseElement.style.border = '';
+            currentEditingVerse = null;
             verseElement.removeEventListener('blur', saveOnBlur);
             logStatus(`💾 Saved verse ${verseElement.getAttribute('data-verse')}`);
-        }, { once: true });
+        });
     }
+
+    /**
+     * Gets insertion context for precise status messages
+     */
+    function getInsertionContext(verse, range) {
+        const verseText = verse.textContent;
+        const cursorPosition = getTextOffset(verse, range.startContainer, range.startOffset);
+
+        // Extract words before and after cursor
+        const beforeText = verseText.substring(0, cursorPosition);
+        const afterText = verseText.substring(cursorPosition);
+
+        const beforeWords = getLastWords(beforeText, 2);
+        const afterWords = getFirstWords(afterText, 2);
+
+        return {
+            position: 'middle',
+            beforeText: beforeWords,
+            afterText: afterWords,
+            cursorPosition: cursorPosition,
+            totalLength: verseText.length,
+            wordCount: getWordCount(verseText)
+        };
+    }
+
+    /**
+     * Gets last N words from text
+     */
+    function getLastWords(text, count) {
+        if (!text) return '';
+
+        // Handle both English and Chinese text
+        const cleanText = text.replace(/[<>()[\]{}]/g, ' ').trim();
+
+        // For mixed English/Chinese, split on various delimiters
+        const words = cleanText.split(/[\s，。！？\u3000]+/).filter(w => w.length > 0);
+
+        return words.slice(-count).join(' ') || cleanText.slice(-10);
+    }
+
+    /**
+     * Gets first N words from text
+     */
+    function getFirstWords(text, count) {
+        if (!text) return '';
+
+        // Handle both English and Chinese text
+        const cleanText = text.replace(/[<>()[\]{}]/g, ' ').trim();
+
+        // For mixed English/Chinese, split on various delimiters
+        const words = cleanText.split(/[\s，。！？\u3000]+/).filter(w => w.length > 0);
+
+        return words.slice(0, count).join(' ') || cleanText.slice(0, 10);
+    }
+
+    /**
+     * Gets word count from text
+     */
+    function getWordCount(text) {
+        if (!text) return 0;
+
+        const cleanText = text.replace(/[<>()[\]{}]/g, ' ').trim();
+
+        // Count English words and Chinese characters
+        const englishWords = (cleanText.match(/[a-zA-Z]+/g) || []).length;
+        const chineseChars = (cleanText.match(/[\u4e00-\u9fff]/g) || []).length;
+
+        return englishWords + chineseChars;
+    }
+
+    /**
+     * Formats precise insertion status message
+     */
+    function formatPreciseInsertionStatus(strongNumber, verseNum, context) {
+        let status = `✅ Inserted <${strongNumber}> in verse ${verseNum}`;
+
+        if (context.position === 'end') {
+            if (context.beforeText) {
+                status += ` at end after "${context.beforeText}"`;
+            } else {
+                status += ` at end of verse`;
+            }
+        } else {
+            // Middle insertion
+            if (context.beforeText && context.afterText) {
+                status += ` after "${context.beforeText}" before "${context.afterText}"`;
+            } else if (context.beforeText) {
+                status += ` after "${context.beforeText}"`;
+            } else if (context.afterText) {
+                status += ` before "${context.afterText}"`;
+            } else {
+                status += ` at position ${context.cursorPosition}`;
+            }
+        }
+
+        // Add word position info
+        if (context.wordCount > 0) {
+            status += ` (${context.wordCount} words total)`;
+        }
+
+        return status;
+    }
+
+    /**
+     * Handles inserting Strong's numbers at cursor position
+     */
+    function handleInsertStrong() {
+        let strongNumber = strongNumberInput.value.trim();
+
+        // Validate input format
+        if (!strongNumber) {
+            logStatus('❌ Please enter a Strong\'s number (e.g., H1234 or G5678)');
+            strongNumberInput.focus();
+            return;
+        }
+
+        // Remove angle brackets if user included them
+        strongNumber = strongNumber.replace(/[<>]/g, '');
+
+        // Validate format: H/G followed by numbers (allow leading zeros)
+        const strongPattern = /^[HG]\d+$/i;
+        if (!strongPattern.test(strongNumber)) {
+            logStatus('❌ Invalid format. Use H1234 or G5678 format (without < >)');
+            strongNumberInput.focus();
+            return;
+        }
+
+        console.log('Inserting Strong\'s number:', strongNumber);
+
+        // Check if there's a currently editing verse
+        if (!currentEditingVerse) {
+            logStatus('❌ Please click on a verse to edit it first');
+            return;
+        }
+
+        const editingVerse = currentEditingVerse;
+
+        // Save state before insertion for undo
+        saveToUndoStack(editingVerse);
+
+        // Insert Strong's number at cursor position
+        const normalizedNumber = strongNumber.toUpperCase();
+        const strongsSpan = `<span class="strongs-number" data-strong="${normalizedNumber}" title="Strong's ${normalizedNumber}">&lt;${normalizedNumber}&gt;</span>`;
+
+        // Get current selection/cursor position
+        const selection = window.getSelection();
+        console.log('Selection range count:', selection.rangeCount);
+
+        if (selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            console.log('Range ancestor:', range.commonAncestorContainer);
+            console.log('Editing verse:', editingVerse);
+
+            // Make sure we're inserting within the editing verse
+            if (editingVerse.contains(range.commonAncestorContainer) || editingVerse === range.commonAncestorContainer) {
+                console.log('Cursor is within editing verse, proceeding with insertion');
+
+                // Capture context before insertion for precise status message
+                const insertionContext = getInsertionContext(editingVerse, range);
+
+                // Create a temporary div to parse the HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = strongsSpan;
+                const strongsElement = tempDiv.firstChild;
+                console.log('Created Strong\'s element:', strongsElement);
+
+                // Insert the Strong's number
+                range.deleteContents();
+                range.insertNode(strongsElement);
+                console.log('Inserted Strong\'s element');
+
+                // Move cursor after the inserted element
+                range.setStartAfter(strongsElement);
+                range.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(range);
+
+                // Clear input and provide precise feedback
+                strongNumberInput.value = '';
+                const verseNum = editingVerse.getAttribute('data-verse');
+                const preciseStatus = formatPreciseInsertionStatus(normalizedNumber, verseNum, insertionContext);
+                logStatus(preciseStatus);
+                console.log('Successfully inserted Strong\'s number');
+
+                // Clear Strong's highlighting after successful insertion
+                clearStrongsHighlighting();
+
+                // Focus back on the editing verse
+                editingVerse.focus();
+            } else {
+                console.log('Cursor is NOT within editing verse');
+                logStatus('❌ Please place cursor inside the verse you\'re editing');
+            }
+        } else {
+            console.log('No selection range found');
+            // If no selection, try to insert at the end of the editing verse
+            if (editingVerse) {
+                // Capture context for end insertion
+                const endContext = {
+                    position: 'end',
+                    beforeText: getLastWords(editingVerse.textContent, 3),
+                    afterText: '',
+                    wordCount: getWordCount(editingVerse.textContent)
+                };
+
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = strongsSpan;
+                const strongsElement = tempDiv.firstChild;
+
+                editingVerse.appendChild(strongsElement);
+
+                strongNumberInput.value = '';
+                const verseNum = editingVerse.getAttribute('data-verse');
+                const preciseStatus = formatPreciseInsertionStatus(normalizedNumber, verseNum, endContext);
+                logStatus(preciseStatus);
+                console.log('Inserted at end of verse (no cursor position)');
+
+                // Clear Strong's highlighting after successful insertion
+                clearStrongsHighlighting();
+
+                editingVerse.focus();
+            } else {
+                logStatus('❌ Please place cursor where you want to insert the Strong\'s number');
+            }
+        }
+    }
+
+    /**
+     * Saves current verse state to undo stack
+     */
+    function saveToUndoStack(verse) {
+        if (isUndoRedoAction) return; // Don't save during undo/redo operations
+
+        const verseId = verse.getAttribute('data-verse');
+        const content = verse.innerHTML;
+
+        // Save current cursor position
+        let cursorPos = 0;
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0 && verse.contains(selection.anchorNode)) {
+            const range = selection.getRangeAt(0);
+            cursorPos = getTextOffset(verse, range.startContainer, range.startOffset);
+        }
+
+        const state = {
+            verseId: verseId,
+            content: content,
+            cursorPos: cursorPos,
+            timestamp: Date.now()
+        };
+
+        undoStack.push(state);
+
+        // Limit undo stack size
+        if (undoStack.length > 50) {
+            undoStack.shift();
+        }
+
+        // Clear redo stack when new action is performed
+        redoStack = [];
+
+        console.log(`Saved undo state for verse ${verseId}`);
+    }
+
+    /**
+     * Gets text offset for cursor position restoration
+     */
+    function getTextOffset(root, node, offset) {
+        let textOffset = 0;
+        const walker = document.createTreeWalker(
+            root,
+            NodeFilter.SHOW_TEXT,
+            null,
+            false
+        );
+
+        let currentNode;
+        while (currentNode = walker.nextNode()) {
+            if (currentNode === node) {
+                return textOffset + offset;
+            }
+            textOffset += currentNode.textContent.length;
+        }
+        return textOffset;
+    }
+
+    /**
+     * Gets the position of an element within the text content of its parent
+     */
+    function getElementTextPosition(parentElement, targetElement) {
+        let position = 0;
+        const walker = document.createTreeWalker(
+            parentElement,
+            NodeFilter.SHOW_ALL,
+            null,
+            false
+        );
+
+        let currentNode;
+        while (currentNode = walker.nextNode()) {
+            if (currentNode === targetElement) {
+                return position;
+            }
+
+            // Only count text content, not element tags
+            if (currentNode.nodeType === Node.TEXT_NODE) {
+                position += currentNode.textContent.length;
+            }
+        }
+
+        return position;
+    }
+
+    /**
+     * Restores cursor position from text offset
+     */
+    function restoreCursorPosition(verse, textOffset) {
+        const walker = document.createTreeWalker(
+            verse,
+            NodeFilter.SHOW_TEXT,
+            null,
+            false
+        );
+
+        let currentOffset = 0;
+        let currentNode;
+
+        while (currentNode = walker.nextNode()) {
+            const nodeLength = currentNode.textContent.length;
+            if (currentOffset + nodeLength >= textOffset) {
+                const range = document.createRange();
+                const selection = window.getSelection();
+                const offsetInNode = textOffset - currentOffset;
+
+                range.setStart(currentNode, Math.min(offsetInNode, nodeLength));
+                range.collapse(true);
+
+                selection.removeAllRanges();
+                selection.addRange(range);
+                return;
+            }
+            currentOffset += nodeLength;
+        }
+    }
+
+    /**
+     * Handles undo operation
+     */
+    function handleUndo() {
+        if (!currentEditingVerse || undoStack.length === 0) {
+            logStatus('❌ Nothing to undo');
+            return;
+        }
+
+        const verseId = currentEditingVerse.getAttribute('data-verse');
+
+        // Find the most recent state for current verse
+        let undoIndex = -1;
+        for (let i = undoStack.length - 1; i >= 0; i--) {
+            if (undoStack[i].verseId === verseId) {
+                undoIndex = i;
+                break;
+            }
+        }
+
+        if (undoIndex === -1) {
+            logStatus('❌ No undo history for this verse');
+            return;
+        }
+
+        // Save current state to redo stack
+        const currentState = {
+            verseId: verseId,
+            content: currentEditingVerse.innerHTML,
+            cursorPos: 0,
+            timestamp: Date.now()
+        };
+        redoStack.push(currentState);
+
+        // Restore previous state
+        const undoState = undoStack[undoIndex];
+        isUndoRedoAction = true;
+
+        currentEditingVerse.innerHTML = undoState.content;
+        restoreCursorPosition(currentEditingVerse, undoState.cursorPos);
+
+        isUndoRedoAction = false;
+
+        // Remove the undo state we just used
+        undoStack.splice(undoIndex, 1);
+
+        logStatus(`↶ Undid change in verse ${verseId}`);
+        console.log('Undo performed');
+    }
+
+    /**
+     * Handles redo operation
+     */
+    function handleRedo() {
+        if (!currentEditingVerse || redoStack.length === 0) {
+            logStatus('❌ Nothing to redo');
+            return;
+        }
+
+        const verseId = currentEditingVerse.getAttribute('data-verse');
+
+        // Find the most recent redo state for current verse
+        let redoIndex = -1;
+        for (let i = redoStack.length - 1; i >= 0; i--) {
+            if (redoStack[i].verseId === verseId) {
+                redoIndex = i;
+                break;
+            }
+        }
+
+        if (redoIndex === -1) {
+            logStatus('❌ No redo history for this verse');
+            return;
+        }
+
+        // Save current state to undo stack
+        saveToUndoStack(currentEditingVerse);
+
+        // Restore redo state
+        const redoState = redoStack[redoIndex];
+        isUndoRedoAction = true;
+
+        currentEditingVerse.innerHTML = redoState.content;
+        restoreCursorPosition(currentEditingVerse, redoState.cursorPos);
+
+        isUndoRedoAction = false;
+
+        // Remove the redo state we just used
+        redoStack.splice(redoIndex, 1);
+
+        logStatus(`↷ Redid change in verse ${verseId}`);
+        console.log('Redo performed');
+    }
+
+    /**
+     * Handles input events in verse (for undo tracking)
+     */
+    function handleVerseInput(e) {
+        if (!isUndoRedoAction && currentEditingVerse) {
+            // Debounce saving to undo stack during typing
+            clearTimeout(window.verseInputTimeout);
+            window.verseInputTimeout = setTimeout(() => {
+                saveToUndoStack(currentEditingVerse);
+            }, 1000);
+        }
+    }
+
+    /**
+     * Handles cursor position changes for auto-suggestion
+     */
+    function handleCursorPositionChange(e) {
+        if (!currentEditingVerse || !isEditMode) return;
+
+        // Small delay to ensure cursor position is settled
+        setTimeout(() => {
+            suggestStrongsFromLeftReader();
+        }, 100);
+    }
+
+    /**
+     * Intelligent Word Mapping Engine
+     * Maps words between left (reference with Strong's) and right (target) verses
+     */
+    const WordMappingEngine = {
+        currentMappings: [],
+        colorPairs: [
+            { left: '#e3f2fd', right: '#bbdefb' },  // Blue pair
+            { left: '#f3e5f5', right: '#ce93d8' },  // Purple pair
+            { left: '#e8f5e8', right: '#a5d6a7' },  // Green pair
+            { left: '#fff3e0', right: '#ffcc02' },  // Orange pair
+            { left: '#fce4ec', right: '#f8bbd9' },  // Pink pair
+            { left: '#e0f2f1', right: '#80cbc4' },  // Teal pair
+        ],
+
+        /**
+         * Main function: Create word mappings and apply highlighting
+         */
+        createWordMapping(leftVerse, rightVerse, verseId) {
+            try {
+                // 1. Parse reference verse (left) for word-Strong's pairs
+                const referenceWords = this.parseReferenceVerse(leftVerse);
+                logStatus(`🔗 Found ${referenceWords.length} reference words with Strong's`);
+
+                // 2. Map words from left to right verse
+                const mappings = this.mapWordsToTarget(referenceWords, rightVerse);
+                logStatus(`🔗 Mapped ${mappings.length} word pairs`);
+
+                // 3. Store mappings for click handling
+                this.currentMappings = mappings;
+
+                // 4. Apply color highlighting
+                this.highlightWordPairs(leftVerse, rightVerse, mappings);
+
+                return mappings;
+            } catch (error) {
+                logStatus(`❌ Word mapping failed: ${error.message}`);
+                return [];
+            }
+        },
+
+        /**
+         * Parse left verse to extract word-Strong's pairs
+         */
+        parseReferenceVerse(leftVerse) {
+            const words = [];
+            const strongsElements = leftVerse.querySelectorAll('.strongs-number');
+
+            strongsElements.forEach(strongEl => {
+                const strongsNumber = strongEl.getAttribute('data-strong');
+                const extractedWords = this.extractWordsNearStrongs(leftVerse, strongEl);
+
+                extractedWords.forEach(word => {
+                    if (word.trim()) {
+                        words.push({
+                            word: word.trim(),
+                            strongs: strongsNumber,
+                            confidence: 1.0
+                        });
+                    }
+                });
+            });
+
+            return words;
+        },
+
+        /**
+         * Enhanced word extraction that looks in multiple directions around Strong's numbers
+         */
+        extractWordsNearStrongs(verse, strongsElement) {
+            const words = [];
+
+            // Method 1: Check previous sibling text (original method)
+            let prevNode = strongsElement.previousSibling;
+            while (prevNode && prevNode.nodeType !== Node.TEXT_NODE) {
+                prevNode = prevNode.previousSibling;
+            }
+
+            if (prevNode && prevNode.textContent) {
+                const text = prevNode.textContent.trim();
+                // Extract all words, not just the last one
+                const wordMatches = text.match(/[^\s，。！？]+/g);
+                if (wordMatches) {
+                    words.push(...wordMatches);
+                }
+            }
+
+            // Method 2: Check next sibling text (Strong's might come before word)
+            let nextNode = strongsElement.nextSibling;
+            while (nextNode && nextNode.nodeType !== Node.TEXT_NODE) {
+                nextNode = nextNode.nextSibling;
+            }
+
+            if (nextNode && nextNode.textContent) {
+                const text = nextNode.textContent.trim();
+                const wordMatches = text.match(/[^\s，。！？]+/g);
+                if (wordMatches) {
+                    words.push(...wordMatches);
+                }
+            }
+
+            // Method 3: Look for words in surrounding text within the same verse
+            const verseText = verse.textContent;
+            const strongsText = strongsElement.textContent;
+            const strongsPosition = verseText.indexOf(strongsText);
+
+            if (strongsPosition !== -1) {
+                // Extract words in a window around the Strong's number
+                const windowSize = 20; // characters before/after
+                const startPos = Math.max(0, strongsPosition - windowSize);
+                const endPos = Math.min(verseText.length, strongsPosition + strongsText.length + windowSize);
+                const contextText = verseText.substring(startPos, endPos);
+
+                // Remove the Strong's number itself and extract words
+                const cleanText = contextText.replace(strongsText, ' ').trim();
+                const contextWords = cleanText.match(/[^\s，。！？<>()[\]{}]+/g);
+                if (contextWords) {
+                    words.push(...contextWords);
+                }
+            }
+
+            // Remove duplicates and filter out Strong's number patterns
+            const uniqueWords = [...new Set(words)].filter(word =>
+                word &&
+                word.length > 0 &&
+                !word.match(/^[HG]\d+$/) && // Not a Strong's number
+                !word.match(/^[<>()[\]{}]+$/) // Not just punctuation
+            );
+
+            return uniqueWords;
+        },
+
+        /**
+         * Map reference words to target verse words
+         */
+        mapWordsToTarget(referenceWords, rightVerse) {
+            const mappings = [];
+            const rightText = rightVerse.textContent;
+            const rightWords = this.extractAllWords(rightText);
+
+            referenceWords.forEach((refWord, index) => {
+                // Try multiple matching strategies
+                const matches = this.findWordMatches(refWord.word, rightWords, rightText);
+
+                matches.forEach(match => {
+                    mappings.push({
+                        leftWord: refWord.word,
+                        rightWord: match.word,
+                        rightIndex: match.index,
+                        strongs: refWord.strongs,
+                        confidence: match.confidence,
+                        colorPair: this.colorPairs[index % this.colorPairs.length]
+                    });
+                });
+
+                if (matches.length === 0) {
+                    console.log(`No match found for: ${refWord.word} (${refWord.strongs})`);
+                }
+            });
+
+            return mappings;
+        },
+
+        /**
+         * Extract all words from text for matching
+         */
+        extractAllWords(text) {
+            // Handle both English and Chinese text
+            const words = [];
+
+            // English words (space-separated)
+            const englishWords = text.match(/[a-zA-Z]+/g) || [];
+
+            // Chinese words/characters (no spaces)
+            const chineseChars = text.match(/[\u4e00-\u9fff]+/g) || [];
+
+            return [...englishWords, ...chineseChars];
+        },
+
+        /**
+         * Find word matches using multiple strategies
+         */
+        findWordMatches(leftWord, rightWords, rightText) {
+            const matches = [];
+
+            // Strategy 1: Exact match
+            const exactIndex = rightText.indexOf(leftWord);
+            if (exactIndex !== -1) {
+                matches.push({
+                    word: leftWord,
+                    index: exactIndex,
+                    confidence: 1.0
+                });
+                return matches; // Exact match found, use it
+            }
+
+            // Strategy 2: Cross-language mapping via Strong's number context
+            // This is where we'd add specific translation pairs
+            const crossLangMatch = this.getCrossLanguageMatch(leftWord);
+            if (crossLangMatch) {
+                const crossIndex = rightText.indexOf(crossLangMatch);
+                if (crossIndex !== -1) {
+                    matches.push({
+                        word: crossLangMatch,
+                        index: crossIndex,
+                        confidence: 0.9
+                    });
+                }
+            }
+
+            // Strategy 3: Partial matching for compound words
+            rightWords.forEach(rightWord => {
+                if (rightWord.includes(leftWord) || leftWord.includes(rightWord)) {
+                    const partialIndex = rightText.indexOf(rightWord);
+                    if (partialIndex !== -1) {
+                        matches.push({
+                            word: rightWord,
+                            index: partialIndex,
+                            confidence: 0.7
+                        });
+                    }
+                }
+            });
+
+            // Strategy 4: Phonetic/semantic similarity (simplified)
+            // This could be expanded with more sophisticated algorithms
+            rightWords.forEach(rightWord => {
+                if (this.areSimilarWords(leftWord, rightWord)) {
+                    const similarIndex = rightText.indexOf(rightWord);
+                    if (similarIndex !== -1) {
+                        matches.push({
+                            word: rightWord,
+                            index: similarIndex,
+                            confidence: 0.6
+                        });
+                    }
+                }
+            });
+
+            // Remove duplicates and sort by confidence
+            const uniqueMatches = matches.filter((match, index, self) =>
+                index === self.findIndex(m => m.word === match.word)
+            ).sort((a, b) => b.confidence - a.confidence);
+
+            return uniqueMatches.slice(0, 1); // Return best match only
+        },
+
+        /**
+         * Cross-language word mapping dictionary
+         * This can be expanded with more translation pairs
+         */
+        getCrossLanguageMatch(word) {
+            const crossLangDict = {
+                // Genesis 1:1 specific mappings
+                '起初': 'beginning',
+                'beginning': '起初',
+                '上帝': 'God',
+                'God': '上帝',
+                '創造': 'created',
+                'created': '創造',
+                '天': 'heaven',
+                'heaven': '天',
+                '地': 'earth',
+                'earth': '地',
+
+                // Common theological terms
+                '主': 'Lord',
+                'Lord': '主',
+                '耶和華': 'LORD',
+                'LORD': '耶和華',
+                '靈': 'Spirit',
+                'Spirit': '靈',
+                '道': 'Word',
+                'Word': '道',
+                '光': 'light',
+                'light': '光',
+                '愛': 'love',
+                'love': '愛',
+                '信': 'faith',
+                'faith': '信',
+                '望': 'hope',
+                'hope': '望',
+                '生命': 'life',
+                'life': '生命',
+                '永生': 'eternal',
+                'eternal': '永生',
+                '救': 'save',
+                'save': '救',
+                '罪': 'sin',
+                'sin': '罪',
+                '義': 'righteousness',
+                'righteousness': '義'
+            };
+
+            return crossLangDict[word] || null;
+        },
+
+        /**
+         * Simple similarity check for words
+         */
+        areSimilarWords(word1, word2) {
+            // Simple length and character overlap check
+            if (Math.abs(word1.length - word2.length) > 3) return false;
+
+            const minLength = Math.min(word1.length, word2.length);
+            if (minLength < 3) return false;
+
+            let commonChars = 0;
+            for (let i = 0; i < minLength; i++) {
+                if (word1[i] && word2[i] && word1[i].toLowerCase() === word2[i].toLowerCase()) {
+                    commonChars++;
+                }
+            }
+
+            return (commonChars / minLength) > 0.6;
+        },
+
+        /**
+         * Apply color highlighting to word pairs
+         */
+        highlightWordPairs(leftVerse, rightVerse, mappings) {
+            // Clear existing highlights first
+            this.clearHighlights(leftVerse);
+            this.clearHighlights(rightVerse);
+
+            mappings.forEach(mapping => {
+                // Highlight in left verse (find the word before Strong's number)
+                this.highlightWordInVerse(leftVerse, mapping.leftWord, mapping.colorPair.left, 'left');
+
+                // Highlight in right verse
+                this.highlightWordInVerse(rightVerse, mapping.rightWord, mapping.colorPair.right, 'right');
+            });
+        },
+
+        /**
+         * Highlight a specific word in a verse with enhanced text parsing
+         */
+        highlightWordInVerse(verse, word, color, side) {
+            // Try multiple highlighting strategies
+            let highlighted = false;
+
+            // Strategy 1: Direct text node highlighting (improved)
+            highlighted = this.highlightInTextNodes(verse, word, color, side);
+
+            // Strategy 2: If direct highlighting failed, try HTML-aware highlighting
+            if (!highlighted) {
+                highlighted = this.highlightWithHtmlAwareness(verse, word, color, side);
+            }
+
+            // Strategy 3: If still not highlighted, try partial word matching
+            if (!highlighted) {
+                highlighted = this.highlightPartialMatch(verse, word, color, side);
+            }
+
+            if (!highlighted) {
+                console.log(`Could not highlight word "${word}" in verse`);
+            }
+        },
+
+        /**
+         * Enhanced text node highlighting
+         */
+        highlightInTextNodes(verse, word, color, side) {
+            const walker = document.createTreeWalker(
+                verse,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+
+            let textNode;
+            while (textNode = walker.nextNode()) {
+                const text = textNode.textContent;
+                const wordIndex = text.indexOf(word);
+
+                if (wordIndex !== -1) {
+                    // Check if this text node is not inside a Strong's number span
+                    const parent = textNode.parentNode;
+                    if (parent && parent.classList && parent.classList.contains('strongs-number')) {
+                        continue; // Skip highlighting inside Strong's numbers
+                    }
+
+                    // Split text node and wrap word in highlight span
+                    const beforeText = text.substring(0, wordIndex);
+                    const wordText = text.substring(wordIndex, wordIndex + word.length);
+                    const afterText = text.substring(wordIndex + word.length);
+
+                    // Create highlight span
+                    const highlightSpan = document.createElement('span');
+                    highlightSpan.className = `word-mapping-highlight ${side}-highlight`;
+                    highlightSpan.style.backgroundColor = color;
+                    highlightSpan.style.padding = '1px 2px';
+                    highlightSpan.style.borderRadius = '2px';
+                    highlightSpan.style.cursor = 'pointer';
+                    highlightSpan.style.fontWeight = 'bold';
+                    highlightSpan.textContent = wordText;
+                    highlightSpan.setAttribute('data-mapped-word', word);
+                    highlightSpan.title = `Mapped word: ${word}`;
+
+                    // Replace text node with highlighted version
+                    if (beforeText) parent.insertBefore(document.createTextNode(beforeText), textNode);
+                    parent.insertBefore(highlightSpan, textNode);
+                    if (afterText) parent.insertBefore(document.createTextNode(afterText), textNode);
+
+                    parent.removeChild(textNode);
+                    return true;
+                }
+            }
+            return false;
+        },
+
+        /**
+         * HTML-aware highlighting for complex structures
+         */
+        highlightWithHtmlAwareness(verse, word, color, side) {
+            const verseHtml = verse.innerHTML;
+            const verseText = verse.textContent;
+
+            // Find the word in the text content
+            const wordIndex = verseText.indexOf(word);
+            if (wordIndex === -1) return false;
+
+            // Create a temporary div to work with HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = verseHtml;
+
+            // Find all text nodes and their positions
+            let textPosition = 0;
+            const walker = document.createTreeWalker(
+                tempDiv,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+
+            let textNode;
+            while (textNode = walker.nextNode()) {
+                const nodeText = textNode.textContent;
+                const nodeEnd = textPosition + nodeText.length;
+
+                // Check if our word falls within this text node
+                if (textPosition <= wordIndex && wordIndex < nodeEnd) {
+                    const relativeIndex = wordIndex - textPosition;
+                    const beforeText = nodeText.substring(0, relativeIndex);
+                    const wordText = nodeText.substring(relativeIndex, relativeIndex + word.length);
+                    const afterText = nodeText.substring(relativeIndex + word.length);
+
+                    // Create highlighted version
+                    const parent = textNode.parentNode;
+                    const highlightSpan = document.createElement('span');
+                    highlightSpan.className = `word-mapping-highlight ${side}-highlight`;
+                    highlightSpan.style.backgroundColor = color;
+                    highlightSpan.style.padding = '1px 2px';
+                    highlightSpan.style.borderRadius = '2px';
+                    highlightSpan.style.cursor = 'pointer';
+                    highlightSpan.style.fontWeight = 'bold';
+                    highlightSpan.textContent = wordText;
+                    highlightSpan.setAttribute('data-mapped-word', word);
+                    highlightSpan.title = `Mapped word: ${word}`;
+
+                    // Replace the text node
+                    if (beforeText) parent.insertBefore(document.createTextNode(beforeText), textNode);
+                    parent.insertBefore(highlightSpan, textNode);
+                    if (afterText) parent.insertBefore(document.createTextNode(afterText), textNode);
+                    parent.removeChild(textNode);
+
+                    // Update the verse with modified HTML
+                    verse.innerHTML = tempDiv.innerHTML;
+                    return true;
+                }
+
+                textPosition = nodeEnd;
+            }
+
+            return false;
+        },
+
+        /**
+         * Partial word matching for compound words or character-level matching
+         */
+        highlightPartialMatch(verse, word, color, side) {
+            // For Chinese characters, try individual character matching
+            if (/[\u4e00-\u9fff]/.test(word)) {
+                for (let char of word) {
+                    if (this.highlightInTextNodes(verse, char, color, side)) {
+                        console.log(`Highlighted partial character: ${char} for word: ${word}`);
+                        return true;
+                    }
+                }
+            }
+
+            // For English words, try stem matching
+            if (/[a-zA-Z]/.test(word)) {
+                const stem = word.length > 4 ? word.substring(0, word.length - 2) : word;
+                if (stem !== word && this.highlightInTextNodes(verse, stem, color, side)) {
+                    console.log(`Highlighted stem: ${stem} for word: ${word}`);
+                    return true;
+                }
+            }
+
+            return false;
+        },
+
+        /**
+         * Clear existing highlights
+         */
+        clearHighlights(verse) {
+            const highlights = verse.querySelectorAll('.word-mapping-highlight');
+            highlights.forEach(highlight => {
+                const parent = highlight.parentNode;
+                parent.insertBefore(document.createTextNode(highlight.textContent), highlight);
+                parent.removeChild(highlight);
+            });
+        },
+
+        /**
+         * Get Strong's number for a clicked word
+         */
+        getStrongsForWord(clickedWord) {
+            const mapping = this.currentMappings.find(m =>
+                m.leftWord === clickedWord || m.rightWord === clickedWord
+            );
+            return mapping ? mapping.strongs : null;
+        }
+    };
+
+    /**
+     * Abstract Suggestion Engine - Black Box Interface
+     * Future: Can be replaced with AI/ML, better algorithms, external APIs, etc.
+     */
+    const SuggestionEngine = {
+        /**
+         * Main suggestion interface - gets Strong's suggestion for cursor position
+         * @param {Object} context - All context needed for suggestion
+         * @returns {string|null} - Suggested Strong's number or null
+         */
+        getSuggestion(context) {
+            try {
+                // Validate context
+                if (!this.validateContext(context)) return null;
+
+                // Use current position-based algorithm (pluggable)
+                return this.algorithms.positionBased(context);
+            } catch (error) {
+                logStatus(`❌ Suggestion Engine Error: ${error.message}`);
+                return null;
+            }
+        },
+
+        /**
+         * Validates suggestion context
+         */
+        validateContext(context) {
+            return context && context.rightVerse && context.leftVerse &&
+                   typeof context.cursorPosition === 'number';
+        },
+
+        /**
+         * Pluggable algorithms - can be swapped/improved
+         */
+        algorithms: {
+            /**
+             * Current position-based matching (temporary implementation)
+             */
+            positionBased(context) {
+                const { leftVerse, cursorPosition, verseId } = context;
+
+                logStatus(`🔍 Suggestion: Verse ${verseId}, cursor at pos ${cursorPosition}`);
+
+                const strongsElements = leftVerse.querySelectorAll('.strongs-number');
+                if (strongsElements.length === 0) {
+                    logStatus('🔍 Suggestion: No Strong\'s numbers in reference text');
+                    return null;
+                }
+
+                // Simple nearest-match algorithm (can be improved)
+                let bestMatch = null;
+                let minDistance = Infinity;
+
+                strongsElements.forEach(strongEl => {
+                    const strongPos = SuggestionEngine.getElementPosition(leftVerse, strongEl);
+                    const distance = Math.abs(strongPos - cursorPosition);
+
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        bestMatch = strongEl.getAttribute('data-strong');
+                    }
+                });
+
+                if (minDistance < 50 && bestMatch) {
+                    logStatus(`💡 Suggestion: Found ${bestMatch} (distance: ${minDistance})`);
+                    return bestMatch;
+                }
+
+                logStatus(`🔍 Suggestion: No close match found (min distance: ${minDistance})`);
+                return null;
+            }
+
+            // Future algorithms can be added here:
+            // aiEnhanced(context) { ... }
+            // semanticMatching(context) { ... }
+            // externalApiLookup(context) { ... }
+        },
+
+        /**
+         * Helper: Get element position in text
+         */
+        getElementPosition(parent, element) {
+            let position = 0;
+            const walker = document.createTreeWalker(parent, NodeFilter.SHOW_ALL);
+
+            let node;
+            while (node = walker.nextNode()) {
+                if (node === element) return position;
+                if (node.nodeType === Node.TEXT_NODE) {
+                    position += node.textContent.length;
+                }
+            }
+            return position;
+        }
+    };
+
+    /**
+     * Suggests Strong's number using the abstract suggestion engine
+     */
+    function suggestStrongsFromLeftReader() {
+        try {
+            const selection = window.getSelection();
+            if (selection.rangeCount === 0) return;
+
+            const range = selection.getRangeAt(0);
+            const verseId = currentEditingVerse.getAttribute('data-verse');
+            const cursorPosition = getTextOffset(currentEditingVerse, range.startContainer, range.startOffset);
+
+            // Find left verse
+            const leftContentArea = document.getElementById('left-reader-content-area');
+            const leftVerse = leftContentArea?.querySelector(`[data-verse="${verseId}"]`);
+
+            if (!leftVerse) {
+                logStatus(`🔍 No reference verse ${verseId} found`);
+                return;
+            }
+
+            // Create context for suggestion engine
+            const context = {
+                rightVerse: currentEditingVerse,
+                leftVerse: leftVerse,
+                cursorPosition: cursorPosition,
+                verseId: verseId,
+                rightText: currentEditingVerse.textContent,
+                leftText: leftVerse.textContent
+            };
+
+            // Get suggestion from black box engine
+            const suggestion = SuggestionEngine.getSuggestion(context);
+
+            if (suggestion) {
+                strongNumberInput.value = suggestion;
+                navigator.clipboard.writeText(`<${suggestion}>`).then(() => {
+                    logStatus(`💡 Suggested: ${suggestion} (copied to clipboard)`);
+                }).catch(() => {
+                    logStatus(`💡 Suggested: ${suggestion}`);
+                });
+
+                // Highlight matching Strong's number in left reader for visual confirmation
+                highlightStrongsInLeftReader(suggestion, verseId);
+            } else {
+                strongNumberInput.value = '';
+                // Clear highlighting when no suggestion
+                clearStrongsHighlighting();
+            }
+
+        } catch (error) {
+            logStatus(`❌ Suggestion failed: ${error.message}`);
+        }
+    }
+
 
     /**
      * Handles scroll events to detect current verse and sync with left reader
@@ -983,4 +2484,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize defaults after a short delay to ensure all elements are ready
     setTimeout(initializeRightReaderDefaults, 100);
+
+    // Global test function for debugging (accessible from browser console)
+    window.testStrongsHighlighting = function(strongsNumber) {
+        console.log(`[TEST] Testing highlighting for: ${strongsNumber}`);
+        highlightStrongsInLeftReader(strongsNumber || 'H0430', '1');
+    };
+
+    window.clearStrongsHighlighting = clearStrongsHighlighting;
 });

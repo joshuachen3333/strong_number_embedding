@@ -10,7 +10,17 @@
       "Bash(git checkout:*)",
       "Bash(git switch:*)",
       "Bash(git reset:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(open:*)",
+      "Bash(npm i:*)",
+      "Bash(sudo npm i -g @anthropic-ai/claude-code)",
+      "Bash(claude doctor)",
+      "Bash(npm view:*)",
+      "Bash(npm config set:*)",
+      "Bash(export PATH=~/.npm-global/bin:$PATH)",
+      "Bash(npm install:*)",
+      "Bash(~/.npm-global/bin/claude:*)",
+      "Bash(claude --version)"
     ],
     "deny": [],
     "ask": []

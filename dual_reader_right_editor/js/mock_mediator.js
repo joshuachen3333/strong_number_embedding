@@ -156,9 +156,9 @@ const MockMediator = {
                             verseText = this.getEnglishFallbackText(book, chapter, record.sec, version.toUpperCase());
                         }
                         
-                        // If Strong's numbers were requested but not found in JSON, add helpful note
+                        // If Strong's numbers were requested but not found in JSON, log to console instead
                         if (strong === 1 && !verseText.match(/[\{<\(][HG]\d+[\}>)\]]/) && record.sec === 1) {
-                            verseText += ` 📝 Note: Strong's numbers not available via JSON API. See web interface URL below for Strong's numbers.`;
+                            console.log('📝 Note: Strong\'s numbers not available via JSON API for this version');
                         }
                         
                         return {
