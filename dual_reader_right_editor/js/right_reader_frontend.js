@@ -782,13 +782,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isEditMode) {
             setTimeout(() => {
                 restoreEditedContent();
+                // Apply word mapping after restoration completes
+                setTimeout(() => {
+                    triggerWordMapping(data.chapter);
+                }, 50);
             }, 100);
+        } else {
+            // Apply proactive word mapping highlighting for non-edit mode
+            setTimeout(() => {
+                triggerWordMapping(data.chapter);
+            }, 200);
         }
-
-        // Apply proactive word mapping highlighting
-        setTimeout(() => {
-            triggerWordMapping(data.chapter);
-        }, 200);
     }
 
     /**
@@ -802,6 +806,23 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!leftContentArea) {
                 logStatus('🔗 Word mapping: No left reader found');
                 return;
+            }
+
+            // Validate book/chapter synchronization for effective word mapping
+            const leftBookSelect = document.getElementById('left-reader-book');
+            const leftChapterInput = document.getElementById('left-reader-chapter');
+
+            if (leftBookSelect && leftChapterInput) {
+                const leftBook = leftBookSelect.value;
+                const leftChapter = parseInt(leftChapterInput.value);
+
+                // Only create word mappings if both readers are on the same book/chapter
+                if (leftBook !== currentBookChinese || leftChapter !== currentChapter) {
+                    logStatus(`🔗 Word mapping skipped: Book/chapter mismatch (L:${leftBook}/${leftChapter} vs R:${currentBookChinese}/${currentChapter})`);
+                    return;
+                }
+
+                logStatus(`🔗 Starting word mapping for synchronized readers: ${currentBookChinese} ${currentChapter}`);
             }
 
             // Get all verses in both readers
@@ -1396,16 +1417,20 @@ document.addEventListener('DOMContentLoaded', () => {
             attachStrongsEventListenersSecondReader();
         }
 
-        // Apply proactive word mapping highlighting
-        setTimeout(() => {
-            triggerWordMapping(currentChapter);
-        }, 200);
-
         // Restore edited content after rendering if in edit mode
         if (isEditMode) {
             setTimeout(() => {
                 restoreEditedContent();
+                // Apply word mapping after restoration completes
+                setTimeout(() => {
+                    triggerWordMapping(currentChapter);
+                }, 50);
             }, 100);
+        } else {
+            // Apply proactive word mapping highlighting for non-edit mode
+            setTimeout(() => {
+                triggerWordMapping(currentChapter);
+            }, 200);
         }
 
         logStatus(`✅ Loaded ${sortedRecords.length} verses from JSON file (${jsonData.version})`);
