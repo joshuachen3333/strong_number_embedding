@@ -1258,7 +1258,21 @@ document.addEventListener('DOMContentLoaded', () => {
     function scrollToVerse(verse) {
         const verseElement = contentArea.querySelector(`[data-verse="${verse}"]`);
         if (verseElement) {
+            // Use more precise scrolling to align exactly with left reader
             verseElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // Fine-tune positioning after smooth scroll completes
+            setTimeout(() => {
+                const containerRect = contentArea.getBoundingClientRect();
+                const verseRect = verseElement.getBoundingClientRect();
+                const offset = verseRect.top - containerRect.top;
+
+                // If verse is not exactly at top, adjust by small amount
+                if (Math.abs(offset) > 2) {
+                    contentArea.scrollTop += offset;
+                }
+            }, 300); // Wait for smooth scroll to complete
+
             // Add highlighting
             contentArea.querySelectorAll('.verse-highlighted').forEach(el => el.classList.remove('verse-highlighted'));
             verseElement.classList.add('verse-highlighted');
