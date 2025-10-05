@@ -10,8 +10,8 @@
     <div class="header-container" style="display: flex; justify-content: center; align-items: center; margin: 10px 0;">
         <h1 style="margin: 0; flex-grow: 1; text-align: center;">Dual Synchronized Bible Reader</h1>
         <div class="language-selector" style="margin-left: 20px;">
-            <label for="language">Language:</label>
-            <select id="language">
+            <label for="language" title="Select interface language">Language:</label>
+            <select id="language" title="Choose interface language">
                 <option value="en">English</option>
                 <option value="zh">正體中文</option>
             </select>
@@ -25,31 +25,30 @@
             <div id="left-reader-component">
                 <div class="reader-controls">
                     <div class="control-line-1" style="margin-bottom: 8px;">
-                        <label for="left-reader-version-select">Ver:</label>
-                        <select id="left-reader-version-select" style="margin-right: 15px;">
+                        <label for="left-reader-version-select" title="Select Bible version">Ver:</label>
+                        <select id="left-reader-version-select" style="margin-right: 15px;" title="Choose Bible version for left reader">
                             <option value="unv">UNV (Union Version)</option>
                             <option value="kjv">KJV (King James Version)</option>
                             <option value="esv">ESV (English Standard Version)</option>
                             <option value="rcuv2010">和合本2010</option>
                             <option value="lcc">呂振中譯本</option>
                         </select>
-                        <label for="left-reader-book">BK:</label>
-                        <select id="left-reader-book" style="margin-right: 15px;"></select>
-                        <label for="left-reader-chapter">Cptr:</label>
-                        <input type="number" id="left-reader-chapter" value="1" min="1" style="width: 60px;">
+                        <label for="left-reader-book" title="Select Bible book">BK:</label>
+                        <select id="left-reader-book" style="margin-right: 15px;" title="Choose Bible book for left reader"></select>
+                        <label for="left-reader-chapter" title="Select chapter number">Cptr:</label>
+                        <input type="number" id="left-reader-chapter" value="1" min="1" style="width: 60px;" title="Enter chapter number">
                     </div>
                     <div class="control-line-2">
-                        <input type="checkbox" id="left-reader-strong-toggle">
-                        <label for="left-reader-strong-toggle" style="margin-right: 15px;">SN</label>
-                        <input type="checkbox" id="left-reader-follow-selection">
-                        <label for="left-reader-follow-selection" style="margin-right: 15px;">FL TxT Sel</label>
-                        <input type="checkbox" id="left-reader-follow-scroll">
-                        <label for="left-reader-follow-scroll">FL Ver Sel</label>
+                        <input type="checkbox" id="left-reader-strong-toggle" title="Toggle Strong's Numbers display">
+                        <label for="left-reader-strong-toggle" style="margin-right: 15px;" title="Show/hide Strong's Numbers">SN</label>
+                        <input type="checkbox" id="left-reader-follow-selection" title="Follow right reader's text selection changes">
+                        <label for="left-reader-follow-selection" style="margin-right: 15px;" title="Follow text selection from right reader">FL TxT Sel</label>
+                        <input type="checkbox" id="left-reader-follow-scroll" title="Follow right reader's verse scrolling">
+                        <label for="left-reader-follow-scroll" title="Follow verse selection from right reader">FL Ver Sel</label>
                     </div>
                     <div class="control-line-3" id="left-reader-strong-controls" style="margin-top: 8px;">
-                        <input type="checkbox" id="left-reader-highlight-mode" checked>
-                        <label for="left-reader-highlight-mode" style="margin-right: 15px;">Single Highlight</label>
-                        <span style="font-size: 0.9em; color: #666;">Highlight only nearest SN position</span>
+                        <input type="checkbox" id="left-reader-highlight-mode" checked title="Single highlight mode: show only nearest Strong's position">
+                        <label for="left-reader-highlight-mode" style="margin-right: 15px;" title="Single highlight mode: highlight only nearest Strong's position instead of all occurrences">Single Highlight</label>
                     </div>
                 </div>
                 <div id="left-reader-content-area" class="reader-content resizable" style="width: 100%; height: 400px; border: 1px solid #ccc; overflow-y: auto; resize: none; position: relative;">
@@ -70,32 +69,32 @@
             <div id="right-reader-component">
                 <div class="reader-controls">
                     <div class="control-line-1" style="margin-bottom: 8px;">
-                        <label for="right-reader-version-select">Ver:</label>
-                        <select id="right-reader-version-select" style="margin-right: 15px;">
+                        <label for="right-reader-version-select" title="Select Bible version">Ver:</label>
+                        <select id="right-reader-version-select" style="margin-right: 15px;" title="Choose Bible version for right reader">
                             <option value="unv">UNV (Union Version)</option>
                             <option value="kjv">KJV (King James Version)</option>
                             <option value="esv">ESV (English Standard Version)</option>
                             <option value="rcuv2010">和合本2010</option>
                             <option value="lcc">呂振中譯本</option>
                         </select>
-                        <label for="right-reader-book">BK:</label>
-                        <select id="right-reader-book" style="margin-right: 15px;"></select>
-                        <label for="right-reader-chapter">Cptr:</label>
-                        <input type="number" id="right-reader-chapter" value="1" min="1" style="width: 60px;">
+                        <label for="right-reader-book" title="Select Bible book">BK:</label>
+                        <select id="right-reader-book" style="margin-right: 15px;" title="Choose Bible book for right reader"></select>
+                        <label for="right-reader-chapter" title="Select chapter number">Cptr:</label>
+                        <input type="number" id="right-reader-chapter" value="1" min="1" style="width: 60px;" title="Enter chapter number">
                     </div>
                     <div class="control-line-2">
-                        <input type="checkbox" id="right-reader-strong-toggle">
-                        <label for="right-reader-strong-toggle" style="margin-right: 15px;">SN</label>
-                        <input type="checkbox" id="right-reader-follow-selection" checked>
-                        <label for="right-reader-follow-selection" style="margin-right: 15px;">FL TxT Sel</label>
-                        <input type="checkbox" id="right-reader-follow-scroll" checked>
-                        <label for="right-reader-follow-scroll" style="margin-right: 15px;">FL Ver Sel</label>
-                        <input type="checkbox" id="right-reader-edit-mode" checked>
-                        <label for="right-reader-edit-mode">Edit</label>
+                        <input type="checkbox" id="right-reader-strong-toggle" title="Toggle Strong's Numbers display">
+                        <label for="right-reader-strong-toggle" style="margin-right: 15px;" title="Show/hide Strong's Numbers">SN</label>
+                        <input type="checkbox" id="right-reader-follow-selection" checked title="Follow left reader's text selection changes">
+                        <label for="right-reader-follow-selection" style="margin-right: 15px;" title="Follow text selection from left reader">FL TxT Sel</label>
+                        <input type="checkbox" id="right-reader-follow-scroll" checked title="Follow left reader's verse scrolling">
+                        <label for="right-reader-follow-scroll" style="margin-right: 15px;" title="Follow verse selection from left reader">FL Ver Sel</label>
+                        <input type="checkbox" id="right-reader-edit-mode" checked title="Enable editing mode for inserting Strong's Numbers">
+                        <label for="right-reader-edit-mode" title="Toggle edit mode for Strong's Number insertion">Edit</label>
                     </div>
                     <div class="control-line-3" id="right-reader-strong-controls" style="margin-top: 8px; display: none;">
-                        <span style="font-size: 0.9em; margin-right: 10px;">SN copied:</span>
-                        <input type="text" id="strong-number-input" placeholder="H1234 or G5678" style="width: 100px; margin-right: 10px;">
+                        <span style="font-size: 0.9em; margin-right: 10px;" title="Strong's Number input field">SN copied:</span>
+                        <input type="text" id="strong-number-input" placeholder="H1234 or G5678" style="width: 100px; margin-right: 10px;" title="Enter Strong's Number (e.g., H1234 or G5678) and press Enter to insert">
                     </div>
                 </div>
                 <div id="right-reader-content-area" class="reader-content resizable" style="width: 100%; height: 400px; border: 1px solid #ccc; overflow-y: auto; resize: none; position: relative;">
@@ -113,11 +112,11 @@
 
     <!-- Debug Controls -->
     <div style="margin: 20px; padding: 10px;">
-        <label for="debug-toggle">
-            <input type="checkbox" id="debug-toggle"> Show Debug Output
+        <label for="debug-toggle" title="Toggle debug console output for development">
+            <input type="checkbox" id="debug-toggle" title="Show/hide debug console output"> Show Debug Output
         </label>
-        <label for="status-toggle" style="margin-left: 20px;">
-            <input type="checkbox" id="status-toggle" checked> Show Status
+        <label for="status-toggle" style="margin-left: 20px;" title="Toggle status display areas">
+            <input type="checkbox" id="status-toggle" checked title="Show/hide status information areas"> Show Status
         </label>
     </div>
 

@@ -228,7 +228,41 @@ const translations = {
         strongsOn: "Strong's On",
         strongsOff: "Strong's Off",
         followVerseScroll: "FL Ver Sel:",
-        followTextSelection: "FL TxT Sel:"
+        followTextSelection: "FL TxT Sel:",
+        // Tooltips
+        tooltips: {
+            languageLabel: "Select interface language",
+            languageSelect: "Choose interface language",
+            versionLabel: "Select Bible version",
+            leftVersionSelect: "Choose Bible version for left reader",
+            rightVersionSelect: "Choose Bible version for right reader",
+            bookLabel: "Select Bible book",
+            leftBookSelect: "Choose Bible book for left reader",
+            rightBookSelect: "Choose Bible book for right reader",
+            chapterLabel: "Select chapter number",
+            leftChapterInput: "Enter chapter number",
+            rightChapterInput: "Enter chapter number",
+            strongsToggle: "Toggle Strong's Numbers display",
+            strongsLabel: "Show/hide Strong's Numbers",
+            leftFollowSelection: "Follow right reader's text selection changes",
+            leftFollowSelectionLabel: "Follow text selection from right reader",
+            leftFollowScroll: "Follow right reader's verse scrolling",
+            leftFollowScrollLabel: "Follow verse selection from right reader",
+            rightFollowSelection: "Follow left reader's text selection changes",
+            rightFollowSelectionLabel: "Follow text selection from left reader",
+            rightFollowScroll: "Follow left reader's verse scrolling",
+            rightFollowScrollLabel: "Follow verse selection from left reader",
+            editMode: "Enable editing mode for inserting Strong's Numbers",
+            editModeLabel: "Toggle edit mode for Strong's Number insertion",
+            singleHighlight: "Single highlight mode: show only nearest Strong's position",
+            singleHighlightLabel: "Single highlight mode: highlight only nearest Strong's position instead of all occurrences",
+            strongsInputLabel: "Strong's Number input field",
+            strongsInput: "Enter Strong's Number (e.g., H1234 or G5678) and press Enter to insert",
+            debugToggle: "Show/hide debug console output",
+            debugLabel: "Toggle debug console output for development",
+            statusToggle: "Show/hide status information areas",
+            statusLabel: "Toggle status display areas"
+        }
     },
     zh: {
       languageName: "正體中文", // Assuming this should remain as the name in the language dropdown
@@ -249,7 +283,41 @@ const translations = {
       strongsOn: "打開 Strong number",
       strongsOff: "關閉 Strong number",
       followVerseScroll: "跟隨經節滾動：",
-      followTextSelection: "跟隨文本選擇："
+      followTextSelection: "跟隨文本選擇：",
+      // 工具提示
+      tooltips: {
+          languageLabel: "選擇界面語言",
+          languageSelect: "選擇界面語言",
+          versionLabel: "選擇聖經版本",
+          leftVersionSelect: "選擇左側閱讀器的聖經版本",
+          rightVersionSelect: "選擇右側閱讀器的聖經版本",
+          bookLabel: "選擇聖經書卷",
+          leftBookSelect: "選擇左側閱讀器的聖經書卷",
+          rightBookSelect: "選擇右側閱讀器的聖經書卷",
+          chapterLabel: "選擇章節號碼",
+          leftChapterInput: "輸入章節號碼",
+          rightChapterInput: "輸入章節號碼",
+          strongsToggle: "切換Strong's Numbers顯示",
+          strongsLabel: "顯示/隱藏Strong's Numbers",
+          leftFollowSelection: "跟隨右側閱讀器的文本選擇變化",
+          leftFollowSelectionLabel: "跟隨右側閱讀器的文本選擇",
+          leftFollowScroll: "跟隨右側閱讀器的經節滾動",
+          leftFollowScrollLabel: "跟隨右側閱讀器的經節選擇",
+          rightFollowSelection: "跟隨左側閱讀器的文本選擇變化",
+          rightFollowSelectionLabel: "跟隨左側閱讀器的文本選擇",
+          rightFollowScroll: "跟隨左側閱讀器的經節滾動",
+          rightFollowScrollLabel: "跟隨左側閱讀器的經節選擇",
+          editMode: "啟用編輯模式以插入Strong's Numbers",
+          editModeLabel: "切換編輯模式以插入Strong's Numbers",
+          singleHighlight: "單一高亮模式：僅顯示最近的Strong's位置",
+          singleHighlightLabel: "單一高亮模式：僅高亮最近的Strong's位置而非所有出現位置",
+          strongsInputLabel: "Strong's Numbers輸入欄位",
+          strongsInput: "輸入Strong's Numbers（例如H1234或G5678）並按Enter插入",
+          debugToggle: "顯示/隱藏調試控制台輸出",
+          debugLabel: "切換開發調試控制台輸出",
+          statusToggle: "顯示/隱藏狀態信息區域",
+          statusLabel: "切換狀態顯示區域"
+      }
     }
 };
 
@@ -319,6 +387,111 @@ function updateUIText(language) {
     const rightReaderContentArea = document.getElementById('right-reader-content-area');
     if (rightReaderContentArea && rightReaderContentArea.firstElementChild && rightReaderContentArea.firstElementChild.textContent.trim() === "Waiting for left reader...") {
         rightReaderContentArea.firstElementChild.textContent = langTranslations.rightReaderWaiting;
+    }
+
+    // Update tooltips
+    if (langTranslations.tooltips) {
+        const tooltips = langTranslations.tooltips;
+
+        // Language selector
+        const languageLabel = document.querySelector('label[for="language"]');
+        if (languageLabel) languageLabel.title = tooltips.languageLabel;
+        const languageSelect = document.getElementById('language');
+        if (languageSelect) languageSelect.title = tooltips.languageSelect;
+
+        // Version controls
+        const leftVersionLabel = document.querySelector('label[for="left-reader-version-select"]');
+        if (leftVersionLabel) leftVersionLabel.title = tooltips.versionLabel;
+        const leftVersionSelect = document.getElementById('left-reader-version-select');
+        if (leftVersionSelect) leftVersionSelect.title = tooltips.leftVersionSelect;
+
+        const rightVersionLabel = document.querySelector('label[for="right-reader-version-select"]');
+        if (rightVersionLabel) rightVersionLabel.title = tooltips.versionLabel;
+        const rightVersionSelect = document.getElementById('right-reader-version-select');
+        if (rightVersionSelect) rightVersionSelect.title = tooltips.rightVersionSelect;
+
+        // Book controls
+        const leftBookLabel = document.querySelector('label[for="left-reader-book"]');
+        if (leftBookLabel) leftBookLabel.title = tooltips.bookLabel;
+        const leftBookSelect = document.getElementById('left-reader-book');
+        if (leftBookSelect) leftBookSelect.title = tooltips.leftBookSelect;
+
+        const rightBookLabel = document.querySelector('label[for="right-reader-book"]');
+        if (rightBookLabel) rightBookLabel.title = tooltips.bookLabel;
+        const rightBookSelect = document.getElementById('right-reader-book');
+        if (rightBookSelect) rightBookSelect.title = tooltips.rightBookSelect;
+
+        // Chapter controls
+        const leftChapterLabel = document.querySelector('label[for="left-reader-chapter"]');
+        if (leftChapterLabel) leftChapterLabel.title = tooltips.chapterLabel;
+        const leftChapterInput = document.getElementById('left-reader-chapter');
+        if (leftChapterInput) leftChapterInput.title = tooltips.leftChapterInput;
+
+        const rightChapterLabel = document.querySelector('label[for="right-reader-chapter"]');
+        if (rightChapterLabel) rightChapterLabel.title = tooltips.chapterLabel;
+        const rightChapterInput = document.getElementById('right-reader-chapter');
+        if (rightChapterInput) rightChapterInput.title = tooltips.rightChapterInput;
+
+        // Strong's Numbers controls
+        const leftStrongsToggle = document.getElementById('left-reader-strong-toggle');
+        if (leftStrongsToggle) leftStrongsToggle.title = tooltips.strongsToggle;
+        const leftStrongsLabel = document.querySelector('label[for="left-reader-strong-toggle"]');
+        if (leftStrongsLabel) leftStrongsLabel.title = tooltips.strongsLabel;
+
+        const rightStrongsToggle = document.getElementById('right-reader-strong-toggle');
+        if (rightStrongsToggle) rightStrongsToggle.title = tooltips.strongsToggle;
+        const rightStrongsLabel = document.querySelector('label[for="right-reader-strong-toggle"]');
+        if (rightStrongsLabel) rightStrongsLabel.title = tooltips.strongsLabel;
+
+        // Follow controls
+        const leftFollowSelection = document.getElementById('left-reader-follow-selection');
+        if (leftFollowSelection) leftFollowSelection.title = tooltips.leftFollowSelection;
+        const leftFollowSelectionLabel = document.querySelector('label[for="left-reader-follow-selection"]');
+        if (leftFollowSelectionLabel) leftFollowSelectionLabel.title = tooltips.leftFollowSelectionLabel;
+
+        const leftFollowScroll = document.getElementById('left-reader-follow-scroll');
+        if (leftFollowScroll) leftFollowScroll.title = tooltips.leftFollowScroll;
+        const leftFollowScrollLabel = document.querySelector('label[for="left-reader-follow-scroll"]');
+        if (leftFollowScrollLabel) leftFollowScrollLabel.title = tooltips.leftFollowScrollLabel;
+
+        const rightFollowSelection = document.getElementById('right-reader-follow-selection');
+        if (rightFollowSelection) rightFollowSelection.title = tooltips.rightFollowSelection;
+        const rightFollowSelectionLabel = document.querySelector('label[for="right-reader-follow-selection"]');
+        if (rightFollowSelectionLabel) rightFollowSelectionLabel.title = tooltips.rightFollowSelectionLabel;
+
+        const rightFollowScroll = document.getElementById('right-reader-follow-scroll');
+        if (rightFollowScroll) rightFollowScroll.title = tooltips.rightFollowScroll;
+        const rightFollowScrollLabel = document.querySelector('label[for="right-reader-follow-scroll"]');
+        if (rightFollowScrollLabel) rightFollowScrollLabel.title = tooltips.rightFollowScrollLabel;
+
+        // Edit mode controls
+        const editModeToggle = document.getElementById('right-reader-edit-mode');
+        if (editModeToggle) editModeToggle.title = tooltips.editMode;
+        const editModeLabel = document.querySelector('label[for="right-reader-edit-mode"]');
+        if (editModeLabel) editModeLabel.title = tooltips.editModeLabel;
+
+        // Single highlight mode
+        const singleHighlightToggle = document.getElementById('left-reader-highlight-mode');
+        if (singleHighlightToggle) singleHighlightToggle.title = tooltips.singleHighlight;
+        const singleHighlightLabel = document.querySelector('label[for="left-reader-highlight-mode"]');
+        if (singleHighlightLabel) singleHighlightLabel.title = tooltips.singleHighlightLabel;
+
+        // Strong's input controls
+        const strongsInputLabel = document.querySelector('#right-reader-strong-controls span');
+        if (strongsInputLabel) strongsInputLabel.title = tooltips.strongsInputLabel;
+        const strongsInput = document.getElementById('strong-number-input');
+        if (strongsInput) strongsInput.title = tooltips.strongsInput;
+
+        // Debug and status controls
+        const debugToggle = document.getElementById('debug-toggle');
+        if (debugToggle) debugToggle.title = tooltips.debugToggle;
+        const debugLabel = document.querySelector('label[for="debug-toggle"]');
+        if (debugLabel) debugLabel.title = tooltips.debugLabel;
+
+        const statusToggle = document.getElementById('status-toggle');
+        if (statusToggle) statusToggle.title = tooltips.statusToggle;
+        const statusLabel = document.querySelector('label[for="status-toggle"]');
+        if (statusLabel) statusLabel.title = tooltips.statusLabel;
     }
 }
 
