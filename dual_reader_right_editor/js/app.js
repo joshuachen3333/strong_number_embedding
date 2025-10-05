@@ -213,22 +213,22 @@ const translations = {
     en: {
         leftReaderMainLabel: "Main:",
         rightReaderMainLabel: "Main:",
-        leftReaderBookLabel: "Book:",
-        rightReaderBookLabel: "Book:",
-        leftReaderChapterLabel: "Chapter:",
-        rightReaderChapterLabel: "Chapter:",
+        leftReaderBookLabel: "BK:",
+        rightReaderBookLabel: "BK:",
+        leftReaderChapterLabel: "Cptr:",
+        rightReaderChapterLabel: "Cptr:",
         leftReaderLoadButton: "Load Chapter",
         rightReaderLoadButton: "Load Chapter",
-        rightReaderVersionLabel: "Version:",
-        rightReaderStrongsLabel: "Strong's Numbers:",
+        rightReaderVersionLabel: "Ver:",
+        rightReaderStrongsLabel: "SN:",
         leftReaderLoadingContent: "Loading content...",
         rightReaderWaiting: "Waiting for left reader...",
         pleaseSelectBookAndChapter: "Please select a book and chapter.",
         loading: "Loading...",
         strongsOn: "Strong's On",
         strongsOff: "Strong's Off",
-        followVerseScroll: "Follow Verse Scroll:",
-        followTextSelection: "Follow Text Selection:"
+        followVerseScroll: "FL Ver Sel:",
+        followTextSelection: "FL TxT Sel:"
     },
     zh: {
       languageName: "正體中文", // Assuming this should remain as the name in the language dropdown
@@ -241,7 +241,7 @@ const translations = {
       leftReaderLoadButton: "載入章節",
       rightReaderLoadButton: "載入章節",
       rightReaderVersionLabel: "版本：",
-      rightReaderStrongsLabel: "Strong number：",
+      rightReaderStrongsLabel: "SN：",
       leftReaderLoadingContent: "載入内容...",
       rightReaderWaiting: "等待左側 reader...",
       pleaseSelectBookAndChapter: "請選擇書卷和章節。",
@@ -276,11 +276,17 @@ function updateUIText(language) {
     const rightReaderMainLabel = document.querySelector('#right-reader-component .reader-controls label[for="right-reader-main-toggle"]');
     if (rightReaderMainLabel) rightReaderMainLabel.textContent = langTranslations.rightReaderMainLabel;
 
-    const rightReaderVersionLabel = document.querySelector('#right-reader-component .reader-controls label[for="right-reader-version-select"]');
+    const rightReaderVersionLabel = document.querySelector('label[for="right-reader-version-select"]');
     if (rightReaderVersionLabel) rightReaderVersionLabel.textContent = langTranslations.rightReaderVersionLabel;
 
-    const rightReaderStrongsLabel = document.querySelector('#right-reader-component .reader-controls label[for="right-reader-strong-toggle"]');
+    const rightReaderStrongsLabel = document.querySelector('label[for="right-reader-strong-toggle"]');
     if (rightReaderStrongsLabel) rightReaderStrongsLabel.textContent = langTranslations.rightReaderStrongsLabel;
+
+    const leftReaderVersionLabel = document.querySelector('label[for="left-reader-version-select"]');
+    if (leftReaderVersionLabel) leftReaderVersionLabel.textContent = langTranslations.rightReaderVersionLabel;
+
+    const leftReaderStrongsLabel = document.querySelector('label[for="left-reader-strong-toggle"]');
+    if (leftReaderStrongsLabel) leftReaderStrongsLabel.textContent = langTranslations.rightReaderStrongsLabel;
 
     // Update right reader labels
     const rightReaderBookLabel = document.querySelector('label[for="right-reader-book"]');

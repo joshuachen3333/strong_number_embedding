@@ -1274,8 +1274,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add click listener for verse editing
     contentArea.addEventListener('click', handleVerseClick);
 
-    // Add event listener for Strong's insertion
-    insertStrongBtn.addEventListener('click', handleInsertStrong);
+    // Add event listener for Strong's insertion (Enter key since button was removed)
+    if (insertStrongBtn) {
+        insertStrongBtn.addEventListener('click', handleInsertStrong);
+    }
+
+    // Add Enter key handler for Strong's insertion
+    strongNumberInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleInsertStrong();
+        }
+    });
 
     // Add event listener for Strong's number input changes (live highlighting)
     strongNumberInput.addEventListener('input', handleStrongsInputChange);

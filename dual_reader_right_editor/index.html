@@ -25,7 +25,7 @@
             <div id="left-reader-component">
                 <div class="reader-controls">
                     <div class="control-line-1" style="margin-bottom: 8px;">
-                        <label for="left-reader-version-select">Version:</label>
+                        <label for="left-reader-version-select">Ver:</label>
                         <select id="left-reader-version-select" style="margin-right: 15px;">
                             <option value="unv">UNV (Union Version)</option>
                             <option value="kjv">KJV (King James Version)</option>
@@ -33,18 +33,18 @@
                             <option value="rcuv2010">和合本2010</option>
                             <option value="lcc">呂振中譯本</option>
                         </select>
-                        <label for="left-reader-book">Book:</label>
+                        <label for="left-reader-book">BK:</label>
                         <select id="left-reader-book" style="margin-right: 15px;"></select>
-                        <label for="left-reader-chapter">Chapter:</label>
+                        <label for="left-reader-chapter">Cptr:</label>
                         <input type="number" id="left-reader-chapter" value="1" min="1" style="width: 60px;">
                     </div>
                     <div class="control-line-2">
                         <input type="checkbox" id="left-reader-strong-toggle">
-                        <label for="left-reader-strong-toggle" style="margin-right: 15px;">Strong's Numbers</label>
+                        <label for="left-reader-strong-toggle" style="margin-right: 15px;">SN</label>
                         <input type="checkbox" id="left-reader-follow-selection">
-                        <label for="left-reader-follow-selection" style="margin-right: 15px;">FL Tx Sel</label>
+                        <label for="left-reader-follow-selection" style="margin-right: 15px;">FL TxT Sel</label>
                         <input type="checkbox" id="left-reader-follow-scroll">
-                        <label for="left-reader-follow-scroll">FL Ver Scrl</label>
+                        <label for="left-reader-follow-scroll">FL Ver Sel</label>
                     </div>
                     <div class="control-line-3" id="left-reader-strong-controls" style="margin-top: 8px;">
                         <input type="checkbox" id="left-reader-highlight-mode" checked>
@@ -70,7 +70,7 @@
             <div id="right-reader-component">
                 <div class="reader-controls">
                     <div class="control-line-1" style="margin-bottom: 8px;">
-                        <label for="right-reader-version-select">Version:</label>
+                        <label for="right-reader-version-select">Ver:</label>
                         <select id="right-reader-version-select" style="margin-right: 15px;">
                             <option value="unv">UNV (Union Version)</option>
                             <option value="kjv">KJV (King James Version)</option>
@@ -78,25 +78,24 @@
                             <option value="rcuv2010">和合本2010</option>
                             <option value="lcc">呂振中譯本</option>
                         </select>
-                        <label for="right-reader-book">Book:</label>
+                        <label for="right-reader-book">BK:</label>
                         <select id="right-reader-book" style="margin-right: 15px;"></select>
-                        <label for="right-reader-chapter">Chapter:</label>
+                        <label for="right-reader-chapter">Cptr:</label>
                         <input type="number" id="right-reader-chapter" value="1" min="1" style="width: 60px;">
                     </div>
                     <div class="control-line-2">
                         <input type="checkbox" id="right-reader-strong-toggle">
-                        <label for="right-reader-strong-toggle" style="margin-right: 15px;">Strong's Numbers</label>
+                        <label for="right-reader-strong-toggle" style="margin-right: 15px;">SN</label>
                         <input type="checkbox" id="right-reader-follow-selection" checked>
-                        <label for="right-reader-follow-selection" style="margin-right: 15px;">FL Tx Sel</label>
+                        <label for="right-reader-follow-selection" style="margin-right: 15px;">FL TxT Sel</label>
                         <input type="checkbox" id="right-reader-follow-scroll" checked>
-                        <label for="right-reader-follow-scroll" style="margin-right: 15px;">FL Ver Scrl</label>
+                        <label for="right-reader-follow-scroll" style="margin-right: 15px;">FL Ver Sel</label>
                         <input type="checkbox" id="right-reader-edit-mode" checked>
-                        <label for="right-reader-edit-mode">Edit Mode</label>
+                        <label for="right-reader-edit-mode">Edit</label>
                     </div>
                     <div class="control-line-3" id="right-reader-strong-controls" style="margin-top: 8px; display: none;">
+                        <span style="font-size: 0.9em; margin-right: 10px;">SN copied:</span>
                         <input type="text" id="strong-number-input" placeholder="H1234 or G5678" style="width: 100px; margin-right: 10px;">
-                        <button id="insert-strong-btn" style="margin-right: 10px;">Insert Strong's</button>
-                        <span style="font-size: 0.9em; color: #666;">Click in verse, type number, click Insert</span>
                     </div>
                 </div>
                 <div id="right-reader-content-area" class="reader-content resizable" style="width: 100%; height: 400px; border: 1px solid #ccc; overflow-y: auto; resize: none; position: relative;">
