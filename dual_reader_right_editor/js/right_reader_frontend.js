@@ -1372,6 +1372,22 @@ document.addEventListener('DOMContentLoaded', () => {
             logStatus(`💾 Auto-saved ${Object.keys(editedContent).length} edited verses at ${timestamp}`);
             console.log(`[AUTO-SAVE] ✅ SAVED edited content for ${currentBookChapter}:`, editedContent);
             console.log(`[AUTO-SAVE] LocalStorage key: ${saveKey}`);
+
+            // After auto-save, re-detect completed pairs and remove colors for saved Strong's numbers
+            Object.keys(editedContent).forEach(verseNum => {
+                const verseId = verseNum;
+                const rightVerse = contentArea.querySelector(`[data-verse="${verseId}"]`);
+                const leftVerse = document.querySelector(`#left-reader-content-area [data-verse="${verseId}"]`);
+
+                if (rightVerse && leftVerse) {
+                    // Re-detect completed pairs for this verse
+                    WordMappingEngine.detectCompletedPairs(rightVerse, verseId);
+                    // Re-apply highlighting (will skip completed pairs)
+                    if (WordMappingEngine.currentMappings.length > 0) {
+                        WordMappingEngine.highlightWordPairs(leftVerse, rightVerse, WordMappingEngine.currentMappings, verseId);
+                    }
+                }
+            });
         } else {
             console.log('[AUTO-SAVE] No edited content to save');
         }
@@ -1945,6 +1961,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 logStatus(preciseStatus);
                 console.log('Successfully inserted Strong\'s number');
 
+                // Immediately remove colors for this completed pair
+                WordMappingEngine.removeColorsForNewlyInsertedStrongs(verseNum, normalizedNumber);
+
                 // Clear Strong's highlighting after successful insertion
                 clearStrongsHighlighting();
 
@@ -1980,6 +1999,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 markContentAsModified();
                 logStatus(preciseStatus);
                 console.log('Inserted at end of verse (no cursor position)');
+
+                // Immediately remove colors for this completed pair
+                WordMappingEngine.removeColorsForNewlyInsertedStrongs(verseNum, normalizedNumber);
 
                 // Clear Strong's highlighting after successful insertion
                 clearStrongsHighlighting();
@@ -2237,6 +2259,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     const WordMappingEngine = {
         currentMappings: [],
+        completedPairs: new Set(), // Track completed word pairs: "verseId:leftWord:strongsNumber"
         colorPairs: [
             { left: '#e3f2fd', right: '#bbdefb' },  // Blue pair
             { left: '#f3e5f5', right: '#ce93d8' },  // Purple pair
@@ -2262,8 +2285,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 3. Store mappings for click handling
                 this.currentMappings = mappings;
 
-                // 4. Apply color highlighting
-                this.highlightWordPairs(leftVerse, rightVerse, mappings);
+                // 4. Detect completed pairs before highlighting
+                this.detectCompletedPairs(rightVerse, verseId);
+
+                // 5. Apply color highlighting (skips completed pairs)
+                this.highlightWordPairs(leftVerse, rightVerse, mappings, verseId);
 
                 return mappings;
             } catch (error) {
@@ -2551,12 +2577,17 @@ document.addEventListener('DOMContentLoaded', () => {
         /**
          * Apply color highlighting to word pairs
          */
-        highlightWordPairs(leftVerse, rightVerse, mappings) {
+        highlightWordPairs(leftVerse, rightVerse, mappings, verseId) {
             // Clear existing highlights first
             this.clearHighlights(leftVerse);
             this.clearHighlights(rightVerse);
 
             mappings.forEach(mapping => {
+                // Skip highlighting if this pair is already completed
+                if (this.isPairCompleted(verseId, mapping.leftWord, mapping.strongs)) {
+                    return;
+                }
+
                 // Highlight in left verse (find the word before Strong's number)
                 this.highlightWordInVerse(leftVerse, mapping.leftWord, mapping.colorPair.left, 'left');
 
@@ -2754,6 +2785,54 @@ document.addEventListener('DOMContentLoaded', () => {
                 m.leftWord === clickedWord || m.rightWord === clickedWord
             );
             return mapping ? mapping.strongs : null;
+        },
+
+        /**
+         * Detect completed word pairs by scanning for Strong's numbers in right verse
+         */
+        detectCompletedPairs(rightVerse, verseId) {
+            const strongsElements = rightVerse.querySelectorAll('.strongs-number[data-strong]');
+
+            strongsElements.forEach(strongEl => {
+                const strongsNumber = strongEl.getAttribute('data-strong');
+
+                // Find mappings that contain this Strong's number
+                this.currentMappings.forEach(mapping => {
+                    if (mapping.strongs === strongsNumber) {
+                        const pairKey = `${verseId}:${mapping.leftWord}:${strongsNumber}`;
+                        this.completedPairs.add(pairKey);
+                    }
+                });
+            });
+        },
+
+        /**
+         * Check if a word pair is completed (has Strong's number inserted)
+         */
+        isPairCompleted(verseId, leftWord, strongsNumber) {
+            const pairKey = `${verseId}:${leftWord}:${strongsNumber}`;
+            return this.completedPairs.has(pairKey);
+        },
+
+        /**
+         * Remove colors for newly inserted Strong's numbers (immediate feedback)
+         */
+        removeColorsForNewlyInsertedStrongs(verseId, strongsNumber) {
+            // Mark all mappings with this Strong's number as completed
+            this.currentMappings.forEach(mapping => {
+                if (mapping.strongs === strongsNumber) {
+                    const pairKey = `${verseId}:${mapping.leftWord}:${strongsNumber}`;
+                    this.completedPairs.add(pairKey);
+                }
+            });
+
+            // Re-apply word mapping to remove colors
+            const leftVerse = document.querySelector('#left-reader-content-area [data-verse="' + verseId + '"]');
+            const rightVerse = document.querySelector('#right-reader-content-area [data-verse="' + verseId + '"]');
+
+            if (leftVerse && rightVerse) {
+                this.highlightWordPairs(leftVerse, rightVerse, this.currentMappings, verseId);
+            }
         }
     };
 
