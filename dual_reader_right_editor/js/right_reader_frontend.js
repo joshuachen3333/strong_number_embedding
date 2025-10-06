@@ -1619,6 +1619,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log(`[RESTORE] Re-attaching Strong's event listeners after restoration`);
                     attachStrongsEventListenersSecondReader();
                 }
+
+                // Background validation tasks after restoration
+                setTimeout(() => {
+                    performBackgroundValidation(editedContent);
+                }, 200);
             } else {
                 console.log(`[RESTORE] ⚠️ No verses were restored`);
             }
@@ -1626,6 +1631,309 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('[RESTORE] Error restoring edited content:', error);
             logStatus('⚠️ Error restoring previous edits');
         }
+    }
+
+    /**
+     * Performs background validation tasks after content restoration
+     * 1. Verifies verse content consistency with fresh FHL data
+     * 2. Converts plain text Strong's numbers to proper HTML spans
+     */
+    async function performBackgroundValidation(editedContent) {
+        console.log(`[VALIDATION] Starting background validation for ${Object.keys(editedContent).length} edited verses`);
+
+        try {
+            // Task 1: Fetch fresh content from FHL API for comparison
+            await validateVerseConsistency(editedContent);
+
+            // Task 2: Convert plain text Strong's numbers to HTML spans
+            convertPlainTextStrongsToHtml();
+
+            console.log(`[VALIDATION] ✅ Background validation completed`);
+        } catch (error) {
+            console.error('[VALIDATION] Error during background validation:', error);
+        }
+    }
+
+    /**
+     * Task 1: Validates that verse content (excluding SN) matches fresh FHL data
+     */
+    async function validateVerseConsistency(editedContent) {
+        console.log(`[VALIDATION-CONSISTENCY] Checking verse consistency with FHL...`);
+
+        try {
+            // Fetch fresh data from FHL API
+            const fhlUrl = `https://bible.fhl.net/json/qb.php?version=${versionSelect.value}&chineses=${encodeURIComponent(currentBookChinese)}&chap=${currentChapter}&strong=0`;
+            console.log(`[VALIDATION-CONSISTENCY] Fetching fresh data: ${fhlUrl}`);
+
+            const response = await fetch(fhlUrl);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch fresh data: ${response.status}`);
+            }
+
+            const freshData = await response.json();
+            if (!freshData.record || !Array.isArray(freshData.record)) {
+                throw new Error('Invalid fresh data format from FHL');
+            }
+
+            let inconsistencyCount = 0;
+            let checkedCount = 0;
+
+            // Check each edited verse against fresh data
+            Object.keys(editedContent).forEach(verseNum => {
+                const freshVerse = freshData.record.find(r => r.sec == verseNum);
+                if (!freshVerse) {
+                    console.log(`[VALIDATION-CONSISTENCY] ⚠️ Verse ${verseNum} not found in fresh data`);
+                    return;
+                }
+
+                const verse = contentArea.querySelector(`[data-verse="${verseNum}"]`);
+                if (!verse) {
+                    console.log(`[VALIDATION-CONSISTENCY] ⚠️ Verse ${verseNum} not found in DOM`);
+                    return;
+                }
+
+                // Extract text content without Strong's numbers for comparison
+                const editedText = extractTextWithoutStrongsNumbers(verse.textContent);
+                const freshText = cleanVerseText(freshVerse.bible_text, versionSelect.value);
+
+                checkedCount++;
+
+                if (editedText.trim() !== freshText.trim()) {
+                    inconsistencyCount++;
+                    console.log(`[VALIDATION-CONSISTENCY] ❌ Inconsistency in verse ${verseNum}:`);
+                    console.log(`  Edited: "${editedText.substring(0, 100)}..."`);
+                    console.log(`  Fresh:  "${freshText.substring(0, 100)}..."`);
+
+                    // AUTO-REPAIR: Extract existing Strong's numbers and restore correct text
+                    const existingStrongsNumbers = extractStrongsNumbersFromVerse(verse);
+                    console.log(`[VALIDATION-CONSISTENCY] 🔧 Auto-repairing verse ${verseNum} with ${existingStrongsNumbers.length} existing SN`);
+
+                    // Restore fresh text and re-insert Strong's numbers
+                    const repairedContent = restoreVerseWithStrongsNumbers(freshText, existingStrongsNumbers);
+                    verse.innerHTML = repairedContent;
+
+                    // Update localStorage with repaired content
+                    editedContent[verseNum].content = repairedContent;
+                    const currentBookChapter = `${currentBookChinese}_${currentChapter}`;
+                    const saveKey = `rightReader_edited_${currentBookChapter}`;
+                    localStorage.setItem(saveKey, JSON.stringify(editedContent));
+
+                    console.log(`[VALIDATION-CONSISTENCY] ✅ Auto-repaired verse ${verseNum} and updated localStorage`);
+                } else {
+                    console.log(`[VALIDATION-CONSISTENCY] ✅ Verse ${verseNum} is consistent`);
+                    verse.removeAttribute('data-inconsistent');
+                    verse.removeAttribute('data-fresh-text');
+                }
+            });
+
+            console.log(`[VALIDATION-CONSISTENCY] Checked ${checkedCount} verses, found ${inconsistencyCount} inconsistencies`);
+
+            if (inconsistencyCount > 0) {
+                logStatus(`🔧 Auto-repaired: ${inconsistencyCount} verses restored to FHL original text (SN preserved)`);
+                console.log(`[VALIDATION-CONSISTENCY] ✅ Auto-repaired ${inconsistencyCount} inconsistent verses`);
+            } else {
+                console.log(`[VALIDATION-CONSISTENCY] ✅ All verses are consistent with FHL`);
+            }
+        } catch (error) {
+            console.error('[VALIDATION-CONSISTENCY] Error validating verse consistency:', error);
+        }
+    }
+
+    /**
+     * Task 2: Converts plain text Strong's numbers to proper HTML spans
+     */
+    function convertPlainTextStrongsToHtml() {
+        console.log(`[VALIDATION-STRONGS] Converting plain text Strong's numbers to HTML...`);
+
+        const allVerses = contentArea.querySelectorAll('[data-verse]');
+        let conversionCount = 0;
+
+        allVerses.forEach(verse => {
+            let verseHtml = verse.innerHTML;
+            let originalHtml = verseHtml;
+
+            // Find plain text Strong's number patterns that aren't already HTML spans
+            const strongsPatterns = [
+                /(?<!data-strong="[^"]*"[^>]*>)(?<!<span[^>]*>)<([HG]\d+)>(?!<\/span>)/g,  // <H1234> not already in span
+                /(?<!data-strong="[^"]*"[^>]*>)(?<!<span[^>]*>)\[([HG]\d+)\](?!<\/span>)/g, // [H1234] not already in span
+                /(?<!data-strong="[^"]*"[^>]*>)(?<!<span[^>]*>)\{([HG]\d+)\}(?!<\/span>)/g  // {H1234} not already in span
+            ];
+
+            strongsPatterns.forEach(pattern => {
+                verseHtml = verseHtml.replace(pattern, (match, strongsId) => {
+                    conversionCount++;
+                    console.log(`[VALIDATION-STRONGS] Converting ${match} to HTML span in verse ${verse.getAttribute('data-verse')}`);
+                    return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">&lt;${strongsId}&gt;</span>`;
+                });
+            });
+
+            // Update verse if changes were made
+            if (verseHtml !== originalHtml) {
+                verse.innerHTML = verseHtml;
+                console.log(`[VALIDATION-STRONGS] Updated verse ${verse.getAttribute('data-verse')} with converted Strong's numbers`);
+            }
+        });
+
+        if (conversionCount > 0) {
+            console.log(`[VALIDATION-STRONGS] ✅ Converted ${conversionCount} plain text Strong's numbers to HTML`);
+
+            // Re-attach event listeners to newly converted Strong's numbers
+            if (strongToggle.checked) {
+                setTimeout(() => {
+                    attachStrongsEventListenersSecondReader();
+                }, 10);
+            }
+
+            logStatus(`🔧 Background fix: Converted ${conversionCount} Strong's numbers to proper format`);
+        } else {
+            console.log(`[VALIDATION-STRONGS] ✅ No plain text Strong's numbers found`);
+        }
+    }
+
+    /**
+     * Helper function to extract text content without Strong's numbers
+     */
+    function extractTextWithoutStrongsNumbers(text) {
+        return text
+            .replace(/<[HG]\d+>/g, '')      // Remove <H1234>
+            .replace(/\[[HG]\d+\]/g, '')    // Remove [H1234]
+            .replace(/\{[HG]\d+\}/g, '')    // Remove {H1234}
+            .replace(/\s+/g, ' ')           // Normalize whitespace
+            .trim();
+    }
+
+    /**
+     * Extract existing Strong's numbers from a verse element
+     */
+    function extractStrongsNumbersFromVerse(verse) {
+        const strongsNumbers = [];
+
+        // Method 1: Extract from HTML spans with data-strong attribute
+        const spanElements = verse.querySelectorAll('.strongs-number[data-strong]');
+        spanElements.forEach(span => {
+            const strongsId = span.getAttribute('data-strong');
+            const precedingText = getPrecedingTextBeforeElement(verse, span);
+            strongsNumbers.push({
+                id: strongsId,
+                position: precedingText.length,
+                precedingText: precedingText,
+                format: 'span'
+            });
+        });
+
+        // Method 2: Extract from plain text patterns
+        const verseHtml = verse.innerHTML;
+        const patterns = [
+            /<([HG]\d+)>/g,   // <H1234>
+            /\[([HG]\d+)\]/g, // [H1234]
+            /\{([HG]\d+)\}/g  // {H1234}
+        ];
+
+        patterns.forEach(pattern => {
+            let match;
+            while ((match = pattern.exec(verseHtml)) !== null) {
+                const strongsId = match[1];
+                const beforeMatch = verseHtml.substring(0, match.index);
+                const precedingText = extractTextWithoutStrongsNumbers(beforeMatch);
+
+                strongsNumbers.push({
+                    id: strongsId,
+                    position: precedingText.length,
+                    precedingText: precedingText,
+                    format: 'text',
+                    originalMatch: match[0]
+                });
+            }
+        });
+
+        // Sort by position for proper insertion order
+        strongsNumbers.sort((a, b) => a.position - b.position);
+
+        console.log(`[EXTRACT-SN] Found ${strongsNumbers.length} Strong's numbers:`, strongsNumbers);
+        return strongsNumbers;
+    }
+
+    /**
+     * Get text content that precedes a specific element within a verse
+     */
+    function getPrecedingTextBeforeElement(verse, targetElement) {
+        const walker = document.createTreeWalker(
+            verse,
+            NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+            null,
+            false
+        );
+
+        let precedingText = '';
+        let node;
+
+        while (node = walker.nextNode()) {
+            if (node === targetElement) {
+                break;
+            }
+            if (node.nodeType === Node.TEXT_NODE) {
+                precedingText += node.textContent;
+            }
+        }
+
+        return extractTextWithoutStrongsNumbers(precedingText);
+    }
+
+    /**
+     * Restore verse with fresh text and re-insert Strong's numbers at appropriate positions
+     */
+    function restoreVerseWithStrongsNumbers(freshText, strongsNumbers) {
+        if (strongsNumbers.length === 0) {
+            return freshText;
+        }
+
+        console.log(`[RESTORE-SN] Restoring verse with fresh text: "${freshText}"`);
+        console.log(`[RESTORE-SN] Re-inserting ${strongsNumbers.length} Strong's numbers`);
+
+        let result = freshText;
+        let insertedChars = 0; // Track how many characters we've inserted
+
+        // Insert Strong's numbers based on their original positions
+        strongsNumbers.forEach((sn, index) => {
+            // Try to find the best insertion point in the fresh text
+            let insertionPoint = findBestInsertionPoint(freshText, sn, index);
+
+            // Adjust for previously inserted characters
+            insertionPoint += insertedChars;
+
+            // Create the Strong's number span
+            const strongsSpan = `<span class="strongs-number" data-strong="${sn.id}" title="Strong's ${sn.id}">&lt;${sn.id}&gt;</span>`;
+
+            // Insert the span
+            result = result.substring(0, insertionPoint) + strongsSpan + result.substring(insertionPoint);
+            insertedChars += strongsSpan.length;
+
+            console.log(`[RESTORE-SN] Inserted ${sn.id} at position ${insertionPoint}`);
+        });
+
+        console.log(`[RESTORE-SN] Final result: "${result}"`);
+        return result;
+    }
+
+    /**
+     * Find the best insertion point for a Strong's number in fresh text
+     */
+    function findBestInsertionPoint(freshText, strongsNumber, index) {
+        // Strategy 1: Try to match the preceding text exactly
+        const precedingText = strongsNumber.precedingText.trim();
+        if (precedingText) {
+            const exactMatch = freshText.indexOf(precedingText);
+            if (exactMatch !== -1) {
+                const insertionPoint = exactMatch + precedingText.length;
+                console.log(`[FIND-INSERTION] Exact match for "${precedingText}" at position ${insertionPoint}`);
+                return insertionPoint;
+            }
+        }
+
+        // Strategy 2: Use character position as fallback
+        const charPosition = Math.min(strongsNumber.position, freshText.length);
+        console.log(`[FIND-INSERTION] Using character position ${charPosition} for ${strongsNumber.id}`);
+        return charPosition;
     }
 
     function startAutoSave() {
