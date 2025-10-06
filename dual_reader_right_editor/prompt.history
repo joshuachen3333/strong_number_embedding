@@ -11,4 +11,32 @@
 2025-10-07 00:37:35	v2, 地<H0776>沒有定形、混混沌沌<H0922>；黑暗<H02822>在<H05921>深淵<H08415>上面<H06440>；上帝的靈覆煦在水<H04325>面<H06440>上。 I removed the word 還 , auto save, them cmd+r, but that 還 still lost, not auto recoverred at the cmd+R 比對還原. 所以啟動時保證原本文本與 fhl 一致依然沒有奏效.
 2025-10-07 00:49:13	2 issues:1, right reader verse number is gone, 2,when I click 天 at right reader, the left reader highlighted <H08064><H0853> (left reader 天's left and right neighbor) instead of <H01254><H0853> (left reader 天's left and left left neighbor)
 2025-10-07 01:15:00	ok, I decide to separate the auto-fix function to be a very serious, one time, very 周延 job, instead of reload parsing job. forget about the auto-fix things and revert to the last commit. let's develop auto-fix (確保經文沒有在編輯過程中遭到增刪) function later.
-2025-10-07 01:30:00	first, right reader's every verse number is gone. bring them back.
+2025-10-07 01:30:00	first, right reader's every verse number is gone. bring them back.2025-10-07 01:45:00	now commit and push with your suggested desc.
+2025-10-07 06:15:00	I want to have 3 more advanced highlighting functions for todo:
+2025-10-07 06:17:00	you got me, label your 6 guesses with A,B,C,C,E,F for ex, A - Cross-reader word highlighting improvements, B - Strong's number highlighting enhancements?
+2025-10-07 06:19:00	with C - Verse-level highlighting features, write down these 6 to highlight_todo.md
+2025-10-07 06:20:00	do you still append all my prompt to prompt.history?
+2025-10-07 06:21:00	check your clock/date/time
+2025-10-07 06:22:00	"2025-10-07 01:50:00 I want to have 3 more advanced highlighting functions for todo:" and on, should have recent fixed timestamp because we are paused until 4am
+2025-10-07 06:23:00	yes
+2025-10-07 06:24:00	now show me the highlight_todo.md files and I will give my wishes, you insert them onto current A-F like A1 A2 E1 F2,,,etc
+2025-10-07 06:25:00	1, when I click at right term, I want to see the right term (Chinese, for ex, not the SN if we already inserted ths SN) to be highlighted too, as dark blue as our FL Ver Sel: button, don't do coding yet, I want to discuss or add wishes first.
+2025-10-07 06:26:00	from now on, just modify prompt.history with asking me to save my efforts.
+2025-10-07 06:27:00	I already said, no asking for permission for prompt.history!! why are you still asking me?
+2025-10-07 06:28:00	make sure you understand my A1 is about right reader's term to highlight.
+2025-10-07 06:29:00	I have many many wishes, now, not just 3, so don't do any coding work until I say: That's all, go coding now.
+2025-10-07 06:30:00	wish: when I click right text to the term's right, the term at cursor's left is counted, not the cursor's right side. Meaning if that term has already been inserted SN, and I click at the position between that term and it's inserted SN,line 起初(cursor)<H07225> only the term of text is considered, not the SN; but if I click at the SN's right side like 起初<H07225>(cursor), both the term and SN are considered, even there are multi SNs like 創造<H01254><H0853>, multi SNs sould be considered together with 創造, no matter I click <H01254>(cursor) or <H01254><H0853>(cursor).
+2025-10-07 06:31:00	now, if I click at right reader's term, the left reader now highlight not only the <SN>, but also the text too. but if I clicked at right reader's SN part, then the left reader only highlight SN part.
+2025-10-07 06:32:00	now I want to click left reader too, that way the right reader should highlight and the left being clicked term (SN) highlighted too: If I click left reader, then left reader's term (or SN) be highlighted dark blue (like the main reader's FL Ver Sel button) and the right reader is highlighted orange (like FL Ver Sel's color). All current FL Ver Sel color/check remains without changing, only the text area things. if I click at left reader's term, the right reader now highlight not only the <SN>(if inserted), but also the text too. but if I clicked at left reader's SN part, then the right reader only highlight SN part.
+2025-10-07 06:33:00	when a reader's text is clicked, the other side reader's whole verse now be highlighted too, but in a much lighter color (very much lighter orange, always orang because it is that design). And the clicked side whole verse also highlighted with a very light blue.
+2025-10-07 06:34:00	no, the clicked and other side always follow Blue/lightblue to be clicked side term and or SN/verse backgroud; Orange/lightorange to be non clicked side (Term and or sn/verse background)
+2025-10-07 06:35:00	now I want to add a wish that after I click at one side, and found the other side highlighted at wrong term due to position or other mistake. let me finish
+2025-10-07 06:36:00	when I see after click, the target orange highlight position is wrong, I need a good way to tell you that actually I do mean something else. what is your suggestion that I can follow to click the target to combine the 2 clicks are actually the correct mapping?
+2025-10-07 06:37:00	yes, option 1 is good, just make the 2nd shift+click term purple instead of orange or dark blue, also the correction click also need whole verse background highlight, that way, the shift+cliecked correction term's verse use light blue, the original right position verse light orange but term/SN be ordinary orange
+2025-10-07 06:38:00	in A5, the corrected pair mapping of 2 terms, must go to feedback, that from that on or even reload, the newly force mapped pair is there instead of auto wrongly mapping
+2025-10-07 06:39:00	no, do something smarter for judgment instead of refusing to change determination but write a wrongly wrong exception.
+2025-10-07 06:40:00	you can even leave a future AI aware method here or keep a record of know issue, that the learning data (human feedback learning example) is recorded
+2025-10-07 06:41:00	show me all the wishes so far with A-F items
+2025-10-07 06:42:00	but you have original big title about B D E F, show me
+2025-10-07 06:43:00	make sure my current wishes are merged to the highlight_todo.md
+2025-10-07 06:44:00	before we go ahead, commit and push with description: "highlight_todo.md created and ready to implement it"
