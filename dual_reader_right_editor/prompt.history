@@ -9,3 +9,6 @@
 2025-10-07 00:24:04	but it pastes too much like this: <H0430>" title="Strong's <H0430>"><<H0430>>
 2025-10-07 00:32:22	每次cmd+R reload 時, 幫我做兩件背景整ㄌㄧㄜˇ工作1, 確保這段經文內文與 fhl 上面的經文內文一致. 縱使讀入的經文已經是儲存的, 充滿增加上去的SN, 但是其餘部分必須與新鮮 FHL 上面取得的相關經文 (版本 書卷 章節)一致. 這是避免我們編輯插入SN 時, 不小心更動了經文本身.2, 把已經完成的SN 如果屬性仍是 plain text （黑色)的, 改成有 html 屬性(綠色)的
 2025-10-07 00:37:35	v2, 地<H0776>沒有定形、混混沌沌<H0922>；黑暗<H02822>在<H05921>深淵<H08415>上面<H06440>；上帝的靈覆煦在水<H04325>面<H06440>上。 I removed the word 還 , auto save, them cmd+r, but that 還 still lost, not auto recoverred at the cmd+R 比對還原. 所以啟動時保證原本文本與 fhl 一致依然沒有奏效.
+2025-10-07 00:49:13	2 issues:1, right reader verse number is gone, 2,when I click 天 at right reader, the left reader highlighted <H08064><H0853> (left reader 天's left and right neighbor) instead of <H01254><H0853> (left reader 天's left and left left neighbor)
+2025-10-07 01:15:00	ok, I decide to separate the auto-fix function to be a very serious, one time, very 周延 job, instead of reload parsing job. forget about the auto-fix things and revert to the last commit. let's develop auto-fix (確保經文沒有在編輯過程中遭到增刪) function later.
+2025-10-07 01:30:00	first, right reader's every verse number is gone. bring them back.

@@ -1600,8 +1600,48 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log(`  From: "${verse.innerHTML.substring(0, 50)}..."`);
                     console.log(`  To:   "${editedContent[verseNum].content.substring(0, 50)}..."`);
 
-                    // Restore edited content
-                    verse.innerHTML = editedContent[verseNum].content;
+                    // CRITICAL FIX: Extract only the verse content, preserve structure
+                    const savedContent = editedContent[verseNum].content;
+
+                    console.log(`[RESTORE] Saved content structure analysis:`);
+                    console.log(`  Full saved content: "${savedContent.substring(0, 100)}..."`);
+
+                    // Check if saved content has complete verse structure
+                    if (savedContent.includes('verse-number') && savedContent.includes('verse-text')) {
+                        // Saved content has complete verse-container structure
+                        console.log(`[RESTORE] Saved content has complete verse-container structure`);
+                        verse.innerHTML = savedContent;
+                    } else if (savedContent.includes('verse-number') && !savedContent.includes('verse-text')) {
+                        // Saved content has API structure with verse-number
+                        console.log(`[RESTORE] Saved content has API structure with verse-number`);
+                        verse.innerHTML = savedContent;
+                    } else {
+                        // Saved content is text-only, need to preserve current structure
+                        console.log(`[RESTORE] Saved content is text-only, preserving current structure`);
+
+                        const isCurrentVerseContainer = verse.classList.contains('verse-container');
+                        if (isCurrentVerseContainer) {
+                            // Preserve verse-container structure
+                            const verseTextSpan = verse.querySelector('.verse-text');
+                            if (verseTextSpan) {
+                                verseTextSpan.innerHTML = savedContent;
+                                console.log(`[RESTORE] Updated verse-text span only`);
+                            } else {
+                                console.warn(`[RESTORE] verse-text span not found, falling back to full replacement`);
+                                verse.innerHTML = savedContent;
+                            }
+                        } else {
+                            // Preserve API structure
+                            const verseNumberSpan = verse.querySelector('.verse-number');
+                            if (verseNumberSpan) {
+                                verse.innerHTML = `${verseNumberSpan.outerHTML} ${savedContent}`;
+                                console.log(`[RESTORE] Preserved verse-number span in API structure`);
+                            } else {
+                                console.warn(`[RESTORE] verse-number span not found, falling back to full replacement`);
+                                verse.innerHTML = savedContent;
+                            }
+                        }
+                    }
                     restoredCount++;
 
                     console.log(`[RESTORE] ✅ Successfully restored verse ${verseNum}`);

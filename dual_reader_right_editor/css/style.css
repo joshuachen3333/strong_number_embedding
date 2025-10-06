@@ -71,7 +71,8 @@ h1 {
 }
 
 /* Basic styling for verse numbers and Strong's numbers */
-.verse .verse-number {
+.verse .verse-number,
+.verse-container .verse-number {
     font-weight: bold;
     color: #007bff; /* Blue color for verse numbers */
 }
