@@ -1226,21 +1226,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Attaches event listeners to Strong's number elements in the second reader.
+     * Prevents duplicate listeners by checking for existing listeners.
      */
     function attachStrongsEventListenersSecondReader() {
         const strongsElements = contentArea.querySelectorAll('.strongs-number');
+        console.log(`[ATTACH-LISTENERS] Found ${strongsElements.length} Strong's number elements`);
+
         strongsElements.forEach(el => {
-            el.addEventListener('click', () => {
-                const strongNum = el.dataset.strong;
-                logStatus(`🔗 Strong's clicked: ${strongNum}`);
-                console.log(`SecondReader: Strong's number ${strongNum} clicked.`);
-                // Publish an event (could be the same or a different event name)
-                MockMediator.publish('strongsNumberClicked', {
-                    strongNumber: strongNum,
-                    version: versionSelect.value // Version from this reader
+            // Check if listener already attached (prevent duplicates)
+            if (!el.hasAttribute('data-listener-attached')) {
+                el.addEventListener('click', () => {
+                    const strongNum = el.dataset.strong;
+                    logStatus(`🔗 Strong's clicked: ${strongNum}`);
+                    console.log(`SecondReader: Strong's number ${strongNum} clicked.`);
+                    // Publish an event (could be the same or a different event name)
+                    MockMediator.publish('strongsNumberClicked', {
+                        strongNumber: strongNum,
+                        version: versionSelect.value // Version from this reader
+                    });
+                    alert(`Strong's number clicked (Second Reader): ${strongNum}. Definition lookup not yet implemented.`);
                 });
-                alert(`Strong's number clicked (Second Reader): ${strongNum}. Definition lookup not yet implemented.`);
-            });
+
+                // Mark as having listener attached
+                el.setAttribute('data-listener-attached', 'true');
+                console.log(`[ATTACH-LISTENERS] Added click listener to ${strongNum}`);
+            } else {
+                console.log(`[ATTACH-LISTENERS] Skipping ${el.dataset.strong} - listener already attached`);
+            }
         });
     }
 
@@ -1410,6 +1422,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (WordMappingEngine.currentMappings.length > 0) {
                         WordMappingEngine.highlightWordPairs(leftVerse, rightVerse, WordMappingEngine.currentMappings, verseId);
                     }
+
+                    // Note: Strong's numbers now maintain green color via CSS
                 }
             });
         } else {
@@ -1599,6 +1613,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (restoredCount > 0) {
                 logStatus(`📂 Restored ${restoredCount} edited verses from previous session`);
                 console.log(`[RESTORE] ✅ SUCCESSFULLY restored ${restoredCount} verses for ${currentBookChapter}`);
+
+                // CRITICAL: Re-attach event listeners to restored Strong's numbers
+                if (strongToggle.checked) {
+                    console.log(`[RESTORE] Re-attaching Strong's event listeners after restoration`);
+                    attachStrongsEventListenersSecondReader();
+                }
             } else {
                 console.log(`[RESTORE] ⚠️ No verses were restored`);
             }
@@ -1739,14 +1759,115 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Handles paste events in verses - converts Strong's number patterns to HTML spans
+     */
+    function handleVersePaste(event) {
+        event.preventDefault(); // Prevent default paste behavior
+
+        // Get pasted text from clipboard
+        const clipboardData = event.clipboardData || window.clipboardData;
+        const pastedText = clipboardData.getData('text');
+
+        console.log(`[PASTE] Original text: "${pastedText}"`);
+
+        // Convert Strong's number patterns to HTML spans
+        let processedText = convertStrongsToHtml(pastedText);
+
+        console.log(`[PASTE] Processed text: "${processedText}"`);
+
+        // Use execCommand to insert HTML properly into contenteditable
+        if (document.queryCommandSupported('insertHTML')) {
+            document.execCommand('insertHTML', false, processedText);
+        } else {
+            // Fallback for browsers that don't support insertHTML
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                range.deleteContents();
+
+                // Create a temporary container to parse HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = processedText;
+
+                // Insert each child node
+                while (tempDiv.firstChild) {
+                    range.insertNode(tempDiv.firstChild);
+                }
+
+                // Collapse range to end
+                range.collapse(false);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        }
+
+        // Re-attach event listeners to newly created Strong's number spans
+        if (strongToggle.checked) {
+            setTimeout(() => {
+                attachStrongsEventListenersSecondReader();
+            }, 10);
+        }
+
+        // Trigger input event for auto-save
+        event.target.dispatchEvent(new Event('input', { bubbles: true }));
+
+        logStatus(`📋 Pasted and converted Strong's numbers`);
+    }
+
+    /**
+     * Converts Strong's number patterns in text to HTML spans
+     */
+    function convertStrongsToHtml(text) {
+        let result = text;
+
+        console.log(`[CONVERT] Input text: "${text}"`);
+
+        // Convert various Strong's number patterns to HTML spans
+        // Pattern 1: <H1234> or <G5678>
+        result = result.replace(/<([HG])(\d+)>/g, (match, lang, number) => {
+            const strongsId = `${lang}${number}`;
+            console.log(`[CONVERT] Converting ${match} to span with data-strong="${strongsId}"`);
+            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">&lt;${strongsId}&gt;</span>`;
+        });
+
+        // Pattern 2: [H1234] or [G5678]
+        result = result.replace(/\[([HG])(\d+)\]/g, (match, lang, number) => {
+            const strongsId = `${lang}${number}`;
+            console.log(`[CONVERT] Converting ${match} to span with data-strong="${strongsId}"`);
+            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">&lt;${strongsId}&gt;</span>`;
+        });
+
+        // Pattern 3: {H1234} or {G5678}
+        result = result.replace(/\{([HG])(\d+)\}/g, (match, lang, number) => {
+            const strongsId = `${lang}${number}`;
+            console.log(`[CONVERT] Converting ${match} to span with data-strong="${strongsId}"`);
+            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">&lt;${strongsId}&gt;</span>`;
+        });
+
+        // Pattern 4: H1234 or G5678 (standalone)
+        result = result.replace(/\b([HG])(\d+)\b/g, (match, lang, number) => {
+            // Only convert if not already converted (avoid double conversion)
+            if (result.includes(`data-strong="${lang}${number}"`)) {
+                return match; // Already converted, leave as is
+            }
+            const strongsId = `${lang}${number}`;
+            console.log(`[CONVERT] Converting standalone ${match} to span with data-strong="${strongsId}"`);
+            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">&lt;${strongsId}&gt;</span>`;
+        });
+
+        console.log(`[CONVERT] Final result: "${result}"`);
+        return result;
+    }
+
+    /**
      * Handles clicks on verses when in edit mode - minimal implementation
      */
     function handleVerseClick(event) {
         // Only handle clicks when edit mode is enabled
         if (!isEditMode) return;
 
-        // Find the verse element that was clicked
-        const verseElement = event.target.closest('.verse');
+        // Find the verse element that was clicked (support both .verse and .verse-container)
+        const verseElement = event.target.closest('.verse') || event.target.closest('.verse-container');
         if (!verseElement) return;
 
         // Clear previous editing verse
@@ -1778,6 +1899,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add input event listener for cursor position changes and auto-suggestion
         verseElement.addEventListener('input', handleVerseInput);
         verseElement.addEventListener('click', handleCursorPositionChange);
+
+        // Add paste event listener to convert pasted Strong's numbers to HTML spans
+        verseElement.addEventListener('paste', handleVersePaste);
 
         // Add blur event to save when clicking outside (but not when clicking Insert button)
         verseElement.addEventListener('blur', function saveOnBlur(e) {
@@ -2348,57 +2472,69 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         /**
-         * Enhanced word extraction that looks in multiple directions around Strong's numbers
+         * Enhanced word extraction with proper Chinese term segmentation (斷詞)
+         * Recognizes whole terms like 上帝、創造 instead of individual characters
          */
         extractWordsNearStrongs(verse, strongsElement) {
             const words = [];
 
-            // Method 1: Check previous sibling text (original method)
-            let prevNode = strongsElement.previousSibling;
-            while (prevNode && prevNode.nodeType !== Node.TEXT_NODE) {
-                prevNode = prevNode.previousSibling;
-            }
+            // Chinese multi-character terms that should be treated as single units
+            const chineseTerms = [
+                '上帝', '創造', '耶和華', '天地', '起初', '空虛', '混沌', '深淵', '水面',
+                '神的', '運行', '要有', '就有', '看著', '甚好', '分開', '稱為',
+                '第一', '第二', '第三', '第四', '第五', '第六', '第七',
+                '早晨', '晚上', '穹蒼', '旱地', '青草', '菜蔬', '果樹', '結果子',
+                '各從', '其類', '光體', '大光', '小光', '管理', '晝夜', '分別',
+                '明暗', '定節令', '日子', '年歲', '作記號', '海中', '空中',
+                '地上', '爬物', '走獸', '牲畜', '昆蟲', '飛鳥', '各樣', '活物'
+            ];
 
-            if (prevNode && prevNode.textContent) {
-                const text = prevNode.textContent.trim();
-                // Extract all words, not just the last one
-                const wordMatches = text.match(/[^\s，。！？]+/g);
-                if (wordMatches) {
-                    words.push(...wordMatches);
-                }
-            }
-
-            // Method 2: Check next sibling text (Strong's might come before word)
-            let nextNode = strongsElement.nextSibling;
-            while (nextNode && nextNode.nodeType !== Node.TEXT_NODE) {
-                nextNode = nextNode.nextSibling;
-            }
-
-            if (nextNode && nextNode.textContent) {
-                const text = nextNode.textContent.trim();
-                const wordMatches = text.match(/[^\s，。！？]+/g);
-                if (wordMatches) {
-                    words.push(...wordMatches);
-                }
-            }
-
-            // Method 3: Look for words in surrounding text within the same verse
             const verseText = verse.textContent;
             const strongsText = strongsElement.textContent;
             const strongsPosition = verseText.indexOf(strongsText);
 
             if (strongsPosition !== -1) {
-                // Extract words in a window around the Strong's number
-                const windowSize = 20; // characters before/after
-                const startPos = Math.max(0, strongsPosition - windowSize);
-                const endPos = Math.min(verseText.length, strongsPosition + strongsText.length + windowSize);
-                const contextText = verseText.substring(startPos, endPos);
+                // Look for text before the Strong's number
+                const beforeText = verseText.substring(0, strongsPosition);
 
-                // Remove the Strong's number itself and extract words
-                const cleanText = contextText.replace(strongsText, ' ').trim();
-                const contextWords = cleanText.match(/[^\s，。！？<>()[\]{}]+/g);
-                if (contextWords) {
-                    words.push(...contextWords);
+                // First, try to find known Chinese terms that end at this position
+                for (const term of chineseTerms) {
+                    if (beforeText.endsWith(term)) {
+                        words.push(term);
+                        console.log(`[TERM-SEGMENT] Found complete term: "${term}" → ${strongsText}`);
+                        return words; // Return immediately for complete terms
+                    }
+                }
+
+                // If no complete term found, extract the immediate preceding Chinese characters
+                // but try to get meaningful chunks (2-3 characters when possible)
+                const chineseCharsMatch = beforeText.match(/[\u4e00-\u9fff]+$/); // Chinese chars at end
+                if (chineseCharsMatch) {
+                    const chineseChars = chineseCharsMatch[0];
+
+                    // For multi-character sequences, prefer whole sequence or last 2 chars
+                    if (chineseChars.length >= 2) {
+                        // Check if last 2 characters form a known term
+                        const lastTwoChars = chineseChars.slice(-2);
+                        if (chineseTerms.includes(lastTwoChars)) {
+                            words.push(lastTwoChars);
+                            console.log(`[TERM-SEGMENT] Found 2-char term: "${lastTwoChars}" → ${strongsText}`);
+                        } else {
+                            // Use the complete sequence if it's reasonable length (≤ 4 chars)
+                            if (chineseChars.length <= 4) {
+                                words.push(chineseChars);
+                                console.log(`[TERM-SEGMENT] Using full sequence: "${chineseChars}" → ${strongsText}`);
+                            } else {
+                                // For very long sequences, take last 2 characters
+                                words.push(lastTwoChars);
+                                console.log(`[TERM-SEGMENT] Using last 2 chars: "${lastTwoChars}" → ${strongsText}`);
+                            }
+                        }
+                    } else {
+                        // Single character
+                        words.push(chineseChars);
+                        console.log(`[TERM-SEGMENT] Single char: "${chineseChars}" → ${strongsText}`);
+                    }
                 }
             }
 
@@ -2765,15 +2901,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
         /**
          * Partial word matching for compound words or character-level matching
+         * Enhanced to preserve Chinese term integrity (不破壞中文詞組完整性)
          */
         highlightPartialMatch(verse, word, color, side) {
-            // For Chinese characters, try individual character matching
+            console.log(`[PARTIAL-MATCH] Attempting partial match for: "${word}"`);
+
+            // For Chinese characters, DO NOT break apart terms that should stay together
             if (/[\u4e00-\u9fff]/.test(word)) {
-                for (let char of word) {
-                    if (this.highlightInTextNodes(verse, char, color, side)) {
-                        console.log(`Highlighted partial character: ${char} for word: ${word}`);
+                // List of terms that should NEVER be broken apart
+                const integralTerms = [
+                    '上帝', '創造', '耶和華', '天地', '起初', '空虛', '混沌', '深淵', '水面',
+                    '神的', '運行', '要有', '就有', '看著', '甚好', '分開', '稱為'
+                ];
+
+                // If this is an integral term, only try exact matching
+                if (integralTerms.includes(word)) {
+                    console.log(`[PARTIAL-MATCH] "${word}" is an integral term, skipping character-by-character matching`);
+                    return false; // Don't break apart integral terms
+                }
+
+                // For other Chinese words, try character-by-character only as last resort
+                if (word.length === 1) {
+                    // Already a single character, try direct match
+                    if (this.highlightInTextNodes(verse, word, color, side)) {
+                        console.log(`[PARTIAL-MATCH] Highlighted single character: ${word}`);
                         return true;
                     }
+                } else {
+                    // Multi-character word that's not in integral terms
+                    // Try to find the whole word first, then individual chars
+                    console.log(`[PARTIAL-MATCH] "${word}" not found as whole term, this may indicate a segmentation issue`);
+                    return false; // Don't fall back to character matching for now
                 }
             }
 
@@ -2781,7 +2939,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (/[a-zA-Z]/.test(word)) {
                 const stem = word.length > 4 ? word.substring(0, word.length - 2) : word;
                 if (stem !== word && this.highlightInTextNodes(verse, stem, color, side)) {
-                    console.log(`Highlighted stem: ${stem} for word: ${word}`);
+                    console.log(`[PARTIAL-MATCH] Highlighted stem: ${stem} for word: ${word}`);
                     return true;
                 }
             }
@@ -2790,14 +2948,41 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         /**
-         * Clear existing highlights
+         * Clear existing highlights and prevent rainbow edges
          */
         clearHighlights(verse) {
+            // Find all highlight spans
             const highlights = verse.querySelectorAll('.word-mapping-highlight');
             highlights.forEach(highlight => {
                 const parent = highlight.parentNode;
                 parent.insertBefore(document.createTextNode(highlight.textContent), highlight);
                 parent.removeChild(highlight);
+            });
+
+            // Normalize text nodes to prevent fragmentation that causes rainbow edges
+            const walker = document.createTreeWalker(
+                verse,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+
+            const textNodes = [];
+            let node;
+            while (node = walker.nextNode()) {
+                textNodes.push(node);
+            }
+
+            // Merge adjacent text nodes
+            textNodes.forEach(textNode => {
+                if (textNode.parentNode) {
+                    let nextSibling = textNode.nextSibling;
+                    while (nextSibling && nextSibling.nodeType === Node.TEXT_NODE) {
+                        textNode.textContent += nextSibling.textContent;
+                        nextSibling.parentNode.removeChild(nextSibling);
+                        nextSibling = textNode.nextSibling;
+                    }
+                }
             });
         },
 
@@ -2813,20 +2998,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
         /**
          * Detect completed word pairs by scanning for Strong's numbers in right verse
+         * Enhanced to detect both data-strong and text patterns
          */
         detectCompletedPairs(rightVerse, verseId) {
+            // Method 1: Find elements with data-strong attribute
             const strongsElements = rightVerse.querySelectorAll('.strongs-number[data-strong]');
-
             strongsElements.forEach(strongEl => {
                 const strongsNumber = strongEl.getAttribute('data-strong');
+                this.markStrongsAsCompleted(verseId, strongsNumber);
+            });
 
-                // Find mappings that contain this Strong's number
-                this.currentMappings.forEach(mapping => {
-                    if (mapping.strongs === strongsNumber) {
-                        const pairKey = `${verseId}:${mapping.leftWord}:${strongsNumber}`;
-                        this.completedPairs.add(pairKey);
-                    }
-                });
+            // Method 2: Find Strong's patterns in text content (for localStorage restored content)
+            const verseText = rightVerse.textContent || rightVerse.innerHTML;
+            const strongsPatterns = [
+                /<H(\d+)>/g,  // <H1234>
+                /<G(\d+)>/g,  // <G1234>
+                /\[H(\d+)\]/g, // [H1234]
+                /\[G(\d+)\]/g, // [G1234]
+                /{H(\d+)}/g,  // {H1234}
+                /{G(\d+)}/g   // {G1234}
+            ];
+
+            strongsPatterns.forEach(pattern => {
+                let match;
+                while ((match = pattern.exec(verseText)) !== null) {
+                    const strongsNumber = match[1] ? `${match[0].includes('H') ? 'H' : 'G'}${match[1]}` : match[0];
+                    console.log(`[DETECT-COMPLETED] Found Strong's pattern: ${strongsNumber} in verse ${verseId}`);
+                    this.markStrongsAsCompleted(verseId, strongsNumber);
+                }
+            });
+
+            console.log(`[DETECT-COMPLETED] Completed pairs for verse ${verseId}:`,
+                Array.from(this.completedPairs).filter(key => key.startsWith(`${verseId}:`)));
+        },
+
+        /**
+         * Mark all mappings with this Strong's number as completed
+         */
+        markStrongsAsCompleted(verseId, strongsNumber) {
+            // Normalize Strong's number format
+            const normalizedStrongs = strongsNumber.replace(/[<>\[\]{}]/g, '');
+
+            this.currentMappings.forEach(mapping => {
+                const mappingStrongs = mapping.strongs.replace(/[<>\[\]{}]/g, '');
+                if (mappingStrongs === normalizedStrongs) {
+                    const pairKey = `${verseId}:${mapping.leftWord}:${mapping.strongs}`;
+                    this.completedPairs.add(pairKey);
+                    console.log(`[MARK-COMPLETED] Added completed pair: ${pairKey}`);
+                }
             });
         },
 
@@ -2840,6 +3059,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         /**
          * Remove colors for newly inserted Strong's numbers (immediate feedback)
+         * Ensures Strong's numbers retain their default green color (#28a745)
          */
         removeColorsForNewlyInsertedStrongs(verseId, strongsNumber) {
             // Mark all mappings with this Strong's number as completed
@@ -2847,17 +3067,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (mapping.strongs === strongsNumber) {
                     const pairKey = `${verseId}:${mapping.leftWord}:${strongsNumber}`;
                     this.completedPairs.add(pairKey);
+                    console.log(`[REMOVE-COLORS] Marked as completed: ${pairKey}`);
                 }
             });
 
-            // Re-apply word mapping to remove colors
+            // Re-apply word mapping to remove colors from Chinese words
             const leftVerse = document.querySelector('#left-reader-content-area [data-verse="' + verseId + '"]');
             const rightVerse = document.querySelector('#right-reader-content-area [data-verse="' + verseId + '"]');
 
             if (leftVerse && rightVerse) {
                 this.highlightWordPairs(leftVerse, rightVerse, this.currentMappings, verseId);
+                // Note: Strong's numbers maintain green color via CSS
             }
-        }
+        },
+
     };
 
     /**

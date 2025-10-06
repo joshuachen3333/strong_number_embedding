@@ -2,4 +2,8 @@
 2025-10-05 16:32:00	I see there is blue line in between l and R, make it even thicker!!
 2025-10-05 16:35:00	commit and push with description "tooltip with multilanguage and border in between readers enhanced"
 2025-10-05 16:38:00	now for version scroll, if left is main, then right follows and align vertically well, but if the right is main, then the left is always 1 line further than right the main, for example, if right is now ver2 on top, the left would follow but ver3 on top (too early to trigger the scroll, or scroll to over)
-2025-10-05 16:45:00	commit and push with desd"left reader follows right scroll more precisely"
+2025-10-05 16:45:00	commit and push with desd"left reader follows right scroll more precisely"2025-10-07 00:02:31	go ahead, with deep study of the whole code, following dev_criteria. Especially on 斷詞, avoiding treating a term to a individual character when 2 need to be in the same term like 上帝 or 創造,etc)
+2025-10-07 00:14:19	no, still the same. do a systematically deep study and follow the dev_criteria
+2025-10-07 00:18:07	no, many Sn are still in black color and have no link property inside.
+2025-10-07 00:20:50	still the same. It seems that at the first moment I hit cmd+v to paste the clipboard the SN, it is there the plain text, not a html code with property embedded.
+2025-10-07 00:24:04	but it pastes too much like this: <H0430>" title="Strong's <H0430>"><<H0430>>

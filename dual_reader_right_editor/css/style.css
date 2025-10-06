@@ -76,13 +76,15 @@ h1 {
     color: #007bff; /* Blue color for verse numbers */
 }
 
-.verse .strongs-number {
+.verse .strongs-number,
+.verse-container .strongs-number {
     color: #28a745; /* Green color for Strong's numbers */
     font-size: 0.9em;
     cursor: pointer;
 }
 
-.verse .strongs-number:hover {
+.verse .strongs-number:hover,
+.verse-container .strongs-number:hover {
     text-decoration: underline;
 }
 
