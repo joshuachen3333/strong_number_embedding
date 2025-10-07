@@ -1627,8 +1627,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                 verseTextSpan.innerHTML = savedContent;
                                 console.log(`[RESTORE] Updated verse-text span only`);
                             } else {
-                                console.warn(`[RESTORE] verse-text span not found, falling back to full replacement`);
-                                verse.innerHTML = savedContent;
+                                // CRITICAL FIX: Always preserve verse number even in fallback
+                                const verseNumberSpan = verse.querySelector('.verse-number');
+                                const verseNum = verse.getAttribute('data-verse');
+                                const verseNumberHtml = verseNumberSpan ? verseNumberSpan.outerHTML : `<span class="verse-number" data-verse="${verseNum}">${verseNum}</span>`;
+                                verse.innerHTML = `${verseNumberHtml}<span class="verse-text" data-verse="${verseNum}" contenteditable="true">${savedContent}</span>`;
+                                console.log(`[RESTORE] Reconstructed verse-container structure with preserved verse number`);
                             }
                         } else {
                             // Preserve API structure
@@ -1637,8 +1641,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 verse.innerHTML = `${verseNumberSpan.outerHTML} ${savedContent}`;
                                 console.log(`[RESTORE] Preserved verse-number span in API structure`);
                             } else {
-                                console.warn(`[RESTORE] verse-number span not found, falling back to full replacement`);
-                                verse.innerHTML = savedContent;
+                                // CRITICAL FIX: Always preserve verse number even in fallback
+                                const verseNum = verse.getAttribute('data-verse');
+                                verse.innerHTML = `<span class="verse-number">${verseNum}</span> ${savedContent}`;
+                                console.log(`[RESTORE] Reconstructed API structure with preserved verse number`);
                             }
                         }
                     }
@@ -1660,10 +1666,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     attachStrongsEventListenersSecondReader();
                 }
 
-                // Background validation tasks after restoration
-                setTimeout(() => {
-                    performBackgroundValidation(editedContent);
-                }, 200);
+                // Background validation disabled to prevent corrupting user work
+                // setTimeout(() => {
+                //     performBackgroundValidation(editedContent);
+                // }, 200);
             } else {
                 console.log(`[RESTORE] ⚠️ No verses were restored`);
             }
