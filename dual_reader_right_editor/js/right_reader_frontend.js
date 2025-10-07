@@ -893,6 +893,20 @@ document.addEventListener('DOMContentLoaded', () => {
      * Handles clicks on mapped words to provide instant Strong's suggestions
      */
     function handleMappedWordClick(event) {
+        // A1: Self-highlighting behavior (works regardless of edit mode)
+        const clickedElement = event.target;
+
+        // Clear previous self-highlights in right reader
+        const previousSelfHighlights = contentArea.querySelectorAll('.self-highlight');
+        previousSelfHighlights.forEach(element => {
+            element.classList.remove('self-highlight');
+        });
+
+        // Add self-highlight to clicked word
+        clickedElement.classList.add('self-highlight');
+        console.log(`[A1] Applied self-highlight to clicked word: "${clickedElement.textContent}"`);
+
+        // Strong's suggestion behavior (only in edit mode)
         if (!isEditMode) {
             logStatus('💡 Enable Edit Mode to get Strong\'s suggestions for mapped words');
             return;
@@ -2214,10 +2228,117 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * A1: Handles self-highlighting for any clicked element in right reader
+     * Works on Strong's numbers, Chinese text, and pre-highlighted words
+     */
+    function handleA1SelfHighlighting(event) {
+        const clickedElement = event.target;
+        console.log(`[A1] Click detected on: ${clickedElement.tagName}.${clickedElement.className || 'no-class'}`);
+
+        // Clear previous self-highlights in right reader
+        const previousSelfHighlights = contentArea.querySelectorAll('.self-highlight');
+        previousSelfHighlights.forEach(element => {
+            element.classList.remove('self-highlight');
+        });
+
+        let targetElement = null;
+
+        // Case 1: Click on Strong's number span
+        if (clickedElement.classList.contains('strongs-number')) {
+            targetElement = clickedElement;
+            console.log(`[A1] Strong's number clicked: ${clickedElement.textContent}`);
+        }
+        // Case 2: Click on already highlighted word
+        else if (clickedElement.classList.contains('word-mapping-highlight') &&
+                 clickedElement.classList.contains('right-highlight')) {
+            targetElement = clickedElement;
+            console.log(`[A1] Pre-highlighted word clicked: ${clickedElement.textContent}`);
+        }
+        // Case 3: Click on Chinese text (for A2 word expansion + A1 highlighting)
+        else {
+            targetElement = handleChineseTextClick(event);
+        }
+
+        // Apply self-highlight to target element
+        if (targetElement) {
+            targetElement.classList.add('self-highlight');
+            console.log(`[A1] Applied self-highlight to: "${targetElement.textContent}"`);
+        }
+    }
+
+    /**
+     * A2: Handles clicks on Chinese text for word expansion and highlighting
+     */
+    function handleChineseTextClick(event) {
+        const clickedElement = event.target;
+
+        // Only handle text nodes or spans with Chinese characters
+        if (clickedElement.nodeType === Node.TEXT_NODE ||
+            (clickedElement.textContent && /[\u4e00-\u9fff]/.test(clickedElement.textContent))) {
+
+            // Get cursor position for A2 word expansion
+            const range = document.caretRangeFromPoint(event.clientX, event.clientY);
+            if (range) {
+                const textNode = range.startContainer;
+                const cursorPosition = range.startOffset;
+
+                if (textNode.nodeType === Node.TEXT_NODE) {
+                    const text = textNode.textContent;
+                    const expandedWord = WordMappingEngine.expandToCompleteWord(text, cursorPosition);
+
+                    if (expandedWord && expandedWord.word) {
+                        // Create or find a span for the expanded word
+                        const targetSpan = createHighlightSpanForText(textNode, expandedWord);
+                        console.log(`[A2] Chinese text click expanded: "${expandedWord.word}"`);
+                        return targetSpan;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Creates a highlight span for text content to enable self-highlighting
+     */
+    function createHighlightSpanForText(textNode, expandedWord) {
+        try {
+            const parent = textNode.parentNode;
+            const text = textNode.textContent;
+
+            // Split text and create highlight span for the expanded word
+            const beforeText = text.substring(0, expandedWord.start);
+            const wordText = expandedWord.word;
+            const afterText = text.substring(expandedWord.end);
+
+            // Create new span for the word
+            const highlightSpan = document.createElement('span');
+            highlightSpan.className = 'word-mapping-highlight right-highlight';
+            highlightSpan.textContent = wordText;
+            highlightSpan.title = `A2 expanded: ${wordText}`;
+
+            // Replace text node with new structure
+            if (beforeText) parent.insertBefore(document.createTextNode(beforeText), textNode);
+            parent.insertBefore(highlightSpan, textNode);
+            if (afterText) parent.insertBefore(document.createTextNode(afterText), textNode);
+            parent.removeChild(textNode);
+
+            return highlightSpan;
+        } catch (error) {
+            console.log(`[A2] Error creating highlight span: ${error.message}`);
+            return null;
+        }
+    }
+
+    /**
      * Handles clicks on verses when in edit mode - minimal implementation
      */
     function handleVerseClick(event) {
-        // Only handle clicks when edit mode is enabled
+        // A1: Self-highlighting behavior (works for all clicks, regardless of edit mode)
+        handleA1SelfHighlighting(event);
+
+        // Edit mode behavior (only when edit mode is enabled)
         if (!isEditMode) return;
 
         // Find the verse element that was clicked (support both .verse and .verse-container)
@@ -3587,6 +3708,61 @@ document.addEventListener('DOMContentLoaded', () => {
             },
 
             /**
+             * A2: Expands a single Chinese character to its complete word boundary
+             * @param {string} text - Full text content
+             * @param {number} charPosition - Position of the Chinese character
+             * @returns {Object} - {word, start, end} of the complete word
+             */
+            expandToCompleteWord(text, charPosition) {
+                // Define common Chinese word patterns for biblical text
+                const commonWords = [
+                    '起初', '上帝', '創造', '天地', '混沌', '深淵', '黑暗', '光明',
+                    '第一', '第二', '第三', '第四', '第五', '第六', '第七',
+                    '早晨', '晚上', '白天', '夜晚', '空氣', '旱地', '海洋',
+                    '各樣', '各種', '種類', '活物', '野獸', '牲畜', '飛鳥',
+                    '男人', '女人', '夫妻', '生育', '管理', '治理', '看守',
+                    '園子', '伊甸', '河流', '分為', '四道', '善惡', '生命',
+                    '知識', '智慧', '聰明', '分別', '赤身', '羞恥', '遮掩'
+                ];
+
+                const char = text.charAt(charPosition);
+                console.log(`[DEBUG] A2: Expanding character "${char}" at position ${charPosition}`);
+
+                // Find the longest word that contains this character at this position
+                let bestMatch = {
+                    word: char,
+                    start: charPosition,
+                    end: charPosition + 1
+                };
+
+                for (const word of commonWords) {
+                    const charIndex = word.indexOf(char);
+                    if (charIndex !== -1) {
+                        // Calculate where this word would start in the text
+                        const wordStart = charPosition - charIndex;
+                        const wordEnd = wordStart + word.length;
+
+                        // Check if the complete word exists at this position
+                        if (wordStart >= 0 && wordEnd <= text.length) {
+                            const textSegment = text.substring(wordStart, wordEnd);
+                            if (textSegment === word) {
+                                console.log(`[DEBUG] A2: Found complete word "${word}" containing "${char}"`);
+                                bestMatch = {
+                                    word: word,
+                                    start: wordStart,
+                                    end: wordEnd
+                                };
+                                break; // Use first (longest) match
+                            }
+                        }
+                    }
+                }
+
+                console.log(`[DEBUG] A2: Final expansion: "${bestMatch.word}" (${bestMatch.start}-${bestMatch.end})`);
+                return bestMatch;
+            },
+
+            /**
              * Get word at cursor position - check LEFT of cursor first (where user clicked)
              */
             getWordAtPosition(text, position) {
@@ -3599,11 +3775,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (/[\u4e00-\u9fff]/.test(leftChar)) {
                         console.log(`[DEBUG] Found clicked Chinese character: "${leftChar}"`);
-                        return {
-                            word: leftChar,
-                            start: position - 1,
-                            end: position
-                        };
+
+                        // A2: Expand to complete word using word boundary detection
+                        const expandedWord = this.expandToCompleteWord(text, position - 1);
+                        console.log(`[DEBUG] A2: Expanded "${leftChar}" to complete word: "${expandedWord.word}"`);
+
+                        return expandedWord;
                     }
                 }
 
@@ -3614,11 +3791,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (/[\u4e00-\u9fff]/.test(charAtCursor)) {
                         console.log(`[DEBUG] Found Chinese character at cursor: "${charAtCursor}"`);
-                        return {
-                            word: charAtCursor,
-                            start: position,
-                            end: position + 1
-                        };
+
+                        // A2: Expand to complete word using word boundary detection
+                        const expandedWord = this.expandToCompleteWord(text, position);
+                        console.log(`[DEBUG] A2: Expanded "${charAtCursor}" to complete word: "${expandedWord.word}"`);
+
+                        return expandedWord;
                     }
                 }
 

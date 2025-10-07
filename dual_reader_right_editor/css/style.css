@@ -198,3 +198,23 @@ label[for="right-reader-follow-scroll"]:hover {
     min-height: 40px;
     max-height: 50vh;
 }
+
+/* A1: Right-side blue self-highlighting for clicked words ONLY */
+.right-highlight.self-highlight {
+    background-color: #1e40af !important;
+    color: white !important;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.right-highlight.self-highlight:hover {
+    background-color: #1d4ed8 !important;
+}
+
+/* Proactive word mapping highlights should NOT be blue */
+.right-highlight:not(.self-highlight) {
+    /* Let the inline style.backgroundColor from word mapping take precedence */
+}
