@@ -2228,58 +2228,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Expands a single Chinese character to its complete word boundary
-     * Simplified version of WordMappingEngine.expandToCompleteWord for external use
-     */
-    function expandChineseWord(text, charPosition) {
-        const commonWords = [
-            '起初', '上帝', '創造', '天地', '混沌', '深淵', '黑暗', '光明',
-            '第一', '第二', '第三', '第四', '第五', '第六', '第七',
-            '早晨', '晚上', '白天', '夜晚', '空氣', '旱地', '海洋',
-            '各樣', '各種', '種類', '活物', '野獸', '牲畜', '飛鳥',
-            '男人', '女人', '夫妻', '生育', '管理', '治理', '看守',
-            '園子', '伊甸', '河流', '分為', '四道', '善惡', '生命',
-            '知識', '智慧', '聰明', '分別', '赤身', '羞恥', '遮掩'
-        ];
-
-        const char = text.charAt(charPosition);
-        console.log(`[A2-External] Expanding character "${char}" at position ${charPosition}`);
-
-        // Find the longest word that contains this character at this position
-        let bestMatch = {
-            word: char,
-            start: charPosition,
-            end: charPosition + 1
-        };
-
-        for (const word of commonWords) {
-            const charIndex = word.indexOf(char);
-            if (charIndex !== -1) {
-                // Calculate where this word would start in the text
-                const wordStart = charPosition - charIndex;
-                const wordEnd = wordStart + word.length;
-
-                // Check if the complete word exists at this position
-                if (wordStart >= 0 && wordEnd <= text.length) {
-                    const textSegment = text.substring(wordStart, wordEnd);
-                    if (textSegment === word) {
-                        console.log(`[A2-External] Found complete word "${word}" containing "${char}"`);
-                        bestMatch = {
-                            word: word,
-                            start: wordStart,
-                            end: wordEnd
-                        };
-                        break; // Use first (longest) match
-                    }
-                }
-            }
-        }
-
-        console.log(`[A2-External] Final expansion: "${bestMatch.word}" (${bestMatch.start}-${bestMatch.end})`);
-        return bestMatch;
-    }
-
-    /**
      * A1: Handles self-highlighting for any clicked element in right reader
      * Works on Strong's numbers, Chinese text, and pre-highlighted words
      */
@@ -2311,117 +2259,11 @@ document.addEventListener('DOMContentLoaded', () => {
             targetElement = handleChineseTextClick(event);
         }
 
-        // Case 4: If no direct target found, look for nearby highlightable elements (edge clicks)
-        if (!targetElement) {
-            targetElement = findNearbyHighlightableElement(event);
-        }
-
-        // Apply self-highlight to target element (with safety checks)
+        // Apply self-highlight to target element
         if (targetElement) {
-            // Safety check: Don't highlight verse containers or large elements
-            if (targetElement.classList.contains('verse') ||
-                targetElement.classList.contains('verse-container') ||
-                targetElement === contentArea) {
-                console.log(`[A1] BLOCKED: Attempted to highlight verse container or large element: ${targetElement.tagName}.${targetElement.className}`);
-                return;
-            }
-
-            // Safety check: Don't highlight elements that are too large (likely containers)
-            const textLength = targetElement.textContent.trim().length;
-            if (textLength > 100) {
-                console.log(`[A1] BLOCKED: Element too large (${textLength} chars): "${targetElement.textContent.substring(0, 50)}..."`);
-                return;
-            }
-
             targetElement.classList.add('self-highlight');
-            console.log(`[A1] Applied self-highlight to: "${targetElement.textContent}" (${textLength} chars)`);
-        } else {
-            console.log(`[A1] No highlightable element found for click`);
+            console.log(`[A1] Applied self-highlight to: "${targetElement.textContent}"`);
         }
-    }
-
-    /**
-     * Finds nearby highlightable elements when direct click doesn't hit a target
-     * Handles edge clicks between spans or at element boundaries
-     */
-    function findNearbyHighlightableElement(event) {
-        const clickedElement = event.target;
-        console.log(`[A1] Searching for nearby highlightable elements around: ${clickedElement.tagName}.${clickedElement.className || 'no-class'} "${clickedElement.textContent?.substring(0, 30) || 'no-text'}..."`);
-
-        // Strategy 1: Check parent element
-        let parent = clickedElement.parentElement;
-        while (parent && parent !== contentArea) {
-            if (parent.classList.contains('strongs-number') ||
-                (parent.classList.contains('word-mapping-highlight') && parent.classList.contains('right-highlight'))) {
-                console.log(`[A1] Found highlightable parent: ${parent.textContent}`);
-                return parent;
-            }
-            parent = parent.parentElement;
-        }
-
-        // Strategy 2: Check siblings and nearby spans using cursor position
-        const range = document.caretRangeFromPoint(event.clientX, event.clientY);
-        if (range && range.startContainer) {
-            const container = range.startContainer;
-
-            // Check if we're in a text node next to a highlightable span
-            if (container.nodeType === Node.TEXT_NODE) {
-                const parentNode = container.parentNode;
-
-                // Check previous sibling
-                let sibling = container.previousSibling;
-                if (sibling && sibling.nodeType === Node.ELEMENT_NODE) {
-                    if (sibling.classList.contains('strongs-number') ||
-                        (sibling.classList.contains('word-mapping-highlight') && sibling.classList.contains('right-highlight'))) {
-                        console.log(`[A1] Found highlightable previous sibling: ${sibling.textContent}`);
-                        return sibling;
-                    }
-                }
-
-                // Check next sibling
-                sibling = container.nextSibling;
-                if (sibling && sibling.nodeType === Node.ELEMENT_NODE) {
-                    if (sibling.classList.contains('strongs-number') ||
-                        (sibling.classList.contains('word-mapping-highlight') && sibling.classList.contains('right-highlight'))) {
-                        console.log(`[A1] Found highlightable next sibling: ${sibling.textContent}`);
-                        return sibling;
-                    }
-                }
-            }
-        }
-
-        // Strategy 3: Search for closest highlightable element within the verse
-        const verseElement = clickedElement.closest('.verse') || clickedElement.closest('.verse-container');
-        if (verseElement) {
-            const highlightableElements = verseElement.querySelectorAll('.strongs-number, .word-mapping-highlight.right-highlight');
-
-            // Find the closest element to the click position
-            let closestElement = null;
-            let minDistance = Infinity;
-
-            highlightableElements.forEach(element => {
-                const rect = element.getBoundingClientRect();
-                const elementCenterX = rect.left + rect.width / 2;
-                const elementCenterY = rect.top + rect.height / 2;
-                const distance = Math.sqrt(
-                    Math.pow(event.clientX - elementCenterX, 2) +
-                    Math.pow(event.clientY - elementCenterY, 2)
-                );
-
-                if (distance < minDistance && distance < 50) { // Within 50px
-                    minDistance = distance;
-                    closestElement = element;
-                }
-            });
-
-            if (closestElement) {
-                console.log(`[A1] Found closest highlightable element: ${closestElement.textContent} (distance: ${minDistance.toFixed(1)}px)`);
-                return closestElement;
-            }
-        }
-
-        console.log(`[A1] No nearby highlightable elements found`);
-        return null;
     }
 
     /**
@@ -2442,19 +2284,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (textNode.nodeType === Node.TEXT_NODE) {
                     const text = textNode.textContent;
-
-                    // A2: Left neighbor logic - if click at position, check left neighbor first
-                    let targetPosition = cursorPosition;
-                    if (cursorPosition > 0) {
-                        // Use left neighbor (position - 1) as primary target
-                        targetPosition = cursorPosition - 1;
-                        console.log(`[A2] Click at position ${cursorPosition}, using left neighbor at position ${targetPosition}`);
-                    } else {
-                        console.log(`[A2] Click at position ${cursorPosition}, at start of text`);
-                    }
-
-                    // Use a simpler approach: directly implement word expansion here
-                    const expandedWord = expandChineseWord(text, targetPosition);
+                    const expandedWord = WordMappingEngine.expandToCompleteWord(text, cursorPosition);
 
                     if (expandedWord && expandedWord.word) {
                         // Create or find a span for the expanded word
