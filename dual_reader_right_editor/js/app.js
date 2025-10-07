@@ -31,7 +31,7 @@ class VerticalResizer {
 
     attachEventListeners() {
         // Remove existing listeners to prevent duplicates
-        const handles = document.querySelectorAll('.resize-handle-s[data-target$="content"]');
+        const handles = document.querySelectorAll('.resize-handle-s[data-target]');
 
         handles.forEach(handle => {
             // Remove any existing listener first
@@ -64,7 +64,15 @@ class VerticalResizer {
         e.preventDefault();
 
         const deltaY = e.clientY - this.startY;
-        const newHeight = Math.max(100, this.startHeight + deltaY); // Minimum height of 100px
+        const target = this.currentHandle.getAttribute('data-target');
+
+        // Different minimum heights for different elements
+        let minHeight = 100;
+        if (target.includes('status')) {
+            minHeight = 40; // Status areas can be smaller
+        }
+
+        const newHeight = Math.max(minHeight, this.startHeight + deltaY);
 
         // Set height on current element
         this.targetElement.style.height = newHeight + 'px';
@@ -89,6 +97,10 @@ class VerticalResizer {
                 return document.getElementById('left-reader-content-area');
             case 'right-content':
                 return document.getElementById('right-reader-content-area');
+            case 'left-status':
+                return document.getElementById('left-reader-status-display');
+            case 'right-status':
+                return document.getElementById('right-reader-status-display');
             default:
                 return null;
         }
@@ -107,6 +119,12 @@ class VerticalResizer {
                 break;
             case 'right-content':
                 correspondingElement = document.getElementById('left-reader-content-area');
+                break;
+            case 'left-status':
+                correspondingElement = document.getElementById('right-reader-status-display');
+                break;
+            case 'right-status':
+                correspondingElement = document.getElementById('left-reader-status-display');
                 break;
         }
 
