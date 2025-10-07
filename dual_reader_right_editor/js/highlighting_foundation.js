@@ -137,15 +137,71 @@ const HighlightingFoundation = {
             let targetElement = event.target;
             console.log(`  - Initial target:`, targetElement);
 
-            // Handle clicks on verse containers
+            // Handle clicks on verse containers - find actual word element
             if (targetElement.classList.contains('verse') ||
                 targetElement.classList.contains('verse-container')) {
-                console.log(`  - Clicked on verse container, finding text element...`);
+                console.log(`  - Clicked on verse container, finding word element...`);
                 // Use document.caretRangeFromPoint to find actual text element
                 const range = document.caretRangeFromPoint(event.clientX, event.clientY);
                 if (range && range.startContainer.nodeType === Node.TEXT_NODE) {
-                    targetElement = range.startContainer.parentElement;
-                    console.log(`  - Found text element:`, targetElement);
+                    const textNode = range.startContainer;
+                    const parentElement = textNode.parentElement;
+
+                    // Look for the closest meaningful word element (span, em, etc.)
+                    let wordElement = parentElement;
+
+                    // If parent is still the verse container, try to create a word span
+                    if (wordElement.classList.contains('verse') ||
+                        wordElement.classList.contains('verse-container')) {
+
+                        // Extract the word around the click position
+                        const textContent = textNode.textContent;
+                        const offset = range.startOffset;
+
+                        // Find word boundaries
+                        const beforeText = textContent.substring(0, offset);
+                        const afterText = textContent.substring(offset);
+
+                        // Simple word boundary detection (space, punctuation)
+                        const wordStart = Math.max(0,
+                            Math.max(beforeText.lastIndexOf(' '),
+                                    beforeText.lastIndexOf('；'),
+                                    beforeText.lastIndexOf('，'),
+                                    beforeText.lastIndexOf('。')) + 1);
+
+                        const wordEndInAfter = Math.min(afterText.length,
+                            Math.min(
+                                afterText.indexOf(' ') === -1 ? afterText.length : afterText.indexOf(' '),
+                                afterText.indexOf('；') === -1 ? afterText.length : afterText.indexOf('；'),
+                                afterText.indexOf('，') === -1 ? afterText.length : afterText.indexOf('，'),
+                                afterText.indexOf('。') === -1 ? afterText.length : afterText.indexOf('。')
+                            ));
+
+                        const wordEnd = offset + wordEndInAfter;
+                        const clickedWord = textContent.substring(wordStart, wordEnd).trim();
+
+                        if (clickedWord && clickedWord.length > 0) {
+                            // Create a temporary span for the word
+                            const wordSpan = document.createElement('span');
+                            wordSpan.textContent = clickedWord;
+                            wordSpan.classList.add('temp-word-highlight');
+
+                            // Split the text node and insert the span
+                            const beforeNode = document.createTextNode(textContent.substring(0, wordStart));
+                            const afterNode = document.createTextNode(textContent.substring(wordEnd));
+
+                            textNode.parentNode.insertBefore(beforeNode, textNode);
+                            textNode.parentNode.insertBefore(wordSpan, textNode);
+                            textNode.parentNode.insertBefore(afterNode, textNode);
+                            textNode.parentNode.removeChild(textNode);
+
+                            targetElement = wordSpan;
+                            console.log(`  - Created word span for: "${clickedWord}"`);
+                        }
+                    } else {
+                        targetElement = wordElement;
+                        console.log(`  - Found word element:`, targetElement);
+                    }
                 }
             }
 

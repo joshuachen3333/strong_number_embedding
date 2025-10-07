@@ -2253,6 +2253,27 @@ document.addEventListener('DOMContentLoaded', () => {
                  clickedElement.classList.contains('right-highlight')) {
             targetElement = clickedElement;
             console.log(`[A1] Pre-highlighted word clicked: ${clickedElement.textContent}`);
+
+            // For pre-highlighted words, use the clicked element's text directly for Strong's lookup
+            const clickedText = clickedElement.textContent.trim();
+            if (clickedText) {
+                // Find Strong's number for this specific word (use element text, not cursor position)
+                const verseElement = clickedElement.closest('.verse');
+                if (verseElement) {
+                    const leftVerseNum = verseElement.getAttribute('data-verse');
+                    const leftVerse = document.querySelector(`#left-reader-content-area .verse[data-verse="${leftVerseNum}"]`);
+
+                    if (leftVerse) {
+                        // Use direct word match instead of cursor position
+                        const strongsForWord = WordMappingEngine.findStrongsByDirectMatch(leftVerse, clickedText);
+                        if (strongsForWord && strongsForWord.length > 0) {
+                            console.log(`[A1] Direct match for "${clickedText}": ${strongsForWord.join(', ')}`);
+                            // Highlight the corresponding Strong's number in left reader
+                            highlightStrongsInLeftReader(strongsForWord[0], leftVerseNum, true);
+                        }
+                    }
+                }
+            }
         }
         // Case 3: Click on Chinese text (for A2 word expansion + A1 highlighting)
         else {
@@ -2264,6 +2285,58 @@ document.addEventListener('DOMContentLoaded', () => {
             targetElement.classList.add('self-highlight');
             console.log(`[A1] Applied self-highlight to: "${targetElement.textContent}"`);
         }
+    }
+
+    /**
+     * Simple word expansion function for A1 highlighting (without WordMappingEngine dependency)
+     */
+    function simpleExpandToCompleteWord(text, charPosition) {
+        // Simple Chinese word boundary detection
+        const commonWords = [
+            '起初', '上帝', '創造', '天地', '混沌', '深淵', '黑暗', '光明',
+            '第一', '第二', '第三', '第四', '第五', '第六', '第七',
+            '早晨', '晚上', '白天', '夜晚', '空氣', '旱地', '海洋',
+            '看見', '很好', '分開', '稱為', '有了', '收聚', '露出',
+            '發光', '管理', '分別', '各種', '活物', '牲畜', '昆蟲',
+            '野獸', '形像', '樣式', '管轄', '治理', '生養', '眾多',
+            '遍滿', '征服', '食物'
+        ];
+
+        // Start with character at position
+        let start = charPosition;
+        let end = charPosition + 1;
+
+        // Expand left and right to find word boundaries
+        while (start > 0 && /[\u4e00-\u9fff]/.test(text[start - 1])) {
+            start--;
+        }
+        while (end < text.length && /[\u4e00-\u9fff]/.test(text[end])) {
+            end++;
+        }
+
+        // Extract the potential word
+        let word = text.substring(start, end);
+
+        // Try to find known multi-character words that contain our position
+        for (const commonWord of commonWords) {
+            const wordStart = text.indexOf(commonWord, Math.max(0, charPosition - commonWord.length));
+            if (wordStart !== -1 &&
+                wordStart <= charPosition &&
+                charPosition < wordStart + commonWord.length) {
+                return {
+                    word: commonWord,
+                    start: wordStart,
+                    end: wordStart + commonWord.length
+                };
+            }
+        }
+
+        // Fall back to single character or detected boundary
+        return {
+            word: word || text[charPosition],
+            start: start,
+            end: end
+        };
     }
 
     /**
@@ -2284,7 +2357,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (textNode.nodeType === Node.TEXT_NODE) {
                     const text = textNode.textContent;
-                    const expandedWord = WordMappingEngine.expandToCompleteWord(text, cursorPosition);
+
+                    // Simple word expansion for A1 highlighting (without dependency on WordMappingEngine)
+                    const expandedWord = simpleExpandToCompleteWord(text, cursorPosition);
 
                     if (expandedWord && expandedWord.word) {
                         // Create or find a span for the expanded word
@@ -3967,6 +4042,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 console.log(`[DEBUG] Extracted ${uniqueWords.length} unique word-Strong's pairs:`, uniqueWords);
                 return uniqueWords;
+            },
+
+            /**
+             * Find Strong's numbers for a word using direct text matching
+             * Used for pre-highlighted words where we have the exact text
+             */
+            findStrongsByDirectMatch(leftVerse, targetWord) {
+                const words = this.extractWordsWithStrongs(leftVerse);
+                const matches = [];
+
+                // Look for exact matches
+                for (const wordItem of words) {
+                    if (wordItem.word === targetWord) {
+                        if (Array.isArray(wordItem.strong)) {
+                            matches.push(...wordItem.strong);
+                        } else {
+                            matches.push(wordItem.strong);
+                        }
+                    }
+                }
+
+                // Remove duplicates
+                const uniqueMatches = [...new Set(matches)];
+                console.log(`[DEBUG] Direct match for "${targetWord}": ${uniqueMatches.join(', ')}`);
+                return uniqueMatches;
             },
 
             /**

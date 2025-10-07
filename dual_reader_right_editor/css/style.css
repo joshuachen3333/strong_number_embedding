@@ -218,3 +218,84 @@ label[for="right-reader-follow-scroll"]:hover {
 .right-highlight:not(.self-highlight) {
     /* Let the inline style.backgroundColor from word mapping take precedence */
 }
+
+/* Enhanced cursor visibility - blood red | cursor ONLY */
+.reader-content,
+.reader-content *,
+#left-reader-content,
+#left-reader-content *,
+#right-reader-content,
+#right-reader-content *,
+.verse,
+.verse-container {
+    caret-color: #dc143c !important; /* Blood red cursor ONLY */
+    /* Remove text-shadow that was affecting all text */
+}
+
+/* Focus state - brighter red cursor when actively focused */
+.reader-content:focus,
+#left-reader-content:focus,
+#right-reader-content:focus,
+.reader-content *:focus,
+#left-reader-content *:focus,
+#right-reader-content *:focus,
+.verse:focus,
+.verse-container:focus {
+    outline: none;
+    caret-color: #ff0000 !important; /* Bright red cursor when focused */
+}
+
+/* Enhanced cursor blinking animation - animates ONLY caret-color */
+@keyframes cursor-pulse {
+    0%, 50% {
+        caret-color: #dc143c; /* Blood red */
+    }
+    51%, 100% {
+        caret-color: #ff1744; /* Brighter red for pulsing effect */
+    }
+}
+
+/* Apply pulsing animation to editable content - ONLY affects cursor */
+.verse[contenteditable="true"],
+.reader-content[contenteditable="true"],
+#left-reader-content[contenteditable="true"],
+#right-reader-content[contenteditable="true"] {
+    animation: cursor-pulse 1.0s infinite ease-in-out;
+    caret-color: #dc143c !important;
+    /* Additional thickness attempts */
+    font-weight: inherit;
+}
+
+/* Additional cursor enhancement techniques for thickness illusion */
+.reader-content,
+#left-reader-content,
+#right-reader-content {
+    /* Increase line-height slightly to make cursor appear more prominent */
+    line-height: 1.6;
+    /* Ensure cursor is always visible */
+    cursor: text;
+}
+
+/* Browser-specific cursor enhancements */
+.verse[contenteditable="true"]:focus,
+.reader-content[contenteditable="true"]:focus,
+#left-reader-content[contenteditable="true"]:focus,
+#right-reader-content[contenteditable="true"]:focus {
+    caret-color: #ff0000 !important; /* Brightest red when actively editing */
+    /* Multiple thickness enhancement attempts */
+    --caret-width: 3px;
+    /* WebKit specific cursor thickness */
+    -webkit-text-stroke: 0.5px #dc143c;
+    /* Force thicker appearance with letter spacing adjustment */
+    letter-spacing: 0.1px;
+}
+
+/* Additional thickness enhancement for all editable areas */
+.verse[contenteditable="true"],
+.reader-content[contenteditable="true"],
+#left-reader-content[contenteditable="true"],
+#right-reader-content[contenteditable="true"] {
+    /* Experimental cursor thickness properties */
+    -webkit-text-stroke-width: 0.3px;
+    -webkit-text-stroke-color: transparent;
+}
