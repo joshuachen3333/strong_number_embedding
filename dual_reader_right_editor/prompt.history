@@ -50,3 +50,57 @@
 [12:01:35 PM] 🔍 Highlighted 1 matching H01254 instances in left reader (single mode)
 [12:01:35 PM] 💡 Suggested: H0853, H01254 (copied to clipboard)
 [12:01:42 PM] 💾 Saved verse 1
+<<<<<<< Updated upstream
+=======
+2025-10-07 12:22:00	[12:22:25 PM] 🔍 Suggestion: Verse 1, cursor at pos 4
+[12:22:25 PM] 💡 Suggestion: Found H07225 for word "初" (confidence: 1)
+[12:22:25 PM] 🔍 Highlighted 1 matching H07225 instances in left reader (single mode)
+[12:22:25 PM] 💡 Suggested: H07225 (copied to clipboard)
+[12:22:53 PM] 💾 Saved verse 1
+[12:22:53 PM] 💾 Saved verse 1,
+why   起初 is not self highlighted?
+2025-10-07 13:12:00	look at this, 起初 is not highlighted, but 1 is, with the logs[DEBUG] Auto-cleared highlighting after 10 seconds
+[1:12:22 PM] 📝 Editing verse 1
+[1:12:22 PM] 🔍 Suggestion: Verse 1, cursor at pos 3
+[1:12:22 PM] 💡 Suggestion: Found H07225 for word "起" (confidence: 0.7)
+[1:12:22 PM] 🔍 Highlighted 1 matching H07225 instances in left reader (single mode)
+[1:12:22 PM] 💡 Suggested: H07225 (copied to clipboard)
+[1:12:26 PM] 💾 Saved verse 1
+[1:12:27 PM] 💾 Saved verse 1
+2025-10-07 13:30:00	better now, but why this happens: results in finally the whole verse is highlighted blue and never unhighlighted?
+2025-10-07 13:45:00	improving!, now look at this: why 起初 is not highlighted?
+2025-10-07 13:50:00	go ahead
+2025-10-07 14:00:00	why 上帝 can not be highlighted?
+2025-10-07 14:05:00	clicking at a word/term now become very very hard and non-precise. what's going on?
+2025-10-07 14:10:00	show me the last 3 commits
+2025-10-07 14:15:00	give up everything except prompt.history and highlight_todo.md, roll back to d310e59 and wait for me to redo A2.
+2025-10-07 14:20:00	let's redo A2, follow dev_criteria and check highlight_todo.md's A2, if click at something, the left neighbor to that click counts. For example, 起初<H07225>上帝<H0430>創造<H01254><H0853>天<H08064><H0853>地<H0776>, if we click 起(cursor)初<H07225>上帝, then 起is counted; if we click 起初(cursor)<H07225>上帝, then 起初 is counted (note that not nust 起, but 起初, make sure 起初is iedntified finally, as a complete term; if we click 起初<H07225>(cursor)上帝, then 起初<H07225> is counted. Make sure we only dark blue highlight the counted part (term or term +SN), not the whole verse.
+2025-10-07 14:25:00	still not highlighted for 起初.
+2025-10-07 14:30:00	now the logs show A2 is working and highlighting applied, good!
+2025-10-07 14:35:00	clicking at 起初cursor, always become cursor起初, make it impossible to aim at the right neighbor of 起初
+2025-10-07 14:40:00	it seems that after A1, the clicking become very inprecise. clicking at a term's sharp left neighbor is almost impossible.
+2025-10-07 14:45:00	yes, back to normal for clicking precisement.
+2025-10-07 14:50:00	so one click highlights the left orange, double click self-highlight. right?
+2025-10-07 14:55:00	I prefer maintaining this single and precise one click is enough. while precise clicking possible, just one click must highlight left orange and right blue highlight. process the word/term after I click precisely at the good position, to highlight right blue as a term.
+2025-10-07 15:00:00	give up everything except prompt.history and highlight_todo.md, roll back to d310e59 and wait for me to redo A2.
+2025-10-07 15:05:00	even we are at d310e59, why do I have left reader whole verse dark blue highlighted?
+2025-10-07 15:10:00	yes, I still see the left dark blue verse highlighting.
+2025-10-07 15:15:00	list the last 5 commit
+2025-10-07 15:20:00	let's revert to dc5c2cc, newly added resize handler. see if the left verse blue is gone.
+2025-10-07 15:25:00	now, let's implement A1 and A2 together.### **A - Cross-reader word highlighting improvements**
+**A1** - Right reader self-highlighting: Click Chinese term → highlight same term in dark blue in right reader
+**A2** - Smart cursor-left term detection: Logic for what gets selected based on cursor position (term vs SN grouping), if click at something, the left neighbor to that click counts. For example, 起初<H07225>上帝<H0430>創造<H01254><H0853>天<H08064><H0853>地<H0776>, if we click 起(cursor)初<H07225>上帝, then 起is counted; if we click 起初(cursor)<H07225>上帝, then 起初 is counted (note that not nust 起, but 起初, make sure 起初is iedntified finally, as a complete term; if we click 起初<H07225>(cursor)上帝, then 起初<H07225> is counted. Make sure we only dark blue highlight the counted part (term or term +SN), not the whole verse.
+2025-10-07 15:30:00	no really, A2 is not working, A1 only highlighting SN part.
+2025-10-07 15:35:00	let's revert to dc5c2cc, newly added resize handler. because I can not position it precisely again.
+2025-10-07 15:40:00	what is the difference that positioning is not precise.
+2025-10-07 15:45:00	write down this click being not precise issue to our dev_criteria.md to gurantee not to make the click unprecise.
+2025-10-07 15:50:00	now, let's implement A1 and A2 together.Do not break the click precise again, make sure I can still click at a very precise position.### **A - Cross-reader word highlighting improvements**
+**A1** - Right reader self-highlighting: Click Chinese term → highlight same term in dark blue in right reader
+**A2** - Smart cursor-left term detection: Logic for what gets selected based on cursor position (term vs SN grouping), if click at something, the left neighbor to that click counts. For example, 起初<H07225>上帝<H0430>創造<H01254><H0853>天<H08064><H0853>地<H0776>, if we click 起(cursor)初<H07225>上帝, then 起is counted; if we click 起初(cursor)<H07225>上帝, then 起初 is counted (note that not nust 起, but 起初, make sure 起初is iedntified finally, as a complete term; if we click 起初<H07225>(cursor)上帝, then 起初<H07225> is counted. Make sure we only dark blue highlight the counted part (term or term +SN), not the whole verse.
+2025-10-07 15:55:00	我總覺得現有的點擊, 判斷哪個字詞, 對面橘側亮, 已經很精準了, 縱使右邊只偵測到一個字, 但現在的機制夠好了. 問題只出在後續要右側藍色反亮要帶入第二個字的整個詞這個細節. is that right?
+2025-10-07 16:00:00	對, 另外右側藍色高亮問題, 除了應該整個詞一起高亮藍色之外, 有時連一個字都沒有高亮, 可是至少應該高亮一個字啊? 對面橘色都高亮了, 可見本地右側初始第一個點擊左側的單一字是有偵測到的, 至少它應該高亮啊? 為何有時連一個最起碼單一字都沒有高亮, 遑論整個詞高亮
+2025-10-07 16:05:00	are you still appending to prompt.history?
+2025-10-07 16:10:00	所以我認為不要打破點擊的準確性現況, 做太激進的改動, 利用現有精確點擊以及左側能正確解讀的優勢, 補強本地高亮藍色的兩個問題就好.
+2025-10-07 16:15:00	這個保守而精準的方法, 是否就是今天早上你提問的 option1?
+2025-10-07 16:20:00	好, 好, 我們改成保守且精準的策略. 請一併修改某個highlight*_todo.md
+>>>>>>> Stashed changes
