@@ -41,3 +41,12 @@
 2025-10-07 06:43:00	make sure my current wishes are merged to the highlight_todo.md
 2025-10-07 06:44:00	before we go ahead, commit and push with description: "highlight_todo.md created and ready to implement it"
 2025-10-07 07:05:00	ok, go ahead and commit and push
+2025-10-07 11:05:00	let's work on the small UI first, to add border expand handel for status area, just like reader area can expand at lower border. make all handel color all dark green.
+2025-10-07 11:10:00	good, commit and push with "status area now has resize handler at bottom"
+2025-10-07 11:15:00	ok, let's proceed with A1 , make sure we go through dev_criteria.md
+2025-10-07 12:01:00	[12:01:35 PM] 🔍 Suggestion: Verse 1, cursor at pos 22
+[12:01:35 PM] 💡 Suggestion: Found H0853, H01254 for word "創" (confidence: 1)
+[12:01:35 PM] 🔍 Highlighted 1 matching H0853 instances in left reader (single mode)
+[12:01:35 PM] 🔍 Highlighted 1 matching H01254 instances in left reader (single mode)
+[12:01:35 PM] 💡 Suggested: H0853, H01254 (copied to clipboard)
+[12:01:42 PM] 💾 Saved verse 1
