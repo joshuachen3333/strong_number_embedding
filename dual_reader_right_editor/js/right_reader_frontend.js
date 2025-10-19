@@ -1377,7 +1377,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Mark as having listener attached
                 el.setAttribute('data-listener-attached', 'true');
-                console.log(`[ATTACH-LISTENERS] Added click listener to ${strongNum}`);
+                console.log(`[ATTACH-LISTENERS] Added click listener to ${el.dataset.strong}`);
             } else {
                 console.log(`[ATTACH-LISTENERS] Skipping ${el.dataset.strong} - listener already attached`);
             }

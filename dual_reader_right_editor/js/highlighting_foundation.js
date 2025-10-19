@@ -62,8 +62,9 @@ const HighlightingFoundation = {
 
         console.log(`HighlightingFoundation A1: Highlighting "${element.textContent.trim()}" in ${readerType} reader`);
 
-        // Clear any existing highlights
+        // Clear any existing highlights (both A1 and MATCHED)
         this.clearHighlights();
+        this.clearMatchedHighlights();
 
         // Find the verse container (parent .verse or .verse-container)
         const verseContainer = element.closest('.verse, .verse-container');
@@ -82,6 +83,10 @@ const HighlightingFoundation = {
         this.currentHighlight = element;
 
         console.log('HighlightingFoundation A1: Dark blue term highlight applied');
+
+        // === A2: Cross-reader MATCHED highlighting ===
+        // Trigger MATCHED highlighting in the other reader
+        this.triggerMatchedHighlighting(element, readerType);
     },
 
     /**
@@ -104,6 +109,259 @@ const HighlightingFoundation = {
         this.currentVerseHighlight = null;
     },
 
+    /**
+     * Clear MATCHED highlights (orange family) in all readers
+     */
+    clearMatchedHighlights: function() {
+        // Clear MATCHED Strong's number highlights
+        document.querySelectorAll('.matched-sn-highlighted').forEach(el => {
+            el.style.backgroundColor = '';
+            el.style.color = '';
+            el.style.padding = '';
+            el.style.borderRadius = '';
+            el.style.fontWeight = '';
+            el.style.border = '';
+            el.style.boxShadow = '';
+            el.style.animation = '';
+            el.classList.remove('matched-sn-highlighted');
+        });
+
+        // Clear MATCHED term highlights
+        document.querySelectorAll('.matched-term-highlighted').forEach(el => {
+            el.style.backgroundColor = '';
+            el.style.color = '';
+            el.style.fontWeight = '';
+            el.style.padding = '';
+            el.style.borderRadius = '';
+            el.classList.remove('matched-term-highlighted');
+        });
+
+        // Clear MATCHED verse highlights
+        document.querySelectorAll('.matched-verse-highlighted').forEach(el => {
+            el.style.backgroundColor = '';
+            el.classList.remove('matched-verse-highlighted');
+        });
+
+        console.log('HighlightingFoundation: Cleared all MATCHED highlights');
+    },
+
+    /**
+     * A2: Trigger MATCHED highlighting in the other reader
+     * @param {Element} clickedElement - The clicked word element
+     * @param {string} clickedReaderType - 'left' or 'right'
+     */
+    triggerMatchedHighlighting: function(clickedElement, clickedReaderType) {
+        console.log(`HighlightingFoundation A2: Triggering MATCHED highlighting from ${clickedReaderType} reader`);
+
+        // Determine the other reader
+        const otherReaderType = clickedReaderType === 'left' ? 'right' : 'left';
+        const otherContentArea = document.getElementById(`${otherReaderType}-reader-content-area`);
+
+        if (!otherContentArea) {
+            console.log(`HighlightingFoundation A2: ${otherReaderType} reader not found`);
+            return;
+        }
+
+        // Get the verse number from the clicked element
+        const clickedVerse = clickedElement.closest('[data-verse]');
+        if (!clickedVerse) {
+            console.log('HighlightingFoundation A2: No verse container found for clicked element');
+            return;
+        }
+
+        const verseNumber = clickedVerse.getAttribute('data-verse');
+        console.log(`HighlightingFoundation A2: Clicked in verse ${verseNumber}`);
+
+        // Find Strong's numbers near the clicked word in the CLICKED reader
+        const clickedWord = clickedElement.textContent.trim();
+        const strongsNumbers = this.findNearbyStrongsNumbers(clickedElement, clickedReaderType);
+
+        console.log(`HighlightingFoundation A2: Found ${strongsNumbers.length} Strong's numbers near "${clickedWord}":`, strongsNumbers);
+
+        // If no Strong's numbers found near the clicked word, just highlight verse background (if enabled)
+        if (strongsNumbers.length === 0) {
+            console.log('HighlightingFoundation A2: No Strong\'s numbers found near clicked word');
+
+            // Only highlight verse background if Ver HL checkbox is enabled
+            const verseHlCheckbox = document.getElementById(`${otherReaderType}-reader-hl-ver`);
+            if (verseHlCheckbox && verseHlCheckbox.checked) {
+                const otherVerse = otherContentArea.querySelector(`[data-verse="${verseNumber}"]`);
+                if (otherVerse) {
+                    otherVerse.classList.add('matched-verse-highlighted');
+                    otherVerse.style.backgroundColor = this.MATCHED_VERSE_HL_COLOR;
+                    console.log(`HighlightingFoundation A2: Applied MATCHED_VERSE_HL_COLOR to verse ${verseNumber} (no specific Strong's)`);
+                }
+            }
+            return;
+        }
+
+        // Highlight matching Strong's numbers in the OTHER reader
+        this.highlightMatchedStrongs(strongsNumbers, otherReaderType, verseNumber);
+    },
+
+    /**
+     * Find Strong's numbers near a clicked element
+     * @param {Element} element - The clicked element
+     * @param {string} readerType - 'left' or 'right'
+     * @returns {Array} Array of Strong's number strings (e.g., ['H0430', 'H0776'])
+     */
+    findNearbyStrongsNumbers: function(element, readerType) {
+        const strongsNumbers = [];
+
+        // Primary strategy: Check for Strong's number as next sibling
+        // In Chinese/English Bible text, Strong's numbers typically come AFTER the word
+        let nextSibling = element.nextElementSibling;
+        if (nextSibling && nextSibling.classList.contains('strongs-number')) {
+            const sn = nextSibling.getAttribute('data-strong');
+            if (sn) strongsNumbers.push(sn);
+            console.log(`HighlightingFoundation: Found Strong's ${sn} as next sibling`);
+            return strongsNumbers; // Return immediately - we found the relevant one
+        }
+
+        // Fallback: Check for Strong's number as previous sibling
+        // (less common but possible in some text layouts)
+        let prevSibling = element.previousElementSibling;
+        if (prevSibling && prevSibling.classList.contains('strongs-number')) {
+            const sn = prevSibling.getAttribute('data-strong');
+            if (sn) strongsNumbers.push(sn);
+            console.log(`HighlightingFoundation: Found Strong's ${sn} as previous sibling`);
+            return strongsNumbers;
+        }
+
+        // Last resort: Check parent's next sibling (only for specific inline elements)
+        const parent = element.parentElement;
+        if (parent && parent.tagName !== 'P' && !parent.classList.contains('verse') && !parent.classList.contains('verse-container')) {
+            let parentNextSibling = parent.nextElementSibling;
+            if (parentNextSibling && parentNextSibling.classList.contains('strongs-number')) {
+                const sn = parentNextSibling.getAttribute('data-strong');
+                if (sn) {
+                    strongsNumbers.push(sn);
+                    console.log(`HighlightingFoundation: Found Strong's ${sn} as parent's next sibling`);
+                }
+            }
+        }
+
+        return strongsNumbers;
+    },
+
+    /**
+     * Highlight matching Strong's numbers in the target reader with MATCHED colors
+     * @param {Array} strongsNumbers - Array of Strong's number strings
+     * @param {string} targetReaderType - 'left' or 'right'
+     * @param {string} verseNumber - Verse number to highlight
+     */
+    highlightMatchedStrongs: function(strongsNumbers, targetReaderType, verseNumber) {
+        const targetContentArea = document.getElementById(`${targetReaderType}-reader-content-area`);
+        if (!targetContentArea) return;
+
+        console.log(`HighlightingFoundation A2: Highlighting in ${targetReaderType} reader, verse ${verseNumber}, Strong's:`, strongsNumbers);
+
+        let highlightCount = 0;
+
+        // Find matching Strong's numbers in the target reader
+        strongsNumbers.forEach(strongNum => {
+            const selector = `.strongs-number[data-strong="${strongNum}"]`;
+            const matchingElements = targetContentArea.querySelectorAll(selector);
+
+            matchingElements.forEach(strongEl => {
+                // Only highlight if in the same verse
+                const strongVerse = strongEl.closest('[data-verse]');
+                if (strongVerse && strongVerse.getAttribute('data-verse') === verseNumber) {
+                    // Apply MATCHED_SN_HL_COLOR (darkest orange)
+                    strongEl.classList.add('matched-sn-highlighted');
+                    strongEl.style.backgroundColor = this.MATCHED_SN_HL_COLOR;
+                    strongEl.style.color = 'white';
+                    strongEl.style.padding = '2px 4px';
+                    strongEl.style.borderRadius = '3px';
+                    strongEl.style.fontWeight = 'bold';
+                    strongEl.style.border = `2px solid ${this.MATCHED_SN_HL_COLOR}`;
+
+                    highlightCount++;
+                    console.log(`HighlightingFoundation A2: Highlighted Strong's ${strongNum} with MATCHED_SN_HL_COLOR`);
+
+                    // Find and highlight associated term (MATCHED_TERM_HL_COLOR)
+                    const associatedTerm = this.findAssociatedTermForStrongsNumber(strongEl);
+                    if (associatedTerm) {
+                        associatedTerm.classList.add('matched-term-highlighted');
+                        associatedTerm.style.backgroundColor = this.MATCHED_TERM_HL_COLOR;
+                        associatedTerm.style.color = 'black';
+                        associatedTerm.style.padding = '2px 4px';
+                        associatedTerm.style.borderRadius = '3px';
+                        associatedTerm.style.fontWeight = 'bold';
+                        console.log(`HighlightingFoundation A2: Highlighted associated term with MATCHED_TERM_HL_COLOR`);
+                    }
+
+                    // Check if verse background highlighting is enabled
+                    const verseHlCheckbox = document.getElementById(`${targetReaderType}-reader-hl-ver`);
+                    if (verseHlCheckbox && verseHlCheckbox.checked && strongVerse) {
+                        strongVerse.classList.add('matched-verse-highlighted');
+                        strongVerse.style.backgroundColor = this.MATCHED_VERSE_HL_COLOR;
+                        console.log(`HighlightingFoundation A2: Applied MATCHED_VERSE_HL_COLOR to verse ${verseNumber}`);
+                    }
+                }
+            });
+        });
+
+        console.log(`HighlightingFoundation A2: Highlighted ${highlightCount} Strong's numbers in ${targetReaderType} reader`);
+    },
+
+    /**
+     * Find the associated term/word near a Strong's number element
+     * @param {Element} strongEl - The Strong's number element
+     * @returns {Element|null} The associated term element or null
+     */
+    findAssociatedTermForStrongsNumber: function(strongEl) {
+        // Primary Strategy: Check PREVIOUS sibling for text
+        // In Chinese/English Bible text: 神<H0430>, the word comes BEFORE the Strong's number
+        let prevSibling = strongEl.previousSibling;
+        if (prevSibling && prevSibling.nodeType === Node.TEXT_NODE) {
+            const text = prevSibling.textContent.trim();
+            // Match Chinese characters or English word at the END of the text
+            const match = text.match(/[\u4e00-\u9fa5]+$|[a-zA-Z]+$/);
+            if (match && match[0].length > 0) {
+                const word = match[0];
+                const wordStart = text.lastIndexOf(word);
+                const beforeWord = text.substring(0, wordStart);
+
+                const wordSpan = document.createElement('span');
+                wordSpan.textContent = word;
+
+                // Replace the text node with: beforeWord + wordSpan
+                const beforeNode = document.createTextNode(beforeWord);
+                strongEl.parentNode.insertBefore(beforeNode, strongEl);
+                strongEl.parentNode.insertBefore(wordSpan, strongEl);
+                strongEl.parentNode.removeChild(prevSibling);
+
+                return wordSpan;
+            }
+        }
+
+        // Strategy 2: Check previous element sibling
+        let prevElement = strongEl.previousElementSibling;
+        if (prevElement && prevElement.textContent.trim() &&
+            !prevElement.classList.contains('strongs-number') &&
+            !prevElement.classList.contains('verse-number')) {
+            return prevElement;
+        }
+
+        // Fallback: Check next sibling (less common)
+        let nextSibling = strongEl.nextSibling;
+        if (nextSibling && nextSibling.nodeType === Node.TEXT_NODE) {
+            const text = nextSibling.textContent.trim();
+            const match = text.match(/^[\u4e00-\u9fa5]+|^[a-zA-Z]+/);
+            if (match && match[0].length > 0) {
+                const wordSpan = document.createElement('span');
+                wordSpan.textContent = match[0];
+                const remainingText = text.substring(match[0].length);
+                nextSibling.textContent = remainingText;
+                strongEl.parentNode.insertBefore(wordSpan, nextSibling);
+                return wordSpan;
+            }
+        }
+
+        return null;
+    },
+
     // === INTEGRATION SETUP ===
     /**
      * Subscribe to existing events for cleanup
@@ -112,14 +370,17 @@ const HighlightingFoundation = {
         // Clear highlights when content changes
         MockMediator.subscribe('leftReaderChapterChanged', () => {
             this.clearHighlights();
+            this.clearMatchedHighlights();
         });
 
         MockMediator.subscribe('rightReaderChapterChanged', () => {
             this.clearHighlights();
+            this.clearMatchedHighlights();
         });
 
         MockMediator.subscribe('mainReaderChanged', () => {
             this.clearHighlights();
+            this.clearMatchedHighlights();
         });
     },
 
@@ -354,7 +615,8 @@ const HighlightingFoundation = {
      */
     reset: function() {
         this.clearHighlights();
-        console.log('HighlightingFoundation A1: Reset completed');
+        this.clearMatchedHighlights();
+        console.log('HighlightingFoundation: Reset completed (A1 + A2)');
     }
 };
 
