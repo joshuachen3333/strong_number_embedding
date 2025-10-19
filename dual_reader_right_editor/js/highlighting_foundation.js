@@ -12,8 +12,13 @@
  */
 
 const HighlightingFoundation = {
+    // === CONFIGURATION ===
+    CLICKED_VERSE_HL_COLOR: '#bfdbfe', // Pale Blue - Whole verse background when term clicked (adjust here)
+    CLICKED_TERM_HL_COLOR: '#1e40af',  // Dark Blue - Specific clicked term/word (like FL Ver Sel button)
+
     // === STATE ===
-    currentHighlight: null,
+    currentHighlight: null,        // Currently highlighted term
+    currentVerseHighlight: null,   // Currently highlighted verse container
     isActive: false,
 
     // === INITIALIZATION ===
@@ -54,21 +59,43 @@ const HighlightingFoundation = {
         // Clear any existing highlights
         this.clearHighlights();
 
-        // A1: Apply dark blue highlighting
+        // Find the verse container (parent .verse or .verse-container)
+        const verseContainer = element.closest('.verse, .verse-container');
+
+        // Apply pale blue highlight to whole verse
+        if (verseContainer) {
+            verseContainer.classList.add('highlight-verse-bg');
+            verseContainer.style.setProperty('background-color', this.CLICKED_VERSE_HL_COLOR, 'important');
+            this.currentVerseHighlight = verseContainer;
+            console.log('HighlightingFoundation A1: Pale blue verse background applied');
+        }
+
+        // Apply dark blue highlight to specific term
         element.classList.add('highlight-a1');
+        element.style.setProperty('background-color', this.CLICKED_TERM_HL_COLOR, 'important');
         this.currentHighlight = element;
 
-        console.log('HighlightingFoundation A1: Dark blue highlight applied');
+        console.log('HighlightingFoundation A1: Dark blue term highlight applied');
     },
 
     /**
-     * Clear all A1 highlights
+     * Clear all A1 highlights (both term and verse)
      */
     clearHighlights: function() {
+        // Clear term highlights
         document.querySelectorAll('.highlight-a1').forEach(el => {
             el.classList.remove('highlight-a1');
+            el.style.removeProperty('background-color');
         });
+
+        // Clear verse background highlights
+        document.querySelectorAll('.highlight-verse-bg').forEach(el => {
+            el.classList.remove('highlight-verse-bg');
+            el.style.removeProperty('background-color');
+        });
+
         this.currentHighlight = null;
+        this.currentVerseHighlight = null;
     },
 
     // === INTEGRATION SETUP ===
@@ -137,8 +164,9 @@ const HighlightingFoundation = {
             let targetElement = event.target;
             console.log(`  - Initial target:`, targetElement);
 
-            // Handle clicks on verse containers - find actual word element
-            if (targetElement.classList.contains('verse') ||
+            // Handle clicks on WAH elements or verse containers - find actual word element
+            if (targetElement.tagName === 'WAH09002' ||
+                targetElement.classList.contains('verse') ||
                 targetElement.classList.contains('verse-container')) {
                 console.log(`  - Clicked on verse container, finding word element...`);
                 // Use document.caretRangeFromPoint to find actual text element
@@ -150,8 +178,9 @@ const HighlightingFoundation = {
                     // Look for the closest meaningful word element (span, em, etc.)
                     let wordElement = parentElement;
 
-                    // If parent is still the verse container, try to create a word span
-                    if (wordElement.classList.contains('verse') ||
+                    // If parent is WAH or verse container, try to create a word span
+                    if (wordElement.tagName === 'WAH09002' ||
+                        wordElement.classList.contains('verse') ||
                         wordElement.classList.contains('verse-container')) {
 
                         // Extract the word around the click position
@@ -232,19 +261,26 @@ const HighlightingFoundation = {
         const style = document.createElement('style');
         style.id = styleId;
         style.textContent = `
-            /* A1: Self-highlighting - Dark blue like FL Ver Sel button */
+            /* A1: Clicked Term Highlight - Dark Blue */
             .highlight-a1 {
-                background-color: #1e40af !important;
+                background-color: ${this.CLICKED_TERM_HL_COLOR} !important;
                 color: white !important;
-                padding: 2px 4px;
-                border-radius: 3px;
-                font-weight: bold;
+                padding: 2px 4px !important;
+                border-radius: 3px !important;
+                font-weight: bold !important;
+                display: inline-block !important;
                 transition: background-color 0.2s ease;
                 cursor: pointer;
             }
 
             .highlight-a1:hover {
-                background-color: #1d4ed8 !important;
+                background-color: #2563eb !important;
+            }
+
+            /* A1: Verse Background Highlight - Pale Blue */
+            .highlight-verse-bg {
+                background-color: ${this.CLICKED_VERSE_HL_COLOR} !important;
+                transition: background-color 0.2s ease;
             }
         `;
 
