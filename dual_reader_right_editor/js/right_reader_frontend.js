@@ -4,6 +4,54 @@
  * which can be either main or follower depending on last interaction.
  */
 document.addEventListener('DOMContentLoaded', () => {
+    // Helper function to find the associated term/word near a Strong's number
+    function findAssociatedTerm(strongEl) {
+        // Strategy 1: Check if there's text immediately after the Strong's number
+        let nextSibling = strongEl.nextSibling;
+        if (nextSibling && nextSibling.nodeType === Node.TEXT_NODE) {
+            const text = nextSibling.textContent.trim();
+            // Extract the first word (Chinese characters or English word)
+            const match = text.match(/^[\u4e00-\u9fa5]+|^[a-zA-Z]+/);
+            if (match && match[0].length > 0) {
+                // Create a span for this word
+                const wordSpan = document.createElement('span');
+                wordSpan.textContent = match[0];
+                const remainingText = text.substring(match[0].length);
+                nextSibling.textContent = remainingText;
+                strongEl.parentNode.insertBefore(wordSpan, nextSibling);
+                return wordSpan;
+            }
+        }
+
+        // Strategy 2: Look for adjacent span or text within parent WAH element
+        const parent = strongEl.parentElement;
+        if (parent && (parent.tagName === 'WAH09002' || parent.classList.contains('verse'))) {
+            // Look for text near the Strong's number
+            const parentText = parent.textContent;
+            const snText = strongEl.textContent;
+            const snIndex = parentText.indexOf(snText);
+            if (snIndex !== -1) {
+                const afterSN = parentText.substring(snIndex + snText.length);
+                const match = afterSN.match(/^[\u4e00-\u9fa5]+|^[a-zA-Z]+/);
+                if (match && match[0].length > 0) {
+                    // Find the text node and wrap it
+                    for (const child of parent.childNodes) {
+                        if (child.nodeType === Node.TEXT_NODE && child.textContent.includes(match[0])) {
+                            const wordSpan = document.createElement('span');
+                            wordSpan.textContent = match[0];
+                            const remainingText = child.textContent.replace(match[0], '');
+                            child.textContent = remainingText;
+                            parent.insertBefore(wordSpan, child);
+                            return wordSpan;
+                        }
+                    }
+                }
+            }
+        }
+
+        return null; // No associated term found
+    }
+
     const bookSelect = document.getElementById('right-reader-book');
     const chapterInput = document.getElementById('right-reader-chapter');
     // Load button removed - auto-loading on selection changes
@@ -198,6 +246,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         logStatus(`Strong's Numbers: ${strongToggle.checked ? 'ON' : 'OFF'}`);
         console.log('RightReader: Strong toggle changed to', strongToggle.checked);
+
+        // Immediately hide/show Strong's numbers without reloading
+        const strongsElements = contentArea.querySelectorAll('.strongs-number');
+        strongsElements.forEach(el => {
+            el.style.display = strongToggle.checked ? '' : 'none';
+        });
+
         loadChapterContent();
     });
     followScrollToggle.addEventListener('change', () => {
@@ -782,6 +837,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isEditMode) {
             setTimeout(() => {
                 restoreEditedContent();
+
+                // CRITICAL: After restoring content, hide Strong's numbers if toggle is unchecked
+                // This fixes the issue where localStorage content has Strong's numbers embedded
+                if (!strongToggle.checked) {
+                    const strongsElements = contentArea.querySelectorAll('.strongs-number');
+                    strongsElements.forEach(el => {
+                        el.style.display = 'none';
+                    });
+                    console.log(`[RENDER] Hid ${strongsElements.length} Strong's numbers after content restoration`);
+                }
+
                 // Apply word mapping after restoration completes
                 setTimeout(() => {
                     triggerWordMapping(data.chapter);
@@ -1046,17 +1112,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Add highlight class for easier clearing
                 strongEl.classList.add('strongs-highlighted');
 
-                // Add highlight styling
-                strongEl.style.backgroundColor = '#ff6b35';
+                // Add highlight styling using MATCHED_SN_HL_COLOR
+                const matchedColor = typeof HighlightingFoundation !== 'undefined'
+                    ? HighlightingFoundation.MATCHED_SN_HL_COLOR
+                    : '#ff6b35';
+                strongEl.style.backgroundColor = matchedColor;
                 strongEl.style.color = 'white';
                 strongEl.style.padding = '2px 4px';
                 strongEl.style.borderRadius = '3px';
                 strongEl.style.fontWeight = 'bold';
-                strongEl.style.border = '2px solid #ff6b35';
+                strongEl.style.border = `2px solid ${matchedColor}`;
 
                 // Add pulsing animation
                 strongEl.style.animation = 'strongsPulse 2s ease-in-out infinite';
                 highlightCount++;
+
+                // === NEW: MATCHED_TERM highlighting ===
+                // Find the associated word/term near this Strong's number
+                const associatedTerm = findAssociatedTerm(strongEl);
+                if (associatedTerm && typeof HighlightingFoundation !== 'undefined') {
+                    associatedTerm.classList.add('matched-term-highlighted');
+                    associatedTerm.style.backgroundColor = HighlightingFoundation.MATCHED_TERM_HL_COLOR;
+                    associatedTerm.style.color = 'black';
+                    associatedTerm.style.padding = '2px 4px';
+                    associatedTerm.style.borderRadius = '3px';
+                    associatedTerm.style.fontWeight = 'bold';
+                }
+
+                // === NEW: MATCHED_VERSE highlighting ===
+                // Check if HL Ver checkbox is checked
+                const hlVerCheckbox = document.getElementById('left-reader-hl-ver');
+                if (hlVerCheckbox && hlVerCheckbox.checked) {
+                    const verseContainer = strongEl.closest('[data-verse]');
+                    if (verseContainer && typeof HighlightingFoundation !== 'undefined') {
+                        verseContainer.classList.add('matched-verse-highlighted');
+                        verseContainer.style.backgroundColor = HighlightingFoundation.MATCHED_VERSE_HL_COLOR;
+                    }
+                }
             });
 
             // Add CSS animation if it doesn't exist
@@ -1137,11 +1229,14 @@ document.addEventListener('DOMContentLoaded', () => {
             let highlightCount = 0;
 
             strongsElements.forEach(strongEl => {
-                // Add highlight styling
-                strongEl.style.backgroundColor = '#ff6b35';
+                // Add highlight styling using MATCHED_SN_HL_COLOR
+                const matchedColor = typeof HighlightingFoundation !== 'undefined'
+                    ? HighlightingFoundation.MATCHED_SN_HL_COLOR
+                    : '#ff6b35';
+                strongEl.style.backgroundColor = matchedColor;
                 strongEl.style.color = 'white';
                 strongEl.style.fontWeight = 'bold';
-                strongEl.style.border = '2px solid #ff4500';
+                strongEl.style.border = `2px solid ${matchedColor}`;
                 strongEl.style.borderRadius = '4px';
                 strongEl.style.padding = '2px 4px';
                 strongEl.style.boxShadow = '0 2px 8px rgba(255, 107, 53, 0.4)';
@@ -1193,6 +1288,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // Clear Strong's number highlights
             const highlightedElements = leftContentArea.querySelectorAll('.strongs-highlighted');
             console.log(`[DEBUG] Found ${highlightedElements.length} highlighted elements to clear`);
 
@@ -1213,7 +1309,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 el.classList.remove('strongs-highlighted');
             });
 
-            console.log(`[DEBUG] Cleared ${highlightedElements.length} highlighted elements`);
+            // Clear MATCHED_TERM highlights
+            const matchedTerms = leftContentArea.querySelectorAll('.matched-term-highlighted');
+            matchedTerms.forEach(el => {
+                el.style.backgroundColor = '';
+                el.style.color = '';
+                el.style.fontWeight = '';
+                el.style.padding = '';
+                el.style.borderRadius = '';
+                el.classList.remove('matched-term-highlighted');
+            });
+
+            // Clear MATCHED_VERSE highlights
+            const matchedVerses = leftContentArea.querySelectorAll('.matched-verse-highlighted');
+            matchedVerses.forEach(el => {
+                el.style.backgroundColor = '';
+                el.classList.remove('matched-verse-highlighted');
+            });
+
+            console.log(`[DEBUG] Cleared ${highlightedElements.length} SN, ${matchedTerms.length} terms, ${matchedVerses.length} verses`);
 
         } catch (error) {
             console.error('Error clearing Strong\'s highlighting:', error);
@@ -2291,6 +2405,8 @@ document.addEventListener('DOMContentLoaded', () => {
      * Simple word expansion function for A1 highlighting (without WordMappingEngine dependency)
      */
     function simpleExpandToCompleteWord(text, charPosition) {
+        console.log(`[A2 Debug] simpleExpandToCompleteWord called with charPosition=${charPosition}, text="${text}"`);
+
         // Simple Chinese word boundary detection
         const commonWords = [
             '起初', '上帝', '創造', '天地', '混沌', '深淵', '黑暗', '光明',
@@ -2316,6 +2432,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Extract the potential word
         let word = text.substring(start, end);
+        console.log(`[A2 Debug] Boundary detection found: "${word}" (start=${start}, end=${end})`);
 
         // Try to find known multi-character words that contain our position
         for (const commonWord of commonWords) {
@@ -2323,6 +2440,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (wordStart !== -1 &&
                 wordStart <= charPosition &&
                 charPosition < wordStart + commonWord.length) {
+                console.log(`[A2 Debug] Found common word match: "${commonWord}" at position ${wordStart}`);
                 return {
                     word: commonWord,
                     start: wordStart,
@@ -2332,6 +2450,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Fall back to single character or detected boundary
+        console.log(`[A2 Debug] No common word match, returning boundary detection result`);
         return {
             word: word || text[charPosition],
             start: start,
@@ -2356,14 +2475,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cursorPosition = range.startOffset;
 
                 if (textNode.nodeType === Node.TEXT_NODE) {
-                    const text = textNode.textContent;
+                    // Get full verse context for better word detection
+                    const verseElement = textNode.parentElement.closest('.verse');
+                    const fullVerseText = verseElement ? verseElement.textContent : textNode.textContent;
+
+                    // Calculate cursor position in full verse context
+                    let fullTextOffset = cursorPosition;
+                    if (verseElement && textNode.parentElement !== verseElement) {
+                        // Need to calculate offset in full verse
+                        fullTextOffset = getTextOffsetInVerse(verseElement, textNode, cursorPosition);
+                    }
+
+                    console.log(`[A2 Debug] Using full verse text: "${fullVerseText.substring(0, 50)}...", offset: ${fullTextOffset}`);
 
                     // Simple word expansion for A1 highlighting (without dependency on WordMappingEngine)
-                    const expandedWord = simpleExpandToCompleteWord(text, cursorPosition);
+                    const expandedWord = simpleExpandToCompleteWord(fullVerseText, fullTextOffset);
 
                     if (expandedWord && expandedWord.word) {
-                        // Create or find a span for the expanded word
-                        const targetSpan = createHighlightSpanForText(textNode, expandedWord);
+                        // Create or find a span for the expanded word in the original text node
+                        const targetSpan = createHighlightSpanForText(textNode, expandedWord, cursorPosition);
                         console.log(`[A2] Chinese text click expanded: "${expandedWord.word}"`);
                         return targetSpan;
                     }
@@ -2375,17 +2505,59 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Helper function to calculate text offset within verse element
+     */
+    function getTextOffsetInVerse(verseElement, targetTextNode, offsetInNode) {
+        let totalOffset = 0;
+        const walker = document.createTreeWalker(
+            verseElement,
+            NodeFilter.SHOW_TEXT,
+            null,
+            false
+        );
+
+        let currentNode;
+        while (currentNode = walker.nextNode()) {
+            if (currentNode === targetTextNode) {
+                return totalOffset + offsetInNode;
+            }
+            totalOffset += currentNode.textContent.length;
+        }
+
+        return offsetInNode; // Fallback
+    }
+
+    /**
      * Creates a highlight span for text content to enable self-highlighting
      */
-    function createHighlightSpanForText(textNode, expandedWord) {
+    function createHighlightSpanForText(textNode, expandedWord, cursorPosition) {
         try {
             const parent = textNode.parentNode;
             const text = textNode.textContent;
 
-            // Split text and create highlight span for the expanded word
-            const beforeText = text.substring(0, expandedWord.start);
+            // Find the word within the current text node
+            // expandedWord.start and expandedWord.end are positions in the full verse text
+            // We need to find where the word appears in this specific text node
             const wordText = expandedWord.word;
-            const afterText = text.substring(expandedWord.end);
+
+            // Search for the word around the cursor position in this text node
+            let wordStartInNode = text.indexOf(wordText, Math.max(0, cursorPosition - wordText.length));
+
+            // If not found near cursor, try exact cursor position
+            if (wordStartInNode === -1 || wordStartInNode > cursorPosition || wordStartInNode + wordText.length < cursorPosition) {
+                wordStartInNode = text.indexOf(wordText);
+            }
+
+            if (wordStartInNode === -1) {
+                console.log(`[A2] Warning: Could not find word "${wordText}" in text node "${text}"`);
+                return null;
+            }
+
+            const wordEndInNode = wordStartInNode + wordText.length;
+
+            // Split text and create highlight span for the expanded word
+            const beforeText = text.substring(0, wordStartInNode);
+            const afterText = text.substring(wordEndInNode);
 
             // Create new span for the word
             const highlightSpan = document.createElement('span');

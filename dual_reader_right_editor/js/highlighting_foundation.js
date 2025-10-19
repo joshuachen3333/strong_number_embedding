@@ -13,8 +13,14 @@
 
 const HighlightingFoundation = {
     // === CONFIGURATION ===
-    CLICKED_VERSE_HL_COLOR: '#bfdbfe', // Pale Blue - Whole verse background when term clicked (adjust here)
-    CLICKED_TERM_HL_COLOR: '#1e40af',  // Dark Blue - Specific clicked term/word (like FL Ver Sel button)
+    // Blue Family - CLICKED (in clicked reader)
+    CLICKED_VERSE_HL_COLOR: '#bfdbfe', // Pale Blue - Whole verse background when term clicked
+    CLICKED_TERM_HL_COLOR: '#1e40af',  // Dark Blue - Specific clicked term/word
+
+    // Orange Family - MATCHED (in other reader)
+    MATCHED_SN_HL_COLOR: '#ff6b35',    // Darkest Orange - Matched Strong's number
+    MATCHED_TERM_HL_COLOR: '#ff9966',  // Lighter Orange - Matched term/word
+    MATCHED_VERSE_HL_COLOR: '#ffe0cc', // Much Lighter Orange - Matched verse background
 
     // === STATE ===
     currentHighlight: null,        // Currently highlighted term

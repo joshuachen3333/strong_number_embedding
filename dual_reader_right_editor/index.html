@@ -48,7 +48,9 @@
                     </div>
                     <div class="control-line-3" id="left-reader-strong-controls" style="margin-top: 8px;">
                         <input type="checkbox" id="left-reader-highlight-mode" checked title="Single highlight mode: show only nearest Strong's position">
-                        <label for="left-reader-highlight-mode" style="margin-right: 15px;" title="Single highlight mode: highlight only nearest Strong's position instead of all occurrences">Single Highlight</label>
+                        <label for="left-reader-highlight-mode" style="margin-right: 15px;" title="Single highlight mode: highlight only nearest Strong's position instead of all occurrences">Single HL</label>
+                        <input type="checkbox" id="left-reader-hl-ver" title="Highlight matched verse background">
+                        <label for="left-reader-hl-ver" style="margin-right: 15px;" title="Enable verse background highlighting for matched content">Ver HL</label>
                     </div>
                 </div>
                 <div id="left-reader-content-area" class="reader-content resizable" style="width: 100%; height: 400px; border: 1px solid #ccc; overflow-y: auto; resize: none; position: relative;">
@@ -84,7 +86,7 @@
                         <input type="number" id="right-reader-chapter" value="1" min="1" style="width: 60px;" title="Enter chapter number">
                     </div>
                     <div class="control-line-2">
-                        <input type="checkbox" id="right-reader-strong-toggle" title="Toggle Strong's Numbers display">
+                        <input type="checkbox" id="right-reader-strong-toggle" checked title="Toggle Strong's Numbers display">
                         <label for="right-reader-strong-toggle" style="margin-right: 15px;" title="Show/hide Strong's Numbers">SN</label>
                         <input type="checkbox" id="right-reader-follow-selection" title="Follow left reader's text selection changes">
                         <label for="right-reader-follow-selection" style="margin-right: 15px;" title="Follow text selection from left reader">FL TxT Sel</label>
@@ -94,8 +96,10 @@
                         <label for="right-reader-edit-mode" title="Toggle edit mode for Strong's Number insertion">Edit</label>
                     </div>
                     <div class="control-line-3" id="right-reader-strong-controls" style="margin-top: 8px; display: none;">
-                        <span style="font-size: 0.9em; margin-right: 10px;" title="Strong's Number input field">SN copied:</span>
+                        <span style="font-size: 0.9em; margin-right: 10px;" title="Strong's Number input field">SN cpd:</span>
                         <input type="text" id="strong-number-input" placeholder="H1234 or G5678" style="width: 100px; margin-right: 10px;" title="Enter Strong's Number (e.g., H1234 or G5678) and press Enter to insert">
+                        <input type="checkbox" id="right-reader-hl-ver" title="Highlight matched verse background">
+                        <label for="right-reader-hl-ver" title="Enable verse background highlighting for matched content">Ver HL</label>
                     </div>
                 </div>
                 <div id="right-reader-content-area" class="reader-content resizable" style="width: 100%; height: 400px; border: 1px solid #ccc; overflow-y: auto; resize: none; position: relative;">
