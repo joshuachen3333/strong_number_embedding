@@ -195,6 +195,31 @@ const HighlightingFoundation = {
             return;
         }
 
+        // Copy Strong's number to clipboard and fill SN cpd field (when clicking from LEFT reader)
+        if (clickedReaderType === 'left' && strongsNumbers.length > 0) {
+            const strongNumber = strongsNumbers[0]; // Use the first (primary) Strong's number
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(strongNumber).then(() => {
+                console.log(`HighlightingFoundation A2: Copied ${strongNumber} to clipboard`);
+            }).catch(err => {
+                console.error('HighlightingFoundation A2: Failed to copy to clipboard:', err);
+            });
+
+            // Fill the SN cpd field in right reader
+            const strongNumberInput = document.getElementById('strong-number-input');
+            if (strongNumberInput) {
+                strongNumberInput.value = strongNumber;
+                console.log(`HighlightingFoundation A2: Filled SN cpd field with ${strongNumber}`);
+
+                // Highlight the input briefly to show it was filled
+                strongNumberInput.style.backgroundColor = '#e3f2fd';
+                setTimeout(() => {
+                    strongNumberInput.style.backgroundColor = '';
+                }, 1000);
+            }
+        }
+
         // Highlight matching Strong's numbers in the OTHER reader
         this.highlightMatchedStrongs(strongsNumbers, otherReaderType, verseNumber);
     },
@@ -211,11 +236,25 @@ const HighlightingFoundation = {
         // Primary strategy: Check for Strong's number as next sibling
         // In Chinese/English Bible text, Strong's numbers typically come AFTER the word
         let nextSibling = element.nextElementSibling;
-        if (nextSibling && nextSibling.classList.contains('strongs-number')) {
-            const sn = nextSibling.getAttribute('data-strong');
-            if (sn) strongsNumbers.push(sn);
-            console.log(`HighlightingFoundation: Found Strong's ${sn} as next sibling`);
-            return strongsNumbers; // Return immediately - we found the relevant one
+        if (nextSibling) {
+            // Direct Strong's number element
+            if (nextSibling.classList.contains('strongs-number')) {
+                const sn = nextSibling.getAttribute('data-strong');
+                if (sn) strongsNumbers.push(sn);
+                console.log(`HighlightingFoundation: Found Strong's ${sn} as next sibling`);
+                return strongsNumbers;
+            }
+
+            // Container element (like WAH09002) - look for first Strong's number inside
+            const firstStrongInside = nextSibling.querySelector('.strongs-number');
+            if (firstStrongInside) {
+                const sn = firstStrongInside.getAttribute('data-strong');
+                if (sn) {
+                    strongsNumbers.push(sn);
+                    console.log(`HighlightingFoundation: Found Strong's ${sn} inside next sibling container (${nextSibling.tagName})`);
+                    return strongsNumbers;
+                }
+            }
         }
 
         // Fallback: Check for Strong's number as previous sibling
