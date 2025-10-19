@@ -245,7 +245,7 @@ const translations = {
         loading: "Loading...",
         strongsOn: "Strong's On",
         strongsOff: "Strong's Off",
-        followVerseScroll: "FL Ver Sel:",
+        followVerseScroll: "FL Ver Scrl:",
         followTextSelection: "FL TxT Sel:",
         // Tooltips
         tooltips: {
