@@ -222,6 +222,11 @@ const HighlightingFoundation = {
 
         // Highlight matching Strong's numbers in the OTHER reader
         this.highlightMatchedStrongs(strongsNumbers, otherReaderType, verseNumber);
+
+        // Position cursor in right reader using EXISTING word mapping system
+        if (clickedReaderType === 'left' && otherReaderType === 'right') {
+            this.positionCursorUsingWordMapping(clickedElement, verseNumber);
+        }
     },
 
     /**
@@ -328,6 +333,10 @@ const HighlightingFoundation = {
                         associatedTerm.style.borderRadius = '3px';
                         associatedTerm.style.fontWeight = 'bold';
                         console.log(`HighlightingFoundation A2: Highlighted associated term with MATCHED_TERM_HL_COLOR`);
+
+                        // NOTE: Cursor positioning is now handled separately via word mapping
+                        // (not here in the Strong's matching loop)
+                        // See triggerMatchedHighlighting() which calls makeVerseEditableAndPositionCursor()
                     }
 
                     // Check if verse background highlighting is enabled
@@ -399,6 +408,143 @@ const HighlightingFoundation = {
         }
 
         return null;
+    },
+
+    /**
+     * Make verse editable and position cursor at the right edge of the matched term
+     * @param {Element} verseElement - The verse container element
+     * @param {Element} termElement - The matched term element
+     * @param {string} verseNumber - The verse number
+     */
+    makeVerseEditableAndPositionCursor: function(verseElement, termElement, verseNumber) {
+        console.log(`HighlightingFoundation: Making verse ${verseNumber} editable and positioning cursor`);
+
+        // Enable edit mode in right reader if not already enabled
+        const editModeToggle = document.getElementById('right-reader-edit-mode');
+        if (editModeToggle && !editModeToggle.checked) {
+            editModeToggle.checked = true;
+            editModeToggle.dispatchEvent(new Event('change', { bubbles: true }));
+            console.log('HighlightingFoundation: Enabled edit mode');
+        }
+
+        // Wait a moment for edit mode to be enabled
+        setTimeout(() => {
+            // Make the verse contenteditable if not already
+            if (verseElement.getAttribute('contenteditable') !== 'true') {
+                verseElement.setAttribute('contenteditable', 'true');
+                console.log(`HighlightingFoundation: Made verse ${verseNumber} contenteditable`);
+            }
+
+            // Position cursor at the right edge of the matched term
+            try {
+                const range = document.createRange();
+                const selection = window.getSelection();
+
+                // Find the last text node or element within the term element
+                let targetNode = termElement;
+                let offset = 0;
+
+                // If term element has text content, position after it
+                if (termElement.childNodes.length > 0) {
+                    // Get the last child node
+                    const lastChild = termElement.childNodes[termElement.childNodes.length - 1];
+                    if (lastChild.nodeType === Node.TEXT_NODE) {
+                        targetNode = lastChild;
+                        offset = lastChild.textContent.length;
+                    } else {
+                        targetNode = lastChild;
+                        offset = 0;
+                    }
+                } else if (termElement.textContent.length > 0) {
+                    // Term element contains direct text
+                    const textNode = termElement.firstChild;
+                    if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+                        targetNode = textNode;
+                        offset = textNode.textContent.length;
+                    }
+                }
+
+                // Set the range to position after the term element
+                if (targetNode.nodeType === Node.TEXT_NODE) {
+                    range.setStart(targetNode, offset);
+                    range.setEnd(targetNode, offset);
+                } else {
+                    // Position after the element
+                    range.setStartAfter(targetNode);
+                    range.setEndAfter(targetNode);
+                }
+
+                selection.removeAllRanges();
+                selection.addRange(range);
+
+                // Focus the verse element
+                verseElement.focus();
+
+                console.log(`HighlightingFoundation: Positioned cursor after matched term in verse ${verseNumber}`);
+            } catch (err) {
+                console.error('HighlightingFoundation: Error positioning cursor:', err);
+            }
+        }, 100);
+    },
+
+    /**
+     * Position cursor in right reader using existing word mapping system
+     * @param {Element} clickedElement - The clicked word element in left reader
+     * @param {string} verseNumber - The verse number
+     */
+    positionCursorUsingWordMapping: function(clickedElement, verseNumber) {
+        console.log(`HighlightingFoundation: Positioning cursor using word mapping for verse ${verseNumber}`);
+
+        // Get the clicked word text
+        const clickedWord = clickedElement.textContent.trim();
+        console.log(`HighlightingFoundation: Looking for mapping of "${clickedWord}"`);
+
+        // Find the corresponding word-mapping-highlight element in right reader
+        const rightContent = document.getElementById('right-reader-content-area');
+        if (!rightContent) {
+            console.log('HighlightingFoundation: Right reader not found');
+            return;
+        }
+
+        const rightVerse = rightContent.querySelector(`[data-verse="${verseNumber}"]`);
+        if (!rightVerse) {
+            console.log(`HighlightingFoundation: Right verse ${verseNumber} not found`);
+            return;
+        }
+
+        // Strategy 1: Look for word-mapping-highlight with matching data-mapped-word
+        const mappedElements = rightVerse.querySelectorAll('.word-mapping-highlight[data-mapped-word]');
+        let targetElement = null;
+
+        for (const element of mappedElements) {
+            const mappedWord = element.getAttribute('data-mapped-word');
+            if (mappedWord === clickedWord) {
+                targetElement = element;
+                console.log(`HighlightingFoundation: Found mapped word "${element.textContent.trim()}" for "${clickedWord}"`);
+                break;
+            }
+        }
+
+        // Strategy 2: If no mapping found, look for exact text match
+        if (!targetElement) {
+            console.log(`HighlightingFoundation: No word mapping found, trying exact text match`);
+            const walker = document.createTreeWalker(rightVerse, NodeFilter.SHOW_TEXT, null, false);
+            while (walker.nextNode()) {
+                const textNode = walker.currentNode;
+                if (textNode.textContent.includes(clickedWord)) {
+                    targetElement = textNode.parentElement;
+                    console.log(`HighlightingFoundation: Found exact text match "${clickedWord}"`);
+                    break;
+                }
+            }
+        }
+
+        if (targetElement) {
+            // Enable edit mode and position cursor
+            this.makeVerseEditableAndPositionCursor(rightVerse, targetElement, verseNumber);
+        } else {
+            console.log(`HighlightingFoundation: Could not find corresponding word in right reader for "${clickedWord}"`);
+        }
     },
 
     // === INTEGRATION SETUP ===
