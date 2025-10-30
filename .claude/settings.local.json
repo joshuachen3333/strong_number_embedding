@@ -1,7 +1,18 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:docs.anthropic.com)"
+      "WebFetch(domain:docs.anthropic.com)",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__take_screenshot",
+      "Bash(git add CLAUDE.md original_text_preparation/list_all_bible_versions original_text_preparation/source_sqlite/list_all_bible_versions dual_reader_right_editor/js/highlighting_foundation.js)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nDocs: Improve CLAUDE.md structure and add Bible version helper scripts\n\nMajor improvements to root CLAUDE.md:\n- Restructured to clearly show all three project components\n- Distinguished between basic dual_reader and advanced dual_reader_right_editor\n- Added comprehensive UI Control Abbreviations section documenting space-saving labels\n  (FL TxT Sel, FL Ver Scrl, SN, Ver HL, Single HL, Edit, SN cpd, etc.)\n- Improved project structure overview with clear navigation guidance\n- Added concrete data processing commands with examples\n- Removed redundant implementation details (delegated to subdirectory CLAUDE.md files)\n- Enhanced architecture overview with Mediator Pattern emphasis\n- Better organized Common Development Tasks section\n\nAdded list_all_bible_versions helper scripts:\n- original_text_preparation/list_all_bible_versions\n- original_text_preparation/source_sqlite/list_all_bible_versions\n- Query FHL API (https://bible.fhl.net/json/abv.php) to list all available Bible versions\n\nEnhanced highlighting_foundation.js:\n- Added cursor positioning using word mapping system\n- Improved comments for A2 cross-reader highlighting logic\n- Separated cursor positioning from Strong''s matching loop\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push)",
+      "Bash(openspec validate --strict)",
+      "Bash(openspec validate chinese-term-segmentation --type spec --strict)",
+      "Bash(openspec list --specs)",
+      "Bash(openspec show chinese-term-segmentation --type spec)"
     ],
     "deny": []
   }

@@ -94,7 +94,7 @@ plugins/
 
 ## MODIFIED Requirements
 
-### Requirement: Swappable Tokenization Strategies
+### Requirement 1: Swappable Tokenization Strategies
 
 The system MUST support multiple tokenization algorithms that can be easily swapped without modifying the core code.
 

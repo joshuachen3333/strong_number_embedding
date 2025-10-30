@@ -20,7 +20,16 @@
       "Bash(export PATH=~/.npm-global/bin:$PATH)",
       "Bash(npm install:*)",
       "Bash(~/.npm-global/bin/claude:*)",
-      "Bash(claude --version)"
+      "Bash(claude --version)",
+      "mcp__chrome-devtools__new_page",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__list_console_messages",
+      "mcp__chrome-devtools__evaluate_script",
+      "mcp__chrome-devtools__navigate_page",
+      "Bash(git remote set-url origin git@github.com:joshuachen3333/strong_number_embedding.git)",
+      "mcp__chrome-devtools__handle_dialog",
+      "mcp__chrome-devtools__wait_for"
     ],
     "deny": [],
     "ask": []

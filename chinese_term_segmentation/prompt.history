@@ -51,3 +51,7 @@
 12. **Approval to commit implementation**
    - Prompt: "approved"
    - Context: Approved git commit of add-plugin-architecture implementation
+
+13. **Approval to archive OpenSpec proposal**
+   - Prompt: "yes"
+   - Context: Approved archiving add-plugin-architecture OpenSpec proposal after successful implementation
