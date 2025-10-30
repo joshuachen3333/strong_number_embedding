@@ -1,13 +1,13 @@
-"""PKUSeg tokenizer plugin implementation."""
+"""PKUSeg segmenter plugin implementation."""
 
 from typing import List, Dict, Optional
 import logging
-from src.core.plugin_interfaces import TokenizerPlugin
+from src.core.plugin_interfaces import SegmenterPlugin
 
 logger = logging.getLogger(__name__)
 
 
-class PKUSegPlugin(TokenizerPlugin):
+class PKUSegPlugin(SegmenterPlugin):
     """PKU (北大分詞) Chinese word segmentation plugin.
 
     Higher accuracy segmentation with domain-specific model support.
@@ -28,7 +28,7 @@ class PKUSegPlugin(TokenizerPlugin):
     @property
     def name(self) -> str:
         """Plugin name."""
-        return "tokenizer.pkuseg"
+        return "segmenter.pkuseg"
 
     @property
     def version(self) -> str:
@@ -84,8 +84,8 @@ class PKUSegPlugin(TokenizerPlugin):
         except Exception as e:
             raise RuntimeError(f"Failed to initialize PKUSeg: {e}")
 
-    def tokenize(self, text: str, context: Optional[Dict] = None) -> List[str]:
-        """Tokenize Chinese text.
+    def segment(self, text: str, context: Optional[Dict] = None) -> List[str]:
+        """Segment Chinese text.
 
         Args:
             text: Raw Chinese text string
@@ -101,15 +101,15 @@ class PKUSegPlugin(TokenizerPlugin):
             tokens = self._seg.cut(text)
             return tokens
         except Exception as e:
-            logger.error(f"Error during tokenization: {e}")
+            logger.error(f"Error during segmentation: {e}")
             return []
 
-    def tokenize_with_metadata(
+    def segment_with_metadata(
         self,
         text: str,
         context: Optional[Dict] = None
     ) -> List[Dict]:
-        """Tokenize with metadata (position, POS tags if available).
+        """Segment with metadata (position, POS tags if available).
 
         Args:
             text: Raw Chinese text string
@@ -156,7 +156,7 @@ class PKUSegPlugin(TokenizerPlugin):
                 ]
 
         except Exception as e:
-            logger.error(f"Error during tokenization with metadata: {e}")
+            logger.error(f"Error during segmentation with metadata: {e}")
             return []
 
     def supports_custom_dictionary(self) -> bool:

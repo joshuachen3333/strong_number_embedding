@@ -6,7 +6,7 @@
 
 - [x] Create `src/core/plugin_base.py` with `Plugin` ABC
 - [x] Create `src/core/plugin_interfaces.py` with plugin type interfaces
-  - [x] Define `TokenizerPlugin` interface
+  - [x] Define `SegmenterPlugin` interface
   - [x] Define `EmbeddingPlugin` interface
   - [x] Define `AlignmentPlugin` interface
   - [x] Define `ScorerPlugin` interface
@@ -31,7 +31,7 @@
   ```
   src/plugins/
   ├── __init__.py
-  ├── tokenizers/
+  ├── segmenters/
   ├── embeddings/
   ├── aligners/
   └── scorers/
@@ -40,16 +40,16 @@
 
 ### Phase 3: Tokenizer Plugin Implementation (Day 2)
 
-- [x] Create `src/plugins/tokenizers/jieba_plugin.py`
+- [x] Create `src/plugins/segmenters/jieba_plugin.py`
   - [x] Implement `JiebaPlugin` class
   - [x] Add custom dictionary support
   - [x] Include metadata export
-- [x] Create `src/plugins/tokenizers/pkuseg_plugin.py`
+- [x] Create `src/plugins/segmenters/pkuseg_plugin.py`
   - [x] Implement `PKUSegPlugin` class
   - [x] Add domain-specific model support
   - [x] Include metadata export
-- [x] Create `src/plugins/tokenizers/plugin.json` with metadata
-- [x] Write tokenizer plugin tests (T002)
+- [x] Create `src/plugins/segmenters/plugin.json` with metadata
+- [x] Write segmenter plugin tests (T002)
 
 ### Phase 4: Configuration Management (Day 2-3)
 
@@ -108,7 +108,7 @@
 - [ ] Plugin lifecycle (T007)
 
 ### End-to-End Tests
-- [ ] Complete tokenization via plugins
+- [ ] Complete segmentation via plugins
 - [ ] Plugin replacement during processing
 - [ ] Configuration changes at runtime
 

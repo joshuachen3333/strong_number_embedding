@@ -48,10 +48,10 @@ Tests for accuracy and confidence scoring.
 - Test plugin configuration validation
 
 #### T002: Tokenizer Plugin Tests
-- Test jieba tokenizer plugin initialization
-- Test pkuseg tokenizer plugin initialization
+- Test jieba segmenter plugin initialization
+- Test pkuseg segmenter plugin initialization
 - Test custom dictionary loading
-- Test tokenization output format consistency
+- Test segmentation output format consistency
 
 #### T003: Plugin Hot-Swapping
 - Test runtime strategy replacement
@@ -158,12 +158,12 @@ Location: `test_data/dictionaries/`
 - Critical Path Coverage: 100%
 
 ### Performance Baselines
-- Single verse tokenization: < 100ms
+- Single verse segmentation: < 100ms
 - Single verse alignment: < 500ms
 - Batch processing (100 verses): < 10s
 
 ### Accuracy Targets
-- Tokenization F1 Score: ≥ 0.85
+- Segmentation F1 Score: ≥ 0.85
 - Alignment Precision: ≥ 0.80
 - Alignment Recall: ≥ 0.75
 
@@ -229,7 +229,7 @@ Performance: [status]
 
 ## Next Proposals Test Additions (Planned)
 
-### Proposal: implement-tokenizers
+### Proposal: implement-segmenters
 Will add:
 - T011-T020: Specific tokenizer implementations
 - Comparative tokenizer tests

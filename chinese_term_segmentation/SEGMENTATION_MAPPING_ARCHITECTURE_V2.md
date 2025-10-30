@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-This document presents a **next-generation architecture** for Chinese biblical term segmentation and cross-lingual Strong's Number mapping. Moving beyond simple tokenization and alignment, we propose a **pluggable, learning-enabled framework** that:
+This document presents a **next-generation architecture** for Chinese biblical term segmentation and cross-lingual Strong's Number mapping. Moving beyond simple segmentation and alignment, we propose a **pluggable, learning-enabled framework** that:
 
 1. **Self-improves** through feedback loops and active learning
 2. **Supports multiple paradigms** (rule-based, statistical, neural, hybrid)
@@ -103,8 +103,8 @@ class Plugin(ABC):
         pass
 
 # Tokenizer Plugin Interface
-class TokenizerPlugin(Plugin):
-    """Interface for all tokenization strategies."""
+class SegmenterPlugin(Plugin):
+    """Interface for all segmentation strategies."""
 
     @abstractmethod
     def tokenize(self, text: str, context: Optional[Dict] = None) -> List[str]:
@@ -118,12 +118,12 @@ class TokenizerPlugin(Plugin):
 
     @abstractmethod
     def supports_custom_dictionary(self) -> bool:
-        """Whether this tokenizer supports custom dictionaries."""
+        """Whether this segmenter supports custom dictionaries."""
         pass
 
     @abstractmethod
     def load_dictionary(self, dict_path: str) -> None:
-        """Load custom dictionary for this tokenizer."""
+        """Load custom dictionary for this segmenter."""
         pass
 
 # Embedding Plugin Interface
@@ -207,7 +207,7 @@ import asyncio
 class PipelineStage(Enum):
     """Pipeline execution stages."""
     PRE_PROCESSING = "pre_processing"
-    TOKENIZATION = "tokenization"
+    TOKENIZATION = "segmentation"
     EMBEDDING = "embedding"
     ALIGNMENT = "alignment"
     POST_PROCESSING = "post_processing"
@@ -1179,7 +1179,7 @@ class MonitoringSystem:
 
 ### 7.1 Short-term (3 months)
 - [ ] Implement core plugin architecture
-- [ ] Build initial tokenization strategies (jieba, pkuseg)
+- [ ] Build initial segmentation strategies (jieba, pkuseg)
 - [ ] Create basic alignment pipeline
 - [ ] Set up experiment tracking
 - [ ] Implement confidence scoring

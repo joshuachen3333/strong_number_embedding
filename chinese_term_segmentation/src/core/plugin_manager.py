@@ -5,7 +5,7 @@ from threading import Lock
 import logging
 from .plugin_base import Plugin
 from .plugin_interfaces import (
-    TokenizerPlugin,
+    SegmenterPlugin,
     EmbeddingPlugin,
     AlignmentPlugin,
     ScorerPlugin
@@ -22,9 +22,9 @@ class PluginManager:
 
     Example:
         >>> pm = PluginManager()
-        >>> pm.register("tokenizer.jieba", JiebaPlugin())
-        >>> tokenizer = pm.get("tokenizer.jieba")
-        >>> tokens = tokenizer.tokenize("起初上帝創造天地")
+        >>> pm.register("segmenter.jieba", JiebaPlugin())
+        >>> segmenter = pm.get("segmenter.jieba")
+        >>> segments = segmenter.segment("起初上帝創造天地")
     """
 
     _instance: Optional['PluginManager'] = None
@@ -46,7 +46,7 @@ class PluginManager:
 
         self._plugins: Dict[str, Plugin] = {}
         self._plugin_types: Dict[str, Type[Plugin]] = {
-            'tokenizer': TokenizerPlugin,
+            'segmenter': SegmenterPlugin,
             'embedding': EmbeddingPlugin,
             'alignment': AlignmentPlugin,
             'scorer': ScorerPlugin
@@ -59,7 +59,7 @@ class PluginManager:
         """Register a plugin.
 
         Args:
-            name: Unique plugin name (e.g., 'tokenizer.jieba')
+            name: Unique plugin name (e.g., 'segmenter.jieba')
             plugin: Plugin instance
 
         Raises:
@@ -163,7 +163,7 @@ class PluginManager:
         """List registered plugins.
 
         Args:
-            plugin_type: Optional type filter ('tokenizer', 'embedding', etc.)
+            plugin_type: Optional type filter ('segmenter', 'embedding', etc.)
 
         Returns:
             List of plugin names

@@ -23,7 +23,7 @@ class Plugin(ABC):
     @property
     @abstractmethod
     def name(self) -> str:
-        """Unique plugin identifier (e.g., 'tokenizer.jieba').
+        """Unique plugin identifier (e.g., 'segmenter.jieba').
 
         Returns:
             Plugin name as string
@@ -45,7 +45,7 @@ class Plugin(ABC):
         """Plugin type derived from class hierarchy.
 
         Returns:
-            Plugin type name (e.g., 'TokenizerPlugin')
+            Plugin type name (e.g., 'SegmenterPlugin')
         """
         return self.__class__.__bases__[0].__name__
 

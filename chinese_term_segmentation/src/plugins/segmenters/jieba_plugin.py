@@ -1,16 +1,16 @@
-"""Jieba tokenizer plugin implementation."""
+"""Jieba Chinese word segmenter plugin implementation (結巴分詞)."""
 
 from typing import List, Dict, Optional
 import logging
-from src.core.plugin_interfaces import TokenizerPlugin
+from src.core.plugin_interfaces import SegmenterPlugin
 
 logger = logging.getLogger(__name__)
 
 
-class JiebaPlugin(TokenizerPlugin):
+class JiebaPlugin(SegmenterPlugin):
     """Jieba (結巴分詞) Chinese word segmentation plugin.
 
-    Fast and popular Chinese tokenizer with custom dictionary support.
+    Fast and popular Chinese word segmenter with custom dictionary support.
     Ideal for general-purpose Chinese text segmentation.
 
     Configuration options:
@@ -20,7 +20,7 @@ class JiebaPlugin(TokenizerPlugin):
     """
 
     def __init__(self):
-        """Initialize Jieba plugin."""
+        """Initialize Jieba segmenter plugin."""
         super().__init__()
         self._jieba = None
         self._custom_dict_loaded = False
@@ -28,7 +28,7 @@ class JiebaPlugin(TokenizerPlugin):
     @property
     def name(self) -> str:
         """Plugin name."""
-        return "tokenizer.jieba"
+        return "segmenter.jieba"
 
     @property
     def version(self) -> str:
@@ -78,15 +78,15 @@ class JiebaPlugin(TokenizerPlugin):
                 "Jieba library not installed. Install with: pip install jieba"
             )
 
-    def tokenize(self, text: str, context: Optional[Dict] = None) -> List[str]:
-        """Tokenize Chinese text.
+    def segment(self, text: str, context: Optional[Dict] = None) -> List[str]:
+        """Segment Chinese text into words.
 
         Args:
             text: Raw Chinese text string
             context: Optional context (not used in jieba)
 
         Returns:
-            List of word tokens
+            List of word segments
         """
         if not self.is_initialized or self._jieba is None:
             raise RuntimeError(f"{self.name} not initialized")
@@ -95,22 +95,22 @@ class JiebaPlugin(TokenizerPlugin):
         hmm = self._config.get('hmm', True) if self._config else True
 
         if mode == 'accurate':
-            tokens = list(self._jieba.cut(text, HMM=hmm))
+            segments = list(self._jieba.cut(text, HMM=hmm))
         elif mode == 'full':
-            tokens = list(self._jieba.cut(text, cut_all=True))
+            segments = list(self._jieba.cut(text, cut_all=True))
         elif mode == 'search':
-            tokens = list(self._jieba.cut_for_search(text))
+            segments = list(self._jieba.cut_for_search(text))
         else:
-            tokens = list(self._jieba.cut(text, HMM=hmm))
+            segments = list(self._jieba.cut(text, HMM=hmm))
 
-        return tokens
+        return segments
 
-    def tokenize_with_metadata(
+    def segment_with_metadata(
         self,
         text: str,
         context: Optional[Dict] = None
     ) -> List[Dict]:
-        """Tokenize with metadata (position, POS tags).
+        """Segment with metadata (position, POS tags).
 
         Args:
             text: Raw Chinese text string
@@ -122,8 +122,8 @@ class JiebaPlugin(TokenizerPlugin):
         if not self.is_initialized or self._jieba is None:
             raise RuntimeError(f"{self.name} not initialized")
 
-        # Get tokens
-        tokens = self.tokenize(text, context)
+        # Get segments
+        segments = self.segment(text, context)
 
         # Get POS tags if posseg is available
         try:
@@ -149,7 +149,7 @@ class JiebaPlugin(TokenizerPlugin):
                     'pos': None,
                     'confidence': 1.0
                 }
-                for i, word in enumerate(tokens)
+                for i, word in enumerate(segments)
             ]
 
     def supports_custom_dictionary(self) -> bool:

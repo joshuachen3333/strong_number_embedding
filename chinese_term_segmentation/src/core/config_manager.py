@@ -17,7 +17,7 @@ class ConfigManager:
 
     Example config.yaml:
         plugins:
-          tokenizers:
+          segmenters:
             default: jieba
             jieba:
               enabled: true
@@ -152,7 +152,7 @@ class ConfigManager:
         """Get configuration value by dotted key path.
 
         Args:
-            key_path: Dotted path like 'plugins.tokenizers.default'
+            key_path: Dotted path like 'plugins.segmenters.default'
             default: Default value if key not found
 
         Returns:
@@ -173,7 +173,7 @@ class ConfigManager:
         """Set configuration value by dotted key path.
 
         Args:
-            key_path: Dotted path like 'plugins.tokenizers.default'
+            key_path: Dotted path like 'plugins.segmenters.default'
             value: Value to set
         """
         keys = key_path.split('.')

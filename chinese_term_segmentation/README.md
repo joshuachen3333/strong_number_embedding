@@ -4,8 +4,8 @@ A pluggable framework for segmenting Chinese biblical text and mapping terms to 
 
 ## Features
 
-✅ **Plugin Architecture** - Hot-swappable tokenization, embedding, and alignment strategies
-✅ **Multiple Tokenizers** - jieba, pkuseg, LAC, Stanza support
+✅ **Plugin Architecture** - Hot-swappable segmentation, embedding, and alignment strategies
+✅ **Multiple Segmenters** - jieba, pkuseg, LAC, Stanza support
 ✅ **Custom Dictionaries** - Biblical term dictionaries for accurate segmentation
 ✅ **Configuration Management** - YAML/JSON config with environment variable overrides
 ✅ **Lazy Loading** - Plugins loaded on-demand for performance
@@ -22,23 +22,48 @@ cd chinese_term_segmentation
 # Install dependencies
 pip install -r requirements.txt
 
-# Install tokenizers (optional - install as needed)
-pip install jieba        # For jieba tokenizer
-pip install pkuseg       # For PKUSeg tokenizer
+# Install segmenters (optional - install as needed)
+pip install jieba        # For jieba segmenter (結巴分詞)
+pip install pkuseg       # For PKUSeg segmenter (北大分詞)
+pip install LAC          # For Baidu LAC segmenter
+pip install stanza       # For Stanford NLP Stanza
+# For Stanza, also download Chinese model:
+python -c "import stanza; stanza.download('zh')"
 ```
 
-###Usage
+### CLI Usage
+
+Fetch Bible verses with segmentation:
+
+```bash
+# Fetch a single verse
+python segment.py --verse "Gen 1:3" --version unv
+
+# Fetch with Chinese segmentation
+python segment.py --verse "創 1:1" --version unv --seg jieba
+
+# Compare multiple segmenters side-by-side
+python segment.py --verse "約 3:16" --version unv --seg jieba pkuseg lac stanza
+
+# Use FHL API parameters directly
+python segment.py --chineses 太 --chap 5 --sec 1-5 --version unv --seg jieba
+
+# English book names
+python segment.py --engs Matt --chap 5 --sec 1 --version kjv --seg jieba pkuseg
+```
+
+### Programmatic Usage
 
 ```python
 from src.core.plugin_manager import PluginManager
-from src.plugins.tokenizers.jieba_plugin import JiebaPlugin
+from src.plugins.segmenters.jieba_plugin import JiebaPlugin
 
 # Initialize plugin manager
 pm = PluginManager()
 
-# Register jieba tokenizer
+# Register jieba segmenter
 jieba = JiebaPlugin()
-pm.register("tokenizer.jieba", jieba)
+pm.register("segmenter.jieba", jieba)
 
 # Configure and initialize
 config = {
@@ -48,15 +73,15 @@ config = {
 }
 jieba.initialize(config)
 
-# Tokenize Chinese text
+# Segment Chinese text
 text = "起初上帝創造天地"
-tokens = jieba.tokenize(text)
-print(tokens)  # ['起初', '上帝', '創造', '天地']
+segments = jieba.segment(text)
+print(segments)  # ['起初', '上帝', '創造', '天地']
 
-# Tokenize with metadata
-tokens_meta = jieba.tokenize_with_metadata(text)
-for token in tokens_meta:
-    print(f"{token['word']} (pos: {token['position']}, POS: {token['pos']})")
+# Segment with metadata
+segments_meta = jieba.segment_with_metadata(text)
+for seg in segments_meta:
+    print(f"{seg['word']} (pos: {seg['position']}, POS: {seg['pos']})")
 ```
 
 ### Using Plugin Discovery
@@ -71,13 +96,13 @@ loader = PluginLoader("src/plugins")
 loader.discover_plugins()
 
 # Load plugin lazily
-tokenizer = loader.load("tokenizer.jieba", config={
+segmenter = loader.load("segmenter.jieba", config={
     "hmm": True,
     "mode": "accurate"
 })
 
-# Use tokenizer
-tokens = tokenizer.tokenize("起初上帝創造天地")
+# Use segmenter
+segments = segmenter.segment("起初上帝創造天地")
 ```
 
 ### Configuration
@@ -86,7 +111,7 @@ Create a `config.yaml` file:
 
 ```yaml
 plugins:
-  tokenizers:
+  segmenters:
     default: jieba
     jieba:
       enabled: true
@@ -105,7 +130,42 @@ config_mgr = ConfigManager()
 config = config_mgr.load("config/default.yaml")
 
 # Get specific values
-tokenizer_config = config_mgr.get("plugins.tokenizers.jieba.config")
+segmenter_config = config_mgr.get("plugins.segmenters.jieba.config")
+```
+
+## Available Segmenters
+
+### 1. Jieba (結巴分詞)
+- **Speed**: ⚡⚡⚡ Fast
+- **Accuracy**: ⭐⭐⭐ Good
+- **Custom Dict**: ✅ Yes
+- **Install**: `pip install jieba`
+- **Best for**: General-purpose Chinese segmentation, fast prototyping
+
+### 2. PKUSeg (北大分詞)
+- **Speed**: ⚡⚡ Moderate
+- **Accuracy**: ⭐⭐⭐⭐ High
+- **Custom Dict**: ✅ Yes (via user dictionary)
+- **Install**: `pip install pkuseg`
+- **Best for**: Domain-specific text (news, medicine, tourism, mixed)
+
+### 3. LAC (Baidu Lexical Analysis)
+- **Speed**: ⚡ Slower (neural model)
+- **Accuracy**: ⭐⭐⭐⭐ High
+- **Custom Dict**: ✅ Yes
+- **Install**: `pip install LAC`
+- **Best for**: Deep learning approach with POS tagging
+
+### 4. Stanza (Stanford NLP)
+- **Speed**: ⚡ Slower (neural model)
+- **Accuracy**: ⭐⭐⭐⭐⭐ Very High
+- **Custom Dict**: ❌ No (uses pre-trained models)
+- **Install**: `pip install stanza` + model download
+- **Best for**: Academic-grade accuracy, research applications
+
+**Comparison**:
+```bash
+python segment.py --verse "約 3:16" --version unv --seg jieba pkuseg lac stanza
 ```
 
 ## Project Structure
@@ -121,10 +181,16 @@ chinese_term_segmentation/
 │   │   ├── plugin_loader.py     # Lazy loading loader
 │   │   └── config_manager.py    # Configuration management
 │   └── plugins/                 # Plugin implementations
-│       └── tokenizers/
+│       └── segmenters/          # Chinese word segmenters
 │           ├── jieba_plugin.py
 │           ├── pkuseg_plugin.py
+│           ├── lac_plugin.py
+│           ├── stanza_plugin.py
 │           └── plugin.json
+├── src/api/                     # FHL Bible API client
+│   ├── fhl_client.py
+│   ├── verse_parser.py
+│   └── book_mappings.py
 ├── config/                      # Configuration files
 │   ├── default.yaml
 │   └── testing.yaml
@@ -132,7 +198,8 @@ chinese_term_segmentation/
 │   ├── test_plugin_base.py
 │   ├── test_plugin_manager.py
 │   ├── test_plugin_discovery.py
-│   └── test_tokenizer_plugins.py
+│   └── test_segmenter_plugins.py
+├── segment.py                   # CLI tool for verse fetching and segmentation
 ├── openspec/                    # OpenSpec specifications
 └── requirements.txt
 ```
@@ -154,13 +221,13 @@ pytest tests/test_plugin_manager.py -v
 
 ## Plugin Development
 
-Create a new tokenizer plugin:
+Create a new segmenter plugin:
 
 ```python
-from src.core.plugin_interfaces import TokenizerPlugin
+from src.core.plugin_interfaces import SegmenterPlugin
 from typing import List, Dict, Optional
 
-class MyTokenizerPlugin(TokenizerPlugin):
+class MySegmenterPlugin(SegmenterPlugin):
     @property
     def name(self) -> str:
         return "tokenizer.my_tokenizer"
@@ -170,7 +237,7 @@ class MyTokenizerPlugin(TokenizerPlugin):
         return "1.0.0"
 
     def tokenize(self, text: str, context: Optional[Dict] = None) -> List[str]:
-        # Your tokenization logic here
+        # Your segmentation logic here
         return text.split()
 
     def tokenize_with_metadata(self, text: str, context: Optional[Dict] = None) -> List[Dict]:
@@ -189,7 +256,7 @@ Register in `plugin.json`:
     {
       "name": "tokenizer.my_tokenizer",
       "module_path": "my_tokenizer_plugin.py",
-      "class_name": "MyTokenizerPlugin",
+      "class_name": "MySegmenterPlugin",
       "description": "My custom tokenizer"
     }
   ]
@@ -223,7 +290,7 @@ This project uses OpenSpec for spec-driven development. Before making changes:
 **Implemented**:
 - ✅ Plugin architecture foundation
 - ✅ Plugin manager and discovery
-- ✅ Jieba and PKUSeg tokenizer plugins
+- ✅ Jieba and PKUSeg segmenter plugins
 - ✅ Configuration management
 - ✅ Comprehensive test suite (T001-T010)
 

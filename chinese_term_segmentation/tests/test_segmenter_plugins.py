@@ -1,4 +1,4 @@
-"""Tests for tokenizer plugins (T002)."""
+"""Tests for segmenter plugins (T002)."""
 
 import pytest
 from src.core.plugin_manager import PluginManager
@@ -14,7 +14,7 @@ class MockJiebaPlugin:
 
     @property
     def name(self):
-        return "tokenizer.jieba"
+        return "segmenter.jieba"
 
     @property
     def version(self):
@@ -28,12 +28,12 @@ class MockJiebaPlugin:
         self._config = config
         self._initialized = True
 
-    def tokenize(self, text, context=None):
+    def segment(self, text, context=None):
         # Simple mock: split on spaces/Chinese chars
         return [c for c in text if c.strip()]
 
-    def tokenize_with_metadata(self, text, context=None):
-        tokens = self.tokenize(text)
+    def segment_with_metadata(self, text, context=None):
+        tokens = self.segment(text)
         return [{"word": t, "position": i} for i, t in enumerate(tokens)]
 
     def supports_custom_dictionary(self):
@@ -43,37 +43,37 @@ class MockJiebaPlugin:
         pass
 
 
-def test_tokenizer_plugin_interface():
+def test_segmenter_plugin_interface():
     """Test T002: Tokenizer plugin implements correct interface."""
     plugin = MockJiebaPlugin()
 
-    assert hasattr(plugin, 'tokenize')
-    assert hasattr(plugin, 'tokenize_with_metadata')
+    assert hasattr(plugin, 'segment')
+    assert hasattr(plugin, 'segment_with_metadata')
     assert hasattr(plugin, 'supports_custom_dictionary')
     assert hasattr(plugin, 'name')
     assert hasattr(plugin, 'version')
 
 
-def test_tokenizer_basic_functionality():
+def test_segmenter_basic_functionality():
     """Test T002: Basic tokenization works."""
     plugin = MockJiebaPlugin()
     plugin.initialize({})
 
     text = "起初上帝創造天地"
-    tokens = plugin.tokenize(text)
+    tokens = plugin.segment(text)
 
     assert isinstance(tokens, list)
     assert len(tokens) > 0
     assert all(isinstance(t, str) for t in tokens)
 
 
-def test_tokenizer_with_metadata():
+def test_segmenter_with_metadata():
     """Test T002: Tokenization with metadata."""
     plugin = MockJiebaPlugin()
     plugin.initialize({})
 
     text = "起初上帝"
-    tokens_with_meta = plugin.tokenize_with_metadata(text)
+    tokens_with_meta = plugin.segment_with_metadata(text)
 
     assert isinstance(tokens_with_meta, list)
     assert len(tokens_with_meta) > 0
@@ -81,14 +81,14 @@ def test_tokenizer_with_metadata():
     assert all('word' in t and 'position' in t for t in tokens_with_meta)
 
 
-def test_tokenizer_custom_dictionary_support():
+def test_segmenter_custom_dictionary_support():
     """Test T002: Custom dictionary support check."""
     plugin = MockJiebaPlugin()
 
     assert plugin.supports_custom_dictionary() is True
 
 
-def test_tokenizer_initialization_with_config():
+def test_segmenter_initialization_with_config():
     """Test T002: Tokenizer accepts configuration."""
     plugin = MockJiebaPlugin()
 
@@ -109,13 +109,13 @@ def test_tokenizer_initialization_with_config():
 )
 def test_real_jieba_plugin():
     """Test T002: Real jieba plugin if available."""
-    from src.plugins.tokenizers.jieba_plugin import JiebaPlugin
+    from src.plugins.segmenters.jieba_plugin import JiebaPlugin
 
     plugin = JiebaPlugin()
     plugin.initialize({"mode": "accurate", "hmm": True})
 
     text = "起初上帝創造天地"
-    tokens = plugin.tokenize(text)
+    tokens = plugin.segment(text)
 
     assert isinstance(tokens, list)
     assert len(tokens) > 0
@@ -127,13 +127,13 @@ def test_real_jieba_plugin():
 )
 def test_real_pkuseg_plugin():
     """Test T002: Real PKUSeg plugin if available."""
-    from src.plugins.tokenizers.pkuseg_plugin import PKUSegPlugin
+    from src.plugins.segmenters.pkuseg_plugin import PKUSegPlugin
 
     plugin = PKUSegPlugin()
     plugin.initialize({"model_name": "default"})
 
     text = "起初上帝創造天地"
-    tokens = plugin.tokenize(text)
+    tokens = plugin.segment(text)
 
     assert isinstance(tokens, list)
     assert len(tokens) > 0

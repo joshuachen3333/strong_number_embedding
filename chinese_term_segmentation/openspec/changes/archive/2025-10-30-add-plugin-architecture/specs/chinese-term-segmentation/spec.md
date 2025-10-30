@@ -33,14 +33,14 @@ class Plugin(ABC):
 ```
 
 **Supported Plugin Types**:
-- `TokenizerPlugin`: Tokenization strategies
+- `SegmenterPlugin`: Segmentation strategies
 - `EmbeddingPlugin`: Word/sentence embeddings
 - `AlignmentPlugin`: Alignment algorithms
 - `ScorerPlugin`: Scoring and evaluation
 
 #### Scenario: Register and Use Tokenizer Plugin
 
-**Given**: A jieba tokenizer plugin implementation
+**Given**: A jieba segmenter plugin implementation
 **When**: Registering with `PluginManager.register("tokenizer.jieba", JiebaPlugin())`
 **Then**: Plugin is available for use via `PluginManager.get("tokenizer.jieba")`
 **And**: Can be configured with `plugin.initialize({"dict_path": "unv_bible_terms.txt"})`
@@ -49,8 +49,8 @@ class Plugin(ABC):
 
 **Given**: System running with jieba tokenizer
 **When**: Calling `PluginManager.replace("tokenizer.main", "tokenizer.pkuseg")`
-**Then**: All subsequent tokenization uses pkuseg without restart
-**And**: Previous tokenization results remain valid
+**Then**: All subsequent segmentation uses pkuseg without restart
+**And**: Previous segmentation results remain valid
 
 #### Scenario: Plugin Version Compatibility
 
@@ -66,7 +66,7 @@ The system MUST support automatic plugin discovery and lazy loading from designa
 **Discovery Mechanism**:
 ```
 plugins/
-├── tokenizers/
+├── segmenters/
 │   ├── jieba_plugin.py
 │   ├── pkuseg_plugin.py
 │   └── plugin.json      # Metadata
@@ -94,15 +94,15 @@ plugins/
 
 ## MODIFIED Requirements
 
-### Requirement 1: Swappable Tokenization Strategies
+### Requirement 1: Swappable Segmentation Strategies
 
-The system MUST support multiple tokenization algorithms that can be easily swapped without modifying the core code.
+The system MUST support multiple segmentation algorithms that can be easily swapped without modifying the core code.
 
-**CHANGE**: All tokenization strategies must now implement `TokenizerPlugin` interface.
+**CHANGE**: All segmentation strategies must now implement `SegmenterPlugin` interface.
 
 **Interface** (Updated):
 ```python
-class TokenizerPlugin(Plugin):
+class SegmenterPlugin(Plugin):
     @abstractmethod
     def tokenize(self, text: str, context: Optional[Dict] = None) -> List[str]:
         """
@@ -163,6 +163,6 @@ class TokenizerPlugin(Plugin):
 
 **Given**: A main processing function `process_verse(text, tokenizer_plugin)`
 **When**: Calling `process_verse(verse_text, pm.get("tokenizer.jieba"))`
-**Then**: The jieba tokenizer plugin is used for segmentation
+**Then**: The jieba segmenter plugin is used for segmentation
 **When**: Calling `process_verse(verse_text, pm.get("tokenizer.pkuseg"))`
-**Then**: The pkuseg tokenizer plugin is used instead without code changes
+**Then**: The pkuseg segmenter plugin is used instead without code changes

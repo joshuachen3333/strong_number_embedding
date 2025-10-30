@@ -29,9 +29,9 @@ Could be segmented as:
 - ❌ `["起", "初", "上", "帝", "創", "造", "天", "地"]` (8 characters, over-segmented)
 - ❌ `["起初上帝", "創造天地"]` (2 phrases, under-segmented)
 
-### Strategy: Empirical Testing with Four Tokenizers
+### Strategy: Empirical Testing with Four Segmenters
 
-We will implement **four swappable tokenization strategies** and select the best based on downstream performance.
+We will implement **four swappable segmentation strategies** and select the best based on downstream performance.
 
 | # | Tokenizer | Library | Key Characteristics | Dictionary Support |
 |---|-----------|---------|---------------------|-------------------|
@@ -42,7 +42,7 @@ We will implement **four swappable tokenization strategies** and select the best
 
 ### Custom Dictionary Strategy
 
-**Problem**: Default tokenizers will incorrectly split biblical terms.
+**Problem**: Default segmenters will incorrectly split biblical terms.
 
 Example without custom dictionary:
 ```
@@ -73,16 +73,16 @@ Result: 尼布甲尼撒 → ["尼布甲尼撒"]  ✅ Correct!
 - Human judges which segmentation is most semantically meaningful
 
 #### Phase 2: Quantitative Evaluation (Gold Standard)
-- Create 10-20 verses with manually-verified "gold standard" tokenization
+- Create 10-20 verses with manually-verified "gold standard" segmentation
 - Run each tokenizer and calculate:
   - **Precision**: % of predicted tokens that match gold standard
   - **Recall**: % of gold standard tokens that were predicted
   - **F1 Score**: Harmonic mean of precision and recall
-- Rank tokenizers by F1 score
+- Rank segmenters by F1 score
 
 #### Phase 3: Downstream Task Evaluation (Most Important)
 - Create 10-20 verses with perfect Strong's Number alignments
-- Run full alignment pipeline (tokenization → alignment → SN assignment)
+- Run full alignment pipeline (segmentation → alignment → SN assignment)
 - Measure **alignment accuracy**: % of correctly assigned Strong's Numbers
 - **Winner**: Tokenizer with highest alignment accuracy
 
@@ -90,7 +90,7 @@ Result: 尼布甲尼撒 → ["尼布甲尼撒"]  ✅ Correct!
 
 ### Interface Design
 
-All tokenizers must implement this consistent interface:
+All segmenters must implement this consistent interface:
 
 ```python
 def tokenize(sentence: str) -> List[str]:
@@ -200,7 +200,7 @@ dictionaries/
 1. Prevents incorrect segmentation: "天堂" is one term in UNV, "天國" is one term in LCC
 2. Accommodates translation differences: same concept, different vocabulary
 3. Extensible: works with any Bible version (Chinese, English, Korean, etc.)
-4. Independent tokenization: each version tokenized with its own dictionary
+4. Independent segmentation: each version tokenized with its own dictionary
 
 **Bootstrap Strategy**:
 ```python
@@ -259,7 +259,7 @@ while refining:
 **Algorithm Flow**:
 
 ```
-Step 1: Tokenization
+Step 1: Segmentation
 --------
 TGT_words = tokenizer(lcc_verse)
 # Result: ["起初", "上帝", "創造", "天地"]
@@ -375,7 +375,7 @@ def positional_strategy(pos1: int, pos2: int, len1: int, len2: int) -> float:
   return 1.0  # Always perfect positional match
   ```
 
-#### 3. Tokenization Strategies
+#### 3. Segmentation Strategies
 
 Already covered in Part 1 (jieba, pkuseg, LAC, Stanza).
 
@@ -408,7 +408,7 @@ embedding = word2vec_model[transliterated]
 
 **The system works with ANY language combination** as long as:
 
-1. ✅ **Tokenizer exists** (or use character-level for languages without tokenizers)
+1. ✅ **Tokenizer exists** (or use character-level for languages without segmenters)
 2. ✅ **Word embeddings available** (pre-trained or trained on-demand)
 3. ✅ **Custom dictionary created** (bootstrapped from similar version or manual)
 
@@ -486,7 +486,7 @@ Chinese term → Strong's # → English term
 
 ## Part 3: Evaluation Strategy
 
-### Tokenization Evaluation (Part 1)
+### Segmentation Evaluation (Part 1)
 
 See "Evaluation Process" in Part 1 above.
 
@@ -506,7 +506,7 @@ See "Evaluation Process" in Part 1 above.
 
 **Experiment Matrix**:
 Test combinations of:
-- 4 tokenizers × 3 semantic strategies × 4 positional strategies = 48 configurations
+- 4 segmenters × 3 semantic strategies × 4 positional strategies = 48 configurations
 - For each configuration, run on 20 gold standard verses
 - Record accuracy metrics
 - Find best combination
@@ -522,11 +522,11 @@ Test combinations of:
 
 ### Phase 1: Foundation
 - [ ] Set up Python environment (venv, dependencies)
-- [ ] Install tokenization libraries (jieba, pkuseg, LAC, Stanza)
+- [ ] Install segmentation libraries (jieba, pkuseg, LAC, Stanza)
 - [ ] Bootstrap `unv_bible_terms.txt` from UNV data
 - [ ] Bootstrap `lcc_bible_terms.txt` from UNV dictionary
 
-### Phase 2: Tokenization Implementation
+### Phase 2: Segmentation Implementation
 - [ ] Implement `tokenize_jieba(sentence, dict_path)`
 - [ ] Implement `tokenize_pkuseg(sentence, dict_path)`
 - [ ] Implement `tokenize_lac(sentence, dict_path)`
@@ -569,7 +569,7 @@ Test combinations of:
 
 **Flexibility**: Biblical text is unique. We don't know which algorithms work best until we test them empirically.
 
-**Modularity**: Easy to add new tokenizers or similarity strategies without touching core logic.
+**Modularity**: Easy to add new segmenters or similarity strategies without touching core logic.
 
 **Testability**: Each strategy can be unit tested independently.
 
@@ -627,10 +627,10 @@ Test combinations of:
 
 **Approach**:
 - Allow compound assignments: "天地" → "H8064+H776"
-- Track tokenization differences in metadata
+- Track segmentation differences in metadata
 - Post-process to merge/split as needed
 
-### 3. Context-Aware Tokenization
+### 3. Context-Aware Segmentation
 **Question**: Should we use surrounding verses for disambiguation?
 
 **Example**:

@@ -11,23 +11,23 @@ from src.core.plugin_loader import PluginLoader
 @pytest.fixture
 def temp_plugin_dir(tmp_path):
     """Create temporary plugin directory structure."""
-    # Create tokenizers directory
-    tokenizers_dir = tmp_path / "tokenizers"
-    tokenizers_dir.mkdir()
+    # Create segmenters directory
+    segmenters_dir = tmp_path / "segmenters"
+    segmenters_dir.mkdir()
 
     # Create plugin.json
     plugin_metadata = {
         "plugins": [
             {
-                "name": "tokenizer.test",
+                "name": "segmenter.test",
                 "module_path": "test_plugin.py",
                 "class_name": "TestPlugin",
-                "description": "Test tokenizer plugin"
+                "description": "Test segmenter plugin"
             }
         ]
     }
 
-    with open(tokenizers_dir / "plugin.json", 'w') as f:
+    with open(segmenters_dir / "plugin.json", 'w') as f:
         json.dump(plugin_metadata, f)
 
     # Create test plugin module
@@ -38,7 +38,7 @@ from typing import List, Dict, Optional
 class TestPlugin(TokenizerPlugin):
     @property
     def name(self) -> str:
-        return "tokenizer.test"
+        return "segmenter.test"
 
     @property
     def version(self) -> str:
@@ -55,7 +55,7 @@ class TestPlugin(TokenizerPlugin):
         return False
 '''
 
-    with open(tokenizers_dir / "test_plugin.py", 'w') as f:
+    with open(segmenters_dir / "test_plugin.py", 'w') as f:
         f.write(plugin_code)
 
     return tmp_path
@@ -68,9 +68,9 @@ def test_discover_plugins(temp_plugin_dir):
     plugins = discovery.discover()
 
     assert len(plugins) == 1
-    assert plugins[0]['name'] == 'tokenizer.test'
+    assert plugins[0]['name'] == 'segmenter.test'
     assert plugins[0]['class_name'] == 'TestPlugin'
-    assert plugins[0]['plugin_type'] == 'tokenizers'
+    assert plugins[0]['plugin_type'] == 'segmenters'
 
 
 def test_discover_no_plugin_directory():
@@ -87,10 +87,10 @@ def test_find_plugin_by_name(temp_plugin_dir):
     discovery = PluginDiscovery(str(temp_plugin_dir))
     discovery.discover()
 
-    plugin_info = discovery.find_by_name('tokenizer.test')
+    plugin_info = discovery.find_by_name('segmenter.test')
 
     assert plugin_info is not None
-    assert plugin_info['name'] == 'tokenizer.test'
+    assert plugin_info['name'] == 'segmenter.test'
 
 
 def test_find_nonexistent_plugin(temp_plugin_dir):
@@ -98,7 +98,7 @@ def test_find_nonexistent_plugin(temp_plugin_dir):
     discovery = PluginDiscovery(str(temp_plugin_dir))
     discovery.discover()
 
-    plugin_info = discovery.find_by_name('tokenizer.nonexistent')
+    plugin_info = discovery.find_by_name('segmenter.nonexistent')
 
     assert plugin_info is None
 
@@ -120,21 +120,21 @@ def test_plugin_loader_lazy_loading(temp_plugin_dir):
     loader = PluginLoader(str(temp_plugin_dir))
 
     # Before discovery
-    assert loader.is_cached('tokenizer.test') is False
+    assert loader.is_cached('segmenter.test') is False
 
     # Discover plugins
     count = loader.discover_plugins()
     assert count == 1
 
     # Still not cached (lazy loading)
-    assert loader.is_cached('tokenizer.test') is False
+    assert loader.is_cached('segmenter.test') is False
 
     # Load plugin (triggers lazy load)
-    plugin = loader.load('tokenizer.test')
+    plugin = loader.load('segmenter.test')
 
     assert plugin is not None
-    assert plugin.name == 'tokenizer.test'
-    assert loader.is_cached('tokenizer.test') is True
+    assert plugin.name == 'segmenter.test'
+    assert loader.is_cached('segmenter.test') is True
 
 
 def test_plugin_loader_cache(temp_plugin_dir):
@@ -143,8 +143,8 @@ def test_plugin_loader_cache(temp_plugin_dir):
     loader.discover_plugins()
 
     # Load twice
-    plugin1 = loader.load('tokenizer.test')
-    plugin2 = loader.load('tokenizer.test')
+    plugin1 = loader.load('segmenter.test')
+    plugin2 = loader.load('segmenter.test')
 
     # Should return same instance
     assert plugin1 is plugin2
@@ -156,13 +156,13 @@ def test_plugin_loader_clear_cache(temp_plugin_dir):
     loader.discover_plugins()
 
     # Load and cache
-    loader.load('tokenizer.test')
-    assert loader.is_cached('tokenizer.test')
+    loader.load('segmenter.test')
+    assert loader.is_cached('segmenter.test')
 
     # Clear cache
-    loader.clear_cache('tokenizer.test')
+    loader.clear_cache('segmenter.test')
 
-    assert not loader.is_cached('tokenizer.test')
+    assert not loader.is_cached('segmenter.test')
 
 
 def test_plugin_loader_cache_stats(temp_plugin_dir):
@@ -175,20 +175,20 @@ def test_plugin_loader_cache_stats(temp_plugin_dir):
     assert stats['cached_count'] == 0
 
     # Load plugin
-    loader.load('tokenizer.test')
+    loader.load('segmenter.test')
 
     stats = loader.get_cache_stats()
     assert stats['cached_count'] == 1
-    assert 'tokenizer.test' in stats['plugins']
+    assert 'segmenter.test' in stats['plugins']
 
 
 def test_invalid_plugin_json(tmp_path):
     """Test T006: Handle invalid plugin.json gracefully."""
-    tokenizers_dir = tmp_path / "tokenizers"
-    tokenizers_dir.mkdir()
+    segmenters_dir = tmp_path / "segmenters"
+    segmenters_dir.mkdir()
 
     # Create invalid JSON
-    with open(tokenizers_dir / "plugin.json", 'w') as f:
+    with open(segmenters_dir / "plugin.json", 'w') as f:
         f.write("{invalid json")
 
     discovery = PluginDiscovery(str(tmp_path))

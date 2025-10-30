@@ -2,17 +2,17 @@
 
 import pytest
 from src.core.plugin_base import Plugin
-from src.core.plugin_interfaces import TokenizerPlugin
+from src.core.plugin_interfaces import SegmenterPlugin
 from src.core.plugin_manager import PluginManager
 from typing import List, Dict, Optional
 
 
-class MockTokenizerPlugin(TokenizerPlugin):
-    """Mock tokenizer plugin for testing."""
+class MockSegmenterPlugin(SegmenterPlugin):
+    """Mock segmenter plugin for testing."""
 
     @property
     def name(self) -> str:
-        return "tokenizer.mock"
+        return "segmenter.mock"
 
     @property
     def version(self) -> str:
@@ -47,80 +47,80 @@ def test_singleton_pattern(plugin_manager):
 
 def test_register_plugin(plugin_manager):
     """Test T003: Plugin registration."""
-    plugin = MockTokenizerPlugin()
+    plugin = MockSegmenterPlugin()
 
-    plugin_manager.register("tokenizer.mock", plugin)
+    plugin_manager.register("segmenter.mock", plugin)
 
-    assert plugin_manager.is_registered("tokenizer.mock")
-    assert "tokenizer.mock" in plugin_manager.list_plugins()
+    assert plugin_manager.is_registered("segmenter.mock")
+    assert "segmenter.mock" in plugin_manager.list_plugins()
 
 
 def test_get_plugin(plugin_manager):
     """Test T003: Plugin retrieval."""
-    plugin = MockTokenizerPlugin()
-    plugin_manager.register("tokenizer.mock", plugin)
+    plugin = MockSegmenterPlugin()
+    plugin_manager.register("segmenter.mock", plugin)
 
-    retrieved = plugin_manager.get("tokenizer.mock")
+    retrieved = plugin_manager.get("segmenter.mock")
 
     assert retrieved is plugin
-    assert retrieved.name == "tokenizer.mock"
+    assert retrieved.name == "segmenter.mock"
 
 
 def test_get_nonexistent_plugin(plugin_manager):
     """Test T003: Get non-existent plugin raises KeyError."""
     with pytest.raises(KeyError, match="not registered"):
-        plugin_manager.get("tokenizer.nonexistent")
+        plugin_manager.get("segmenter.nonexistent")
 
 
 def test_register_duplicate_plugin(plugin_manager):
     """Test T003: Register duplicate plugin raises ValueError."""
-    plugin1 = MockTokenizerPlugin()
-    plugin2 = MockTokenizerPlugin()
+    plugin1 = MockSegmenterPlugin()
+    plugin2 = MockSegmenterPlugin()
 
-    plugin_manager.register("tokenizer.mock", plugin1)
+    plugin_manager.register("segmenter.mock", plugin1)
 
     with pytest.raises(ValueError, match="already registered"):
-        plugin_manager.register("tokenizer.mock", plugin2)
+        plugin_manager.register("segmenter.mock", plugin2)
 
 
 def test_replace_plugin(plugin_manager):
     """Test T003: Hot-Swap Plugins at Runtime."""
-    class MockTokenizerV2(MockTokenizerPlugin):
+    class MockSegmenterV2(MockSegmenterPlugin):
         @property
         def version(self) -> str:
             return "2.0.0"
 
-    plugin_v1 = MockTokenizerPlugin()
-    plugin_v2 = MockTokenizerV2()
+    plugin_v1 = MockSegmenterPlugin()
+    plugin_v2 = MockSegmenterV2()
 
     # Register v1
-    plugin_manager.register("tokenizer.mock", plugin_v1)
+    plugin_manager.register("segmenter.mock", plugin_v1)
     plugin_v1.initialize({})
 
     # Replace with v2
-    old_plugin = plugin_manager.replace("tokenizer.mock", plugin_v2)
+    old_plugin = plugin_manager.replace("segmenter.mock", plugin_v2)
 
     assert old_plugin is plugin_v1
     assert not old_plugin.is_initialized  # Should be shut down
-    assert plugin_manager.get("tokenizer.mock") is plugin_v2
+    assert plugin_manager.get("segmenter.mock") is plugin_v2
 
 
 def test_unregister_plugin(plugin_manager):
     """Test T007: Plugin Lifecycle - unregistration."""
-    plugin = MockTokenizerPlugin()
-    plugin_manager.register("tokenizer.mock", plugin)
+    plugin = MockSegmenterPlugin()
+    plugin_manager.register("segmenter.mock", plugin)
     plugin.initialize({})
 
-    unregistered = plugin_manager.unregister("tokenizer.mock")
+    unregistered = plugin_manager.unregister("segmenter.mock")
 
     assert unregistered is plugin
     assert not unregistered.is_initialized
-    assert not plugin_manager.is_registered("tokenizer.mock")
+    assert not plugin_manager.is_registered("segmenter.mock")
 
 
 def test_list_plugins_by_type(plugin_manager):
     """Test T003: List plugins with type filter."""
-    plugin1 = MockTokenizerPlugin()
+    plugin1 = MockSegmenterPlugin()
 
     class MockEmbeddingPlugin(Plugin):
         @property
@@ -155,28 +155,28 @@ def test_list_plugins_by_type(plugin_manager):
 
     plugin2 = RealMockEmbedding()
 
-    plugin_manager.register("tokenizer.mock", plugin1)
+    plugin_manager.register("segmenter.mock", plugin1)
     plugin_manager.register("embedding.mock", plugin2)
 
-    tokenizers = plugin_manager.list_plugins("tokenizer")
+    segmenters = plugin_manager.list_plugins("segmenter")
     embeddings = plugin_manager.list_plugins("embedding")
 
-    assert "tokenizer.mock" in tokenizers
-    assert "embedding.mock" not in tokenizers
+    assert "segmenter.mock" in segmenters
+    assert "embedding.mock" not in segmenters
     assert "embedding.mock" in embeddings
-    assert "tokenizer.mock" not in embeddings
+    assert "segmenter.mock" not in embeddings
 
 
 def test_plugin_metrics(plugin_manager):
     """Test T009: Plugin Monitoring - metrics collection."""
-    plugin = MockTokenizerPlugin()
-    plugin_manager.register("tokenizer.mock", plugin)
+    plugin = MockSegmenterPlugin()
+    plugin_manager.register("segmenter.mock", plugin)
 
     # Access plugin multiple times
     for _ in range(5):
-        plugin_manager.get("tokenizer.mock")
+        plugin_manager.get("segmenter.mock")
 
-    metrics = plugin_manager.get_metrics("tokenizer.mock")
+    metrics = plugin_manager.get_metrics("segmenter.mock")
 
     assert metrics['usage_count'] == 5
     assert 'total_time' in metrics
@@ -188,13 +188,13 @@ def test_invalid_plugin_type(plugin_manager):
     class WrongPlugin(Plugin):
         @property
         def name(self) -> str:
-            return "tokenizer.wrong"
+            return "segmenter.wrong"
 
         @property
         def version(self) -> str:
             return "1.0.0"
 
-    plugin = WrongPlugin()  # Not a TokenizerPlugin!
+    plugin = WrongPlugin()  # Not a SegmenterPlugin!
 
     with pytest.raises(ValueError, match="must be instance of"):
-        plugin_manager.register("tokenizer.wrong", plugin)
+        plugin_manager.register("segmenter.wrong", plugin)

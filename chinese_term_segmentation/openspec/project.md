@@ -23,7 +23,7 @@ This sub-project tackles the word-level alignment challenge between Chinese Bibl
 - scikit-learn (cosine similarity, ML utilities)
 - pytest (testing framework)
 
-**Chinese Tokenization Libraries** (swappable strategies):
+**Chinese Segmentation Libraries** (swappable strategies):
 - **jieba** (結巴分詞) - Fast, supports custom dictionaries, most popular
 - **pkuseg** (北大分詞) - Higher accuracy, domain-specific training
 - **LAC** (Baidu) - Deep learning based (Bi-GRU-CRF), includes POS tagging
@@ -35,7 +35,7 @@ This sub-project tackles the word-level alignment challenge between Chinese Bibl
 
 **Data Format**:
 - JSON for input/output (compatibility with parent project)
-- Custom dictionary files for biblical term tokenization
+- Custom dictionary files for biblical term segmentation
 
 **Future Integration**:
 - JavaScript/TypeScript for web-based annotation UI (if needed)
@@ -73,7 +73,7 @@ This project uses the Strategy Pattern to allow flexible experimentation with di
 
 **Three Types of Swappable Strategies**:
 
-1. **Tokenization Strategies** (`tokenizer`):
+1. **Segmentation Strategies** (`tokenizer`):
    - Input: Raw sentence string
    - Output: List of word tokens
    - Examples: `tokenize_jieba`, `tokenize_pkuseg`, `tokenize_lac`, `tokenize_stanza`
@@ -108,7 +108,7 @@ This project uses the Strategy Pattern to allow flexible experimentation with di
 
 **Algorithm Flow** (per verse):
 ```
-1. Tokenization:
+1. Segmentation:
    TGT_words = tokenizer(lcc_verse)  # Swappable tokenizer
 
 2. Extract Source Words:
@@ -129,7 +129,7 @@ This project uses the Strategy Pattern to allow flexible experimentation with di
 ```
 
 **Modular Design**:
-- Separate concerns: tokenization, embedding, similarity calculation, alignment logic
+- Separate concerns: segmentation, embedding, similarity calculation, alignment logic
 - Clear function interfaces with type hints
 - Stateless strategy functions for easy testing and composition
 
@@ -148,7 +148,7 @@ This project uses the Strategy Pattern to allow flexible experimentation with di
 ### Testing Strategy
 
 **Unit Tests** (pytest framework):
-- Test individual tokenization strategies with known inputs
+- Test individual segmentation strategies with known inputs
 - Test semantic similarity strategies (cosine, euclidean) with test vectors
 - Test positional similarity strategies with boundary cases
 - Test Strong's number parsing and extraction from UNV
@@ -167,16 +167,16 @@ This project uses the Strategy Pattern to allow flexible experimentation with di
 - **Coverage**: OT (Hebrew/H-numbers) and NT (Greek/G-numbers)
 - **Gold standard**: 10-20 manually annotated verses for evaluation
 
-**Tokenization Evaluation**:
+**Segmentation Evaluation**:
 
 1. **Qualitative (Manual Inspection)**:
    - Sample representative verses (different styles, lengths, OT/NT)
-   - Compare tokenization results across strategies (jieba, pkuseg, LAC)
+   - Compare segmentation results across strategies (jieba, pkuseg, LAC)
    - Identify which tokenizer produces most semantically meaningful units
 
 2. **Quantitative (Downstream Task Performance)**:
    - **Gold Standard**: Manually create perfect alignment for 10-20 verses
-   - Run full alignment pipeline with different tokenizers
+   - Run full alignment pipeline with different segmenters
    - Measure alignment accuracy (precision, recall, F1) against gold standard
    - **Best tokenizer** = highest downstream task accuracy
 
@@ -336,7 +336,7 @@ This project uses the Strategy Pattern to allow flexible experimentation with di
 2. **Setup Development Environment**:
    - Create virtual environment
    - Install dependencies: numpy, pandas, scikit-learn, pytest
-   - Install tokenizers: jieba, pkuseg (LAC/Stanza later)
+   - Install segmenters: jieba, pkuseg (LAC/Stanza later)
 3. **Create Custom Dictionary**: `bible_terms.txt` with essential biblical terms
 
 **Phase 2: Core Implementation (OpenSpec-driven)**
@@ -345,7 +345,7 @@ This project uses the Strategy Pattern to allow flexible experimentation with di
    - Specify strategy interfaces (tokenizer, semantic_strategy, positional_strategy)
    - Define input/output data formats
 5. **Implement Strategy Functions**:
-   - Tokenization strategies: jieba, pkuseg with custom dictionary support
+   - Segmentation strategies: jieba, pkuseg with custom dictionary support
    - Semantic strategies: cosine, euclidean
    - Positional strategies: linear, gaussian, window, none
 6. **Implement Core Algorithm**: `AlignVerse` function accepting swappable strategies
@@ -363,7 +363,7 @@ This project uses the Strategy Pattern to allow flexible experimentation with di
 **Phase 4: Evaluation & Optimization**
 9. **Create Gold Standard**: Manually annotate 10-20 representative verses
 10. **Run Experiments**: Test different strategy combinations
-    - Compare tokenizers (jieba vs pkuseg vs LAC)
+    - Compare segmenters (jieba vs pkuseg vs LAC)
     - Compare similarity strategies
     - Tune semantic_weight parameter
 11. **Document Results**: Track which configurations work best for different contexts

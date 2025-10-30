@@ -11,9 +11,9 @@ Chinese term segmentation breaks continuous Chinese biblical text (which has no 
 This capability uses a **Strategy Pattern** to support multiple swappable segmentation algorithms, allowing experimentation to find the best approach for biblical Chinese text.
 ## Requirements
 
-### Requirement 1: Swappable Tokenization Strategies
+### Requirement 1: Swappable Segmentation Strategies
 
-The system MUST support multiple tokenization algorithms that can be easily swapped without modifying the core code.
+The system MUST support multiple segmentation algorithms that can be easily swapped without modifying the core code.
 
 **Interface**:
 ```python
@@ -89,8 +89,8 @@ The system MUST support separate dictionaries for different Bible versions to ac
 
 **Key Principle**: Even within the same verse, source and target versions may use different terms for the same concept (e.g., UNV "天堂" vs LCC "天國", or RCUV2010 "尼哥德慕" vs UNV "尼哥底母"). This is why:
 - Each version needs its own dictionary
-- Tokenization happens independently per version
-- **Alignment** (matching terms between versions) happens AFTER tokenization using semantic similarity + positional similarity
+- Segmentation happens independently per version
+- **Alignment** (matching terms between versions) happens AFTER segmentation using semantic similarity + positional similarity
 - **Extensible Design**: Works with any source version (UNV, KJV, NASB) and any target version
 
 #### Scenario: Load Version-Specific Dictionary for UNV
@@ -107,7 +107,7 @@ The system MUST support separate dictionaries for different Bible versions to ac
 天堂
 ```
 **When**: Tokenizing UNV text with this dictionary
-**Then**: These terms will not be over-split during tokenization
+**Then**: These terms will not be over-split during segmentation
 **And**: Each term corresponds to a single Strong's Number in UNV
 
 #### Scenario: Load Version-Specific Dictionary for LCC
@@ -137,9 +137,9 @@ The system MUST support separate dictionaries for different Bible versions to ac
 #### Scenario: Bootstrap Target Dictionary from Source Dictionary
 
 **Given**: `lcc_bible_terms.txt` does not exist yet (initial state)
-**When**: Starting LCC tokenization work
+**When**: Starting LCC segmentation work
 **Then**: System can copy `unv_bible_terms.txt` → `lcc_bible_terms.txt` as starting point
-**And**: User iteratively refines `lcc_bible_terms.txt` based on tokenization results
+**And**: User iteratively refines `lcc_bible_terms.txt` based on segmentation results
 **Note**: This is a practical "lazy start" approach - many terms are shared between versions
 **Generalizes to**: Any target dictionary can bootstrap from any source dictionary (e.g., `nasb → esv`, `kjv → rcuv2010`)
 
@@ -156,14 +156,14 @@ The system MUST support separate dictionaries for different Bible versions to ac
 **Given**: UNV verse uses "天堂" (extracted to `unv_bible_terms.txt`)
 **And**: LCC verse uses "天國" (added to `lcc_bible_terms.txt`)
 **When**: Tokenizing the same verse reference in both versions
-**Then**: UNV tokenization preserves "天堂" as single token
-**And**: LCC tokenization preserves "天國" as single token
+**Then**: UNV segmentation preserves "天堂" as single token
+**And**: LCC segmentation preserves "天國" as single token
 **Note**: These represent the same concept but with different Chinese terms
-**Important**: Alignment (matching these terms) happens AFTER tokenization using semantic similarity
+**Important**: Alignment (matching these terms) happens AFTER segmentation using semantic similarity
 
 ### Requirement 3: Consistent Output Format
 
-All tokenization strategies MUST return results in the same format to ensure interoperability.
+All segmentation strategies MUST return results in the same format to ensure interoperability.
 
 **Output Format**:
 - Type: `List[str]`
@@ -173,7 +173,7 @@ All tokenization strategies MUST return results in the same format to ensure int
 
 #### Scenario: Output is Always a List of Strings
 
-**Given**: Any tokenization strategy (jieba, pkuseg, lac, stanza)
+**Given**: Any segmentation strategy (jieba, pkuseg, lac, stanza)
 **When**: Tokenizing any Chinese text
 **Then**: Output is a Python list
 **And**: Every element in the list is a string
@@ -224,9 +224,9 @@ def tokenize_with_positions(sentence: str) -> List[Tuple[str, int]]:
 **Then**: Position indices are available for each token
 **And**: Position is 0-indexed and sequential
 
-### Requirement 5: Tokenization Evaluation
+### Requirement 5: Segmentation Evaluation
 
-The system MUST provide methods to evaluate and compare tokenization quality across different strategies.
+The system MUST provide methods to evaluate and compare segmentation quality across different strategies.
 
 **Evaluation Approaches**:
 1. **Qualitative**: Manual inspection of sample verses
@@ -241,7 +241,7 @@ The system MUST provide methods to evaluate and compare tokenization quality acr
 
 #### Scenario: Quantitative Evaluation - Gold Standard Comparison
 
-**Given**: 20 verses with manually-created "gold standard" tokenization
+**Given**: 20 verses with manually-created "gold standard" segmentation
 **When**: Each verse is tokenized using a strategy
 **Then**: System calculates precision, recall, F1 against gold standard
 **And**: Best strategy = highest F1 score
@@ -249,14 +249,14 @@ The system MUST provide methods to evaluate and compare tokenization quality acr
 #### Scenario: Downstream Task Evaluation
 
 **Given**: Gold standard Strong's Number alignments for 20 verses
-**When**: Full alignment pipeline is run with different tokenizers
+**When**: Full alignment pipeline is run with different segmenters
 **Then**: Alignment accuracy is measured for each tokenizer
 **And**: Best tokenizer = highest alignment accuracy
 **Note**: This is the most important evaluation metric
 
 ### Requirement 6: Performance Requirements
 
-Tokenization MUST be performant enough to process full Bible books in reasonable time.
+Segmentation MUST be performant enough to process full Bible books in reasonable time.
 
 **Performance Target**: Process a full Bible book (e.g., Genesis with 50 chapters) in < 1 minute on standard hardware.
 
@@ -295,7 +295,7 @@ The system MUST correctly handle Chinese characters (Traditional and Simplified)
 **Given**: UNV text with embedded tags: "起初<H7225>上帝<H430>創造<H1254>天<H8064>地<H776>"
 **When**: Tokenizing
 **Then**: System can optionally preserve or strip Strong's tags
-**And**: Tokenization of Chinese text is not disrupted by tags
+**And**: Segmentation of Chinese text is not disrupted by tags
 
 ### Requirement: Plugin System Architecture
 
@@ -328,14 +328,14 @@ class Plugin(ABC):
 ```
 
 **Supported Plugin Types**:
-- `TokenizerPlugin`: Tokenization strategies
+- `SegmenterPlugin`: Segmentation strategies
 - `EmbeddingPlugin`: Word/sentence embeddings
 - `AlignmentPlugin`: Alignment algorithms
 - `ScorerPlugin`: Scoring and evaluation
 
 #### Scenario: Register and Use Tokenizer Plugin
 
-**Given**: A jieba tokenizer plugin implementation
+**Given**: A jieba segmenter plugin implementation
 **When**: Registering with `PluginManager.register("tokenizer.jieba", JiebaPlugin())`
 **Then**: Plugin is available for use via `PluginManager.get("tokenizer.jieba")`
 **And**: Can be configured with `plugin.initialize({"dict_path": "unv_bible_terms.txt"})`
@@ -344,8 +344,8 @@ class Plugin(ABC):
 
 **Given**: System running with jieba tokenizer
 **When**: Calling `PluginManager.replace("tokenizer.main", "tokenizer.pkuseg")`
-**Then**: All subsequent tokenization uses pkuseg without restart
-**And**: Previous tokenization results remain valid
+**Then**: All subsequent segmentation uses pkuseg without restart
+**And**: Previous segmentation results remain valid
 
 #### Scenario: Plugin Version Compatibility
 
@@ -361,7 +361,7 @@ The system MUST support automatic plugin discovery and lazy loading from designa
 **Discovery Mechanism**:
 ```
 plugins/
-├── tokenizers/
+├── segmenters/
 │   ├── jieba_plugin.py
 │   ├── pkuseg_plugin.py
 │   └── plugin.json      # Metadata
@@ -524,7 +524,7 @@ copy(unv_bible_terms.txt, lcc_bible_terms.txt)
 # Step 2: Iterative refinement
 while refining:
     tokenize_lcc_with_dictionary(lcc_bible_terms.txt)
-    review_tokenization_results()
+    review_segmentation_results()
     if found_lcc_specific_term:
         add_to_dictionary(lcc_bible_terms.txt, term)
     if found_inappropriate_term:
@@ -556,13 +556,13 @@ while refining:
 - Integration tests verify strategy swapping works correctly
 
 ### Extensibility
-- New tokenization algorithms can be added without modifying existing code
+- New segmentation algorithms can be added without modifying existing code
 - Custom dictionary can be expanded iteratively based on evaluation
-- Future: Support for context-aware tokenization (using surrounding verses)
+- Future: Support for context-aware segmentation (using surrounding verses)
 
 ## Future Considerations
 
-### Context-Aware Tokenization
+### Context-Aware Segmentation
 - Use surrounding verse context to improve segmentation accuracy
 - Leverage parallel structure in poetic books (Psalms, Proverbs)
 
@@ -571,7 +571,7 @@ while refining:
 - Fine-tune LAC models with biblical corpus
 
 ### Interactive Dictionary Building
-- Tool to visualize tokenization results
+- Tool to visualize segmentation results
 - Allow quick addition of terms to custom dictionary
 - Integration with dual_reader_right_editor for visual feedback
 

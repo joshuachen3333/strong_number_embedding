@@ -1,0 +1,2 @@
+conda install numpy
+pip install jieba pkuseg

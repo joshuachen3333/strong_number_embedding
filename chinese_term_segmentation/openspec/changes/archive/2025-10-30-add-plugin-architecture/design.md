@@ -11,7 +11,7 @@ This design implements a flexible plugin architecture based on the V2 architectu
 ```
 ┌─────────────────────────────────────────────────────┐
 │                   Application                        │
-│          (Tokenization, Alignment, etc.)             │
+│          (Segmentation, Alignment, etc.)             │
 └───────────────────┬─────────────────────────────────┘
                     │
                     ↓
@@ -133,8 +133,8 @@ import numpy as np
 from .plugin_base import Plugin
 
 
-class TokenizerPlugin(Plugin):
-    """Interface for tokenization strategies."""
+class SegmenterPlugin(Plugin):
+    """Interface for segmentation strategies."""
 
     @abstractmethod
     def tokenize(self, text: str, context: Optional[Dict] = None) -> List[str]:
@@ -302,7 +302,7 @@ from threading import Lock
 import logging
 from .plugin_base import Plugin
 from .plugin_interfaces import (
-    TokenizerPlugin,
+    SegmenterPlugin,
     EmbeddingPlugin,
     AlignmentPlugin,
     ScorerPlugin
@@ -334,7 +334,7 @@ class PluginManager:
 
         self._plugins: Dict[str, Plugin] = {}
         self._plugin_types: Dict[str, Type[Plugin]] = {
-            'tokenizer': TokenizerPlugin,
+            'tokenizer': SegmenterPlugin,
             'embedding': EmbeddingPlugin,
             'alignment': AlignmentPlugin,
             'scorer': ScorerPlugin
@@ -556,7 +556,7 @@ class PluginDiscovery:
 # config/plugins.yaml
 
 plugins:
-  tokenizers:
+  segmenters:
     default: jieba
 
     jieba:
@@ -602,7 +602,7 @@ plugins:
 
 ### Before (Direct Function Calls)
 ```python
-from tokenizers import tokenize_jieba
+from segmenters import tokenize_jieba
 
 tokens = tokenize_jieba("起初上帝創造天地")
 ```
@@ -618,7 +618,7 @@ tokens = tokenizer.tokenize("起初上帝創造天地")
 
 ### Compatibility Layer (Optional)
 ```python
-# tokenizers/__init__.py
+# segmenters/__init__.py
 from core.plugin_manager import PluginManager
 
 def tokenize_jieba(text):

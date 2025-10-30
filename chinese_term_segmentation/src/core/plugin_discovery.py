@@ -20,10 +20,10 @@ class PluginDiscovery:
         {
             "plugins": [
                 {
-                    "name": "tokenizer.jieba",
+                    "name": "segmenter.jieba",
                     "module_path": "jieba_plugin.py",
                     "class_name": "JiebaPlugin",
-                    "description": "Jieba Chinese tokenizer"
+                    "description": "Jieba Chinese segmenter"
                 }
             ]
         }
@@ -52,7 +52,7 @@ class PluginDiscovery:
             logger.warning(f"Plugins directory not found: {self.plugins_dir}")
             return []
 
-        # Scan subdirectories (tokenizers, embeddings, aligners, scorers)
+        # Scan subdirectories (segmenters, embeddings, aligners, scorers)
         for plugin_type_dir in self.plugins_dir.iterdir():
             if not plugin_type_dir.is_dir():
                 continue
@@ -156,7 +156,7 @@ class PluginDiscovery:
         """Find plugin metadata by name.
 
         Args:
-            name: Plugin name (e.g., 'tokenizer.jieba')
+            name: Plugin name (e.g., 'segmenter.jieba')
 
         Returns:
             Plugin metadata dict or None if not found

@@ -55,3 +55,71 @@
 13. **Approval to archive OpenSpec proposal**
    - Prompt: "yes"
    - Context: Approved archiving add-plugin-architecture OpenSpec proposal after successful implementation
+
+14. **Question about next steps and viewable results**
+   - Prompt: "what is next? am I suppose to see any viewable result?"
+   - Context: Asking about next steps and whether there should be visible output from current implementation
+
+15. **Request for detailed architecture explanation**
+   - Prompt: "4 explain more"
+   - Context: Chose option 4 to get detailed explanation of architecture and what each piece does
+
+16. **Request for working demo**
+   - Prompt: "demo"
+   - Context: Requested creation of working demo to see tokenization in action
+
+17. **Choice to modify demo with own verses**
+   - Prompt: "2"
+   - Context: Selected option 2 to try modifying the demo and add own verses
+
+18. **Request for CLI tool with FHL API integration**
+   - Prompt: "I'd like to load/parse the real bible on the fly that we give arguments like --verse \"Gen 1:3\" or \"John 3:4-7\" with --version (unv,lcc,kjv,,,), and you get the text from fhl api"
+   - Context: Requested command-line tool to fetch Bible verses from FHL API with verse references and version support
+
+19. **Question about FHL book abbreviation lookup**
+   - Prompt: "do you know where to lookup fhl book abbreviation for english and chinese?"
+   - Context: Asking where to find official FHL book abbreviation mappings
+
+20. **Request to crawl FHL API documentation**
+   - Prompt: "I want you to crawl the json api at https://bible.fhl.net/json/, and find their spec of versions (版本) abbreviations, boot (書卷) index/abbreviation to parse the api for text. go find it."
+   - Context: Requested investigation of official FHL API documentation for version codes and book abbreviations
+
+21. **Request to continue to next task**
+   - Prompt: "go next"
+   - Context: Requested to proceed with CLI tool implementation after API documentation investigation
+
+22. **Question about FHL parameter naming**
+   - Prompt: "does fhl uses --verse or --book, replace them with fhl's terminalogy"
+   - Context: Requested to align CLI parameters with FHL's official API terminology (chineses, chap, sec)
+
+23. **Question about --engs parameter**
+   - Prompt: "is there a --eng that is english book name or abbrev?"
+   - Context: Asked whether FHL API supports English book parameter
+
+24. **Questions about tokenizer/segmenter**
+   - Prompt: "--tokenizer jieba only uses one, but we allow 2, to compare them. do we have 3rd? btw, is it segmentation tool? or tokenizer?"
+   - Context: Three questions: (1) support multiple segmenters for comparison, (2) availability of 3rd option, (3) correct terminology (segmentation vs tokenization)
+
+25. **Request for comprehensive tokenizer→segmenter rename**
+   - Prompt: "please allow LAC and Stanza (and maybe in the futuer, more) to be used, so we have comparison in parallel."
+   - Context: Requested adding LAC and Stanza segmenters for parallel comparison
+
+26. **Question about folder structure consistency**
+   - Prompt: "and again, src/plugins/tokenizers/lac_plugin.py use tokenizers, not segmentater?"
+   - Context: Pointed out inconsistency in folder naming
+
+27. **Question about real tokenizers vs segmenters**
+   - Prompt: "and how about the real tokenizer plugin? are they at the same folder?"
+   - Context: Asked about distinction between Chinese word segmenters and neural model tokenizers (BertTokenizer, etc.)
+
+28. **Approval for comprehensive rename**
+   - Prompt: "yes, and all the docs, md files and architecture plans"
+   - Context: Approved full codebase rename from "tokenizer" to "segmenter" including all documentation
+
+29. **Request to test segmentation**
+   - Prompt: "now, try running the segmentation test with 出埃及記 4 章 4-6 節 with --version unv --seg jieba pkuseg"
+   - Context: Requested live test of CLI tool with Exodus 4:4-6 comparing jieba and pkuseg segmenters
+
+30. **Request for inline help system**
+   - Prompt: "add --version help --seg help --engs help --chinese help to list all available values to give for on the fly manual/dictionary of argument."
+   - Context: Requested inline help that shows available options when "help" is passed as argument value

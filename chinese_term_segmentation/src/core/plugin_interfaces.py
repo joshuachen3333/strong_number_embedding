@@ -1,4 +1,8 @@
-"""Plugin type interfaces for tokenization, embedding, alignment, and scoring."""
+"""Plugin type interfaces for segmentation, embedding, alignment, and scoring.
+
+Note: 'Segmentation' (分詞) refers to splitting Chinese text into words.
+Neural model tokenizers (e.g., BertTokenizer) are internal to EmbeddingPlugin implementations.
+"""
 
 from abc import abstractmethod
 from typing import List, Dict, Optional, Tuple
@@ -6,36 +10,39 @@ import numpy as np
 from .plugin_base import Plugin
 
 
-class TokenizerPlugin(Plugin):
-    """Interface for tokenization strategies.
+class SegmenterPlugin(Plugin):
+    """Interface for Chinese word segmentation strategies (分詞工具).
 
-    Tokenizers break Chinese text into meaningful word/term units.
+    Segmenters break Chinese text into meaningful word/term units.
     Supports custom dictionaries for biblical terminology.
+
+    Note: This is NOT for neural model tokenizers (BertTokenizer, etc.),
+    which are internal to embedding plugin implementations.
     """
 
     @abstractmethod
-    def tokenize(self, text: str, context: Optional[Dict] = None) -> List[str]:
-        """Tokenize text into words/terms.
+    def segment(self, text: str, context: Optional[Dict] = None) -> List[str]:
+        """Segment Chinese text into words/terms.
 
         Args:
-            text: Raw text string to tokenize
+            text: Raw Chinese text string to segment
             context: Optional context (verse references, surrounding text)
 
         Returns:
-            List of word tokens (strings)
+            List of word segments (strings)
         """
         pass
 
     @abstractmethod
-    def tokenize_with_metadata(
+    def segment_with_metadata(
         self,
         text: str,
         context: Optional[Dict] = None
     ) -> List[Dict]:
-        """Tokenize with rich metadata.
+        """Segment with rich metadata (POS tags, confidence, etc.).
 
         Args:
-            text: Raw text string to tokenize
+            text: Raw Chinese text string to segment
             context: Optional context
 
         Returns:
@@ -45,7 +52,7 @@ class TokenizerPlugin(Plugin):
 
     @abstractmethod
     def supports_custom_dictionary(self) -> bool:
-        """Whether this tokenizer supports custom dictionaries.
+        """Whether this segmenter supports custom dictionaries.
 
         Returns:
             True if custom dictionaries supported, False otherwise
@@ -53,7 +60,7 @@ class TokenizerPlugin(Plugin):
         pass
 
     def load_dictionary(self, dict_path: str) -> None:
-        """Load custom dictionary for tokenization.
+        """Load custom dictionary for segmentation.
 
         Args:
             dict_path: Path to dictionary file
@@ -65,6 +72,19 @@ class TokenizerPlugin(Plugin):
             raise NotImplementedError(
                 f"{self.name} does not support custom dictionaries"
             )
+
+    # Backward compatibility aliases (deprecated)
+    def tokenize(self, text: str, context: Optional[Dict] = None) -> List[str]:
+        """Deprecated: Use segment() instead."""
+        return self.segment(text, context)
+
+    def tokenize_with_metadata(
+        self,
+        text: str,
+        context: Optional[Dict] = None
+    ) -> List[Dict]:
+        """Deprecated: Use segment_with_metadata() instead."""
+        return self.segment_with_metadata(text, context)
 
 
 class EmbeddingPlugin(Plugin):

@@ -40,7 +40,7 @@ class PluginLoader:
         """Load a plugin by name (lazy loading with cache).
 
         Args:
-            name: Plugin name (e.g., 'tokenizer.jieba')
+            name: Plugin name (e.g., 'segmenter.jieba')
             config: Optional configuration dict
 
         Returns:
