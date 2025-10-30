@@ -1,0 +1,52 @@
+# Default configuration for Chinese Term Segmentation
+
+plugins:
+  tokenizers:
+    # Default tokenizer to use
+    default: jieba
+
+    # Jieba configuration
+    jieba:
+      enabled: true
+      config:
+        dict_path: ""  # Path to custom dictionary (optional)
+        hmm: true      # Enable HMM for new word discovery
+        mode: accurate # Segmentation mode: accurate, full, search
+
+    # PKUSeg configuration
+    pkuseg:
+      enabled: true
+      config:
+        model_name: default  # Model: default, news, web, medicine, tourism
+        postag: false        # Enable POS tagging
+        dict_path: ""        # Path to custom dictionary (optional)
+
+  embeddings:
+    default: word2vec
+
+    word2vec:
+      enabled: false
+      config:
+        model_path: ""  # Path to Word2Vec model
+        dimension: 300
+
+  alignments:
+    default: cosine
+
+    cosine:
+      enabled: true
+      config:
+        threshold: 0.5
+        weight_semantic: 0.7
+        weight_positional: 0.3
+
+# Logging configuration
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Performance settings
+performance:
+  cache_enabled: true
+  batch_size: 100
+  max_workers: 4

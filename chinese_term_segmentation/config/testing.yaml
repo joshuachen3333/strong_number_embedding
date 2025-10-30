@@ -1,0 +1,20 @@
+# Testing configuration for Chinese Term Segmentation
+
+plugins:
+  tokenizers:
+    default: jieba
+
+    jieba:
+      enabled: true
+      config:
+        hmm: false
+        mode: accurate
+
+# Logging configuration for tests
+logging:
+  level: DEBUG
+
+# Performance settings for tests
+performance:
+  cache_enabled: false
+  batch_size: 10

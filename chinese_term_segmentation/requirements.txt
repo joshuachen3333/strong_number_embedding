@@ -1,0 +1,13 @@
+# Core dependencies
+numpy>=1.21.0
+
+# Testing
+pytest>=7.0.0
+pytest-cov>=3.0.0
+
+# Chinese tokenization (optional - install as needed)
+# jieba>=0.42.1
+# pkuseg>=0.0.25
+
+# Configuration
+pyyaml>=6.0

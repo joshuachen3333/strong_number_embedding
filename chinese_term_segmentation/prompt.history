@@ -1,0 +1,53 @@
+# Prompt History
+## User prompts for Chinese Term Segmentation project
+
+### 2025-10-30
+
+1. **Initial status check**
+   - Prompt: "what is our progress? where are we?"
+   - Time: Start of session
+   - Context: Checking project status
+
+2. **Architecture evaluation request**
+   - Prompt: "what is our chinese term separation candidate? and what is our term mapping plan for different languages?"
+   - Context: Understanding segmentation and mapping approaches
+
+3. **Document plan request**
+   - Prompt: "write down this plan first"
+   - Context: Requested documentation of segmentation and mapping plan
+
+4. **V2 Architecture request**
+   - Prompt: "I want you to re-evaluate the SEGMENTATION_AND_MAPPING_PLAN.md plan, with deeper, smarter and future improvable, pluggable framework to revise. Think like a 架構師."
+   - Context: Requested architectural redesign with architect mindset
+
+5. **OpenSpec workflow establishment**
+   - Prompt: "let's go top down with /openspec work flow and then try to implement your great V2 idea at SEGMENTATION_MAPPING_ARCHITECTURE_V2.md (or if we have v3,,). From now on, try to use chrome-devtools-mcp as much as possible (if applicable), and record every prompt of mine to prompt.history But when I am pasting you output messages, they are not important so don't archive them. Also if I past a full script or code, just ignore it. Only archive my words or commands or prompt. And everything I give you, must be converted forcily to openspec work flow, before /openspec:apply, you must ask for my approval. Use git commit to keep track of our version, and before commit, suggest me your descriptions and briefs. BTW, make sure you keep our testing method cumulated. Meaning for next proposal, we test the previous tests too, not just the new proposal's own test. this testing plan and method must grow too per proposals and history."
+   - Context: Establishing strict OpenSpec workflow with cumulative testing
+
+6. **Model switch and proposal status check**
+   - Prompt: "before I switched to sonnet model, you are using opus to draft openspec/changes/add-plugin-architecture and other changes. Did you finish it? or you want to keep on?"
+   - Context: Checking completion status of OpenSpec proposal after model switch
+
+7. **Validate OpenSpec proposal**
+   - Prompt: "now let's validate it"
+   - Context: Requested validation of OpenSpec proposal
+
+8. **Check OpenSpec version for upgrade**
+   - Prompt: "what is our openspec version? can we upgrade it?"
+   - Context: Investigating validation issues, checking if upgrade available
+
+9. **Approval to proceed with implementation**
+   - Prompt: "ok, approved. go ahead."
+   - Context: Approved OpenSpec proposal add-plugin-architecture, proceeding with implementation
+
+10. **Question about context7 MCP integration**
+   - Prompt: "before we go on, do you think I can install and hookup context7 mcp?"
+   - Context: Asking about integrating context7 MCP before continuing implementation
+
+11. **Decision to prioritize OpenSpec implementation**
+   - Prompt: "let's implement the openspec features first"
+   - Context: Decided to complete OpenSpec proposal implementation before adding context7 MCP
+
+12. **Approval to commit implementation**
+   - Prompt: "approved"
+   - Context: Approved git commit of add-plugin-architecture implementation

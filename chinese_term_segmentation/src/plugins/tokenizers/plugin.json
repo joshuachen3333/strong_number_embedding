@@ -1,0 +1,20 @@
+{
+  "plugins": [
+    {
+      "name": "tokenizer.jieba",
+      "module_path": "jieba_plugin.py",
+      "class_name": "JiebaPlugin",
+      "description": "Jieba (結巴分詞) Chinese word segmentation",
+      "version": "1.0.0",
+      "requires": ["jieba>=0.42.1"]
+    },
+    {
+      "name": "tokenizer.pkuseg",
+      "module_path": "pkuseg_plugin.py",
+      "class_name": "PKUSegPlugin",
+      "description": "PKU (北大分詞) Chinese word segmentation",
+      "version": "1.0.0",
+      "requires": ["pkuseg>=0.0.25"]
+    }
+  ]
+}
