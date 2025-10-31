@@ -4,6 +4,7 @@ from typing import List, Set, Dict, Tuple
 from dataclasses import dataclass
 
 from src.core.strongs_parser import StrongsNumberParser, TermBoundary
+from src.core.char_variant_normalizer import CharVariantNormalizer
 
 
 @dataclass
@@ -15,6 +16,7 @@ class CorrectionMetrics:
     unchanged_segments_count: int  # Segments kept from initial segmentation
     character_match_rate: float  # matched / total (as percentage)
     correction_success_rate: float  # corrected / matched (as percentage)
+    variant_matches_count: int = 0  # Terms matched via character variant normalization
 
 
 class BoundaryCorrector:
@@ -27,9 +29,19 @@ class BoundaryCorrector:
     are corrected where character sequences match.
     """
 
-    def __init__(self):
-        """Initialize the corrector."""
+    def __init__(self, use_variant_normalization: bool = True):
+        """Initialize the corrector.
+
+        Args:
+            use_variant_normalization: Whether to use character variant
+                normalization for improved matching (default: True)
+        """
         self.parser = StrongsNumberParser()
+        self.use_variant_normalization = use_variant_normalization
+        if use_variant_normalization:
+            self.normalizer = CharVariantNormalizer()
+        else:
+            self.normalizer = None
 
     def correct(
         self,
@@ -67,8 +79,8 @@ class BoundaryCorrector:
         # Filter out empty terms, punctuation, and special markers
         reference_terms = self._extract_matchable_terms(unv_boundaries)
 
-        # Step 3: Find which reference terms exist in target text (string matching)
-        matched_terms = self._find_matches(target_text, reference_terms)
+        # Step 3: Find which reference terms exist in target text (string matching + variants)
+        matched_terms, variant_matches_count = self._find_matches(target_text, reference_terms)
 
         # Step 4: Apply corrections to initial segmentation
         corrected_segments = self._apply_corrections(
@@ -82,7 +94,8 @@ class BoundaryCorrector:
             unv_boundaries,
             matched_terms,
             initial_segments,
-            corrected_segments
+            corrected_segments,
+            variant_matches_count
         )
 
         return corrected_segments, metrics
@@ -120,23 +133,42 @@ class BoundaryCorrector:
 
         return matchable
 
-    def _find_matches(self, target_text: str, reference_terms: Set[str]) -> Set[str]:
+    def _find_matches(self, target_text: str, reference_terms: Set[str]) -> Tuple[Set[str], int]:
         """Find reference terms that exist in target text via string matching.
+
+        Uses character variant normalization to improve matching across different
+        Chinese Bible versions (e.g., LCC vs UNV).
 
         Args:
             target_text: Target version text (clean)
             reference_terms: Terms extracted from UNV+SN
 
         Returns:
-            Set of terms found in target text
+            Tuple of (matched_terms, variant_matches_count)
+            - matched_terms: Set of terms found in target text
+            - variant_matches_count: Number of terms matched via variant normalization
         """
         matched = set()
+        variant_matches_count = 0
 
+        # First pass: exact matching
         for term in reference_terms:
             if term in target_text:
                 matched.add(term)
 
-        return matched
+        # Second pass: variant normalization matching (if enabled)
+        if self.use_variant_normalization and self.normalizer:
+            unmatched = reference_terms - matched
+            normalized_target = self.normalizer.normalize(target_text)
+
+            for term in unmatched:
+                normalized_term = self.normalizer.normalize(term)
+                # Check if normalized term matches in normalized target
+                if normalized_term in normalized_target:
+                    matched.add(term)
+                    variant_matches_count += 1
+
+        return matched, variant_matches_count
 
     def _apply_corrections(
         self,
@@ -222,7 +254,8 @@ class BoundaryCorrector:
         unv_boundaries: List[TermBoundary],
         matched_terms: Set[str],
         initial_segments: List[str],
-        corrected_segments: List[str]
+        corrected_segments: List[str],
+        variant_matches_count: int = 0
     ) -> CorrectionMetrics:
         """Calculate correction quality metrics.
 
@@ -231,6 +264,7 @@ class BoundaryCorrector:
             matched_terms: Terms found via string matching
             initial_segments: Original segmentation
             corrected_segments: Corrected segmentation
+            variant_matches_count: Number of terms matched via character variant normalization
 
         Returns:
             CorrectionMetrics object
@@ -262,5 +296,6 @@ class BoundaryCorrector:
             corrected_boundaries_count=corrected_count,
             unchanged_segments_count=unchanged_count,
             character_match_rate=char_match_rate,
-            correction_success_rate=correction_success_rate
+            correction_success_rate=correction_success_rate,
+            variant_matches_count=variant_matches_count
         )

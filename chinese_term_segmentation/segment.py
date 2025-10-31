@@ -68,6 +68,8 @@ def display_correction_results(text: str, initial_segments: list, corrected_segm
     print(f"\n  📊 Correction Metrics:")
     print(f"     Match rate: {metrics.character_match_rate:.1f}% "
           f"({metrics.matched_terms_count}/{metrics.unv_sn_terms_count} terms)")
+    if metrics.variant_matches_count > 0:
+        print(f"     Variant matches: {metrics.variant_matches_count} (via character normalization)")
     print(f"     Boundaries corrected: {metrics.corrected_boundaries_count}")
     print(f"     Segments: {len(initial_segments)} → {len(corrected_segments)}")
 
