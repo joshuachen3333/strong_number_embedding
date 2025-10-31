@@ -149,11 +149,13 @@ def test_t033_edge_cases():
     else:
         print("✅ T033d: Different text returns None")
 
-    # Test Case 4: Long vs short
+    # Test Case 4: Long vs short - single char refTerm should match single char
     result = matcher.find_best_substring("神", "神愛世人甚至賜下")
-    assert result == "神愛" or result == "神愛世" or len(result) >= 2, \
-        "Should find at least 2-char substring"
-    print(f"✅ T033e: Long text matched: '{result}'")
+    # When refTerm is single char, exact match "神" is best (similarity 1.0)
+    # "神愛" would have similarity ~0.5, "神愛世" ~0.33
+    assert result is not None, "Should find a match"
+    assert result == "神", f"Single char refTerm should match itself exactly, got '{result}'"
+    print(f"✅ T033e: Single char exact match: '{result}'")
 
     # Test Case 5: Prefer longer matches with equal similarity
     # This tests the sort key (similarity, length)

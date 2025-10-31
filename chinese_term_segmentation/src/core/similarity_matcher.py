@@ -69,9 +69,14 @@ class SimilarityMatcher:
         # Collect candidates: (substring, similarity_score, length)
         candidates: List[Tuple[str, float, int]] = []
 
-        # Generate all substrings (length ≥ 2)
+        # Determine minimum substring length
+        # If refTerm is single char, allow single-char substrings
+        # Otherwise, require substrings of length ≥ 2 for efficiency
+        min_length = 1 if len(refTerm) == 1 else 2
+
+        # Generate all substrings (length ≥ min_length)
         for i in range(len(origText)):
-            for j in range(i + 2, len(origText) + 1):  # +2 ensures length ≥ 2
+            for j in range(i + min_length, len(origText) + 1):
                 substring = origText[i:j]
 
                 # Calculate similarity
