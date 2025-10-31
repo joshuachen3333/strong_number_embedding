@@ -1,247 +1,278 @@
-"""Similarity matching for Chinese text with pluggable engines.
+"""Similarity-based substring matcher for term refinement.
 
-提供可抽換的相似度匹配引擎，用於：
-1. 子字串粒度選擇（從粗粒度詞中找出最佳子字串）
-2. 字符變體處理（爲/為、衞/衛等）
-3. 跨版本文本對齊
-
-設計原則：
-- 抽象接口：支援多種實現方式（編輯距離 → 詞向量 → Transformer）
-- 先簡後繁：先用簡單實現上線，日後無痛升級
-- 統一基礎：為跨版本映射提供一致的相似度計算
+This module provides substring matching with character-level similarity,
+enabling refinement of coarse FHL boundaries by finding the best matching
+substring within a larger phrase.
 """
 
-from abc import ABC, abstractmethod
-from typing import List, Tuple, Optional
-from difflib import SequenceMatcher
+from typing import Optional, Dict, Tuple, List
 
 
-# 常見字符變體映射表（聖經文本中常見）
-VARIANT_MAP = {
-    # 為 的變體
-    '爲': '為',  # U+7232 → U+70BA
+class SimilarityMatcher:
+    """Find best matching substring using character-level similarity.
 
-    # 衛 的變體
-    '衞': '衛',  # U+885E → U+885B
-
-    # 線 的變體
-    '綫': '線',  # U+7DAB → U+7DDA
-
-    # 群 的變體
-    '羣': '群',  # U+7FA3 → U+7FA4
-
-    # 麼 的變體
-    '麽': '麼',  # U+9EBD → U+9EBC
-
-    # TODO: 根據實際測試結果擴充
-}
-
-
-def normalize_variants(text: str) -> str:
-    """將字符變體規範化為標準字。
-
-    Args:
-        text: 原始文本
-
-    Returns:
-        規範化後的文本
+    Uses edit distance (Levenshtein distance) with character variant
+    normalization to find the most similar substring within a coarse boundary.
 
     Example:
-        >>> normalize_variants("因爲天國")
-        '因為天國'
-        >>> normalize_variants("大衞王")
-        '大衛王'
-    """
-    result = text
-    for variant, standard in VARIANT_MAP.items():
-        result = result.replace(variant, standard)
-    return result
-
-
-class SimilarityMatcher(ABC):
-    """相似度匹配器抽象基類。
-
-    所有相似度引擎都必須實現此接口，以便日後無痛替換。
+        >>> matcher = SimilarityMatcher()
+        >>> matcher.find_best_substring("獨生的", "將他的獨生")
+        "獨生"
+        >>> matcher.find_best_substring("因為", "因爲天國")
+        "因爲"  # Handles character variant 爲/為
     """
 
-    @abstractmethod
-    def similarity(self, text1: str, text2: str) -> float:
-        """計算兩個字串的相似度。
+    def __init__(self):
+        """Initialize the similarity matcher."""
+        self.variant_map = self._load_character_variants()
+
+    def find_best_substring(
+        self,
+        refTerm: str,
+        origText: str,
+        threshold: float = 0.6
+    ) -> Optional[str]:
+        """Find best matching substring in origText.
+
+        Generates all possible substrings of origText (length ≥ 2),
+        calculates similarity with refTerm using edit distance,
+        and returns the substring with highest similarity above threshold.
 
         Args:
-            text1: 第一個字串
-            text2: 第二個字串
+            refTerm: Reference term from Strong's Dictionary (e.g., "獨生的")
+            origText: Coarse boundary from UNV+SN (e.g., "將他的獨生")
+            threshold: Minimum similarity score (0.0-1.0, default: 0.6)
 
         Returns:
-            相似度分數 (0.0 - 1.0)
-            1.0 = 完全相同
-            0.0 = 完全不同
-        """
-        pass
+            Best matching substring, or None if no match above threshold
 
-    @abstractmethod
-    def find_best_match(self,
-                       source_substrings: List[str],
-                       target_substrings: List[str],
-                       threshold: float = 0.7) -> List[Tuple[str, str, float]]:
-        """從子字串列表中找出最佳匹配對。
-
-        Args:
-            source_substrings: 源字串的所有子字串
-            target_substrings: 目標字串的所有子字串
-            threshold: 最低相似度閾值
-
-        Returns:
-            List of (source, target, similarity) tuples, sorted by similarity desc
+        Algorithm:
+            1. Generate all substrings of origText (length ≥ 2)
+            2. Calculate similarity for each substring vs refTerm
+            3. Normalize character variants before comparison
+            4. Return substring with highest similarity > threshold
+            5. Prefer longer matches if similarity scores are equal
 
         Example:
-            >>> source = ["將他的獨生", "他的獨生", "獨生", "將", "他", ...]
-            >>> target = ["賜下獨生子", "獨生子", "獨生", "賜", "下", ...]
-            >>> matches = matcher.find_best_match(source, target, threshold=0.7)
-            >>> matches[0]
-            ('獨生', '獨生', 1.0)
+            >>> matcher.find_best_substring("獨生的", "將他的獨生")
+            "獨生"  # similarity ~0.67 after removing "的"
+
+            >>> matcher.find_best_substring("因為", "因爲天國")
+            "因爲"  # variant match after normalization
+
+            >>> matcher.find_best_substring("獨生的", "天國是")
+            None  # no substring above threshold
         """
-        pass
+        if not refTerm or not origText:
+            return None
 
+        # Collect candidates: (substring, similarity_score, length)
+        candidates: List[Tuple[str, float, int]] = []
 
-class SimpleSimilarityMatcher(SimilarityMatcher):
-    """簡單相似度匹配器（Version 1）。
+        # Generate all substrings (length ≥ 2)
+        for i in range(len(origText)):
+            for j in range(i + 2, len(origText) + 1):  # +2 ensures length ≥ 2
+                substring = origText[i:j]
 
-    基於：
-    1. 字符變體規範化（爲→為）
-    2. 編輯距離（SequenceMatcher）
-    3. 完全匹配加權
+                # Calculate similarity
+                score = self._similarity(refTerm, substring)
 
-    優點：
-    - ✅ 無外部依賴
-    - ✅ 快速
-    - ✅ 可解釋性強
+                # Only keep if above threshold
+                if score > threshold:
+                    candidates.append((substring, score, len(substring)))
 
-    缺點：
-    - ⚠️ 無法處理同義詞（上帝/神）
-    - ⚠️ 對詞序變化敏感
+        if not candidates:
+            return None
 
-    日後可替換為 EmbeddingSimilarityMatcher 或 TransformerSimilarityMatcher
-    """
+        # Sort by: 1) similarity score (desc), 2) length (desc, prefer longer)
+        candidates.sort(key=lambda x: (x[1], x[2]), reverse=True)
 
-    def __init__(self,
-                 exact_match_bonus: float = 0.0,
-                 variant_match_bonus: float = 0.05,
-                 length_penalty_factor: float = 0.1):
-        """初始化匹配器。
+        # Return best match
+        return candidates[0][0]
+
+    def _similarity(self, s1: str, s2: str) -> float:
+        """Calculate character-level similarity score.
+
+        Uses edit distance (Levenshtein) normalized by max length,
+        with character variant normalization applied first.
 
         Args:
-            exact_match_bonus: 完全匹配時的額外加分 (default: 0.0)
-            variant_match_bonus: 變體匹配時的額外加分 (default: 0.05)
-            length_penalty_factor: 長度差異懲罰係數 (default: 0.1)
+            s1: First string
+            s2: Second string
+
+        Returns:
+            Similarity score from 0.0 (completely different) to 1.0 (identical)
+
+        Formula:
+            similarity = 1.0 - (edit_distance / max_length)
+
+        Example:
+            >>> matcher._similarity("獨生的", "獨生")
+            0.666...  # 1 - (1/3) = 0.67
+
+            >>> matcher._similarity("因為", "因爲")
+            1.0  # Perfect match after variant normalization
+
+            >>> matcher._similarity("abc", "abc")
+            1.0  # Identical strings
         """
-        self.exact_match_bonus = exact_match_bonus
-        self.variant_match_bonus = variant_match_bonus
-        self.length_penalty_factor = length_penalty_factor
+        # Normalize character variants first
+        s1_norm = self._normalize_variants(s1)
+        s2_norm = self._normalize_variants(s2)
 
-    def similarity(self, text1: str, text2: str) -> float:
-        """計算相似度。
+        # Calculate edit distance
+        distance = self._edit_distance(s1_norm, s2_norm)
 
-        策略：
-        1. 完全匹配 → 1.0
-        2. 變體匹配 → 0.95+
-        3. 編輯距離 → 0.0-1.0
-        4. 長度差異懲罰
+        # Normalize by max length
+        max_len = max(len(s1_norm), len(s2_norm))
+
+        if max_len == 0:
+            return 0.0
+
+        # Convert to similarity score (0.0-1.0)
+        similarity = 1.0 - (distance / max_len)
+
+        return similarity
+
+    def _edit_distance(self, s1: str, s2: str) -> int:
+        """Calculate Levenshtein edit distance between two strings.
+
+        Uses dynamic programming to find minimum number of single-character
+        edits (insertions, deletions, substitutions) needed to transform
+        s1 into s2.
+
+        Args:
+            s1: Source string
+            s2: Target string
+
+        Returns:
+            Edit distance (minimum number of edits)
+
+        Complexity:
+            Time: O(m × n) where m, n are string lengths
+            Space: O(m × n) for DP table
+
+        Example:
+            >>> matcher._edit_distance("獨生的", "獨生")
+            1  # Remove "的"
+
+            >>> matcher._edit_distance("abc", "abc")
+            0  # Identical
+
+            >>> matcher._edit_distance("kitten", "sitting")
+            3  # k→s, e→i, insert g
         """
-        # 1. 完全匹配
-        if text1 == text2:
-            return 1.0 + self.exact_match_bonus
+        m, n = len(s1), len(s2)
 
-        # 2. 字符變體規範化後匹配
-        norm1 = normalize_variants(text1)
-        norm2 = normalize_variants(text2)
+        # Create DP table
+        dp = [[0] * (n + 1) for _ in range(m + 1)]
 
-        if norm1 == norm2:
-            return 0.95 + self.variant_match_bonus
+        # Initialize base cases
+        for i in range(m + 1):
+            dp[i][0] = i  # Delete all chars from s1
+        for j in range(n + 1):
+            dp[0][j] = j  # Insert all chars from s2
 
-        # 3. 編輯距離相似度
-        base_similarity = SequenceMatcher(None, norm1, norm2).ratio()
+        # Fill DP table
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                if s1[i - 1] == s2[j - 1]:
+                    # Characters match, no edit needed
+                    dp[i][j] = dp[i - 1][j - 1]
+                else:
+                    # Take minimum of: insert, delete, substitute
+                    dp[i][j] = 1 + min(
+                        dp[i - 1][j],      # Delete from s1
+                        dp[i][j - 1],      # Insert into s1
+                        dp[i - 1][j - 1]   # Substitute
+                    )
 
-        # 4. 長度差異懲罰
-        len_diff = abs(len(text1) - len(text2))
-        max_len = max(len(text1), len(text2))
-        length_penalty = (len_diff / max_len) * self.length_penalty_factor if max_len > 0 else 0
+        return dp[m][n]
 
-        final_similarity = max(0.0, base_similarity - length_penalty)
+    def _normalize_variants(self, text: str) -> str:
+        """Normalize character variants to standard form.
 
-        return final_similarity
+        Replaces variant Chinese characters with their standard equivalents
+        to enable matching across different Bible versions that use different
+        Unicode codepoints for the same semantic character.
 
-    def find_best_match(self,
-                       source_substrings: List[str],
-                       target_substrings: List[str],
-                       threshold: float = 0.7) -> List[Tuple[str, str, float]]:
-        """找出所有高於閾值的匹配對，按相似度排序。
+        Args:
+            text: Text with potential character variants
 
-        策略：
-        1. 計算所有源-目標子字串對的相似度
-        2. 過濾低於閾值的
-        3. 按相似度降序排序
-        4. 去重（同一個源或目標只保留最佳匹配）
+        Returns:
+            Text with variants normalized to standard form
+
+        Common Biblical Variants:
+            爲 (U+7232) → 為 (U+70BA)  # "because"
+            衞 (U+885E) → 衛 (U+885B)  # "David"
+            綫 (U+7DAB) → 線 (U+7DDA)  # "line"
+
+        Example:
+            >>> matcher._normalize_variants("因爲天國")
+            "因為天國"  # 爲 → 為
+
+            >>> matcher._normalize_variants("大衞王")
+            "大衛王"  # 衞 → 衛
+
+            >>> matcher._normalize_variants("no variants")
+            "no variants"  # No change
         """
-        matches = []
+        if not text:
+            return ""
 
-        # 計算所有配對的相似度
-        for source in source_substrings:
-            for target in target_substrings:
-                sim = self.similarity(source, target)
-                if sim >= threshold:
-                    matches.append((source, target, sim))
+        normalized = text
+        for variant, standard in self.variant_map.items():
+            normalized = normalized.replace(variant, standard)
+        return normalized
 
-        # 按相似度降序排序
-        matches.sort(key=lambda x: x[2], reverse=True)
+    def _load_character_variants(self) -> Dict[str, str]:
+        """Load character variant mappings.
 
-        # 去重：每個源字串只保留最佳匹配
-        seen_sources = set()
-        seen_targets = set()
-        unique_matches = []
+        Returns dictionary mapping variant characters to their standard forms.
+        This list is expandable as new variants are discovered in biblical texts.
 
-        for source, target, sim in matches:
-            if source not in seen_sources and target not in seen_targets:
-                unique_matches.append((source, target, sim))
-                seen_sources.add(source)
-                seen_targets.add(target)
+        Returns:
+            Dictionary of {variant: standard} mappings
 
-        return unique_matches
+        Common Biblical Variants:
+            - 爲/為: Different Unicode representations of "because/為"
+            - 衞/衛: Different forms of "guard/衛" (as in "David/大衛")
+            - 綫/線: Different forms of "line/線"
+
+        Note:
+            This is a curated list of common variants found in Chinese Bible
+            translations. Additional variants can be discovered by analyzing
+            unmatched terms and examining Unicode differences.
+
+        Future Enhancement:
+            Could be loaded from external configuration file for easier updates.
+        """
+        return {
+            # Common biblical character variants
+            '爲': '為',  # U+7232 → U+70BA (because, 因爲 → 因為)
+            '衞': '衛',  # U+885E → U+885B (guard, 大衞 → 大衛)
+            '綫': '線',  # U+7DAB → U+7DDA (line, 界綫 → 界線)
+
+            # Add more variants as discovered
+            # Format: 'variant': 'standard'
+        }
 
 
-def extract_substrings(text: str, min_length: int = 1, max_length: int = None) -> List[str]:
-    """提取文本的所有子字串。
+# Convenience function for quick testing
+def find_best_match(ref: str, text: str, threshold: float = 0.6) -> Optional[str]:
+    """Convenience function for quick substring matching.
 
     Args:
-        text: 源文本
-        min_length: 最小子字串長度
-        max_length: 最大子字串長度（None = 整個文本長度）
+        ref: Reference term
+        text: Text to search in
+        threshold: Similarity threshold
 
     Returns:
-        所有子字串的列表（不包含重複）
+        Best matching substring or None
 
     Example:
-        >>> extract_substrings("獨生子", min_length=2)
-        ['獨生', '生子', '獨生子']
+        >>> find_best_match("獨生的", "將他的獨生")
+        "獨生"
     """
-    if max_length is None:
-        max_length = len(text)
-
-    substrings = set()
-
-    for length in range(min_length, min(max_length + 1, len(text) + 1)):
-        for start in range(len(text) - length + 1):
-            substring = text[start:start + length]
-            substrings.add(substring)
-
-    return list(substrings)
-
-
-# TODO: 未來實現
-# class EmbeddingSimilarityMatcher(SimilarityMatcher):
-#     """基於詞向量的相似度匹配器（Version 2 - 未來實現）"""
-#     pass
-
-# class TransformerSimilarityMatcher(SimilarityMatcher):
-#     """基於 Sentence-BERT 的相似度匹配器（Version 3 - 未來實現）"""
-#     pass
+    matcher = SimilarityMatcher()
+    return matcher.find_best_substring(ref, text, threshold)
