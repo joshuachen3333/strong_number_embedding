@@ -46,3 +46,122 @@
 
 **User**: yes, go ahead. remember to append all I prompted to prompt.history
 
+---
+
+## Implementation Phase (2025-10-31)
+
+**User**: before we integrate this into segment.py, I would like to see the demo_sn_correction.py and demo_sn_correction_same_version.py 成果 see how it works.
+
+**Claude**: [Implemented initial demos]
+
+**User**: 我還是看到原本 lcc 版本, 經過sn 校正後, 又變樣了. 讓我澄清一下, sn 校正一定要作用於目標版本 (LCC), that is, before sn correction's LCC vs after sn correction's LCC, got my point?
+
+**Claude**: 完全理解！实现了 BoundaryCorrector，确保 LCC → LCC 文本保留。
+
+**User**: can I run the demos and see the efforts?
+
+**Claude**: [Showed demo results, basic display]
+
+**User**: I see your demos. before after, they are identical in words and terms, just the segmentation is different. Could you add back the unv with <SN> back so I can see more reference, that Before/After/Ref (unv with SN)
+
+**User**: yes, please do
+1. 用颜色高亮显示改变的部分
+2. 显示更详细的 UNV+SN 参考分词
+3. 并排对比显示
+
+**Claude**: [Enhanced demo with color codes: RED=removed, GREEN=added, CYAN=Strong's Numbers]
+
+---
+
+## CRITICAL BUG DISCOVERY (2025-10-31)
+
+**User**: ❌ BEFORE SN Correction (jieba): [...] here in unv+sn 因為 must be identified and be sent to LCC correcting. Why is that not the case? especially this kind of unv+sn term [G3754] (因為) 被夾在本身的 G3754 與上一個與它無關的SN (G3107) 之間, 更應該被識別出來.
+
+**Claude Discovery**: 发现了关键错误！我对 Strong's Number tag 的理解是错的：
+
+**错误理解**: SN tag 标记后面的词（tag 是新词的开始）
+**正确理解**: SN tag 标记前面的词（tag 跟随它描述的词）
+
+Example:
+- `因為<G3754>` means "因為" has SN G3754
+- NOT: G3754 applies to what comes after
+
+This was causing completely wrong term-to-SN associations!
+
+**User**: 这类字形变体在圣经文本中很常见: 爲/為, 衞/衛, 綫/線, 等等... leave this to another semantic correction, maybe another change/feature before the inter version plan
+
+**Claude**: 理解，将字符变体处理推迟到单独的 Phase 1.5 提案。
+
+**User**: also, write down your important finding (and misunderstanding) that a SN is actually mapping the term(s) to it's left. Your task is to create a detailed summary...
+
+**Claude**: [Created CRITICAL_FINDINGS.md, CURRENT_STATUS.md, and other documentation]
+
+---
+
+## Punctuation Handling Discussion (2025-10-31)
+
+**User**: this is the most important thing you have found, write it down and keep it critical in the documentation:
+错误理解：我把 SN tag 后面的字符当作新词的开始
+正确理解：SN tag 是标记它前面的词！
+
+**Claude**: [Added prominent warnings in strongs_parser.py and created CRITICAL_FINDINGS.md]
+
+**User**: Known Issue: Punctuation loss in some verses - needs fix, what is this all about? and why?
+
+**Claude**: 问题在 `boundary_corrector.py` line 204：
+```python
+if segment and segment not in ' \t\n　，。、：；！？「」『』':
+```
+这个条件过滤掉了所有标点段落，导致终止标点丢失。
+
+**User**: I agree to bring back the ending/tailing 。
+and what about the others within the sentence? 這些句子中的標點符號, 不就正是分詞的重要根據嗎？
+還有, 最末尾的據點, 似乎不應該與最末尾的詞視為一體, 例如 永生|。 似乎比 永生。 更合適對嗎？不用同意我, 我們先討論.
+
+**Claude**: 完全同意！标点应该独立：
+- 方案 A：标点独立 `永生|。` ✅
+  - 语言学纯粹性：标点不是词
+  - 一致性：与 UNV+SN parser 行为一致
+  - 分析清晰：标点不对应 Strong's Number
+- 方案 B：标点附着 `永生。` ❌
+  - 不一致，分析困难
+
+**User**: 合理, 我們把標點與 term 分開來理解, 不要把標點黏合進任何詞.
+
+**Claude**: [Fixed boundary_corrector.py to force all punctuation independent]
+
+**User**: 缺點：⚠️ 可能與 jieba/pkuseg 輸出不一致（它們有時把標點附著在詞上）也需要針對他們做分詞後的處理嗎? 把有黏著的標點從詞彙中拆出來
+
+**Claude**: 不需要额外处理！测试证明：
+1. Jieba/PKUSeg 实际上已经把标点分开了
+2. 即使它们黏着标点，我们的算法也会自动分离
+3. 原因：我们"重建文本 + 扫描标点位置 + 重新分割"，不依赖输入格式
+
+Test result:
+```
+假設輸入（黏著）：你好， | 世界。
+我們的輸出（分離）：你好 | ， | 世界 | 。
+```
+
+**User**: for demo_sn_correction.py and demo_sn_correction_same_version.py, apply all our updates.
+
+**Claude**: [Updated both demos to use StrongsNumberParser and reflect all fixes]
+
+**User**: let's commit it to git
+
+**Claude**: [Committed all changes with comprehensive commit message]
+
+**User**: are we still appending prompt to prompt.history?
+
+**Claude**: [Now appending all missed conversations]
+
+---
+
+## Summary of Key Decisions
+
+1. ✅ **SN Tag Placement**: Tags FOLLOW terms (critical discovery)
+2. ✅ **Punctuation Independence**: All punctuation separated consistently
+3. ✅ **Text Preservation**: LCC → LCC with only boundary changes
+4. ✅ **Character Variants**: Deferred to Phase 1.5 proposal
+5. ✅ **Robustness**: Algorithm handles both separated and attached punctuation input
+
