@@ -18,6 +18,7 @@ from typing import Optional
 from src.api.fhl_client import FHLClient, VerseData
 from src.api.verse_parser import VerseParser, VerseReference
 from src.core.plugin_manager import PluginManager
+from src.core.boundary_corrector import BoundaryCorrector
 from src.plugins.segmenters.jieba_plugin import JiebaPlugin
 from src.plugins.segmenters.pkuseg_plugin import PKUSegPlugin
 from src.plugins.segmenters.lac_plugin import LACPlugin
@@ -308,6 +309,15 @@ Examples:
         help='Segmenter mode (jieba only, default: accurate)'
     )
 
+    # SN-based correction
+    parser.add_argument(
+        '--correct-with-sn',
+        action='store_true',
+        help='Correct segmentation boundaries using UNV+Strong\'s Numbers as reference. '
+             'Works with target versions: lcc, rcuv2010, rcuv. '
+             'Target text is preserved - only boundaries are corrected via string matching.'
+    )
+
     # Output options
     parser.add_argument(
         '--compact', '-c',
@@ -347,6 +357,17 @@ Examples:
         print(f"Valid versions: {', '.join(valid_versions)}", file=sys.stderr)
         print(f"Use --version help to see all available versions", file=sys.stderr)
         return 1
+
+    # Validate --correct-with-sn usage
+    if args.correct_with_sn:
+        if args.version == 'unv':
+            print(f"❌ Error: Cannot use --correct-with-sn with UNV version", file=sys.stderr)
+            print(f"UNV already has Strong's Numbers. Use other versions: lcc, rcuv2010", file=sys.stderr)
+            return 1
+        if not args.seg:
+            print(f"❌ Error: --correct-with-sn requires --seg to be specified", file=sys.stderr)
+            print(f"Example: --seg jieba --correct-with-sn", file=sys.stderr)
+            return 1
 
     # Validate segmenters
     valid_segmenters = ['jieba', 'pkuseg', 'lac', 'stanza']

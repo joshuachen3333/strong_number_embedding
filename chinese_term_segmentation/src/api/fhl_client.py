@@ -215,6 +215,59 @@ class FHLClient:
             logger.error(f"API request failed: {e}")
             raise
 
+    def fetch_for_correction(
+        self,
+        book_zh: str,
+        chapter: int,
+        verse: int,
+        target_version: str = "lcc"
+    ) -> tuple[Optional[VerseData], Optional[VerseData]]:
+        """Fetch both target version and UNV+SN for boundary correction.
+
+        This is a convenience method for the SN-based correction workflow.
+
+        Args:
+            book_zh: Chinese book abbreviation
+            chapter: Chapter number
+            verse: Verse number
+            target_version: Target version to correct (lcc, rcuv2010, etc.)
+
+        Returns:
+            Tuple of (target_verse, unv_sn_verse)
+            - target_verse: Verse in target version (without SN)
+            - unv_sn_verse: UNV verse with Strong's Numbers (reference)
+
+        Raises:
+            ValueError: If target_version is "unv" (redundant)
+            requests.RequestException: If API request fails
+        """
+        if target_version == "unv":
+            raise ValueError(
+                "Cannot use UNV as target for SN correction. "
+                "UNV already has Strong's Numbers. "
+                "Use other versions: lcc, rcuv2010, rcuv"
+            )
+
+        # Fetch target version (without Strong's Numbers)
+        target_verse = self.fetch_verse(
+            book_zh=book_zh,
+            chapter=chapter,
+            verse=verse,
+            version=target_version,
+            include_strongs=False
+        )
+
+        # Fetch UNV with Strong's Numbers (reference standard)
+        unv_sn_verse = self.fetch_verse(
+            book_zh=book_zh,
+            chapter=chapter,
+            verse=verse,
+            version="unv",
+            include_strongs=True
+        )
+
+        return target_verse, unv_sn_verse
+
     def close(self):
         """Close the HTTP session."""
         self.session.close()
