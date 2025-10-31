@@ -124,102 +124,28 @@
    - Prompt: "add --version help --seg help --engs help --chinese help to list all available values to give for on the fly manual/dictionary of argument."
    - Context: Requested inline help that shows available options when "help" is passed as argument value
 
----
+### 2025-11-01
 
-## 2025-10-31: SN-Based Segmentation Correction
+31. **Core problem definition for similarity-based matching**
+   - Prompt: "我來破題一下: 一切都來自一個單一 SN number 以及它代表的一個原文 term when we are given that SN (term, let's call it refTerm); and a series of term (from a whole verse, a stentence between 標點符號, to a long term between SN or between 標點符號 like "甚至將他的獨生"; let's call it origText), we want to output a term (outputTerm) so that outputTerm 是 origText 的部分子集合, 且 outputTerm 與 refTerm 擁有最高的語意相似度. 我們要找一個功能, 輸入是 refTerm 與一串長文 origText (這個長文可以是 unv 的一整節, 這節是 refTerm 所在的那節; 可以是 unv 的一節中包含 refTerm 的一句話; 也可以是類似"甚至將他的獨生" 的為分割長詞 ); 然後要求輸出一個最適合的 optputTerm, 使得 outputTerm 與 refTerm 有最高的語意相似度. 且 outputTerm 必須是 origText 的子集合."
+   - Context: Defined the core problem for similarity-based matching - finding the best substring match between SN reference term and original text
 
-31. **User Clarification on Text Preservation**
-   - Prompt: "why is your SN-Corrected Segmentation (Target) 文本也變了？例如呂振中譯本, 經過 sn correct 之後, 應該還是更正後的呂振中譯本才對啊！"
-   - Context: Critical clarification that SN correction must preserve target version text (LCC → LCC)
+32. **Clarification on refTerm source and two-stage process**
+   - Prompt: "refTerm 的來源, 以 <SN> 起始 當我們看到unv 當中, 既定某一節內, 逐個 SN 時 我們在該節中, 逐個逐個 SN 來在現在這一節中自我找出 哪個詞算是這個 SN 的 refTerm. 從一節, 到一句, 到一個尚未被確認為 refTerm 的長短 term, 都要匹配檢查 直到連根本unv 當中我們都能找到確切的 outputTerm 來當作未來的 refTerm. 也就是說, 一開始是以 SN 對應的原文當作 refTerm, 把 unv 該節當作 origText, 然後產出的 outputTerm （雖然它位於 unv 當中）才是接下來一切後續匹配的新 refTerm."
+   - Context: Clarified that the process has two stages: (1) SN semantic → refined UNV term, (2) refined UNV term → target version term. The refTerm starts from SN dictionary meaning, gets refined within UNV itself first.
 
-32. **Confirmation of LCC → LCC Principle**
-   - Prompt: "讓我澄清一下, sn 校正一定要作用於目標版本 (LCC), that is, before sn correction's LCC vs after sn correction's LCC, got my point?"
-   - Context: Emphasized that correction should only change boundaries, not text content
+33. **FHL Strong's dictionary API reference**
+   - Prompt: "fhl do has a strong number word dictionary, check your api/json knowledge and you will see it. 兩階段理解正確 逐層搜索策略合理 可能需要再討論, because performance is also a key issue, plus we already has primitive sn-based correction that must help us 不必真的拿整一節去分析, 可以使用剩下的較小的單位來做解析"
+   - Context: Pointed out FHL has Strong's dictionary API, confirmed two-stage understanding is correct, emphasized performance optimization by using existing coarse-grained boundaries instead of analyzing entire verses
 
-33. **Two-Phase Strategy Clarification**
-   - Prompt: "the unv sn correcting lcc is to give before unv sn correction's LCC to generate an after unv sn correction's LCC... 先貢獻這個不虛映射的簡單詞邊界 (只因為有sn) 先校正"
-   - Context: Defined Phase 1 (simple string matching) vs Phase 2 (cross-version semantic mapping)
+34. **Request to read FHL JSON API documentation**
+   - Prompt: "no, I want you to read fhl's json document at https://bible.fhl.net/json/, there is a sn dictionary php and the arguments spec here"
+   - Context: Directed to read official FHL JSON API documentation to find Strong's dictionary endpoint (sd.php) specifications
 
-34. **Approval to Implement**
-   - Prompt: "yes, go ahead. remember to append all I prompted to prompt.history"
-   - Context: Approved implementation with reminder to track prompts
+35. **Reminder about OpenSpec workflow and prompt.history**
+   - Prompt: "remember to use openspec flow and do append my prompt to current directory prompt.history"
+   - Context: Reminded to follow OpenSpec workflow (proposal → validate → implement) and maintain prompt.history
 
-35. **Request for Demo Before CLI Integration**
-   - Prompt: "before we integrate this into segment.py, I would like to see the demo_sn_correction.py and demo_sn_correction_same_version.py 成果 see how it works."
-   - Context: Requested visual demo results before final CLI integration
-
-36. **Request for Enhanced Display**
-   - Prompt: "yes, please do 1. 用颜色高亮显示改变的部分 2. 显示更详细的 UNV+SN 参考分词 3. 并排对比显示"
-   - Context: Requested color highlighting and side-by-side comparison in demo output
-
-37. **Critical Bug Report - Parser Tag Misunderstanding**
-   - Prompt: "here in unv+sn 因為 must be identified... especially this kind of unv+sn term [G3754] (因為) 被夾在本身的 G3754 與上一個與它無關的SN (G3107) 之間, 更應該被識別出來."
-   - Context: Identified that "因為" was not being parsed correctly - led to discovery of fundamental parser error
-
-38. **Character Variant Deferral Decision**
-   - Prompt: "这类字形变体在圣经文本中很常见: 爲/為, 衞/衛, 綫/線, 等等... leave this to another semantic correction, maybe another change/feature before the inter version plan"
-   - Context: Decided to defer character variant handling to separate Phase 1.5 proposal
-
-39. **Request to Document Critical Finding**
-   - Prompt: "this is the most important thing you have found, write it down and keep it critical in the documentation: 错误理解：我把 SN tag 后面的字符当作新词的开始 正确理解：SN tag 是标记它前面的词！"
-   - Context: Requested prominent documentation of SN tag placement discovery
-
-40. **Punctuation Loss Investigation**
-   - Prompt: "Known Issue: Punctuation loss in some verses - needs fix, what is this all about? and why?"
-   - Context: Asked about punctuation being lost in correction results
-
-41. **Punctuation Independence Decision**
-   - Prompt: "I agree to bring back the ending/tailing 。 and what about the others within the sentence? 這些句子中的標點符號, 不就正是分詞的重要根據嗎？還有, 最末尾的據點, 似乎不應該與最末尾的詞視為一體, 例如 永生|。 似乎比 永生。 更合適對嗎？"
-   - Context: Discussed whether punctuation should be independent segments or attached to words
-
-42. **Confirmation of Punctuation Separation**
-   - Prompt: "合理, 我們把標點與 term 分開來理解, 不要把標點黏合進任何詞."
-   - Context: Confirmed all punctuation should be independent segments
-
-43. **Question About Jieba/PKUSeg Punctuation Handling**
-   - Prompt: "也需要針對他們做分詞後的處理嗎? 把有黏著的標點從詞彙中拆出來"
-   - Context: Asked if we need special handling for segmenters that attach punctuation
-
-44. **Request to Update Both Demos**
-   - Prompt: "for demo_sn_correction.py and demo_sn_correction_same_version.py, apply all our updates."
-   - Context: Requested both demo scripts be updated with all bug fixes
-
-45. **Request to Commit Changes**
-   - Prompt: "let's commit it to git"
-   - Context: Requested git commit of all SN correction implementation
-
-46. **Prompt History Tracking Check**
-   - Prompt: "are we still appending prompt to prompt.history?"
-   - Context: Checked if prompts were being tracked in history
-
-47. **CLI Integration Request**
-   - Prompt: "ok, let's do Phase 3: CLI 集成到 segment.py"
-   - Context: Requested integration of SN correction into segment.py CLI
-
-48. **Language Preference Request**
-   - Prompt: "請用正體中文與我溝通, or English."
-   - Context: Requested communication in Traditional Chinese or English
-
-49. **Character Variant Clarification**
-   - Prompt: "階段2：字符變體是什麼? 是不同的 "因為" 的爲的寫法造成的嗎？"
-   - Context: Asked for clarification on what character variants are
-
-50. **Semantic Similarity Approach Discussion**
-   - Prompt: "有第三個方法嗎?引入字詞相似度(類似語言模型的判斷) 但是仍然抓取各種子字串進去匹配, 有點像是你第一種技術手段, 只是匹配不是字面相同而是字義最接近, 最接近的子字串型態得標."
-   - Context: Proposed hybrid approach: substring extraction + semantic similarity matching
-
-51. **Approval for Phase 3 All-in-One Implementation**
-   - Prompt: "我認為這個問題會被 Phase 3 (進階)所克服. 所以必須一次到位這個階段三, 可以先陽春, 低效, 然後日後抽換更好的引擎. 但是必須先到位, 一次解決子字串多大才算數... 也一次解決 因為 因爲這種變體問題"
-   - Context: Decided to implement Phase 3 (semantic similarity) immediately with simple engine first, upgradeable later
-
-52. **Prompt History Location Check**
-   - Prompt: "did you append my prompt to prompt.history? show me! and did you follow openspec workflow?"
-   - Context: Checked if prompts were being tracked and OpenSpec workflow was followed
-
-53. **Prompt History Merge Request**
-   - Prompt: "make sure our prompt.history is at the subroot /Users/joshua/work/strong_number_embedding/chinese_term_segmentation/prompt.history. merge them if not there."
-   - Context: Requested prompt.history be in subroot directory and merged if needed
-
-54. **Decision to Simplify and Archive Current Proposal**
-   - Prompt: "好的, 我們先實現 add-sn-based-segmentation-correction 那個依照 SN 在 unv 的邊界, 標點或者兩端 SN 的夾取所得到的 term 來字面匹配 target verse. 這是基本粗略的努力. 顯把它完成並 archive, 把 add-similarity-based-matching 留到下一個階段. 並且把因為 因爲這種變體克服也先拿掉, 等候 add-similarity-based-matching 來一併解決."
-   - Context: Decided to complete basic exact string matching version first, defer character variants and similarity matching to next proposal
+36. **Decision to prioritize punctuation fix over similarity refinement**
+   - Prompt: "please revert all add-similarity-based-refinement effort! I want to fix the 標點符號 issue first, then fhl api confirmation for sn dictionary, then back to add-similarity-based-refinement"
+   - Context: Decided to postpone similarity-based refinement proposal, prioritize fixing punctuation loss bug from CURRENT_STATUS.md first, then validate FHL SN dictionary API works, then return to refinement feature

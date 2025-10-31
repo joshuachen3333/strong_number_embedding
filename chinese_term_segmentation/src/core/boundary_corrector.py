@@ -20,11 +20,11 @@ class CorrectionMetrics:
 class BoundaryCorrector:
     """Corrects Chinese term boundaries using UNV+SN as reference.
 
-    Uses simple exact string matching to find terms that exist in both target version
+    Uses simple string matching to find terms that exist in both target version
     (e.g., LCC) and UNV+SN, then applies UNV+SN boundaries to those matched terms.
 
     Key principle: Target version text (LCC) never changes to UNV - only boundaries
-    are corrected where exact character sequences match.
+    are corrected where character sequences match.
     """
 
     def __init__(self):
@@ -121,7 +121,7 @@ class BoundaryCorrector:
         return matchable
 
     def _find_matches(self, target_text: str, reference_terms: Set[str]) -> Set[str]:
-        """Find reference terms that exist in target text via exact string matching.
+        """Find reference terms that exist in target text via string matching.
 
         Args:
             target_text: Target version text (clean)
@@ -185,21 +185,10 @@ class BoundaryCorrector:
 
         # Mark character positions that should be term boundaries
         boundary_positions = set([0, len(target_text)])  # Start and end
-
-        # Add boundaries from matched terms
         for term, positions in term_positions.items():
             for start, end in positions:
                 boundary_positions.add(start)
                 boundary_positions.add(end)
-
-        # Add boundaries for ALL punctuation (punctuation must be independent)
-        # 原則：所有標點都獨立，無論是否有 matched terms
-        punctuation = '，。、：；！？「」『』'
-        for i, char in enumerate(target_text):
-            if char in punctuation:
-                # Add boundary before and after punctuation
-                boundary_positions.add(i)      # Start of punctuation
-                boundary_positions.add(i + 1)  # End of punctuation
 
         # Create new segmentation based on boundary positions
         sorted_boundaries = sorted(boundary_positions)
@@ -211,10 +200,9 @@ class BoundaryCorrector:
 
             segment = target_text[start:end]
 
-            # Keep all segments including punctuation (punctuation is independent)
-            # 原則：標點與 term 分開，標點獨立成段
-            # Only skip truly empty segments or pure whitespace
-            if segment and segment not in ' \t\n　':  # Only skip whitespace, not punctuation
+            # Skip only whitespace (preserve punctuation!)
+            whitespace = ' \t\n　'
+            if segment and segment not in whitespace:
                 corrected.append(segment)
 
         return corrected
