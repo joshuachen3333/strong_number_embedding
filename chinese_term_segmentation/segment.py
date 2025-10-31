@@ -70,6 +70,8 @@ def display_correction_results(text: str, initial_segments: list, corrected_segm
           f"({metrics.matched_terms_count}/{metrics.unv_sn_terms_count} terms)")
     if metrics.variant_matches_count > 0:
         print(f"     Variant matches: {metrics.variant_matches_count} (via character normalization)")
+    if metrics.refined_terms_count > 0:
+        print(f"     Refinement: {metrics.refined_terms_count}/{metrics.coarse_terms_count} terms refined ({metrics.refinement_rate:.1f}%)")
     print(f"     Boundaries corrected: {metrics.corrected_boundaries_count}")
     print(f"     Segments: {len(initial_segments)} → {len(corrected_segments)}")
 
@@ -357,6 +359,14 @@ Examples:
              'Target text is preserved - only boundaries are corrected via string matching.'
     )
 
+    parser.add_argument(
+        '--use-refinement',
+        action='store_true',
+        help='Use similarity-based term refinement (Phase 1.5). Requires --correct-with-sn. '
+             'Refines coarse UNV boundaries using Strong\'s Dictionary + similarity matching. '
+             'Example: "將他的獨生<G3439>" → "獨生" (refined) → matches in target text.'
+    )
+
     # Output options
     parser.add_argument(
         '--compact', '-c',
@@ -407,6 +417,12 @@ Examples:
             print(f"❌ Error: --correct-with-sn requires --seg to be specified", file=sys.stderr)
             print(f"Example: --seg jieba --correct-with-sn", file=sys.stderr)
             return 1
+
+    # Validate --use-refinement usage
+    if args.use_refinement and not args.correct_with_sn:
+        print(f"❌ Error: --use-refinement requires --correct-with-sn", file=sys.stderr)
+        print(f"Example: --seg jieba --correct-with-sn --use-refinement", file=sys.stderr)
+        return 1
 
     # Validate segmenters
     valid_segmenters = ['jieba', 'pkuseg', 'lac', 'stanza']
@@ -658,11 +674,23 @@ Examples:
                             # Apply SN-based correction if enabled and reference available
                             if args.correct_with_sn and unv_sn_text and corrector:
                                 try:
-                                    corrected_segments, metrics = corrector.correct(
-                                        verse.text,
-                                        segments,
-                                        unv_sn_text
-                                    )
+                                    # Choose correction method based on --use-refinement flag
+                                    if args.use_refinement:
+                                        # Phase 1.5: Two-stage refinement with similarity matching
+                                        corrected_segments, metrics = corrector.correct_with_refinement(
+                                            verse.text,
+                                            segments,
+                                            unv_sn_text,
+                                            client
+                                        )
+                                    else:
+                                        # Phase 1: Simple string matching with character variants
+                                        corrected_segments, metrics = corrector.correct(
+                                            verse.text,
+                                            segments,
+                                            unv_sn_text
+                                        )
+
                                     if not args.compact:
                                         display_correction_results(
                                             verse.text,
