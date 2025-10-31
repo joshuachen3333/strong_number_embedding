@@ -1,10 +1,11 @@
 """Boundary corrector for applying UNV+SN boundaries to target versions."""
 
-from typing import List, Set, Dict, Tuple
+from typing import List, Set, Dict, Tuple, Optional
 from dataclasses import dataclass
 
 from src.core.strongs_parser import StrongsNumberParser, TermBoundary
 from src.core.char_variant_normalizer import CharVariantNormalizer
+from src.core.similarity_matcher import SimilarityMatcher
 
 
 @dataclass
@@ -17,6 +18,10 @@ class CorrectionMetrics:
     character_match_rate: float  # matched / total (as percentage)
     correction_success_rate: float  # corrected / matched (as percentage)
     variant_matches_count: int = 0  # Terms matched via character variant normalization
+    # Refinement-specific metrics (Phase 1.5)
+    refined_terms_count: int = 0  # Terms refined using similarity matching
+    coarse_terms_count: int = 0  # Coarse terms before refinement
+    refinement_rate: float = 0.0  # refined / coarse (as percentage)
 
 
 class BoundaryCorrector:
@@ -99,6 +104,156 @@ class BoundaryCorrector:
         )
 
         return corrected_segments, metrics
+
+    def correct_with_refinement(
+        self,
+        target_text: str,
+        initial_segments: List[str],
+        unv_sn_text: str,
+        fhl_client,
+        threshold: float = 0.6
+    ) -> Tuple[List[str], CorrectionMetrics]:
+        """Correct with two-stage refinement using Strong's Dictionary + similarity matching.
+
+        This enhanced method refines coarse UNV+SN boundaries before matching to target text:
+
+        Stage 1 (UNV Refinement):
+            - Parse coarse UNV+SN boundaries
+            - For each (coarse_term, SN) pair:
+              1. Fetch SN semantic meaning from Strong's Dictionary API
+              2. Find best substring in coarse_term using similarity matching
+              3. Replace coarse term with refined term
+            - Output: Refined UNV boundaries
+
+        Stage 2 (Target Matching):
+            - Match refined UNV terms to target version text
+            - Handle character variants transparently
+            - Apply boundary corrections (reuse Phase 1 logic)
+
+        Args:
+            target_text: Target version text (e.g., LCC) - clean, no SN tags
+            initial_segments: Initial segmentation from jieba/pkuseg/etc.
+            unv_sn_text: UNV text with Strong's Numbers (reference)
+            fhl_client: FHLClient instance for Strong's Dictionary API
+            threshold: Similarity threshold for substring matching (default: 0.6)
+
+        Returns:
+            Tuple of (corrected_segments, metrics)
+
+        Example:
+            >>> from src.api.fhl_client import FHLClient
+            >>> corrector = BoundaryCorrector()
+            >>> client = FHLClient()
+            >>> target = "賜下獨生子"
+            >>> unv_sn = "將他的獨生<G3439>子<G5207>"
+            >>> initial = ["賜", "下獨", "生子"]
+            >>> corrected, metrics = corrector.correct_with_refinement(
+            ...     target, initial, unv_sn, client
+            ... )
+            >>> corrected
+            ['賜下', '獨生', '子']  # "獨生" refined from "將他的獨生"!
+            >>> metrics.refined_terms_count
+            1  # One term was refined
+        """
+        # Initialize similarity matcher
+        similarity_matcher = SimilarityMatcher()
+
+        # Stage 0: Parse UNV+SN to extract coarse boundaries
+        coarse_boundaries = self.parser.parse(unv_sn_text)
+
+        # Stage 1: Refine UNV boundaries using Strong's Dictionary + Similarity
+        refined_terms = set()
+        refined_count = 0
+        terms_with_sn = 0
+
+        for boundary in coarse_boundaries:
+            if boundary.strongs_numbers and boundary.term:
+                terms_with_sn += 1
+                coarse_term = boundary.term.strip()
+
+                # Skip empty or punctuation
+                if not coarse_term or coarse_term in '，。、：；！？「」『』{}[]':
+                    continue
+
+                # Try to refine using first Strong's Number
+                sn = boundary.strongs_numbers[0]
+                refined_term = self._refine_term(
+                    coarse_term, sn, fhl_client, similarity_matcher, threshold
+                )
+
+                if refined_term and refined_term != coarse_term:
+                    # Refinement successful
+                    refined_terms.add(refined_term)
+                    refined_count += 1
+                else:
+                    # Use coarse term as fallback
+                    refined_terms.add(coarse_term)
+            elif boundary.term:
+                # No SN, use term as-is
+                refined_terms.add(boundary.term.strip())
+
+        # Stage 2: Match refined terms to target text (with character variants)
+        matched_terms, variant_matches_count = self._find_matches(target_text, refined_terms)
+
+        # Stage 3: Apply corrections to initial segmentation
+        corrected_segments = self._apply_corrections(
+            target_text,
+            initial_segments,
+            matched_terms
+        )
+
+        # Stage 4: Calculate metrics
+        metrics = self._calculate_metrics(
+            coarse_boundaries,
+            matched_terms,
+            initial_segments,
+            corrected_segments,
+            variant_matches_count,
+            refined_count,
+            terms_with_sn
+        )
+
+        return corrected_segments, metrics
+
+    def _refine_term(
+        self,
+        coarse_term: str,
+        sn: str,
+        fhl_client,
+        similarity_matcher: SimilarityMatcher,
+        threshold: float
+    ) -> Optional[str]:
+        """Refine a coarse term using Strong's Dictionary meaning + similarity matching.
+
+        Args:
+            coarse_term: Coarse boundary from UNV+SN (e.g., "將他的獨生")
+            sn: Strong's Number (e.g., "G3439")
+            fhl_client: FHLClient instance
+            similarity_matcher: SimilarityMatcher instance
+            threshold: Similarity threshold (0.0-1.0)
+
+        Returns:
+            Refined term (e.g., "獨生") or None if refinement fails
+        """
+        try:
+            # Fetch Strong's Dictionary entry
+            entry = fhl_client.fetch_strong_dict(sn)
+            if not entry or not entry.chinese_meaning:
+                return None
+
+            # Use Chinese meaning as reference term
+            ref_term = entry.chinese_meaning
+
+            # Find best matching substring in coarse term
+            refined = similarity_matcher.find_best_substring(
+                ref_term, coarse_term, threshold
+            )
+
+            return refined
+
+        except Exception:
+            # Graceful fallback - use coarse term
+            return None
 
     def _extract_matchable_terms(self, boundaries: List[TermBoundary]) -> Set[str]:
         """Extract terms suitable for string matching from UNV+SN boundaries.
@@ -255,7 +410,9 @@ class BoundaryCorrector:
         matched_terms: Set[str],
         initial_segments: List[str],
         corrected_segments: List[str],
-        variant_matches_count: int = 0
+        variant_matches_count: int = 0,
+        refined_count: int = 0,
+        coarse_count: int = 0
     ) -> CorrectionMetrics:
         """Calculate correction quality metrics.
 
@@ -265,6 +422,8 @@ class BoundaryCorrector:
             initial_segments: Original segmentation
             corrected_segments: Corrected segmentation
             variant_matches_count: Number of terms matched via character variant normalization
+            refined_count: Number of terms refined using similarity matching
+            coarse_count: Number of coarse terms before refinement
 
         Returns:
             CorrectionMetrics object
@@ -289,6 +448,7 @@ class BoundaryCorrector:
         # Calculate rates
         char_match_rate = (matched_count / unv_terms_count * 100) if unv_terms_count > 0 else 0
         correction_success_rate = (corrected_count / matched_count * 100) if matched_count > 0 else 0
+        refinement_rate = (refined_count / coarse_count * 100) if coarse_count > 0 else 0
 
         return CorrectionMetrics(
             unv_sn_terms_count=unv_terms_count,
@@ -297,5 +457,8 @@ class BoundaryCorrector:
             unchanged_segments_count=unchanged_count,
             character_match_rate=char_match_rate,
             correction_success_rate=correction_success_rate,
-            variant_matches_count=variant_matches_count
+            variant_matches_count=variant_matches_count,
+            refined_terms_count=refined_count,
+            coarse_terms_count=coarse_count,
+            refinement_rate=refinement_rate
         )
