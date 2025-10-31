@@ -3,24 +3,19 @@
 
 This version uses the SAME Bible version (UNV) to avoid text mismatch issues.
 We compare initial segmentation of UNV text against UNV+Strong's boundaries.
-
-⚠️  UPDATED: Now uses StrongsNumberParser with correct tag placement understanding!
 """
 
+import re
 import sys
 from typing import List, Tuple, Dict
 
 from src.api.fhl_client import FHLClient
-from src.core.strongs_parser import StrongsNumberParser
 from src.plugins.segmenters.jieba_plugin import JiebaPlugin
 from src.plugins.segmenters.pkuseg_plugin import PKUSegPlugin
 
 
 def parse_strongs_boundaries(text_with_sn: str) -> Tuple[str, List[str], List[Tuple[str, List[str]]]]:
     """Parse UNV text with Strong's Numbers to extract term boundaries.
-
-    ⚠️  CRITICAL: Uses StrongsNumberParser which correctly understands that
-    SN tags FOLLOW the term they describe (not precede it)!
 
     Args:
         text_with_sn: Text like "神<H430>愛<H157>世人<H5971>"
@@ -31,21 +26,54 @@ def parse_strongs_boundaries(text_with_sn: str) -> Tuple[str, List[str], List[Tu
         - List of terms (clean)
         - List of (term, [SNs]) tuples
     """
-    parser = StrongsNumberParser()
+    # Pattern to match Strong's Numbers in various formats
+    sn_pattern = re.compile(r'[<{(](?:W)?([HG]\d+)[>})]|<WT[HG]\d+>')
 
-    # Parse using our corrected parser
-    boundaries = parser.parse(text_with_sn)
+    # Remove all Strong's tags to get clean text
+    clean_text = sn_pattern.sub('', text_with_sn)
 
-    # Get clean text
-    clean_text = parser.get_clean_text(text_with_sn)
+    # Now parse boundaries
+    boundaries = []
+    current_term = ""
+    current_sns = []
+    i = 0
 
-    # Extract just the terms (excluding punctuation)
-    terms = [b.term for b in boundaries if b.term]
+    while i < len(text_with_sn):
+        # Check for Strong's Number tag
+        match = sn_pattern.match(text_with_sn, i)
+        if match:
+            # Found a Strong's Number tag
+            if match.group(1):  # Has capture group
+                current_sns.append(match.group(1))
+            i = match.end()
 
-    # Build (term, [SNs]) tuples
-    boundaries_with_sn = [(b.term, b.strongs_numbers) for b in boundaries if b.term]
+            # After SN tag, next character(s) until next SN are part of next term
+            # Save current term if it exists
+            if current_term and current_term not in ' \t\n　，。、：；！？「」『』':
+                boundaries.append((current_term, current_sns if current_sns else []))
+                current_term = ""
+                current_sns = []
+        else:
+            char = text_with_sn[i]
+            # Check for punctuation/whitespace
+            if char in ' \t\n　，。、：；！？「」『』':
+                if current_term:
+                    boundaries.append((current_term, current_sns if current_sns else []))
+                    current_term = ""
+                    current_sns = []
+                i += 1
+            else:
+                current_term += char
+                i += 1
 
-    return clean_text, terms, boundaries_with_sn
+    # Add last term
+    if current_term and current_term not in ' \t\n　，。、：；！？「」『』':
+        boundaries.append((current_term, current_sns if current_sns else []))
+
+    # Extract just the terms
+    terms = [term for term, _ in boundaries]
+
+    return clean_text, terms, boundaries
 
 
 def calculate_metrics(initial_seg: List[str], reference_seg: List[str]) -> Dict:

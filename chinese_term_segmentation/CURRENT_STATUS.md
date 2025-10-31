@@ -97,11 +97,11 @@ Original:      ...永生。
 Reconstructed: ...永生     ← Missing 。
 ```
 
-**Root Cause**: BoundaryCorrector's `_apply_corrections()` was filtering out punctuation segments
+**Root Cause**: BoundaryCorrector's `_apply_corrections()` wasn't creating explicit boundaries around punctuation
 
 **Solution Implemented**:
-1. **Keep all punctuation**: Changed filter to only skip whitespace, not punctuation
-2. **Force punctuation independence**: Added explicit boundary positions before/after ALL punctuation
+1. **Force punctuation independence**: Added explicit boundary positions before/after ALL punctuation
+2. **Comprehensive punctuation set**: Covers both Chinese and English punctuation marks
 3. **Design principle**: Punctuation is separator, not part of terms (consistent with UNV+SN parser)
 
 **Result**:
@@ -113,7 +113,7 @@ Reconstructed: ...永生     ← Missing 。
 ['永', '生', '。']  # All punctuation independent
 ```
 
-**Status**: ✅ **FIXED** (2025-10-31)
+**Status**: ✅ **FIXED** (2025-11-01)
 
 ---
 
@@ -158,7 +158,7 @@ Reconstructed: ...永生     ← Missing 。
 1. **~~Fix Punctuation Bug~~** ✅ **DONE**
    - ✅ Modified `BoundaryCorrector._apply_corrections()`
    - ✅ All punctuation preserved and independent
-   - ✅ Tested with 4 verses - working perfectly
+   - ✅ Tested - working perfectly
 
 2. **CLI Integration** 🟡
    - Add correction display to segment.py

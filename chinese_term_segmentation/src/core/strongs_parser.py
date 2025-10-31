@@ -1,32 +1,4 @@
-"""Strong's Number parser for extracting term boundaries from UNV+SN text.
-
-⚠️  CRITICAL UNDERSTANDING - READ THIS FIRST! ⚠️
-=================================================
-
-Strong's Number tags mark the word BEFORE them, NOT after!
-
-错误理解 (WRONG): SN tag 后面的字符 = 新词的开始
-正确理解 (CORRECT): SN tag 标记它前面的词！
-
-Example:
-    "因為<G3754>"
-    ❌ WRONG: G3754 applies to whatever comes AFTER
-    ✅ CORRECT: G3754 applies to "因為" (the word BEFORE the tag)
-
-Real example from Matthew 5:3:
-    "的人有福了<G3107>！因為<G3754>天<G3772>國<G932>"
-    Parsing:
-    - "的人有福了" + <G3107> → term "的人有福了" has SN [G3107]
-    - "因為" + <G3754> → term "因為" has SN [G3754]
-    - "天" + <G3772> → term "天" has SN [G3772]
-    - "國" + <G932> → term "國" has SN [G932]
-
-This was the MAJOR BUG in initial implementation - I was collecting SNs for the NEXT term
-instead of the CURRENT term. This caused completely wrong term-to-SN associations.
-
-Implementation implication: When encountering a tag, finalize the CURRENT accumulated term
-with that tag's SN, then start accumulating the NEXT term.
-"""
+"""Strong's Number parser for extracting term boundaries from UNV+SN text."""
 
 import re
 from typing import List, Tuple
@@ -44,8 +16,6 @@ class TermBoundary:
 
 class StrongsNumberParser:
     """Parser for extracting term boundaries from UNV text with Strong's Numbers.
-
-    ⚠️  KEY PRINCIPLE: Strong's Number tags FOLLOW the term they describe!
 
     Supports four Strong's Number formats from FHL API:
     1. <WH1234> / <WG5678> - FHL Hebrew/Greek format

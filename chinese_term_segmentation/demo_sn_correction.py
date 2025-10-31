@@ -6,12 +6,6 @@ Strong's Numbers as the authoritative standard for Chinese term boundaries.
 
 Key principle: Target version (LCC) text goes in → Target version (LCC) text comes out
 Only boundaries are corrected via string matching with UNV+SN reference.
-
-✅ UPDATED (2025-10-31):
-   - Uses BoundaryCorrector with punctuation independence fix
-   - Uses StrongsNumberParser with correct SN tag placement (tags FOLLOW terms)
-   - All punctuation preserved as independent segments
-   - Color-coded display: RED=removed, GREEN=added, CYAN=Strong's Numbers
 """
 
 import sys
@@ -303,21 +297,18 @@ def main():
     print("✅ Demo Complete!")
     print("="*80)
     print("\n🎯 Key Findings:")
-    print("  1. ✅ Text Preservation: Target version text (LCC) → LCC (100% preserved)")
-    print("  2. ✅ Punctuation Independence: All punctuation separated (consistent with UNV+SN)")
-    print("  3. 📊 String Matching: Finds ~40-71% character sequences common to LCC and UNV+SN")
-    print("  4. 🔧 Boundary Correction: Applies UNV+SN boundaries to matched terms")
-    print("  5. ⚠️  Current Limitation: ~57% average match rate (target: ≥60%)")
+    print("  1. ✅ Text Preservation: Target version text (LCC) never changes to UNV")
+    print("  2. 📊 String Matching: Finds character sequences common to LCC and UNV+SN")
+    print("  3. 🔧 Boundary Correction: Applies UNV+SN boundaries to matched terms")
+    print("  4. ⚠️  Current Limitation: ~40-50% character match rate (target: ≥60%)")
     print("\n💪 What Works:")
-    print("  • ✅ Correct SN tag parsing (tags FOLLOW terms they describe)")
-    print("  • ✅ Punctuation handling (all punctuation independent)")
-    print("  • ✅ Text preservation (LCC → LCC, no content changes)")
-    print("  • ✅ Matches common terms: '愛', '世人', '甚至', '天', '國'")
-    print("\n🔮 Known Limitations & Future Work:")
-    print("  • Character variants (爲/為, 衞/衛) → Phase 1.5 proposal")
-    print("  • Substring matching for nested terms → Future enhancement")
-    print("  • Semantic alignment (上帝/神) → Phase 2 inter-version mapping")
-    print("\n📝 See CRITICAL_FINDINGS.md for important SN tag placement discovery!")
+    print("  • Matches terms like '愛', '世人', '甚至' between versions")
+    print("  • Preserves LCC text completely")
+    print("  • Safe fallback for unmatched segments")
+    print("\n🔮 Needed Improvements:")
+    print("  • Substring matching for nested terms (e.g., '獨生' within '將他的獨生')")
+    print("  • Better parsing of UNV+SN complex structures")
+    print("  • Phase 2: Semantic alignment for character-mismatched segments")
     print()
 
 
