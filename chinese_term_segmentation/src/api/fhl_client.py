@@ -1,6 +1,7 @@
-"""FHL Bible API client for fetching verses."""
+"""FHL Bible API client for fetching verses and Strong's dictionary."""
 
 import requests
+import re
 from typing import Dict, List, Optional
 from dataclasses import dataclass
 import logging
@@ -20,20 +21,38 @@ class VerseData:
     text: str            # Verse text
 
 
+@dataclass
+class StrongEntry:
+    """Represents a Strong's Number dictionary entry from FHL API."""
+
+    sn: str                    # Strong's number (e.g., "3439")
+    original: str              # Original Greek/Hebrew word (e.g., "μονογενής")
+    chinese_meaning: str       # Chinese meaning/translation
+    english_meaning: str       # English meaning/translation
+    related: List[str]         # Related words (NT only)
+
+
 class FHLClient:
     """Client for FHL Bible API.
 
     API Documentation:
-        Base URL: https://bible.fhl.net/json/qb.php
-        Parameters:
-            - chineses: Chinese book abbreviation (創, 出, etc.)
-            - chap: Chapter number
-            - sec: Verse number (optional, returns all verses if omitted)
-            - version: Bible version (unv, lcc, kjv, etc.)
-            - strong: Include Strong's numbers (0 or 1)
+        Verse API: https://bible.fhl.net/json/qb.php
+            Parameters:
+                - chineses: Chinese book abbreviation (創, 出, etc.)
+                - chap: Chapter number
+                - sec: Verse number (optional, returns all verses if omitted)
+                - version: Bible version (unv, lcc, kjv, etc.)
+                - strong: Include Strong's numbers (0 or 1)
+
+        Strong's Dictionary API: https://bible.fhl.net/json/sd.php
+            Parameters:
+                - N: Testament (0=NT, 1=OT)
+                - k: Strong's number (numeric, without G/H prefix)
+                - gb: Language (0=traditional Chinese, 1=simplified)
     """
 
-    BASE_URL = "https://bible.fhl.net/json/qb.php"
+    VERSE_API_URL = "https://bible.fhl.net/json/qb.php"
+    STRONG_DICT_API_URL = "https://bible.fhl.net/json/sd.php"
 
     # Supported versions
     SUPPORTED_VERSIONS = [
@@ -53,6 +72,7 @@ class FHLClient:
         """
         self.timeout = timeout
         self.session = requests.Session()
+        self._strong_dict_cache: Dict[str, Optional[StrongEntry]] = {}
 
     def fetch_verse(
         self,
@@ -96,7 +116,7 @@ class FHLClient:
 
         try:
             response = self.session.get(
-                self.BASE_URL,
+                self.VERSE_API_URL,
                 params=params,
                 timeout=self.timeout
             )
@@ -189,7 +209,7 @@ class FHLClient:
 
         try:
             response = self.session.get(
-                self.BASE_URL,
+                self.VERSE_API_URL,
                 params=params,
                 timeout=self.timeout
             )
@@ -267,6 +287,163 @@ class FHLClient:
         )
 
         return target_verse, unv_sn_verse
+
+    def fetch_strong_dict(
+        self,
+        sn: str,
+        simplified: bool = False
+    ) -> Optional[StrongEntry]:
+        """Fetch Strong's Number dictionary entry from FHL API.
+
+        Args:
+            sn: Strong's number with prefix (e.g., "G3439", "H430")
+            simplified: Use simplified Chinese if True (default: traditional)
+
+        Returns:
+            StrongEntry object or None if not found
+
+        Raises:
+            ValueError: If SN format is invalid
+            requests.RequestException: If API request fails
+
+        Example:
+            >>> client = FHLClient()
+            >>> entry = client.fetch_strong_dict("G3439")
+            >>> entry.original
+            'μονογενής'
+            >>> entry.chinese_meaning
+            '獨生的'
+        """
+        # Validate and parse SN
+        if not sn or len(sn) < 2:
+            raise ValueError(f"Invalid Strong's number format: {sn}")
+
+        prefix = sn[0].upper()
+        if prefix not in ('G', 'H'):
+            raise ValueError(
+                f"Invalid Strong's number prefix: {prefix}. "
+                "Expected 'G' (Greek) or 'H' (Hebrew)"
+            )
+
+        try:
+            number = sn[1:]  # Remove prefix
+            int(number)  # Validate it's numeric
+        except ValueError:
+            raise ValueError(
+                f"Invalid Strong's number: {sn}. "
+                "Expected format: G#### or H####"
+            )
+
+        # Check cache first
+        cache_key = f"{sn}_{int(simplified)}"
+        if cache_key in self._strong_dict_cache:
+            logger.debug(f"Strong's cache hit: {sn}")
+            return self._strong_dict_cache[cache_key]
+
+        # Determine testament: G=New Testament (0), H=Old Testament (1)
+        testament = 0 if prefix == 'G' else 1
+
+        params = {
+            "N": str(testament),
+            "k": number,
+            "gb": "1" if simplified else "0"
+        }
+
+        logger.debug(f"Fetching Strong's: {sn} (testament={testament}, gb={params['gb']})")
+
+        try:
+            response = self.session.get(
+                self.STRONG_DICT_API_URL,
+                params=params,
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+
+            data = response.json()
+
+            # Parse response
+            if data.get("record_count", 0) > 0 and "record" in data:
+                record = data["record"][0]
+
+                # Extract Chinese meaning from dic_text (【...】 pattern)
+                chinese_meaning = self._extract_chinese_meaning(
+                    record.get("dic_text", "")
+                )
+
+                entry = StrongEntry(
+                    sn=record.get("sn", number),
+                    original=record.get("orig", ""),
+                    chinese_meaning=chinese_meaning,
+                    english_meaning=record.get("edic_text", "")[:100],  # Limit length
+                    related=[]  # TODO: Parse 'same' field if needed
+                )
+
+                # Cache the result
+                self._strong_dict_cache[cache_key] = entry
+                logger.debug(f"Strong's fetched and cached: {sn}")
+                return entry
+
+            # Not found - cache None to avoid repeated API calls
+            logger.warning(f"Strong's entry not found: {sn}")
+            self._strong_dict_cache[cache_key] = None
+            return None
+
+        except requests.RequestException as e:
+            logger.error(f"API request failed for {sn}: {e}")
+            # Don't cache errors - allow retry
+            return None
+
+    def _extract_chinese_meaning(self, dic_text: str) -> str:
+        """Extract Chinese meaning from dictionary text.
+
+        The dic_text format from FHL API typically looks like:
+        "3439 monogenes {mon-og-en-ace'}\r\n\r\n源字 SNG03441...\r\n\r\n欽定本 -...\r\n\r\n1) 獨一無二的, 唯一的\r\n..."
+
+        Args:
+            dic_text: Raw dictionary text from API
+
+        Returns:
+            Extracted Chinese meaning (first definition)
+        """
+        if not dic_text:
+            return ""
+
+        # Strategy 1: Extract from 【...】 brackets (some entries use this)
+        match = re.search(r'【([^】]+)】', dic_text)
+        if match:
+            return match.group(1)
+
+        # Strategy 2: Extract from numbered definition "1) ..."
+        # This is the most common format in FHL
+        match = re.search(r'1\)\s*([^\r\n]+)', dic_text)
+        if match:
+            meaning = match.group(1).strip()
+            # Remove trailing sub-definitions (1a), 1b), etc.)
+            meaning = re.split(r'\s+1[a-z]\)', meaning)[0].strip()
+            # Remove commas and extra whitespace
+            meaning = meaning.rstrip('，,')
+            return meaning
+
+        # Strategy 3: Look for Chinese after "欽定本" marker
+        # Skip "源字" and find actual definitions
+        parts = dic_text.split('欽定本')
+        if len(parts) > 1:
+            # Find first meaningful Chinese phrase after marker
+            chinese_match = re.search(r'[\u4e00-\u9fff]{2,}', parts[1])
+            if chinese_match:
+                return chinese_match.group(0)
+
+        # Strategy 4: Find first multi-character Chinese phrase
+        # (skipping single chars like "源", "字")
+        chinese_match = re.search(r'[\u4e00-\u9fff]{2,}', dic_text)
+        if chinese_match:
+            word = chinese_match.group(0)
+            # Skip common meta words
+            if word not in ['源字', '欽定本', '形容詞', '動詞', '名詞']:
+                return word
+
+        # Last resort: return first 20 chars
+        return dic_text[:20].strip()
 
     def close(self):
         """Close the HTTP session."""
