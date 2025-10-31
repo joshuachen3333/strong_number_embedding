@@ -50,13 +50,18 @@ def display_segmentation(text: str, tokens: list, segmenter_name: str):
 
 
 def display_correction_results(text: str, initial_segments: list, corrected_segments: list,
-                               metrics, segmenter_name: str):
+                               metrics, segmenter_name: str, unv_sn_text: str = None):
     """Display SN-based boundary correction results."""
     print(f"\n🔧 SN-Corrected Segmentation ({segmenter_name}):")
 
     # Show comparison
     print(f"  Before:  {' | '.join(initial_segments)}")
     print(f"  After:   {' | '.join(corrected_segments)}")
+
+    # Show UNV+SN reference (complete, not truncated)
+    if unv_sn_text:
+        print(f"\n  📚 UNV+SN Reference:")
+        print(f"     {unv_sn_text}")
 
     # Show metrics
     print(f"\n  📊 Correction Metrics:")
@@ -661,7 +666,8 @@ Examples:
                                             segments,
                                             corrected_segments,
                                             metrics,
-                                            seg_name
+                                            seg_name,
+                                            unv_sn_text
                                         )
                                 except Exception as e:
                                     print(f"\n  ⚠️  Correction error ({seg_name}): {e}")
