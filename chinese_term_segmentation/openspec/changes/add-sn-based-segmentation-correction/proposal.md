@@ -7,9 +7,18 @@
 
 ## Summary
 
-Implement a correction layer that uses UNV (和合本) with Strong's Numbers as the authoritative reference to correct Chinese term boundaries in **target versions** (LCC, RCUV2010, etc.). This corrects initial segmentation results from jieba/pkuseg/LAC/Stanza by applying boundary rules learned from UNV+SN to **character-matching segments** in the target version.
+Implement a correction layer that uses UNV (和合本) with Strong's Numbers as the authoritative reference to correct Chinese term boundaries in **target versions** (LCC, RCUV2010, etc.). This corrects initial segmentation results from jieba/pkuseg/LAC/Stanza by applying boundary rules learned from UNV+SN.
 
-**SCOPE**: Phase 1 (this proposal) uses **simple string matching** to correct segments where LCC/RCUV2010 text contains the same character sequences as UNV+SN. Segments with different characters (e.g., LCC "上帝" vs UNV "神") remain unchanged and will be addressed in Phase 2 with semantic alignment algorithms.
+**SCOPE**:
+- **Phase 1**: Simple exact string matching ✅
+- **Phase 2**: CLI integration ✅
+- **Phase 3**: Demo and documentation ✅
+
+**Out of Scope** (separate proposal `add-similarity-based-matching`):
+- Character variant normalization (爲→為)
+- Substring extraction (handle粗粒度問題: "將他的獨生" → "獨生")
+- Similarity-based matching
+- Semantic alignment for different-character terms (上帝 ↔ 神)
 
 **KEY PRINCIPLE**: Target version text (LCC) goes in → Target version text (LCC) comes out, with corrected boundaries. The text itself never changes to UNV.
 

@@ -20,11 +20,11 @@ class CorrectionMetrics:
 class BoundaryCorrector:
     """Corrects Chinese term boundaries using UNV+SN as reference.
 
-    Uses simple string matching to find terms that exist in both target version
+    Uses simple exact string matching to find terms that exist in both target version
     (e.g., LCC) and UNV+SN, then applies UNV+SN boundaries to those matched terms.
 
     Key principle: Target version text (LCC) never changes to UNV - only boundaries
-    are corrected where character sequences match.
+    are corrected where exact character sequences match.
     """
 
     def __init__(self):
@@ -121,7 +121,7 @@ class BoundaryCorrector:
         return matchable
 
     def _find_matches(self, target_text: str, reference_terms: Set[str]) -> Set[str]:
-        """Find reference terms that exist in target text via string matching.
+        """Find reference terms that exist in target text via exact string matching.
 
         Args:
             target_text: Target version text (clean)
