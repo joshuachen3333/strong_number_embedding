@@ -149,3 +149,82 @@
 36. **Decision to prioritize punctuation fix over similarity refinement**
    - Prompt: "please revert all add-similarity-based-refinement effort! I want to fix the 標點符號 issue first, then fhl api confirmation for sn dictionary, then back to add-similarity-based-refinement"
    - Context: Decided to postpone similarity-based refinement proposal, prioritize fixing punctuation loss bug from CURRENT_STATUS.md first, then validate FHL SN dictionary API works, then return to refinement feature
+
+37. **Planning session after punctuation fix completion**
+   - Prompt: "what is our next plan? btw, append my prompt to prompt.history"
+   - Context: After completing punctuation fix and character variant normalization (Phase 1 + 1.5), asking for next steps
+
+38. **Approval to proceed with Option A + B**
+   - Prompt: "yes, your option A + B is good."
+   - Context: Approved plan to complete Phase 1 (CLI + tests) + Phase 1.5 (character variants)
+
+39. **Status check on similarity refinement feature**
+   - Prompt: "how about our add-similarity-based-refinement feature, how is it going?"
+   - Context: Checking status of previously implemented but reverted similarity-based refinement feature
+
+40. **Decision to complete similarity refinement (Option 1)**
+   - Prompt: "Option 1: COMPLETE Similarity Refinement, I will finish this before the inter version phase. 我來破題一下: 一切都來自一個單一 SN number 以及它代表的一個原文 term when we are given that SN (term, let's call it refTerm); and a series of term (from a whole verse, a sentence between 標點符號, to a long term between SN or between 標點符號 like '甚至將他的獨生'; let's call it origText), we want to output a term (outputTerm) so that outputTerm 是 origText 的部分子集合, 且 outputTerm 與 refTerm 擁有最高的語意相似度. 我們要找一個功能, 輸入是 refTerm 與一串長文 origText (這個長文可以是 unv 的一整節, 這節是 refTerm 所在的那節; 可以是 unv 的一節中包含 refTerm 的一句話; 也可以是類似'甚至將他的獨生' 的為分割長詞 ); 然後要求輸出一個最適合的 outputTerm, 使得 outputTerm 與 refTerm 有最高的語意相似度. 且 outputTerm 必須是 origText 的子集合. is this 破題 still within our efforts?"
+   - Context: Defined core problem for similarity-based matching - finding best substring (outputTerm) in origText that matches refTerm from Strong's Number dictionary with highest semantic similarity
+
+41. **Approval to fix failing tests**
+   - Prompt: "ok, let's fix the failing tests"
+   - Context: Agreed to fix 2 failing similarity matcher tests (T032, T033) before re-integrating
+
+42. **Token usage check before compacting**
+   - Prompt: "how far before I have to do /compact?"
+   - Context: Checking remaining token budget after completing similarity refinement feature (3 commits, all tests passing)
+
+43. **Request to append prompt after compact**
+   - Prompt: "append my prompt to prompt.history"
+   - Context: After running /compact command, requested to record prompt in history
+
+44. **Clarification on prompt.history location and merge request**
+   - Prompt: "no, the prompt.history should be at /Users/joshua/work/strong_number_embedding/chinese_term_segmentation, move that other file and merge it to the main one"
+   - Context: Clarified that main prompt.history is at project root, not in openspec/changes/ subdirectory. Requested to merge content from openspec/changes/add-sn-based-segmentation-correction/prompt.history into main file
+
+45. **Test refinement feature on Genesis 3:3**
+   - Prompt: "./segment.py  --engs gen --chap 3 --sec 3 --version lcc --seg  pkuseg --correct-with-sn --use-refinement
+📖 English Book Reference:
+   English: gen → Genesis
+   Chinese: 創
+   Chapter: 3
+   Verse: 3
+[... output showing no refinement metrics ...] why I don't see the add-similarity-based-refinement improvement?"
+   - Context: Testing refinement feature but not seeing refinement metrics in output, investigating why refinement wasn't working
+
+46. **Question about threshold adjustment**
+   - Prompt: "did you lower the threshold? for how much?"
+   - Context: Asking if threshold was changed to fix refinement (it wasn't - fix was extracting first meaning from comma-separated dictionary entries)
+
+47. **Request for semantic similarity approaches**
+   - Prompt: "Is it possible to use something more semantic way then this hard coded dictionary way? even we have SN dictionary, still we are using low level tech to do the key meaning mapping."
+   - Context: Recognizing that edit distance is too low-level for semantic matching, asking for better approaches
+
+48. **Switch to Opus model and request comprehensive testing plan**
+   - Prompt: "now using sn dictionary as my key 破題 saying:
+我來破題一下: 一切都來自一個單一 SN number 以及它代表的一個原文 term when we are given that SN (term, let's call it refTerm); and a series of term (from a whole verse, a stentence between 標點符號, to a long term between SN or between 標點符號 like \"甚至將他的獨生\"; let's call it origText), we want to output a term (outputTerm) so that outputTerm 是 origText 的部分子集合, 且 outputTerm 與 refTerm 擁有最高的語意相似度. 我們要找一個功能, 輸入是 refTerm 與一串長文 origText (這個長文可以是 unv 的一整節, 這節是 refTerm 所在的那節; 可以是 unv 的一節中包含 refTerm 的一句話; 也可以是類似\"甚至將他的獨生\" 的為分割長詞 ); 然後要求輸出一個最適合的 optputTerm, 使得 outputTerm 與 refTerm 有最高的語意相似度. 且 outputTerm 必須是 origText 的子集合.
+doesn't work well, 很可惜犧牲了我的 refTerm, origText, outputTerm 函數的設計. 只因語意相似度並未用到好的 embedding 與語意相似度比較的核心. 你能看出來嗎? 光在字典裡面猜測, 這實在太 low 也太離題了. 可否與我研商一下, 用正體中文或英文."
+   - Context: Switched to Opus model, expressed disappointment that the core design (refTerm → outputTerm ⊆ origText) is limited by low-tech edit distance instead of proper semantic embeddings
+
+49. **Request for comprehensive multi-approach testing plan**
+   - Prompt: "我想幾個方案都輪流試驗. 能否能行得通嗎？先幫我寫一個輪流測試的計劃方案, 再評估改寫SimilarityMatcher 函數的必要性, 以便抽換你所建議的各個語意相似度核心引擎的方法. 把整體計劃寫下, 方便等一下我用 openspec 換掉 model 使用 sonnet4.5 來進行."
+   - Context: Requested comprehensive plan to test multiple semantic similarity approaches with pluggable architecture, preparing for OpenSpec proposal with Sonnet 4.5
+
+50. **Request for detailed technical specifications and LLM integration**
+   - Prompt: "六個引擎方案 請更詳細記錄其技術細節, 以便改天能夠承接這次上下文. 另外也保留接入 openAI, claude, Google gemini 等商用大語言模型的可能性, 讓這些LLM 也可以參與核心引擎的替換."
+   - Context: Requested detailed technical documentation for all 6 semantic engines plus commercial LLM integration (OpenAI, Claude, Gemini) to preserve context for future work
+
+51. **Discussion about semantic strategy**
+   - Prompt: "anything we can discuss about your big plan design and strategy on the semantic engine design?"
+   - Context: Asked for strategic discussion about the semantic engine architecture, leading to 10 strategic considerations
+
+52. **Request to document strategic recommendations**
+   - Prompt: "yes, write down your 10 points and your suggestions."
+   - Context: Requested formal documentation of 10 strategic points with specific recommendations for semantic engine implementation
+
+53. **Request to review all three planning documents**
+   - Prompt: "read   1. SEMANTIC_SIMILARITY_PLAN.md - Overall testing and implementation plan
+  2. SEMANTIC_ENGINE_TECHNICAL_SPECS.md - Detailed technical specifications for all engines
+  3. SEMANTIC_ENGINE_STRATEGY.md - Strategic recommendations and roadmap
+and don't fortet to append my prompt to `pwd`/prompt.history"
+   - Context: Switched back to Sonnet 4.5 model and requested review of all three comprehensive planning documents created during the Opus session, plus requested to append prompt to history

@@ -111,7 +111,8 @@ class BoundaryCorrector:
         initial_segments: List[str],
         unv_sn_text: str,
         fhl_client,
-        threshold: float = 0.6
+        threshold: float = 0.6,
+        debug: bool = False
     ) -> Tuple[List[str], CorrectionMetrics]:
         """Correct with two-stage refinement using Strong's Dictionary + similarity matching.
 
@@ -136,6 +137,7 @@ class BoundaryCorrector:
             unv_sn_text: UNV text with Strong's Numbers (reference)
             fhl_client: FHLClient instance for Strong's Dictionary API
             threshold: Similarity threshold for substring matching (default: 0.6)
+            debug: Enable debug output for refinement process (default: False)
 
         Returns:
             Tuple of (corrected_segments, metrics)
@@ -162,6 +164,9 @@ class BoundaryCorrector:
         coarse_boundaries = self.parser.parse(unv_sn_text)
 
         # Stage 1: Refine UNV boundaries using Strong's Dictionary + Similarity
+        if debug:
+            print(f"\n   🔬 Stage 1: Refining UNV+SN boundaries using similarity matching...")
+
         refined_terms = set()
         refined_count = 0
         terms_with_sn = 0
@@ -178,7 +183,7 @@ class BoundaryCorrector:
                 # Try to refine using first Strong's Number
                 sn = boundary.strongs_numbers[0]
                 refined_term = self._refine_term(
-                    coarse_term, sn, fhl_client, similarity_matcher, threshold
+                    coarse_term, sn, fhl_client, similarity_matcher, threshold, debug
                 )
 
                 if refined_term and refined_term != coarse_term:
@@ -221,7 +226,8 @@ class BoundaryCorrector:
         sn: str,
         fhl_client,
         similarity_matcher: SimilarityMatcher,
-        threshold: float
+        threshold: float,
+        debug: bool = False
     ) -> Optional[str]:
         """Refine a coarse term using Strong's Dictionary meaning + similarity matching.
 
@@ -231,28 +237,53 @@ class BoundaryCorrector:
             fhl_client: FHLClient instance
             similarity_matcher: SimilarityMatcher instance
             threshold: Similarity threshold (0.0-1.0)
+            debug: Enable debug output
 
         Returns:
             Refined term (e.g., "獨生") or None if refinement fails
         """
         try:
+            if debug:
+                print(f"      🔍 Refining: coarse_term='{coarse_term}', sn='{sn}'")
+
             # Fetch Strong's Dictionary entry
             entry = fhl_client.fetch_strong_dict(sn)
             if not entry or not entry.chinese_meaning:
+                if debug:
+                    print(f"         ❌ No dictionary entry or meaning for {sn}")
                 return None
 
-            # Use Chinese meaning as reference term
-            ref_term = entry.chinese_meaning
+            # Extract primary meaning (first term before comma)
+            # Dictionary meanings often have multiple alternatives: "當中, 中間", "吃, 吞噬, 燒毀"
+            # We use the first one as the reference term for better similarity matching
+            full_meaning = entry.chinese_meaning
+            ref_term = full_meaning.split(',')[0].strip() if ',' in full_meaning else full_meaning
+
+            if debug:
+                if ',' in full_meaning:
+                    print(f"         📖 Dict meaning: '{full_meaning}' → using '{ref_term}'")
+                else:
+                    print(f"         📖 Dict meaning: '{ref_term}'")
 
             # Find best matching substring in coarse term
             refined = similarity_matcher.find_best_substring(
                 ref_term, coarse_term, threshold
             )
 
+            if debug:
+                if refined and refined != coarse_term:
+                    print(f"         ✅ Refined: '{coarse_term}' → '{refined}'")
+                elif refined == coarse_term:
+                    print(f"         ➡️  Unchanged: '{coarse_term}'")
+                else:
+                    print(f"         ❌ No match above threshold")
+
             return refined
 
-        except Exception:
+        except Exception as e:
             # Graceful fallback - use coarse term
+            if debug:
+                print(f"         ❌ Exception: {e}")
             return None
 
     def _extract_matchable_terms(self, boundaries: List[TermBoundary]) -> Set[str]:

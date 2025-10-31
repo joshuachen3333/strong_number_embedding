@@ -367,6 +367,13 @@ Examples:
              'Example: "將他的獨生<G3439>" → "獨生" (refined) → matches in target text.'
     )
 
+    parser.add_argument(
+        '--debug',
+        action='store_true',
+        help='Enable debug output for refinement process. Shows API calls, dictionary lookups, '
+             'and similarity matching steps. Use with --use-refinement to see what\'s happening.'
+    )
+
     # Output options
     parser.add_argument(
         '--compact', '-c',
@@ -681,7 +688,8 @@ Examples:
                                             verse.text,
                                             segments,
                                             unv_sn_text,
-                                            client
+                                            client,
+                                            debug=args.debug
                                         )
                                     else:
                                         # Phase 1: Simple string matching with character variants
