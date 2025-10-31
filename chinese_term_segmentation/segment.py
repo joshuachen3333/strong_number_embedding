@@ -49,6 +49,32 @@ def display_segmentation(text: str, tokens: list, segmenter_name: str):
     print(f"  Segment count: {len(tokens)}")
 
 
+def display_correction_results(text: str, initial_segments: list, corrected_segments: list,
+                               metrics, segmenter_name: str):
+    """Display SN-based boundary correction results."""
+    print(f"\n🔧 SN-Corrected Segmentation ({segmenter_name}):")
+
+    # Show comparison
+    print(f"  Before:  {' | '.join(initial_segments)}")
+    print(f"  After:   {' | '.join(corrected_segments)}")
+
+    # Show metrics
+    print(f"\n  📊 Correction Metrics:")
+    print(f"     Match rate: {metrics.character_match_rate:.1f}% "
+          f"({metrics.matched_terms_count}/{metrics.unv_sn_terms_count} terms)")
+    print(f"     Boundaries corrected: {metrics.corrected_boundaries_count}")
+    print(f"     Segments: {len(initial_segments)} → {len(corrected_segments)}")
+
+    # Text preservation check
+    reconstructed = ''.join(corrected_segments)
+    if reconstructed == text:
+        print(f"     ✅ Text preserved (target version unchanged)")
+    else:
+        print(f"     ⚠️  WARNING: Text changed!")
+        print(f"        Original: {text}")
+        print(f"        Result:   {reconstructed}")
+
+
 def show_version_help():
     """Display available Bible versions."""
     print("\n📖 Available Bible Versions:")
@@ -243,6 +269,11 @@ Examples:
   # Compare multiple segmenters (分詞工具比較):
   %(prog)s --verse "約 3:16" --version unv --seg jieba pkuseg lac stanza
   %(prog)s --verse "創 1:1" --version unv --seg jieba lac
+
+  # SN-based boundary correction (Strong's Number校正):
+  %(prog)s --chineses 約 --chap 3 --sec 16 --version lcc --seg jieba --correct-with-sn
+  %(prog)s --chineses 創 --chap 1 --sec 1 --version lcc --seg jieba pkuseg --correct-with-sn
+  # Note: Uses UNV+Strong's Numbers to correct boundaries while preserving target text
 
   # Get help for available options:
   %(prog)s --version help      # List all Bible versions
@@ -573,11 +604,40 @@ Examples:
             print(f"📜 {ref} ({args.version.upper()})")
             print(f"{'=' * 60}")
 
+            # Initialize boundary corrector if needed
+            corrector = None
+            if args.correct_with_sn:
+                corrector = BoundaryCorrector()
+
             for verse in verses:
                 display_verse(verse, show_reference=len(verses) > 1)
 
                 # Segment if requested and text is not empty
                 if args.seg and verse.text and active_segmenters:
+                    # Fetch UNV+SN reference if correction is enabled
+                    unv_sn_text = None
+                    if args.correct_with_sn:
+                        try:
+                            # Fetch UNV with Strong's Numbers for this verse
+                            unv_verse = client.fetch_verse(
+                                book_zh=ref.book_zh,
+                                chapter=verse.chapter,
+                                verse=verse.verse,
+                                version='unv',
+                                include_strongs=True
+                            )
+                            if unv_verse and unv_verse.text:
+                                unv_sn_text = unv_verse.text
+                                if args.verbose:
+                                    print(f"\n  📚 UNV+SN reference fetched for correction")
+                            else:
+                                print(f"\n  ⚠️  Warning: No UNV+SN reference available for correction")
+                        except Exception as e:
+                            print(f"\n  ⚠️  Warning: Failed to fetch UNV+SN reference: {e}")
+                            if args.verbose:
+                                import traceback
+                                traceback.print_exc()
+
                     # Process each active segmenter
                     for seg_name, segmenter in active_segmenters.items():
                         try:
@@ -586,6 +646,28 @@ Examples:
 
                             if not args.compact:
                                 display_segmentation(verse.text, segments, seg_name)
+
+                            # Apply SN-based correction if enabled and reference available
+                            if args.correct_with_sn and unv_sn_text and corrector:
+                                try:
+                                    corrected_segments, metrics = corrector.correct(
+                                        verse.text,
+                                        segments,
+                                        unv_sn_text
+                                    )
+                                    if not args.compact:
+                                        display_correction_results(
+                                            verse.text,
+                                            segments,
+                                            corrected_segments,
+                                            metrics,
+                                            seg_name
+                                        )
+                                except Exception as e:
+                                    print(f"\n  ⚠️  Correction error ({seg_name}): {e}")
+                                    if args.verbose:
+                                        import traceback
+                                        traceback.print_exc()
 
                         except Exception as e:
                             print(f"\n⚠️  Segmentation error ({seg_name}): {e}")
