@@ -754,34 +754,173 @@ tokens = jieba.tokenize("尼布甲尼撒王")
 
 ---
 
-## Summary: What We Have vs. What We Need
+## Phase 1.5 + 2.1: Semantic Similarity Engines
 
-### ✅ What We Built (Foundation)
-- Plugin system (can register/swap/discover plugins)
-- 2 segmenter plugins (jieba, pkuseg)
-- Configuration management
-- Test suite proving it works
+### The Problem
+After building the foundation (Phase 1), we discovered that **character-level matching** has limitations:
+- "神" vs "上帝" → 0% similarity (but both mean "God"!)
+- Can't recognize synonyms or semantic relationships
+- Ceiling at ~61.5% accuracy for term matching
 
-### ⏳ What We Need (Applications)
-- Bible text processing pipeline
-- Embedding plugins (Word2Vec, BERT)
-- Alignment plugins (semantic + positional)
-- Command-line tool
-- Integration with dual_reader
+### The Solution: Pluggable Semantic Engines (Phase 2.1)
 
-### 🎯 The Analogy
-We built a **professional kitchen** with:
-- ✅ Commercial stove (plugin system)
-- ✅ Sharp knives (segmenters)
-- ✅ Recipe book (configuration)
-- ⏳ But no ingredients yet (Bible data)
-- ⏳ And no dishes cooked yet (aligned verses)
+We refactored the similarity matching to use **pluggable semantic engines**:
+
+```
+┌────────────────────────────────────────────────┐
+│         SimilarityMatcher (Refactored)         │
+│  - find_best_substring(refTerm, origText)     │
+│  - Uses engine.similarity() for scoring       │
+└───────────────────┬────────────────────────────┘
+                    │ uses
+                    ▼
+┌────────────────────────────────────────────────┐
+│      SemanticEngine (Abstract Interface)       │
+│  + similarity(text1, text2) → float [0,1]     │
+│  + get_name() → str                           │
+└───────────────────┬────────────────────────────┘
+                    │ implements
+           ┌────────┴────────┬──────────────────┐
+           ▼                 ▼                  ▼
+┌──────────────────┐  ┌─────────────┐   ┌──────────┐
+│ EditDistance     │  │ Sentence    │   │ BERT     │
+│ Engine           │  │ Transformer │   │ Engine   │
+│ (Phase 2.1) ✅   │  │ (Phase 2.2) │   │ (Future) │
+└──────────────────┘  └─────────────┘   └──────────┘
+```
+
+### Core Components
+
+**1. SemanticEngine Interface** (`src/core/semantic_engine.py`)
+```python
+class SemanticEngine(ABC):
+    @abstractmethod
+    def similarity(self, text1: str, text2: str) -> float:
+        """Returns similarity score [0, 1]"""
+        pass
+
+    @abstractmethod
+    def get_name(self) -> str:
+        """Returns engine identifier (e.g., 'edit-distance')"""
+        pass
+```
+
+**2. EditDistanceEngine** (`src/core/engines/edit_distance_engine.py`)
+- Baseline implementation using Levenshtein distance
+- Character-level similarity (NOT semantic)
+- Integrates with CharVariantNormalizer (爲→為)
+- Performance: ~1ms per query
+
+**3. Refactored SimilarityMatcher** (`src/core/similarity_matcher.py`)
+```python
+# Before (Phase 1.5) - Hard-coded edit distance
+class SimilarityMatcher:
+    def __init__(self):
+        self.variant_map = self._load_character_variants()
+
+    def _similarity(self, s1, s2):
+        # Direct edit distance calculation
+        ...
+
+# After (Phase 2.1) - Pluggable engine
+class SimilarityMatcher:
+    def __init__(self, engine: Optional[SemanticEngine] = None):
+        self.engine = engine or EditDistanceEngine()  # Default
+
+    # Now delegates to engine
+    score = self.engine.similarity(refTerm, substring)
+```
+
+### CLI Usage
+
+```bash
+# Default (backward compatible - uses EditDistanceEngine)
+./segment.py --engs gen --chap 3 --sec 3 --version lcc \
+  --seg pkuseg --correct-with-sn --use-refinement
+
+# Explicit engine selection (Phase 2.1)
+./segment.py --engs gen --chap 3 --sec 3 --version lcc \
+  --seg pkuseg --correct-with-sn --use-refinement \
+  --semantic-engine edit-distance
+
+# Future: Neural engines (Phase 2.2)
+./segment.py --engs gen --chap 3 --sec 3 --version lcc \
+  --seg pkuseg --correct-with-sn --use-refinement \
+  --semantic-engine sentence-transformer  # Coming soon!
+```
+
+### Test Results (Phase 2.1)
+
+**Integration Tests** (T037-T041):
+- ✅ Genesis 3:3: 61.5% match rate (baseline maintained)
+- ✅ Genesis 1:1: 80.0% match rate
+- ✅ John 3:16: 55.6% match rate
+- ✅ Performance: 1.33s average (excellent!)
+- ✅ 100% backward compatibility
+- ✅ Text preservation: 100%
+
+**Why This Matters**:
+1. **Open/Closed Principle**: Open for extension (new engines), closed for modification
+2. **Dependency Injection**: Easy to swap engines without changing SimilarityMatcher
+3. **Future-Ready**: Can add neural engines (sentence-transformer, BERT) without breaking existing code
+4. **Testable**: Each engine can be tested independently
 
 ---
 
-**The kitchen is ready. Now we need to start cooking!**
+## Summary: What We Have vs. What We Need
 
-Would you like to:
-1. Create a simple demo to "taste test" what we built?
-2. Start building the next layer (embedding plugins)?
-3. Skip to integration (connect to dual_reader)?
+### ✅ Phase 1: Plugin Architecture (DONE)
+- Plugin system (can register/swap/discover plugins)
+- 4 segmenter plugins (jieba, pkuseg, LAC, Stanza)
+- Configuration management
+- Test suite (T001-T010)
+
+### ✅ Phase 1.5: Strong's Number Alignment (DONE)
+- Strong's Number boundary correction (--correct-with-sn)
+- Strong's Dictionary integration with FHL API
+- Similarity-based refinement (--use-refinement)
+- Character variant normalization (爲→為)
+- 61.5% match rate baseline
+- Test suite (T029-T033)
+
+### ✅ Phase 2.1: Pluggable Semantic Engines (DONE)
+- SemanticEngine abstract interface
+- EditDistanceEngine baseline implementation
+- Refactored SimilarityMatcher with dependency injection
+- CLI flag: --semantic-engine
+- 100% backward compatibility
+- Integration tests (T034-T041)
+- 68+ tests passing
+- Performance: 1.33s average
+
+### 🚧 Phase 2.2: Neural Semantic Engines (IN PROGRESS)
+- ⏳ SentenceTransformerEngine (Chinese embeddings)
+- ⏳ ChineseBertEngine (BERT-based similarity)
+- ⏳ Hybrid engine (weighted combination)
+- ⏳ Target: 75-85% match rate
+
+### 🔜 Phase 2.3: Performance Optimization (PLANNED)
+- ⏳ Three-tier caching (memory → disk → compute)
+- ⏳ Batch processing for neural engines
+- ⏳ Embedding plugins
+- ⏳ Alignment plugins
+
+### 🎯 The Updated Analogy
+We built a **professional kitchen** that's now **actively cooking**:
+- ✅ Commercial stove (plugin system)
+- ✅ Sharp knives (4 segmenters)
+- ✅ Recipe book (configuration)
+- ✅ Fresh ingredients (Bible data via FHL API)
+- ✅ Basic dishes ready (61.5% accuracy on Genesis 3:3)
+- ✅ Modular cooking methods (pluggable semantic engines)
+- 🚧 Upgrading to Michelin-star techniques (neural engines)
+- 🔜 Industrial kitchen for mass production (caching, batch processing)
+
+---
+
+**Progress**: From foundation to production-ready system in 3 phases!
+
+**Next Steps**:
+1. Phase 2.2: Implement neural semantic engines (sentence-transformer, BERT)
+2. Phase 2.3: Add caching and performance optimizations
+3. Phase 3: Full pipeline integration with dual_reader

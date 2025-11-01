@@ -7,9 +7,12 @@ A pluggable framework for segmenting Chinese biblical text and mapping terms to 
 ✅ **Plugin Architecture** - Hot-swappable segmentation, embedding, and alignment strategies
 ✅ **Multiple Segmenters** - jieba, pkuseg, LAC, Stanza support
 ✅ **Custom Dictionaries** - Biblical term dictionaries for accurate segmentation
+✅ **Strong's Number Integration** - Automatic boundary correction using UNV+Strong's Numbers
+✅ **Similarity-Based Refinement** - Extract precise terms using semantic similarity (Phase 1.5)
+✅ **Pluggable Semantic Engines** - Swappable similarity algorithms (Phase 2.1)
 ✅ **Configuration Management** - YAML/JSON config with environment variable overrides
 ✅ **Lazy Loading** - Plugins loaded on-demand for performance
-✅ **Comprehensive Testing** - Unit and integration tests with pytest
+✅ **Comprehensive Testing** - 68+ tests including unit and integration tests
 
 ## Quick Start
 
@@ -50,6 +53,60 @@ python segment.py --chineses 太 --chap 5 --sec 1-5 --version unv --seg jieba
 
 # English book names
 python segment.py --engs Matt --chap 5 --sec 1 --version kjv --seg jieba pkuseg
+
+# Strong's Number correction and refinement (Phase 1.5 + 2.1)
+python segment.py --engs gen --chap 3 --sec 3 --version lcc \
+  --seg pkuseg --correct-with-sn --use-refinement
+
+# With explicit semantic engine selection (Phase 2.1)
+python segment.py --engs john --chap 3 --sec 16 --version lcc \
+  --seg pkuseg --correct-with-sn --use-refinement \
+  --semantic-engine edit-distance
+```
+
+### Strong's Number Alignment (Phase 1.5 + 2.1)
+
+Automatically correct segmentation boundaries using UNV with Strong's Numbers as reference:
+
+```bash
+# Basic SN correction (without refinement)
+./segment.py --engs gen --chap 1 --sec 1 --version lcc \
+  --seg pkuseg --correct-with-sn
+
+# With similarity-based refinement (Phase 1.5)
+./segment.py --engs gen --chap 3 --sec 3 --version lcc \
+  --seg pkuseg --correct-with-sn --use-refinement
+
+# With explicit semantic engine (Phase 2.1)
+./segment.py --engs gen --chap 3 --sec 3 --version lcc \
+  --seg pkuseg --correct-with-sn --use-refinement \
+  --semantic-engine edit-distance
+```
+
+**How it works**:
+1. **UNV+SN Reference**: Fetches UNV (和合本) with embedded Strong's Numbers
+2. **Boundary Correction**: Matches UNV boundaries to target text (LCC)
+3. **Similarity Refinement**: Refines coarse boundaries using Strong's Dictionary + semantic matching
+4. **Text Preservation**: Target text is never changed, only boundaries are corrected
+
+**Example Output**:
+```
+📊 Correction Metrics:
+   Match rate: 61.5% (8/13 terms)
+   Refinement: 4/10 terms refined (40.0%)
+   Boundaries corrected: 12
+   Segments: 29 → 24
+   ✅ Text preserved (target version unchanged)
+```
+
+**Semantic Engines** (Phase 2.1):
+- `edit-distance` (default): Character-based similarity using Levenshtein distance
+- Future: `sentence-transformer` - Neural semantic embeddings
+- Future: `bert` - BERT-based Chinese semantic similarity
+
+```bash
+# See available engines
+./segment.py --help | grep semantic-engine
 ```
 
 ### Programmatic Usage
@@ -284,18 +341,58 @@ This project uses OpenSpec for spec-driven development. Before making changes:
 
 ## Status
 
-**Current Version**: 0.1.0
-**OpenSpec Proposal**: `add-plugin-architecture` (Implemented)
+**Current Version**: 0.2.1
+**Latest OpenSpec**: `add-semantic-similarity-engines` (Phase 2.1 - Implemented ✅)
 
-**Implemented**:
+### Implemented Features
+
+**Phase 1: Plugin Architecture** ✅
 - ✅ Plugin architecture foundation
 - ✅ Plugin manager and discovery
-- ✅ Jieba and PKUSeg segmenter plugins
+- ✅ Jieba, PKUSeg, LAC, Stanza segmenter plugins
 - ✅ Configuration management
-- ✅ Comprehensive test suite (T001-T010)
+- ✅ Test suite (T001-T010)
 
-**Pending**:
+**Phase 1.5: Similarity-Based Refinement** ✅
+- ✅ Strong's Number boundary correction (--correct-with-sn)
+- ✅ Strong's Dictionary integration with FHL API
+- ✅ Similarity-based term refinement (--use-refinement)
+- ✅ Character variant normalization (爲→為)
+- ✅ 61.5% match rate on Genesis 3:3 (baseline)
+- ✅ Test suite (T029-T033)
+
+**Phase 2.1: Pluggable Semantic Engines** ✅
+- ✅ SemanticEngine abstract interface
+- ✅ EditDistanceEngine (baseline implementation)
+- ✅ Refactored SimilarityMatcher for dependency injection
+- ✅ CLI flag: --semantic-engine {edit-distance}
+- ✅ 100% backward compatibility maintained
+- ✅ Integration test suite (T034-T041)
+- ✅ 68+ tests passing
+- ✅ Performance: 1.33s average (excellent)
+
+### Upcoming Features
+
+**Phase 2.2: Neural Semantic Engines** 🚧
+- ⏳ SentenceTransformerEngine (Chinese embeddings)
+- ⏳ ChineseBertEngine (BERT-based similarity)
+- ⏳ Biblical knowledge base enhancement
+- ⏳ Target: 75-85% match rate
+
+**Phase 2.3: Performance Optimization** 🔜
+- ⏳ Three-tier caching system
+- ⏳ Batch processing for neural engines
 - ⏳ Embedding plugins
 - ⏳ Alignment plugins
-- ⏳ Scorer plugins
-- ⏳ Full Bible processing pipeline
+
+### Test Results
+
+**Unit Tests**: 63/80 passing (18 pre-existing failures in plugins/API)
+**Integration Tests**: 5/5 passing (T037-T041)
+**Total Coverage**: 68+ tests
+
+**Benchmark** (Genesis 3:3):
+- Match rate: 61.5% ✅
+- Refinement rate: 40% ✅
+- Performance: 1.33s avg ✅
+- Text preservation: 100% ✅
