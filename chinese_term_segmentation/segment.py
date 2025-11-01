@@ -25,6 +25,13 @@ from src.plugins.segmenters.pkuseg_plugin import PKUSegPlugin
 from src.plugins.segmenters.lac_plugin import LACPlugin
 from src.plugins.segmenters.stanza_plugin import StanzaPlugin
 
+# Optional neural engines
+try:
+    from src.core.engines.sentence_transformer_engine import SentenceTransformerEngine
+    SENTENCE_TRANSFORMER_AVAILABLE = True
+except ImportError:
+    SENTENCE_TRANSFORMER_AVAILABLE = False
+
 
 def setup_logging(verbose: bool = False):
     """Configure logging based on verbosity."""
@@ -370,11 +377,12 @@ Examples:
 
     parser.add_argument(
         '--semantic-engine',
-        choices=['edit-distance'],
+        choices=['edit-distance', 'sentence-transformer'],
         default='edit-distance',
-        help='Semantic similarity engine for term matching (Phase 2.1). '
-             'Options: edit-distance (character-based, default). '
-             'Future: sentence-transformer (neural, semantic understanding). '
+        help='Semantic similarity engine for term matching (Phase 2.1+2.2). '
+             'Options: '
+             'edit-distance (character-based, fast ~1ms, 61%% accuracy), '
+             'sentence-transformer (neural semantic, ~45ms, target 75%% accuracy). '
              'Used with --use-refinement for finding best substring matches.'
     )
 
@@ -644,11 +652,28 @@ Examples:
             # Initialize boundary corrector if needed
             corrector = None
             if args.correct_with_sn:
-                # Map semantic engine CLI argument to engine instance (Phase 2.1)
+                # Map semantic engine CLI argument to engine instance (Phase 2.1 + 2.2)
                 semantic_engine = None
+
                 if args.semantic_engine == 'edit-distance':
                     semantic_engine = EditDistanceEngine()
-                # Future: Add more engine types here (sentence-transformer, bert, etc.)
+
+                elif args.semantic_engine == 'sentence-transformer':
+                    if not SENTENCE_TRANSFORMER_AVAILABLE:
+                        print(f"\n❌ Error: sentence-transformers not installed", file=sys.stderr)
+                        print(f"Install with: pip install sentence-transformers torch", file=sys.stderr)
+                        print(f"Falling back to edit-distance engine...\n", file=sys.stderr)
+                        semantic_engine = EditDistanceEngine()
+                    else:
+                        print(f"\n🧠 Loading neural semantic engine (sentence-transformer)...")
+                        print(f"   This may take a moment on first use (downloading model ~400MB)...\n")
+                        try:
+                            semantic_engine = SentenceTransformerEngine()
+                            print(f"✅ Neural engine loaded successfully!\n")
+                        except Exception as e:
+                            print(f"❌ Error loading sentence-transformer: {e}", file=sys.stderr)
+                            print(f"Falling back to edit-distance engine...\n", file=sys.stderr)
+                            semantic_engine = EditDistanceEngine()
 
                 corrector = BoundaryCorrector(semantic_engine=semantic_engine)
 
