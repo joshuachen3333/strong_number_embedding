@@ -1,6 +1,12 @@
-"""Unit tests for SimilarityMatcher (T029-T033)."""
+"""Unit tests for SimilarityMatcher (T029-T033).
+
+UPDATED (Phase 2.1): Tests now use EditDistanceEngine directly for
+engine-specific functionality, ensuring compatibility with refactored architecture.
+"""
 
 from src.core.similarity_matcher import SimilarityMatcher
+from src.core.engines.edit_distance_engine import EditDistanceEngine
+from src.core.char_variant_normalizer import CharVariantNormalizer
 
 
 def test_t029_substring_extraction():
@@ -30,7 +36,11 @@ def test_t029_substring_extraction():
 
 
 def test_t030_character_variant_matching():
-    """T030: Handle character variants (爲/為, 衞/衛, 綫/線)."""
+    """T030: Handle character variants (爲/為, 衞/衛, 綫/線).
+
+    UPDATED (Phase 2.1): Now tests CharVariantNormalizer directly and verifies
+    EditDistanceEngine integration with SimilarityMatcher.
+    """
     matcher = SimilarityMatcher()
 
     # Test Case 1: 爲/為 variant (U+7232 vs U+70BA)
@@ -42,18 +52,19 @@ def test_t030_character_variant_matching():
     assert result == "因爲", f"Expected '因爲' (variant preserved), got '{result}'"
     print("✅ T030a: Character variant 爲/為 matched")
 
-    # Test Case 2: Direct normalization test
-    normalized = matcher._normalize_variants("因爲")
+    # Test Case 2: Direct normalization test (using CharVariantNormalizer)
+    normalizer = CharVariantNormalizer()
+    normalized = normalizer.normalize("因爲")
     assert normalized == "因為", "Should normalize 爲 to 為"
     print("✅ T030b: Normalization works correctly")
 
     # Test Case 3: 衞/衛 variant (David)
-    normalized = matcher._normalize_variants("大衞")
+    normalized = normalizer.normalize("大衞")
     assert normalized == "大衛", "Should normalize 衞 to 衛"
     print("✅ T030c: David variant (衞/衛) normalized")
 
     # Test Case 4: 綫/線 variant (line)
-    normalized = matcher._normalize_variants("界綫")
+    normalized = normalizer.normalize("界綫")
     assert normalized == "界線", "Should normalize 綫 to 線"
     print("✅ T030d: Line variant (綫/線) normalized")
 
@@ -61,31 +72,35 @@ def test_t030_character_variant_matching():
 
 
 def test_t031_edit_distance_accuracy():
-    """T031: Edit distance calculation accuracy."""
-    matcher = SimilarityMatcher()
+    """T031: Edit distance calculation accuracy.
 
-    # Test Case 1: Identical strings
-    dist = matcher._edit_distance("abc", "abc")
-    assert dist == 0, "Identical strings should have distance 0"
-    print("✅ T031a: Identical strings (distance = 0)")
+    UPDATED (Phase 2.1): Now tests EditDistanceEngine directly instead of
+    accessing private methods on SimilarityMatcher.
+    """
+    engine = EditDistanceEngine()
+
+    # Test Case 1: Identical strings (via similarity, not direct distance)
+    sim = engine.similarity("abc", "abc")
+    assert sim == 1.0, "Identical strings should have similarity 1.0"
+    print("✅ T031a: Identical strings (similarity = 1.0)")
 
     # Test Case 2: Single character difference
-    dist = matcher._edit_distance("獨生的", "獨生")
+    dist = engine._levenshtein("獨生的", "獨生")
     assert dist == 1, "Should be 1 deletion"
     print("✅ T031b: Single deletion (distance = 1)")
 
     # Test Case 3: Substitution
-    dist = matcher._edit_distance("天", "地")
+    dist = engine._levenshtein("天", "地")
     assert dist == 1, "Should be 1 substitution"
     print("✅ T031c: Single substitution (distance = 1)")
 
     # Test Case 4: Classic example (kitten → sitting)
-    dist = matcher._edit_distance("kitten", "sitting")
+    dist = engine._levenshtein("kitten", "sitting")
     assert dist == 3, "Classic edit distance example"
-    print("✅ T031d: Classic example (distance = 3)")
+    print("✅ T031d: Classic example (distance = 1)")
 
     # Test Case 5: Similarity score
-    sim = matcher._similarity("獨生的", "獨生")
+    sim = engine.similarity("獨生的", "獨生")
     expected = 1.0 - (1.0 / 3.0)  # 1 edit out of 3 chars
     assert abs(sim - expected) < 0.01, f"Expected {expected:.2f}, got {sim:.2f}"
     print(f"✅ T031e: Similarity score correct ({sim:.2f})")
@@ -143,7 +158,8 @@ def test_t033_edge_cases():
     result = matcher.find_best_substring("獨生的", "天國是主")
     # Might be None or very poor match
     if result:
-        sim = matcher._similarity("獨生的", result)
+        engine = EditDistanceEngine()
+        sim = engine.similarity("獨生的", result)
         assert sim < 0.8, "Different text should have low similarity"
         print(f"✅ T033d: Different text low similarity ({sim:.2f})")
     else:
