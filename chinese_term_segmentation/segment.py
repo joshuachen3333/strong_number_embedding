@@ -19,6 +19,7 @@ from src.api.fhl_client import FHLClient, VerseData
 from src.api.verse_parser import VerseParser, VerseReference
 from src.core.plugin_manager import PluginManager
 from src.core.boundary_corrector import BoundaryCorrector
+from src.core.engines.edit_distance_engine import EditDistanceEngine
 from src.plugins.segmenters.jieba_plugin import JiebaPlugin
 from src.plugins.segmenters.pkuseg_plugin import PKUSegPlugin
 from src.plugins.segmenters.lac_plugin import LACPlugin
@@ -368,6 +369,16 @@ Examples:
     )
 
     parser.add_argument(
+        '--semantic-engine',
+        choices=['edit-distance'],
+        default='edit-distance',
+        help='Semantic similarity engine for term matching (Phase 2.1). '
+             'Options: edit-distance (character-based, default). '
+             'Future: sentence-transformer (neural, semantic understanding). '
+             'Used with --use-refinement for finding best substring matches.'
+    )
+
+    parser.add_argument(
         '--debug',
         action='store_true',
         help='Enable debug output for refinement process. Shows API calls, dictionary lookups, '
@@ -633,7 +644,13 @@ Examples:
             # Initialize boundary corrector if needed
             corrector = None
             if args.correct_with_sn:
-                corrector = BoundaryCorrector()
+                # Map semantic engine CLI argument to engine instance (Phase 2.1)
+                semantic_engine = None
+                if args.semantic_engine == 'edit-distance':
+                    semantic_engine = EditDistanceEngine()
+                # Future: Add more engine types here (sentence-transformer, bert, etc.)
+
+                corrector = BoundaryCorrector(semantic_engine=semantic_engine)
 
             # Display verses
             print(f"\n{'=' * 60}")

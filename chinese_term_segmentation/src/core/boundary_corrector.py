@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from src.core.strongs_parser import StrongsNumberParser, TermBoundary
 from src.core.char_variant_normalizer import CharVariantNormalizer
 from src.core.similarity_matcher import SimilarityMatcher
+from src.core.semantic_engine import SemanticEngine
 
 
 @dataclass
@@ -34,15 +35,22 @@ class BoundaryCorrector:
     are corrected where character sequences match.
     """
 
-    def __init__(self, use_variant_normalization: bool = True):
+    def __init__(self,
+                 use_variant_normalization: bool = True,
+                 semantic_engine: Optional[SemanticEngine] = None):
         """Initialize the corrector.
 
         Args:
             use_variant_normalization: Whether to use character variant
                 normalization for improved matching (default: True)
+            semantic_engine: Optional semantic similarity engine to use
+                for term refinement. If None, defaults to EditDistanceEngine.
+                (Phase 2.1)
         """
         self.parser = StrongsNumberParser()
         self.use_variant_normalization = use_variant_normalization
+        self.semantic_engine = semantic_engine  # Store for refinement
+
         if use_variant_normalization:
             self.normalizer = CharVariantNormalizer()
         else:
@@ -157,8 +165,8 @@ class BoundaryCorrector:
             >>> metrics.refined_terms_count
             1  # One term was refined
         """
-        # Initialize similarity matcher
-        similarity_matcher = SimilarityMatcher()
+        # Initialize similarity matcher with semantic engine (Phase 2.1)
+        similarity_matcher = SimilarityMatcher(engine=self.semantic_engine)
 
         # Stage 0: Parse UNV+SN to extract coarse boundaries
         coarse_boundaries = self.parser.parse(unv_sn_text)
