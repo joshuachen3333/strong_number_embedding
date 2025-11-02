@@ -409,9 +409,10 @@ Examples:
         default='fhl-chinese',
         help='RefTerm data source for --use-refterm (Phase 2.3). '
              'Options: '
-             'hebrew-word (Hebrew word form from FHL Parsing API), '
-             'hebrew-lemma (Hebrew root/lemma from FHL Parsing API), '
-             'fhl-chinese (FHL Chinese explanation - RECOMMENDED, best accuracy). '
+             'hebrew-word (⚠️  EXPERIMENTAL - Hebrew word form, 0%% practical accuracy), '
+             'hebrew-lemma (⚠️  EXPERIMENTAL - Hebrew root/lemma, 0%% practical accuracy), '
+             'fhl-chinese (⭐ RECOMMENDED - FHL Chinese explanation, 100%% accuracy). '
+             'Note: hebrew-* options preserved for future multilingual model research. '
              'This is INDEPENDENT from --semantic-engine. '
              'Data source (what to match) vs Algorithm (how to match). '
              'Default: fhl-chinese.'
