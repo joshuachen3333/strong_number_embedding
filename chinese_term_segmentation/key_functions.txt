@@ -1,0 +1,108 @@
+ 總結對應關係:
+
+  | OpenSpec Change                             | 核心函數/類別                                                                   | 狀態                   |
+  |---------------------------------------------|---------------------------------------------------------------------------|----------------------|
+  | add-semantic-similarity-engines (Phase 2.1) | SemanticEngine, EditDistanceEngine, SimilarityMatcher                     | ✅ 已歸檔                |
+  | add-neural-semantic-engines (Phase 2.2)     | SentenceTransformerEngine                                                 | ⏳ 進行中 (T301-T302 完成) |
+  | add-refterm-based-refinement                | ReftermExtractor, SemanticCluster, ReftermSemanticEngine, ReftermPipeline | 📝 提案中 (未提交)         |
+
+  您目前的 git status 顯示 add-refterm-based-refinement 相關檔案尚未提交，這是正常的提案階段狀態。
+
+> 哪個函數是拿 refTerm 與 origText 當作函數輸入, 而輸出 outputTerm 且 optputTerm 內含於 origText? 
+
+⏺ 根據您在 prompt.history 中的破題定義，我需要找到符合這個簽名的函數：
+
+  輸入: refTerm + origText輸出: outputTerm (其中 outputTerm ⊆ origText)
+
+  讓我查看相關的核心函數：
+
+⏺ Read(src/core/similarity_matcher.py)
+  ⎿  Read 153 lines
+
+⏺ Read(src/core/refterm_semantic_engine.py)
+  ⎿  Read 322 lines
+
+⏺ 根據您的破題定義，有兩個函數符合這個簽名（輸入 refTerm + origText，輸出 outputTerm ⊆ origText）：
+
+  ---
+  1. SimilarityMatcher.find_best_substring() ✅ 已歸檔
+
+  位置: src/core/similarity_matcher.py:65-132
+
+  函數簽名:
+  def find_best_substring(
+      self,
+      refTerm: str,        # 參考詞（如 "獨生的"）
+      origText: str,       # 原始長文（如 "將他的獨生"）
+      threshold: float = 0.6
+  ) -> Optional[str]:      # 返回 outputTerm（如 "獨生"）⊆ origText
+
+  演算法:
+  1. 生成 origText 的所有子串（長度 ≥ 2）
+  2. 使用 SemanticEngine 計算每個子串與 refTerm 的語意相似度
+  3. 返回相似度最高且超過閾值的子串
+  4. 若相似度相同，優先選擇較長的子串
+
+  範例:
+  >>> matcher = SimilarityMatcher()
+  >>> matcher.find_best_substring("獨生的", "將他的獨生")
+  "獨生"  # similarity ~0.67
+
+  >>> matcher.find_best_substring("因為", "因爲天國")
+  "因爲"  # 處理異體字
+
+  歸屬 OpenSpec:
+  - Phase 2.1: add-semantic-similarity-engines (已歸檔 ✅)
+  - 重構後支援可插拔的 SemanticEngine（EditDistance, SentenceTransformer 等）
+
+  ---
+  2. RefTermSemanticEngine.find_best_match() 📝 提案中
+
+  位置: src/core/refterm_semantic_engine.py:110-165
+
+  函數簽名:
+  def find_best_match(
+      self,
+      refterm: RefTerm,              # RefTerm 對象（包含 term, strong_num）
+      candidate_segments: List[str]  # 從 origText 分割出的候選片段列表
+  ) -> Tuple[Optional[str], float]:  # (outputTerm, score)
+
+  差異:
+  - 輸入不是直接的 origText 字串，而是預先分割好的片段列表
+  - 會嘗試組合 1-4 個連續片段形成候選詞
+  - 使用神經網路嵌入（SentenceTransformer）計算語意相似度
+
+  範例:
+  >>> from src.core.refterm_extractor import RefTerm
+  >>> refterm = RefTerm("神", "H0430", "神<WH0430>")
+  >>> candidates = ["上", "帝", "上帝"]  # origText 分割後的片段
+  >>> best, score = engine.find_best_match(refterm, candidates)
+  >>> (best, score)
+  ('上帝', 0.92)  # 組合了 "上" + "帝"
+
+  歸屬 OpenSpec:
+  - 提案中: add-refterm-based-refinement (尚未提交至 git)
+
+  ---
+  總結對應關係
+
+  | 函數                                      | 輸入                                            | 輸出                              | OpenSpec                                 | 狀態     |
+  |-----------------------------------------|-----------------------------------------------|---------------------------------|------------------------------------------|--------|
+  | SimilarityMatcher.find_best_substring() | refTerm: strorigText: str                     | outputTerm: str(⊆ origText)     | Phase 2.1add-semantic-similarity-engines | ✅ 已歸檔  |
+  | RefTermSemanticEngine.find_best_match() | refterm: RefTermcandidate_segments: List[str] | (outputTerm: str, score: float) | 提案中add-refterm-based-refinement          | 📝 未提交 |
+
+  ---
+  您的破題定義直接對應到第一個函數 SimilarityMatcher.find_best_substring()，這是已經實作、測試並歸檔的核心函數。
+
+ 📊 完整架构确认
+
+  CLI (segment.py)
+    └─> --use-refterm 标志 ✅
+        └─> RefTermRefinementPipeline ✅
+            └─> RefTermSemanticEngine ✅
+                └─> SimilarityMatcher ✅ (Phase 2.1 重用)
+                    └─> SemanticEngine (sentence-transformer/edit-distance) ✅
+
+  ---
+  🎯 总结
+

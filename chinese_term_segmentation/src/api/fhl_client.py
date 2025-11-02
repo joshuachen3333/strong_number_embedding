@@ -32,6 +32,73 @@ class StrongEntry:
     related: List[str]         # Related words (NT only)
 
 
+@dataclass
+class ParsingEntry:
+    """Represents a word parsing entry from FHL qp.php API.
+
+    This provides detailed word-by-word analysis including:
+    - Original Hebrew/Greek word form
+    - Root/lemma form
+    - Chinese explanation
+    - Morphology information
+    - Strong's Number(s)
+    """
+
+    wid: str               # Word ID in verse sequence
+    sn: str                # Strong's Number (may be compound like "<09002><03117>")
+    word: str              # Original word form (e.g., "בְּיוֹם")
+    orig: str              # Root/lemma form (e.g., "יוֹם")
+    exp: str               # FHL Chinese explanation (e.g., "日子、時候")
+    wform: str             # Morphology info (e.g., "(名詞)")
+
+    def get_sn_list(self) -> List[str]:
+        """Extract list of Strong's Numbers from compound SNs.
+
+        Handles both formats:
+        - With brackets: "<09002><03117>"
+        - Without brackets: "09002" (single SN from qp.php)
+
+        Example:
+            >>> entry.sn = "<09002><03117>"
+            >>> entry.get_sn_list()
+            ['09002', '03117']
+
+            >>> entry.sn = "09002"
+            >>> entry.get_sn_list()
+            ['09002']
+        """
+        import re
+
+        if not self.sn:
+            return []
+
+        # Try to extract from <...> brackets first
+        bracketed = re.findall(r'<(\d+)>', self.sn)
+        if bracketed:
+            return bracketed
+
+        # If no brackets, check if it's a plain number
+        if re.match(r'^\d+$', self.sn):
+            return [self.sn]
+
+        return []
+
+    def get_first_chinese_meaning(self) -> str:
+        """Get first Chinese meaning from comma-separated list.
+
+        Example:
+            >>> entry.exp = "日子、時候"
+            >>> entry.get_first_chinese_meaning()
+            '日子'
+        """
+        if not self.exp:
+            return ""
+
+        # Split by Chinese comma or regular comma
+        parts = self.exp.replace('、', ',').split(',')
+        return parts[0].strip()
+
+
 class FHLClient:
     """Client for FHL Bible API.
 
@@ -49,10 +116,18 @@ class FHLClient:
                 - N: Testament (0=NT, 1=OT)
                 - k: Strong's number (numeric, without G/H prefix)
                 - gb: Language (0=traditional Chinese, 1=simplified)
+
+        Parsing API: https://bible.fhl.net/json/qp.php
+            Parameters:
+                - engs: English book abbreviation (gen, exo, mat, etc.)
+                - chap: Chapter number
+                - sec: Verse number
+            Returns word-by-word parsing with Hebrew/Greek forms, lemmas, and Chinese meanings
     """
 
     VERSE_API_URL = "https://bible.fhl.net/json/qb.php"
     STRONG_DICT_API_URL = "https://bible.fhl.net/json/sd.php"
+    PARSING_API_URL = "https://bible.fhl.net/json/qp.php"
 
     # Supported versions
     SUPPORTED_VERSIONS = [
@@ -444,6 +519,82 @@ class FHLClient:
 
         # Last resort: return first 20 chars
         return dic_text[:20].strip()
+
+    def fetch_parsing(
+        self,
+        book_eng: str,
+        chapter: int,
+        verse: int
+    ) -> List[ParsingEntry]:
+        """Fetch word-by-word parsing from FHL qp.php API.
+
+        This provides detailed grammatical analysis for each word including:
+        - Original Hebrew/Greek word form
+        - Root/lemma
+        - Chinese explanation
+        - Morphology
+        - Strong's Number(s)
+
+        Args:
+            book_eng: English book abbreviation (gen, exo, mat, jhn, etc.)
+            chapter: Chapter number
+            verse: Verse number
+
+        Returns:
+            List of ParsingEntry objects (one per word)
+
+        Raises:
+            requests.RequestException: If API request fails
+
+        Example:
+            >>> client = FHLClient()
+            >>> entries = client.fetch_parsing("gen", 3, 5)
+            >>> for e in entries:
+            ...     print(f"{e.word} (SN: {e.sn}) - {e.exp}")
+            כִּי (SN: <03588>) - 因為、當、如果
+            יֹדְעַ (SN: <03045>) - 知道、認識
+            אֱלֹהִים (SN: <00430>) - 上帝、神、神明
+        """
+        params = {
+            "engs": book_eng.capitalize(),  # API requires capitalized abbreviation (Gen, not gen)
+            "chap": str(chapter),
+            "sec": str(verse)
+        }
+
+        logger.debug(f"Fetching parsing: {book_eng} {chapter}:{verse}")
+
+        try:
+            response = self.session.get(
+                self.PARSING_API_URL,
+                params=params,
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+
+            data = response.json()
+
+            results = []
+            if "record" in data:
+                for record in data["record"]:
+                    entry = ParsingEntry(
+                        wid=record.get("wid", ""),
+                        sn=record.get("sn", ""),
+                        word=record.get("word", ""),
+                        orig=record.get("orig", ""),
+                        exp=record.get("exp", ""),
+                        wform=record.get("wform", "")
+                    )
+                    results.append(entry)
+
+                logger.debug(f"Parsed {len(results)} words from {book_eng} {chapter}:{verse}")
+            else:
+                logger.warning(f"No parsing data for {book_eng} {chapter}:{verse}")
+
+            return results
+
+        except requests.RequestException as e:
+            logger.error(f"Parsing API request failed: {e}")
+            raise
 
     def close(self):
         """Close the HTTP session."""
