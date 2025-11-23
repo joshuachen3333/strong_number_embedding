@@ -5,8 +5,8 @@ import sys
 import os
 import time
 
-# Assuming parse_verse.py is in the same directory
-PARSE_VERSE_SCRIPT = "/Users/joshua/work/strong_number_embedding/sn_within_unv_selfgroup_segmentation/parse_verse.py"
+# Point to the new v1.6 parser
+PARSE_VERSE_SCRIPT = "/Users/joshua/work/strong_number_embedding/sn_within_unv_selfgroup_segmentation/parse_verse_v1_6.py"
 FETCH_TEXT_SCRIPT = "/Users/joshua/work/strong_number_embedding/sn_within_unv_selfgroup_segmentation/fetch_text.sh"
 OUTPUT_BASE_DIR = "/Users/joshua/work/strong_number_embedding/sn_within_unv_selfgroup_segmentation/output/"
 
@@ -71,51 +71,49 @@ def run_fetch_and_parse(book, chapter, verse):
 if __name__ == "__main__":
     book = "Gen"
     current_chapter = 1
-    current_verse = 16 # Start from Genesis 1:16
-    end_verse_chapter_1 = 31 # End of Genesis chapter 1
+    current_verse = 16 # Default to Gen 1:16
+    write_to_disk = True # Default behavior
 
-    # Loop to process verses
-    while True:
-        print(f"Processing {book} {current_chapter}:{current_verse}...")
-        parsed_output, qb_data, qp_data = run_fetch_and_parse(book, current_chapter, current_verse)
-        
-        if parsed_output is None:
-            print(f"Failed to process {book} {current_chapter}:{current_verse}. Stopping.", file=sys.stderr)
-            break
+    # Parse command-line arguments
+    args = sys.argv[1:]
+    if "--no-write" in args:
+        write_to_disk = False
+        args.remove("--no-write")
+    
+    if len(args) == 2: # Expecting chapter and verse
+        try:
+            current_chapter = int(args[0])
+            current_verse = int(args[1])
+        except ValueError:
+            print("Usage: python run_parser_temp.py [--no-write] [chapter] [verse]")
+            sys.exit(1)
+    elif len(args) > 0:
+        print("Usage: python run_parser_temp.py [--no-write] [chapter] [verse]")
+        sys.exit(1)
 
+    print(f"Processing {book} {current_chapter}:{current_verse}...")
+    parsed_output, qb_data, qp_data = run_fetch_and_parse(book, current_chapter, current_verse)
+    
+    if parsed_output is None:
+        print(f"Failed to process {book} {current_chapter}:{current_verse}. Exiting.", file=sys.stderr)
+        sys.exit(1)
+
+    if write_to_disk:
         # Save output
         output_dir = os.path.join(OUTPUT_BASE_DIR, book, str(current_chapter))
         os.makedirs(output_dir, exist_ok=True)
         
         filename = str(current_verse)
-        if "--- UNCERTAINTY NOTES ---" in parsed_output:
-            filename = f"{current_verse}_uncertain"
-            print(f"Uncertainty detected for {book} {current_chapter}:{current_verse}. Saving as {filename}.", file=sys.stderr)
+        # Uncertainty handling would need to be updated to check the JSON output for a warnings field
 
         file_path = os.path.join(output_dir, filename)
         
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(parsed_output)
         print(f"Successfully processed and saved output for {book} {current_chapter}:{current_verse} to {file_path}")
+    else:
+        print("--- Parsed Output (not written to disk) ---")
+        print(parsed_output)
+        print("--- End of Parsed Output ---")
 
-        # Determine next verse
-        if qb_data and 'next' in qb_data and qb_data['next']:
-            next_info = qb_data['next']
-            next_book = next_info['engs']
-            next_chapter = next_info['chap']
-            next_verse = next_info['sec']
-
-            if next_book != book or next_chapter != current_chapter or next_verse > end_verse_chapter_1:
-                print(f"Reached end of desired range for {book} {current_chapter}. Stopping.")
-                break
-            else:
-                current_book = next_book # Update current book, though it should be the same
-                current_chapter = next_chapter
-                current_verse = next_verse
-        else:
-            print(f"No 'next' verse information found for {book} {current_chapter}:{current_verse}. Stopping.", file=sys.stderr)
-            break
-        
-        time.sleep(1) # Be polite to the API
-
-    print("Batch processing complete.")
+    print("Processing complete.")
