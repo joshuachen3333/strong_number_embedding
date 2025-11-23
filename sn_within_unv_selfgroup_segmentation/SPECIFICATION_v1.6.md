@@ -140,6 +140,32 @@ prefix_display_order: ["ו־","ל־","ב־","כ־","מ־","ה־"]
 * **資料不一致**：`qb_qp_core_mismatch` 必須出現在 `warnings[]`，並（可選）記 log。
 * **範圍驗證**：可選地驗證 Strong 號段（如舊約 ≤ 8999）。
 
+### 5.3 問題日誌記錄（Issue Logging）
+
+實作應自動記錄問題至兩個日誌文件（位於 `output/` 目錄）：
+
+1. **uncertain_or_expandable_issues.txt**
+   * 無法確定解決的問題（需擴充規範或人工審查）
+   * 記錄類型：`qb_qp_mismatch`、`brace_attach_ambiguous`、`dangling_*` 系列
+
+2. **compatible_but_notable_issues.txt**
+   * 符合規範但值得特別注意的案例
+   * 邊界情況、不尋常的語法結構、多重有效詮釋
+   * 有助識別模式，用於品質保證與未來規範改進
+
+**日誌格式**：`[timestamp] verse_ref | issue_type | description`
+
+**範例條目**：
+```
+[2025-11-24 14:30:15] Gen 1:2 | qb_qp_mismatch | Strong's number <0430> from qb.php not found in qp.php records.
+```
+
+此功能協助：
+* 追蹤批次解析中的模式
+* 識別需要規範擴充的領域
+* 為 AI/LLM 整合提供訓練資料
+* 與神學學術交叉參照
+
 ---
 
 ## 6.0 範例（可讀版分群，與 v1.2 一致）

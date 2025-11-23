@@ -37,6 +37,12 @@ Claude will automatically activate this skill when users:
 - Morphology left-attachment
 - Warning generation for ambiguous cases
 
+### Issue Logging (NEW)
+- **Automatic logging** of uncertain/expandable issues to `output/uncertain_or_expandable_issues.txt`
+- **Automatic logging** of compatible but notable cases to `output/compatible_but_notable_issues.txt`
+- Timestamped entries with verse reference and issue type
+- Helps track patterns across batch parsing runs
+
 ### Output Format
 Three-section output per verse:
 1. **Parsed and Formatted Text** (Traditional Chinese)
@@ -97,6 +103,7 @@ To verify the skill is working:
 - ✅ Output format specification
 - ✅ Batch processing SOP
 - ✅ Error handling and uncertainty detection
+- ✅ **Issue logging to dedicated log files** (NEW)
 - ⚠️ Brace preposition decision tree (parser has placeholder logic)
 - ❌ Construct state linking (optional v1.2-B feature)
 

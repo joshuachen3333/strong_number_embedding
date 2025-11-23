@@ -154,6 +154,27 @@ Add to `warnings[]` array:
 - `morph_without_core`: Orphaned morphology code
 - `qb_qp_core_mismatch`: Data mismatch between APIs
 
+### Issue Logging (New Feature)
+
+The parser automatically logs issues to two files in `output/`:
+
+1. **uncertain_or_expandable_issues.txt**
+   - Issues that cannot be resolved with confidence
+   - Cases requiring spec expansion or manual review
+   - Logged issue types: `qb_qp_mismatch`, `brace_attach_ambiguous`, `dangling_*`
+
+2. **compatible_but_notable_issues.txt**
+   - Successfully parsed cases worth special attention
+   - Edge cases, unusual constructions, multiple valid interpretations
+   - Helps identify patterns for quality assurance and future spec refinements
+
+**Log Format**: `[timestamp] verse_ref | issue_type | description`
+
+**Example Entry**:
+```
+[2025-11-24 14:30:15] Gen 1:2 | qb_qp_mismatch | Strong's number <0430> from qb.php not found in qp.php records.
+```
+
 ## Important User Presentation Rules
 
 **CRITICAL**: When showing parsed verse results to the user:
@@ -193,6 +214,14 @@ ls -1 output/Gen/2/ | grep "_uncertain"
 
 # View sample output
 cat output/Gen/2/1
+
+# Check issue logs
+tail -20 output/uncertain_or_expandable_issues.txt
+tail -20 output/compatible_but_notable_issues.txt
+
+# Search for specific verse in logs
+grep "Gen 1:2" output/uncertain_or_expandable_issues.txt
+grep "Gen 1:2" output/compatible_but_notable_issues.txt
 ```
 
 ## Files and Dependencies

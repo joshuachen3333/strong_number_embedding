@@ -11,14 +11,15 @@ FETCH_TEXT_SCRIPT = "/Users/joshua/work/strong_number_embedding/sn_within_unv_se
 OUTPUT_BASE_DIR = "/Users/joshua/work/strong_number_embedding/sn_within_unv_selfgroup_segmentation/output/"
 
 def run_fetch_and_parse(book, chapter, verse):
+    verse_ref = f"{book} {chapter}:{verse}"
     fetch_command = [FETCH_TEXT_SCRIPT,
                      "--engs", book, "--chap", str(chapter), "--sec", str(verse)]
-    
+
     try:
         fetch_process = subprocess.run(fetch_command, capture_output=True, text=True, check=True)
         fetch_output = fetch_process.stdout
     except subprocess.CalledProcessError as e:
-        print(f"Error running fetch_text.sh for {book} {chapter}:{verse}: {e.stderr}", file=sys.stderr)
+        print(f"Error running fetch_text.sh for {verse_ref}: {e.stderr}", file=sys.stderr)
         return None, None, None # Return None for all outputs
 
     qb_start = fetch_output.find('=== qb.php')
@@ -55,21 +56,21 @@ def run_fetch_and_parse(book, chapter, verse):
     qb_json_str_final = json.dumps(qb_data)
     qp_json_str_final = json.dumps(qp_data)
 
-    # Escape single quotes for shell command arguments
-    qb_json_str_escaped = qb_json_str_final.replace("'", "'\'\''")
-    qp_json_str_escaped = qp_json_str_final.replace("'", "'\'\''")
+    # Import parse_verse_v1_6 module and call it directly instead of subprocess
+    # This allows us to pass the verse_ref parameter for logging
+    sys.path.insert(0, os.path.dirname(PARSE_VERSE_SCRIPT))
+    from parse_verse_v1_6 import parse_verse_v1_6
 
-    parse_command = f"python {PARSE_VERSE_SCRIPT} '" + qb_json_str_escaped + "' '" + qp_json_str_escaped + "'"
-    
     try:
-        parse_process = subprocess.run(parse_command, shell=True, capture_output=True, text=True, check=True)
-        return parse_process.stdout, qb_data, qp_data # Also return qb_data for next/prev verse info
-    except subprocess.CalledProcessError as e:
-        print(f"Error running parse_verse.py for {book} {chapter}:{verse}: {e.stderr}", file=sys.stderr)
+        result = parse_verse_v1_6(qb_json_str_final, qp_json_str_final,
+                                   output_format="text", verse_ref=verse_ref)
+        return result, qb_data, qp_data
+    except Exception as e:
+        print(f"Error running parse_verse_v1_6 for {verse_ref}: {e}", file=sys.stderr)
         return None, None, None
 
 if __name__ == "__main__":
-    book = "Gen"
+    book = "Gen"  # Default book
     current_chapter = 1
     current_verse = 16 # Default to Gen 1:16
     write_to_disk = True # Default behavior
@@ -79,16 +80,28 @@ if __name__ == "__main__":
     if "--no-write" in args:
         write_to_disk = False
         args.remove("--no-write")
-    
+
+    # Check for --book parameter
+    if "--book" in args:
+        book_idx = args.index("--book")
+        if book_idx + 1 < len(args):
+            book = args[book_idx + 1]
+            args.pop(book_idx)  # Remove --book
+            args.pop(book_idx)  # Remove book value
+        else:
+            print("Error: --book requires a value")
+            print("Usage: python run_parser_temp.py [--book BOOK] [--no-write] <chapter> <verse>")
+            sys.exit(1)
+
     if len(args) == 2: # Expecting chapter and verse
         try:
             current_chapter = int(args[0])
             current_verse = int(args[1])
         except ValueError:
-            print("Usage: python run_parser_temp.py [--no-write] [chapter] [verse]")
+            print("Usage: python run_parser_temp.py [--book BOOK] [--no-write] <chapter> <verse>")
             sys.exit(1)
     elif len(args) > 0:
-        print("Usage: python run_parser_temp.py [--no-write] [chapter] [verse]")
+        print("Usage: python run_parser_temp.py [--book BOOK] [--no-write] <chapter> <verse>")
         sys.exit(1)
 
     print(f"Processing {book} {current_chapter}:{current_verse}...")

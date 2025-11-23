@@ -1,6 +1,8 @@
 import json
 import re
 import sys
+import os
+from datetime import datetime
 
 # This script is a refactoring of parse_verse.py to implement SPECIFICATION_v1.6.md
 
@@ -10,6 +12,28 @@ PROFILE = {
     "object_marker": "0853",
     "ignored_codes": ["09015"]
 }
+
+# --- Logging Configuration ---
+OUTPUT_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UNCERTAIN_LOG = os.path.join(OUTPUT_BASE_DIR, "output", "uncertain_or_expandable_issues.txt")
+NOTABLE_LOG = os.path.join(OUTPUT_BASE_DIR, "output", "compatible_but_notable_issues.txt")
+
+def append_to_log(log_file, verse_ref, issue_type, message):
+    """
+    Append an issue to the specified log file.
+
+    Args:
+        log_file: Path to the log file (UNCERTAIN_LOG or NOTABLE_LOG)
+        verse_ref: String identifying the verse (e.g., "Gen 1:1")
+        issue_type: Category of issue (e.g., "uncertain", "spec_expandable", "notable")
+        message: Detailed description of the issue
+    """
+    os.makedirs(os.path.dirname(log_file), exist_ok=True)
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_entry = f"[{timestamp}] {verse_ref} | {issue_type} | {message}\n"
+
+    with open(log_file, "a", encoding="utf-8") as f:
+        f.write(log_entry)
 
 def get_qp_info(sn_value, qp_records):
     sn_value_stripped = sn_value.lstrip('0')
@@ -180,18 +204,23 @@ def extract_word_metadata(group, qp_records):
                 word_type_pos = wform
     return qp_info, word_type_pos, chinese_meaning, wform
 
-def format_groups_to_text(groups, bible_text_raw, qp_records):
+def format_groups_to_text(groups, bible_text_raw, qp_records, verse_ref=None):
     output_lines = ["Parsed and Formatted Text Section:"]
     morphology_notes_index = {}
     morphology_notes_entries = []
     morph_ref_counter = 1
     uncertainty_notes = []
+    notable_issues = []
 
     for group in groups:
         qp_info, word_type_pos, chinese_meaning, wform = extract_word_metadata(group, qp_records)
 
         if not qp_info:
-            uncertainty_notes.append(f"Strong's number <{group['core']}> from qb.php not found in qp.php records.")
+            note = f"Strong's number <{group['core']}> from qb.php not found in qp.php records."
+            uncertainty_notes.append(note)
+            # Log to uncertain_or_expandable_issues.txt
+            if verse_ref:
+                append_to_log(UNCERTAIN_LOG, verse_ref, "qb_qp_mismatch", note)
 
         prefix_display = ''.join(f"<{code}>" for code in group.get('prefixes', []))
         pre_brace_display = ''.join(f"<{code}>" for code in group.get('pre_brace', []))
@@ -217,6 +246,14 @@ def format_groups_to_text(groups, bible_text_raw, qp_records):
             warning_message = render_warning_message(group, warning)
             if warning_message not in uncertainty_notes:
                 uncertainty_notes.append(warning_message)
+                # Log warnings to appropriate file
+                if verse_ref:
+                    # Warnings like "dangling_*" and "brace_attach_ambiguous" are uncertain
+                    if any(w in warning for w in ["dangling", "ambiguous"]):
+                        append_to_log(UNCERTAIN_LOG, verse_ref, warning, warning_message)
+                    else:
+                        # Other warnings might be notable but compatible
+                        append_to_log(NOTABLE_LOG, verse_ref, warning, warning_message)
 
     output_lines.append("")
     output_lines.append("Raw UNV+SN Source Text Section:")
@@ -236,7 +273,7 @@ def format_groups_to_text(groups, bible_text_raw, qp_records):
 
     return "\n".join(output_lines)
 
-def parse_verse_v1_6(qb_json_str, qp_json_str, *, output_format="text"):
+def parse_verse_v1_6(qb_json_str, qp_json_str, *, output_format="text", verse_ref=None):
     qb_data = json.loads(qb_json_str)
     qp_data = json.loads(qp_json_str)
 
@@ -248,7 +285,7 @@ def parse_verse_v1_6(qb_json_str, qp_json_str, *, output_format="text"):
 
     if output_format == "json":
         return json.dumps(groups, indent=2, ensure_ascii=False)
-    return format_groups_to_text(groups, bible_text_raw, qp_records)
+    return format_groups_to_text(groups, bible_text_raw, qp_records, verse_ref)
 
 if __name__ == "__main__":
     if len(sys.argv) not in (3, 4):
