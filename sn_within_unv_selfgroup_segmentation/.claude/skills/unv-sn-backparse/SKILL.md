@@ -1,16 +1,18 @@
 ---
 name: unv-sn-backparse
-description: Parses Chinese Union Version (UNV) biblical text with Strong's Numbers into structured semantic groups according to SPECIFICATION_v1.7.2.md. Includes automatic compound preposition detection with multi-token support. Use when the user requests parsing UNV+SN verses, batch processing biblical text, or analyzing Strong's number groupings.
+description: Parses Chinese Union Version (UNV) biblical text with Strong's Numbers into structured semantic groups according to SPECIFICATION_v1.8.md. Includes automatic generic compound detection supporting all types of compounds (מִן, לִפְנֵי, etc.). Use when the user requests parsing UNV+SN verses, batch processing biblical text, or analyzing Strong's number groupings.
 allowed-tools: Read, Write, Bash, Grep, Glob
 ---
 
-# UNV+SN Backparse Skill (Specification v1.7.2)
+# UNV+SN Backparse Skill (Specification v1.8)
 
-This skill parses Chinese Union Version (UNV) biblical text with Strong's Numbers into structured semantic groups according to SPECIFICATION_v1.7.2.md.
+This skill parses Chinese Union Version (UNV) biblical text with Strong's Numbers into structured semantic groups according to SPECIFICATION_v1.8.md.
 
 **v1.7 Feature**: Automatic compound preposition detection - resolves 94% of qb_qp_mismatch errors by detecting מִן (04480) compounds directly from qp.php wform field.
 
 **v1.7.2 Enhancement**: Multi-token compound detection - automatically skips 900x prefixes to detect complex compounds like `<04480><09001><06440>` (מִלִּפְנֵי).
+
+**v1.8 Enhancement**: Generic compound detection - supports all types of compound prepositions, not just מִן. Detects לִפְנֵי (`<09001><06440>`) and other 900x-starting compounds by checking both wform and remark fields in qp.php.
 
 ## When to Use This Skill
 
@@ -26,8 +28,9 @@ Activate this skill when the user:
 The system uses a three-stage pipeline:
 
 1. **Data Retrieval** (`fetch_text.sh`) - Fetches from FHL API endpoints
-2. **Parsing** (`parse_verse_v1_7.py` via `run_parser_temp.py`) - Transforms raw data into structured groups
+2. **Parsing** (`parse_verse_v1_8.py` via `run_parser_temp.py`) - Transforms raw data into structured groups
    - v1.7: Automatically detects compound prepositions from qp.php wform
+   - v1.8: Generic detection for all compound types
 3. **Output Generation** - Saves to `output/{Book}/{Chapter}/{verse}` (text format)
 
 ## Parsing Workflow
@@ -88,9 +91,13 @@ Original `bible_text` with WH/WTH/WAH prefixes preserved
 ### III. Morphology Notes Section
 Detailed grammatical explanations: `*N: [詳細描述]`
 
-## Key Parsing Rules (SPECIFICATION_v1.7.2.md)
+## Key Parsing Rules (SPECIFICATION_v1.8.md)
 
-### v1.7.2 Enhanced: Multi-Token Compound Preposition Detection
+### v1.8 Generic Compound Preposition Detection
+
+All compound prepositions are now detected automatically, not just מִן (04480).
+
+### v1.7.2 Multi-Token Compound Detection
 
 **Automatic Detection from qp.php (v1.7.2 Enhanced)**:
 - When `<04480>` (מִן) appears in qb.php but not in qp.php, parser checks the next core token's qp.php record
@@ -106,12 +113,14 @@ Detailed grammatical explanations: `*N: [詳細描述]`
 ```
 
 **Common Compounds**:
-- `<04480><05921>` → מֵעַל "from above"
-- `<04480><08478>` → מִתַּחַת "from under"
-- `<04480><00854>` → מֵאֵת "from with"
-- `<04480><05973>` → מֵעִם "from with"
+- `<04480><05921>` → מֵעַל "from above" (מִן compound)
+- `<04480><08478>` → מִתַּחַת "from under" (מִן compound)
+- `<09001><06440>` → לִפְנֵי "before" (v1.8 new: 900x compound)
+- `<04480><09001><06440>` → מִלִּפְנֵי "from before" (v1.7.2: multi-token)
 
-**Impact**: Resolves ~1,097 qb_qp_mismatch errors (94% of such errors)
+**Impact**:
+- v1.7: Resolves ~1,097 qb_qp_mismatch errors (94% of מִן-related errors)
+- v1.8: Additionally resolves לִפְנֵי and other 900x-starting compounds
 
 ### Token Classification
 
@@ -230,12 +239,13 @@ The parser automatically logs issues to three files in `output/`:
 
 ## Testing Strategy
 
-**Verified Test Cases** (SPECIFICATION_v1.7.2.md §7):
+**Verified Test Cases** (SPECIFICATION_v1.8.md §7):
 - Gen 1:2 - Brace preposition right-attach + construct state
 - Gen 1:4 - Object marker handling with multiple `{<0853>}`
 - Gen 1:5 - FHL profile mapping with inferred vs explicit prefixes
 - Gen 3:5 - Verb left-attach exception for infinitive complement
 - Gen 4:16 (v1.7.2) - Multi-token compound `<04480><09001><06440>` detection
+- Gen 6:11 (v1.8) - לִפְנֵי compound `<09001><06440>` detection
 
 Validate parsed output against expected groupings in spec §7.
 
@@ -276,11 +286,11 @@ wc -l output/compound_prep_plus_noun.txt
 ## Files and Dependencies
 
 **Core Files**:
-- `SPECIFICATION_v1.7.2.md` - Authoritative parsing rules (standalone, includes all v1.5/v1.6/v1.7 content)
+- `SPECIFICATION_v1.8.md` - Authoritative parsing rules (standalone, includes all previous versions)
 - `Batch_Parsing_SOP.md` - Batch processing workflow
 - `UNV_SN_Output_Format_Gen_1_1.md` - Output format specification
 - `fetch_text.sh` - API wrapper script
-- `parse_verse_v1_6.py` - Current parser (outputs JSON)
+- `parse_verse_v1_8.py` - Current parser (outputs text format)
 - `run_parser_temp.py` - Batch orchestrator
 
 **Dependencies**: `curl`, `jq`, Python 3
