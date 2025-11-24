@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**UNV+SN Parsing System** - Parses Chinese Union Version (UNV) biblical text with Strong's Numbers into structured semantic groups. This system processes verses from the FHL (Faith, Hope, Love) API at `bible.fhl.net`, tokenizes Strong's numbers, morphology codes, and prefixes, then outputs formatted data according to specification SPECIFICATION_v1.6.md.
+**UNV+SN Parsing System** - Parses Chinese Union Version (UNV) biblical text with Strong's Numbers into structured semantic groups. This system processes verses from the FHL (Faith, Hope, Love) API at `bible.fhl.net`, tokenizes Strong's numbers, morphology codes, and prefixes, then outputs formatted data according to specification SPECIFICATION_v1.8.md.
 
 ## Core Architecture
 
@@ -14,7 +14,7 @@ The system follows a three-stage pipeline:
    - `qb.php` - Returns UNV text with Strong's numbers (requires Chinese book abbreviations)
    - `qp.php` - Returns parsing/morphology data (requires English book abbreviations)
 
-2. **Parsing** (`parse_verse_v1_6.py` or `parse_verse.py`) - Transforms raw API data into structured groups:
+2. **Parsing** (`parse_verse_v1_8.py`) - Transforms raw API data into structured groups:
    - **Normalization**: Removes `WH/WTH/WAH` prefixes, converts `<WTH8xxx>` to `(**8xxx)`
    - **Tokenization**: Classifies tokens into core (Strong's 1-8999), morphology (8xxx), and prefixes (900x)
    - **Grouping**: Applies complex attachment rules for brace prepositions, object markers, and construct state
@@ -22,7 +22,7 @@ The system follows a three-stage pipeline:
 3. **Output Generation** (`run_parser_temp.py`) - Orchestrates parsing and file I/O:
    - Calls `fetch_text.sh` to retrieve data
    - Invokes parser with JSON payloads
-   - Saves results to `output/{Book}/{Chapter}/{verse}.json` or `{verse}_uncertain`
+   - Saves results to `output/{Book}/{Chapter}/{verse}` (text format) or `{verse}_uncertain`
 
 ## Running Commands
 
@@ -54,7 +54,7 @@ python run_parser_temp.py 1 1  # Genesis 1:1 (default book is Gen)
 python run_parser_temp.py --no-write 1 1
 
 # Direct parser invocation (advanced)
-python parse_verse_v1_6.py '<qb_json>' '<qp_json>'
+python parse_verse_v1_8.py '<qb_json>' '<qp_json>' '<verse_ref>'
 ```
 
 ### Batch Parsing
@@ -68,13 +68,14 @@ Currently manual iteration. See `Batch_Parsing_SOP.md` for the workflow:
 
 Three distinct token types with **non-overlapping numeric ranges**:
 
-- **Core (Strong's)**: `<dddd>` or `{<dddd>}` (implicit) - Numbers 1-8999 (excluding 8xxx, 9xxx)
-- **Morphology (8xxx)**: `(**8ddd)`, `{8ddd}` - Verbal stems, tenses (e.g., 8804 = Qal Perfect)
-- **Prefixes (900x)**: `<09ddd>` - Inseparable particles (09001 = ל־, 09002 = ב־, 09009 = ה־)
+- **Core (Strong's)**: `<dddd>` or `{<dddd>}` (implicit) - Numbers 1-8999 (excluding 8xxx, 09xxx)
+- **Morphology (8xxx)**: `(**8ddd)`, `{8ddd}` - 4-digit codes 8000-8999, verbal stems and tenses (e.g., 8804 = Qal Perfect)
+- **Prefixes (900x)**: `<09ddd>` - **5-digit codes 09000-09999 only**, inseparable particles (09001 = ל־, 09002 = ב־, 09009 = ה־)
+  - **CRITICAL**: 4-digit numbers like `<0914>` are NOT 900x prefixes (must be exactly 5 digits starting with 09)
 
 **Critical**: `<WTH8804>` must be normalized to `(**8804)` before tokenization to avoid misclassification as core.
 
-## Grouping Rules (SPECIFICATION_v1.6.md §3.3)
+## Grouping Rules (SPECIFICATION_v1.8.md §3.3)
 
 **Scan Direction**: Left-to-right, ignoring punctuation/whitespace.
 
@@ -99,57 +100,52 @@ Three distinct token types with **non-overlapping numeric ranges**:
 - **DO NOT insert English explanations** between or before the three sections.
 - **DO NOT add bullet points or translations** in the first two sections.
 
-**v1.6 Parser** (`parse_verse_v1_6.py`) - Supports dual output formats:
+**v1.8 Parser** (`parse_verse_v1_8.py`) - Text format output with automatic compound detection:
 
-1. **Text Format (default)** - Three-section Traditional Chinese output per `UNV_SN_Output_Format.md`:
-   ```
-   Parsed and Formatted Text Section:
-   <09002><07225> — 介系詞片語「起初」
-   <0430> — 名詞「上帝、神、神明」
+**Text Format** - Three-section Traditional Chinese output per `UNV_SN_Output_Format.md`:
+```
+Parsed and Formatted Text Section:
+<09002><07225> — 介系詞片語「起初」
+<0430> — 名詞「上帝、神、神明」
+<04480><05921> — 複合介系詞 מֵעַל「從…之上」
+[註]: 介系詞 מִן + 介系詞 עַל
 
-   Raw UNV+SN Source Text Section:
-   {<WAH0430>}就把這些光<WAH0853>擺列<WH05414><WTH8799>...
+Raw UNV+SN Source Text Section:
+{<WAH0430>}就把這些光<WAH0853>擺列<WH05414><WTH8799>...
 
-   Morphology Notes Section:
-   *1: 動詞，Qal 完成式 3 單陽
-   ```
+Morphology Notes Section:
+*1: 動詞，Qal 完成式 3 單陽
+```
 
-2. **JSON Format (optional with `--json` flag)** - Data structure per SPECIFICATION_v1.6.md §4.2:
-   ```json
-   [
-     {
-       "core": "0430",
-       "implicit": false,
-       "prefixes": ["09002"],
-       "morph": ["8804"],
-       "pre_brace": [],
-       "post_brace": [],
-       "warnings": []
-     }
-   ]
-   ```
-
-**Legacy Parser** (`parse_verse.py`): Same three-section text format as v1.6 text mode.
+**v1.8 Features**:
+- Automatic compound preposition detection (מִן, לִפְנֵי, etc.)
+- Multi-token compound support across 900x prefixes
+- Pronoun suffix detection for Exception 1
+- Three-tier issue logging system
 
 ## Configuration Profile
 
-From SPECIFICATION_v1.6.md §4.1 (hardcoded in `parse_verse_v1_6.py`):
+From SPECIFICATION_v1.8.md §4.1 (hardcoded in `parse_verse_v1_8.py`):
 
 ```python
 PROFILE = {
     "brace_preps": ["05921", "04480", "0413", "00996"],  # עַל, מִן, אֶל, בֵּין
     "object_marker": "0853",                              # אֵת
-    "ignored_codes": ["09015"]                            # Paragraph markers
+    "ignored_codes": ["09015"],                           # Paragraph markers
+
+    # v1.7+ configuration
+    "detect_compounds_from_qp": True,      # Detect compounds from qp.php
+    "merge_prep_plus_prep": True,          # Merge prep+prep compounds
+    "merge_prep_plus_noun": False,         # Optional: merge prep+noun
 }
 ```
 
 ## File Responsibilities
 
-- **SPECIFICATION_v1.6.md**: Authoritative parsing rules (latest version, replaces v1.4/v1.5)
+- **SPECIFICATION_v1.8.md**: Authoritative parsing rules (standalone, includes all previous versions)
 - **fetch_text.sh**: API wrapper with English ↔ Chinese book name translation
-- **parse_verse_v1_6.py**: Current parser implementing v1.6 spec (outputs JSON)
-- **parse_verse.py**: Legacy parser (outputs human-readable text format)
-- **run_parser_temp.py**: Batch orchestrator pointing to `parse_verse_v1_6.py`
+- **parse_verse_v1_8.py**: Current parser implementing v1.8 spec (text format output)
+- **run_parser_temp.py**: Batch orchestrator pointing to `parse_verse_v1_8.py`
 - **Batch_Parsing_SOP.md**: Workflow for batch processing with uncertainty handling
 - **UNV_SN_Output_Format_Gen_1_1.md**: Output format spec for legacy parser
 
@@ -163,23 +159,26 @@ PROFILE = {
 
 ## Implementation Status
 
-**v1.6 Parser**: Partial implementation. `parse_verse_v1_6.py:73-110` contains placeholder logic for grouping. Full implementation requires:
-- State machine for brace preposition decision tree
-- qp.php consultation for verb/noun detection
-- Construct state linking (optional v1.2-B feature)
-- Comprehensive warning generation
-
-**Legacy Parser**: Functional but does not implement v1.6 brace attachment rules or 900x skipping behavior.
+**v1.8 Parser Status**:
+- ✅ Implemented: מִן (04480) compound detection
+- ✅ Implemented: Multi-token compounds across 900x prefixes
+- ✅ Implemented: Pronoun suffix detection (Exception 1)
+- ✅ Implemented: Three-tier issue logging
+- ⚠️ Partial: Generic 900x-starting compounds (needs debugging for pure לִפְנֵי cases)
 
 ## Testing Strategy
 
-**Verified Test Cases** (from SPECIFICATION_v1.6.md §6):
+**Verified Test Cases** (from SPECIFICATION_v1.8.md §7):
 - Gen 1:2 - Brace preposition right-attach + construct state
 - Gen 1:4 - Object marker handling with multiple `{<0853>}`
 - Gen 1:5 - FHL profile mapping with inferred vs explicit prefixes
 - Gen 3:5 - Verb left-attach exception for infinitive complement
+- Gen 4:16 - Multi-token מִן compound מִלִּפְנֵי (v1.7.2)
+- Gen 3:3 - Pronoun suffix detection and left-attachment (v1.7.2)
+- Gen 5:1 - Object marker with pronoun suffix (v1.7.2)
+- Gen 6:11 - לִפְנֵי compound (v1.8, needs debugging)
 
-Run test verses with `run_parser_temp.py --no-write 1 2` and validate against expected groupings in spec §6.
+Run test verses with `run_parser_temp.py 1 2` and validate against expected groupings in spec §7.
 
 ## Parent Project Context
 

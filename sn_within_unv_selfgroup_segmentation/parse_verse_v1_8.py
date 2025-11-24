@@ -9,7 +9,7 @@ from datetime import datetime
 # v1.7.2 enhances compound detection to skip 900x prefixes (multi-token compounds)
 # v1.8 generalizes compound detection to support all compound prepositions (not just מִן)
 
-# --- Configuration from SPECIFICATION_v1.7.md ---
+# --- Configuration from SPECIFICATION_v1.8.md ---
 PROFILE = {
     "brace_preps": ["05921", "04480", "0413", "00996"],
     "object_marker": "0853",
@@ -193,7 +193,7 @@ def has_pronoun_suffix(sn_value, qp_records):
     """
     Check if a Strong's number has a pronoun suffix by examining qp.php wform.
 
-    Implements SPECIFICATION_v1.7.2.md §3.4 Exception 1.
+    Implements SPECIFICATION_v1.8.md §3.4 Exception 1.
     Returns True if wform contains pronoun suffix markers like "詞尾".
     """
     qp_info = get_qp_info(sn_value, qp_records)
@@ -260,7 +260,7 @@ def tokenize_and_classify(bible_text_raw):
     return tokens
 
 def group_and_merge(tokens, qp_records):
-    # Implements the multi-pass grouping logic from SPECIFICATION_v1.7.md (3.3)
+    # Implements the multi-pass grouping logic from SPECIFICATION_v1.8.md (3.3)
 
     # --- Pass 0: Compound Detection (v1.8 generic version) ---
     # Detect and mark all compound prepositions (not just מִן)
