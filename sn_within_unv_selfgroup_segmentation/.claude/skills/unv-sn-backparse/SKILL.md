@@ -199,20 +199,27 @@ Add to `warnings[]` array:
 
 ### Issue Logging (New Feature)
 
-The parser automatically logs issues to three files in `output/`:
+The parser automatically logs issues to four files in `output/`:
 
-1. **uncertain_or_expandable_issues.txt**
-   - Issues that cannot be resolved with confidence
+1. **strong_number_from_qb.php_not_found_in_qp.php.txt** (NEW in v1.8.1)
+   - Dedicated log for Strong's number mismatches between qb.php and qp.php
+   - These are numbers that appear in UNV text but have no corresponding qp.php morphology record
+   - Includes KJV cross-reference to help determine if issue is UNV-specific or broader
+   - Example: `Strong's number <03212> from qb.php not found in qp.php records. | KJV also uses <03212>`
+   - **Important**: This separates the most common issue type (117+ entries in Genesis) from other uncertain cases
+
+2. **uncertain_or_expandable_issues.txt**
+   - Issues that cannot be resolved with confidence (excluding qb_qp_mismatch)
    - Cases requiring spec expansion or manual review
-   - Logged issue types: `qb_qp_mismatch` (non-compound only), `brace_attach_ambiguous`, `dangling_*`
-   - **Important (v1.7.1 fix, 2025-11-24)**: `<04480>` (מִן) tokens that form detected prep+noun compounds will NOT appear in this log; they are logged only to `compound_prep_plus_noun.txt`
+   - Logged issue types: `brace_attach_ambiguous`, `dangling_*`
+   - **v1.8.1 change**: No longer contains `qb_qp_mismatch` entries (moved to dedicated file)
 
-2. **compatible_but_notable_issues.txt**
+3. **compatible_but_notable_issues.txt**
    - Successfully parsed cases worth special attention
    - Edge cases, unusual constructions, multiple valid interpretations
    - Helps identify patterns for quality assurance and future spec refinements
 
-3. **compound_prep_plus_noun.txt** (NEW in v1.7)
+4. **compound_prep_plus_noun.txt** (NEW in v1.7)
    - Prep+noun compounds detected but not merged (per `merge_prep_plus_noun: False` config)
    - FHL data encoding artifacts where qb.php splits מִן but qp.php shows compound
    - These are NOT parsing errors - they reflect intentional design choice
@@ -223,8 +230,9 @@ The parser automatically logs issues to three files in `output/`:
 
 **Example Entries**:
 ```
-[2025-11-24 14:30:15] Gen 1:2 | qb_qp_mismatch | Strong's number <0430> from qb.php not found in qp.php records.
+[2025-11-25 01:57:42] Gen 3:14 | qb_qp_mismatch | Strong's number <03212> from qb.php not found in qp.php records. | KJV also uses <03212>
 [2025-11-24 23:40:07] Gen 2:2 | prep_noun_compound | Prep+noun compound detected: <04480><03605> = מִכָּל (介系詞 מִן + 名詞，單陽附屬形) - not merged per config
+[2025-11-25 01:50:43] Gen 3:16 | dangling_p900x | 900x prefix <09002> had no following Strong's number to attach to.
 ```
 
 ## Important User Presentation Rules
@@ -270,16 +278,20 @@ ls -1 output/Gen/2/ | grep "_uncertain"
 cat output/Gen/2/1
 
 # Check issue logs
+tail -20 output/strong_number_from_qb.php_not_found_in_qp.php.txt
 tail -20 output/uncertain_or_expandable_issues.txt
 tail -20 output/compatible_but_notable_issues.txt
 tail -20 output/compound_prep_plus_noun.txt
 
 # Search for specific verse in logs
-grep "Gen 1:2" output/uncertain_or_expandable_issues.txt
+grep "Gen 3:14" output/strong_number_from_qb.php_not_found_in_qp.php.txt
+grep "Gen 3:16" output/uncertain_or_expandable_issues.txt
 grep "Gen 1:2" output/compatible_but_notable_issues.txt
 grep "Gen 2:2" output/compound_prep_plus_noun.txt
 
-# Count prep+noun compounds
+# Count log entries
+wc -l output/strong_number_from_qb.php_not_found_in_qp.php.txt
+wc -l output/uncertain_or_expandable_issues.txt
 wc -l output/compound_prep_plus_noun.txt
 ```
 

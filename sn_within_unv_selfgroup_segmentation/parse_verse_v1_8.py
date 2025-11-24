@@ -28,6 +28,7 @@ OUTPUT_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UNCERTAIN_LOG = os.path.join(OUTPUT_BASE_DIR, "output", "uncertain_or_expandable_issues.txt")
 NOTABLE_LOG = os.path.join(OUTPUT_BASE_DIR, "output", "compatible_but_notable_issues.txt")
 PREP_NOUN_LOG = os.path.join(OUTPUT_BASE_DIR, "output", "compound_prep_plus_noun.txt")
+QB_QP_MISMATCH_LOG = os.path.join(OUTPUT_BASE_DIR, "output", "strong_number_from_qb.php_not_found_in_qp.php.txt")
 
 def append_to_log(log_file, verse_ref, issue_type, message):
     """
@@ -580,16 +581,17 @@ def format_groups_to_text(groups, bible_text_raw, qp_records, verse_ref=None):
                 next_sn = compound_info['main_sn']
                 detail_note = f"Prep+noun compound detected: <04480><{next_sn}> = {compound_info['hebrew']} ({compound_info['structure']}) - not merged per config"
                 append_to_log(PREP_NOUN_LOG, verse_ref, "prep_noun_compound", detail_note)
-                # Do NOT add to uncertainty_notes or UNCERTAIN_LOG
+                # Do NOT add to uncertainty_notes or QB_QP_MISMATCH_LOG
             elif verse_ref:
-                # Regular qb_qp_mismatch - fetch KJV for comparison
+                # Regular qb_qp_mismatch - fetch KJV for comparison and log to dedicated file
                 kjv_info = fetch_kjv_strongs(verse_ref, group['core'])
                 if kjv_info:
                     note_with_kjv = f"{note} | {kjv_info}"
                 else:
                     note_with_kjv = note
                 uncertainty_notes.append(note)
-                append_to_log(UNCERTAIN_LOG, verse_ref, "qb_qp_mismatch", note_with_kjv)
+                # Log to dedicated qb_qp_mismatch file
+                append_to_log(QB_QP_MISMATCH_LOG, verse_ref, "qb_qp_mismatch", note_with_kjv)
             else:
                 # No verse_ref (shouldn't happen in practice)
                 uncertainty_notes.append(note)

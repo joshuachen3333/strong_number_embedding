@@ -37,11 +37,13 @@ Claude will automatically activate this skill when users:
 - Morphology left-attachment
 - Warning generation for ambiguous cases
 
-### Issue Logging (NEW)
-- **Automatic logging** of uncertain/expandable issues to `output/uncertain_or_expandable_issues.txt`
+### Issue Logging (v1.8.1 - Four-File System)
+- **Automatic logging** of qb/qp mismatches to `output/strong_number_from_qb.php_not_found_in_qp.php.txt` (NEW in v1.8.1)
+- **Automatic logging** of other uncertain issues to `output/uncertain_or_expandable_issues.txt`
 - **Automatic logging** of compatible but notable cases to `output/compatible_but_notable_issues.txt`
+- **Automatic logging** of prep+noun compounds to `output/compound_prep_plus_noun.txt` (v1.7)
 - Timestamped entries with verse reference and issue type
-- Helps track patterns across batch parsing runs
+- Helps track patterns and data quality issues across batch parsing runs
 
 ### Output Format
 Three-section output per verse:
