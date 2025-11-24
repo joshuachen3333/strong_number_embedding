@@ -56,13 +56,13 @@ def run_fetch_and_parse(book, chapter, verse):
     qb_json_str_final = json.dumps(qb_data)
     qp_json_str_final = json.dumps(qp_data)
 
-    # Import parse_verse_v1_7 module and call it directly instead of subprocess
+    # Import parse_verse_v1_8 module and call it directly instead of subprocess
     # This allows us to pass the verse_ref parameter for logging
     sys.path.insert(0, os.path.dirname(PARSE_VERSE_SCRIPT))
-    from parse_verse_v1_7 import parse_verse_v1_6 as parse_verse_v1_7
+    from parse_verse_v1_8 import parse_verse_v1_6 as parse_verse_v1_8
 
     try:
-        result = parse_verse_v1_7(qb_json_str_final, qp_json_str_final,
+        result = parse_verse_v1_8(qb_json_str_final, qp_json_str_final,
                                    output_format="text", verse_ref=verse_ref)
         return result, qb_data, qp_data
     except Exception as e:

@@ -3,6 +3,8 @@ import re
 import sys
 import os
 from datetime import datetime
+import urllib.request
+import urllib.parse
 
 # This script implements SPECIFICATION_v1.8.md
 # v1.7 adds compound preposition detection by querying qp.php wform field
@@ -43,6 +45,77 @@ def append_to_log(log_file, verse_ref, issue_type, message):
 
     with open(log_file, "a", encoding="utf-8") as f:
         f.write(log_entry)
+
+def fetch_kjv_strongs(verse_ref, target_sn):
+    """
+    Fetch KJV text with Strong's numbers and check if target_sn appears in it.
+
+    Args:
+        verse_ref: String like "Gen 12:1"
+        target_sn: Strong's number like "03212"
+
+    Returns:
+        String indicating KJV usage, or None if fetch fails
+    """
+    try:
+        # Parse verse_ref
+        parts = verse_ref.split()
+        if len(parts) < 2:
+            return None
+        book = parts[0]
+        chap_verse = parts[1].split(':')
+        if len(chap_verse) < 2:
+            return None
+        chap = chap_verse[0]
+        sec = chap_verse[1]
+
+        # Map book name to Chinese abbreviation (FHL API requires chineses param)
+        book_map = {
+            'Gen': '創', 'Exod': '出', 'Lev': '利', 'Num': '民', 'Deut': '申',
+            'Josh': '書', 'Judg': '士', 'Ruth': '得', '1Sam': '撒上', '2Sam': '撒下',
+            '1Kgs': '王上', '2Kgs': '王下', '1Chr': '代上', '2Chr': '代下',
+            'Ezra': '拉', 'Neh': '尼', 'Esth': '斯', 'Job': '伯', 'Ps': '詩',
+            'Prov': '箴', 'Eccl': '傳', 'Song': '歌', 'Isa': '賽', 'Jer': '耶',
+            'Lam': '哀', 'Ezek': '結', 'Dan': '但', 'Hos': '何', 'Joel': '珥',
+            'Amos': '摩', 'Obad': '俄', 'Jonah': '拿', 'Mic': '彌', 'Nah': '鴻',
+            'Hab': '哈', 'Zeph': '番', 'Hag': '該', 'Zech': '亞', 'Mal': '瑪',
+            'Matt': '太', 'Mark': '可', 'Luke': '路', 'John': '約', 'Acts': '徒',
+            'Rom': '羅', '1Cor': '林前', '2Cor': '林後', 'Gal': '加', 'Eph': '弗',
+            'Phil': '腓', 'Col': '西', '1Thess': '帖前', '2Thess': '帖後',
+            '1Tim': '提前', '2Tim': '提後', 'Titus': '多', 'Phlm': '門',
+            'Heb': '來', 'Jas': '雅', '1Pet': '彼前', '2Pet': '彼後',
+            '1John': '約一', '2John': '約二', '3John': '約三', 'Jude': '猶', 'Rev': '啟'
+        }
+
+        chineses = book_map.get(book)
+        if not chineses:
+            return None
+
+        # Construct API URL
+        url = f"https://bible.fhl.net/json/qb.php?version=kjv&chineses={urllib.parse.quote(chineses)}&chap={chap}&sec={sec}&strong=1"
+
+        # Fetch with timeout
+        with urllib.request.urlopen(url, timeout=5) as response:
+            data = json.loads(response.read().decode('utf-8'))
+
+        if data.get('status') != 'success' or not data.get('record'):
+            return None
+
+        kjv_text = data['record'][0].get('bible_text', '')
+
+        # Check if target_sn appears in KJV text
+        if f"<WH{target_sn}>" in kjv_text or f"<WG{target_sn}>" in kjv_text:
+            return f"KJV also uses <{target_sn}>"
+        else:
+            # Extract all Strong's numbers from KJV text
+            kjv_sns = re.findall(r'<W[HG](\d+)>', kjv_text)
+            if kjv_sns:
+                return f"KJV uses different SN(s): {', '.join(set(kjv_sns[:10]))}"  # Limit to first 10 unique
+            else:
+                return "KJV has no Strong's numbers"
+
+    except Exception as e:
+        return f"KJV fetch failed: {str(e)[:50]}"
 
 def get_qp_info(sn_value, qp_records):
     sn_value_stripped = sn_value.lstrip('0')
@@ -509,9 +582,14 @@ def format_groups_to_text(groups, bible_text_raw, qp_records, verse_ref=None):
                 append_to_log(PREP_NOUN_LOG, verse_ref, "prep_noun_compound", detail_note)
                 # Do NOT add to uncertainty_notes or UNCERTAIN_LOG
             elif verse_ref:
-                # Regular qb_qp_mismatch
+                # Regular qb_qp_mismatch - fetch KJV for comparison
+                kjv_info = fetch_kjv_strongs(verse_ref, group['core'])
+                if kjv_info:
+                    note_with_kjv = f"{note} | {kjv_info}"
+                else:
+                    note_with_kjv = note
                 uncertainty_notes.append(note)
-                append_to_log(UNCERTAIN_LOG, verse_ref, "qb_qp_mismatch", note)
+                append_to_log(UNCERTAIN_LOG, verse_ref, "qb_qp_mismatch", note_with_kjv)
             else:
                 # No verse_ref (shouldn't happen in practice)
                 uncertainty_notes.append(note)
