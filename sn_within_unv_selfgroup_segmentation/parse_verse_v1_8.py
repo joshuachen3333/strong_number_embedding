@@ -29,6 +29,9 @@ UNCERTAIN_LOG = os.path.join(OUTPUT_BASE_DIR, "output", "uncertain_or_expandable
 NOTABLE_LOG = os.path.join(OUTPUT_BASE_DIR, "output", "compatible_but_notable_issues.txt")
 PREP_NOUN_LOG = os.path.join(OUTPUT_BASE_DIR, "output", "compound_prep_plus_noun.txt")
 QB_QP_MISMATCH_LOG = os.path.join(OUTPUT_BASE_DIR, "output", "strong_number_from_qb.php_not_found_in_qp.php.txt")
+DANGLING_PREFIXES_LOG = os.path.join(OUTPUT_BASE_DIR, "output", "dangling_prefixes.txt")
+DANGLING_BRACE_PREPS_LOG = os.path.join(OUTPUT_BASE_DIR, "output", "dangling_brace_preps.txt")
+DANGLING_OBJECT_MARKERS_LOG = os.path.join(OUTPUT_BASE_DIR, "output", "dangling_object_markers.txt")
 
 def append_to_log(log_file, verse_ref, issue_type, message):
     """
@@ -624,8 +627,17 @@ def format_groups_to_text(groups, bible_text_raw, qp_records, verse_ref=None):
                 uncertainty_notes.append(warning_message)
                 # Log warnings to appropriate file
                 if verse_ref:
-                    # Warnings like "dangling_*" and "brace_attach_ambiguous" are uncertain
-                    if any(w in warning for w in ["dangling", "ambiguous"]):
+                    # Dangling 900x prefixes go to dedicated log (translation artifact, not parser error)
+                    if warning == "dangling_p900x":
+                        append_to_log(DANGLING_PREFIXES_LOG, verse_ref, warning, warning_message)
+                    # Dangling brace prepositions go to dedicated log (similar to dangling_p900x)
+                    elif warning == "dangling_brace_prep":
+                        append_to_log(DANGLING_BRACE_PREPS_LOG, verse_ref, warning, warning_message)
+                    # Dangling object markers go to dedicated log (similar to dangling_brace_prep)
+                    elif warning == "dangling_object_marker":
+                        append_to_log(DANGLING_OBJECT_MARKERS_LOG, verse_ref, warning, warning_message)
+                    # Other "dangling_*" and "brace_attach_ambiguous" warnings are uncertain
+                    elif any(w in warning for w in ["dangling", "ambiguous"]):
                         append_to_log(UNCERTAIN_LOG, verse_ref, warning, warning_message)
                     else:
                         # Other warnings might be notable but compatible

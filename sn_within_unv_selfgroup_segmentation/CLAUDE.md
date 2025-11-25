@@ -121,7 +121,7 @@ Morphology Notes Section:
 - Automatic compound preposition detection (מִן, לִפְנֵי, etc.)
 - Multi-token compound support across 900x prefixes
 - Pronoun suffix detection for Exception 1
-- Three-tier issue logging system
+- Four-tier issue logging system (includes dedicated dangling_prefixes.txt)
 
 ## Configuration Profile
 
@@ -143,6 +143,12 @@ PROFILE = {
 ## File Responsibilities
 
 - **SPECIFICATION_v1.8.md**: Authoritative parsing rules (standalone, includes all previous versions)
+- **dangling_prefixes.md**: Analysis report for懸空 900x 前綴問題 (translation artifacts, not parser errors)
+- **dangling_brace_preps.md**: Analysis report for懸空 brace 介系詞問題 (translation artifacts, similar to dangling_prefixes)
+- **dangling_object_markers.md**: Analysis report for懸空受詞標記問題 (translation artifacts for אֵת)
+- **qb_qp_mismatch_analysis.md**: Analysis report for qb.php/qp.php Strong's number mismatches
+- **compound_prep_plus_noun_analysis.md**: Analysis report for prep+noun compound detection (design choice)
+- **compatible_but_notable_issues_analysis.md**: Analysis report for edge cases and spec boundaries
 - **fetch_text.sh**: API wrapper with English ↔ Chinese book name translation
 - **parse_verse_v1_8.py**: Current parser implementing v1.8 spec (text format output)
 - **run_parser_temp.py**: Batch orchestrator pointing to `parse_verse_v1_8.py`
@@ -163,8 +169,13 @@ PROFILE = {
 - ✅ Implemented: מִן (04480) compound detection
 - ✅ Implemented: Multi-token compounds across 900x prefixes
 - ✅ Implemented: Pronoun suffix detection (Exception 1)
-- ✅ Implemented: Three-tier issue logging
+- ✅ Implemented: Seven-tier issue logging system (v1.8.3)
 - ⚠️ Partial: Generic 900x-starting compounds (needs debugging for pure לִפְנֵי cases)
+
+**Known Issues (Not Bugs)**:
+- **Dangling 900x Prefixes** (74 cases in Gen+Exod): FHL data encoding artifacts where Chinese translation adds prepositions not present as independent Strong's numbers in Hebrew. See `dangling_prefixes.md` for full analysis. Parser correctly identifies and logs these to `output/dangling_prefixes.txt`.
+- **Dangling Brace Prepositions** (12 cases in Gen+Exod): FHL data encoding where implicit prepositions `{<0413>}`, `{<05921>}`, `{<04480>}` appear at syntactic boundaries without suitable attachment points. See `dangling_brace_preps.md` for full analysis. Parser correctly identifies and logs these to `output/dangling_brace_preps.txt`.
+- **Dangling Object Markers** (19 cases in Gen+Exod): FHL data encoding where implicit object markers `{<0853>}` (אֵת) appear in sentence-final position, appositive structures, or coordinated objects without suitable noun attachment points. See `dangling_object_markers.md` for full analysis. Parser correctly identifies and logs these to `output/dangling_object_markers.txt`.
 
 ## Testing Strategy
 
