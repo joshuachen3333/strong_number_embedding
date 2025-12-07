@@ -5,11 +5,22 @@ import os
 from datetime import datetime
 import urllib.request
 import urllib.parse
+from functools import lru_cache
 
 # This script implements SPECIFICATION_v1.8.md
 # v1.7 adds compound preposition detection by querying qp.php wform field
 # v1.7.2 enhances compound detection to skip 900x prefixes (multi-token compounds)
 # v1.8 generalizes compound detection to support all compound prepositions (not just מִן)
+
+# ============================================================================
+# Version and Specification Metadata
+# ============================================================================
+
+PARSER_VERSION = "v1.8"
+SPEC_FILE = f"SPECIFICATION_{PARSER_VERSION}.md"
+
+# --- Output Formatting Configuration ---
+LINE_WIDTH = 80  # Target column width for spec reference alignment
 
 # --- Configuration from SPECIFICATION_v1.8.md ---
 PROFILE = {
@@ -32,6 +43,127 @@ QB_QP_MISMATCH_LOG = os.path.join(OUTPUT_BASE_DIR, "output", "strong_number_from
 DANGLING_PREFIXES_LOG = os.path.join(OUTPUT_BASE_DIR, "output", "dangling_prefixes.txt")
 DANGLING_BRACE_PREPS_LOG = os.path.join(OUTPUT_BASE_DIR, "output", "dangling_brace_preps.txt")
 DANGLING_OBJECT_MARKERS_LOG = os.path.join(OUTPUT_BASE_DIR, "output", "dangling_object_markers.txt")
+QP_DATA_TYPE_ERRORS_LOG = os.path.join(OUTPUT_BASE_DIR, "output", "qp_data_type_errors.txt")
+
+# ============================================================================
+# Specification Section Loading
+# ============================================================================
+
+@lru_cache(maxsize=1)
+def load_spec_sections():
+    """
+    Load SPECIFICATION metadata (version and section mappings) from markdown file.
+
+    This function is called once at module load and cached for performance.
+    It implements a dual-strategy approach:
+    1. Preferred: Extract HTML comment tags <!-- spec:rule_name -->
+    2. Fallback: Use known section mappings for v1.8
+
+    Returns:
+        dict: {
+            'version': 'v1.8',
+            'spec_file': 'SPECIFICATION_v1.8.md',
+            'sections': {
+                'compound': '3.3',
+                'prefix': '3.3.1',
+                'morph': '3.3.2',
+                'object_marker': '3.3.3',
+                'brace_right': '3.3.4.1',
+                'brace_left': '3.3.4.2',
+                'grouping': '3.4',
+            }
+        }
+
+    Raises:
+        FileNotFoundError: If SPECIFICATION file not found
+        ValueError: If version mismatch between parser and spec file
+    """
+    if not os.path.exists(SPEC_FILE):
+        raise FileNotFoundError(
+            f"{SPEC_FILE} not found. "
+            f"Parser {PARSER_VERSION} requires {SPEC_FILE} in the same directory."
+        )
+
+    with open(SPEC_FILE, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    # Extract and verify version from first line
+    first_line = content.split('\n')[0]
+    version_match = re.search(r'v(\d+\.\d+)', first_line)
+    if not version_match:
+        raise ValueError(f"Cannot extract version from {SPEC_FILE} first line: {first_line}")
+
+    spec_version = version_match.group(0)
+    if spec_version != PARSER_VERSION:
+        raise ValueError(
+            f"Version mismatch: parser expects {PARSER_VERSION}, "
+            f"but {SPEC_FILE} has {spec_version}"
+        )
+
+    # Strategy 1: Try to extract HTML comment tags (preferred)
+    sections = _extract_spec_tags(content)
+
+    # Strategy 2: Fallback to known section mappings for missing rules
+    # Always apply fallback for rules not found in tags
+    fallback_sections = {
+        'compound': '3.3',
+        'prefix': '3.3.1',
+        'morph': '3.3.2',
+        'object_marker': '3.3.3',  # Object marker (special case in 3.4.4)
+        'brace_right': '3.4.4',    # General brace prep right-attach
+        'brace_left': '3.4.4',     # Brace prep left-attach (pronoun suffix)
+        'grouping': '3.4',
+    }
+
+    # Merge: tags take precedence, fallback fills in missing keys
+    for key, value in fallback_sections.items():
+        if key not in sections:
+            sections[key] = value
+
+    if not sections:
+        print(f"ℹ️  No spec tags found in {SPEC_FILE}, using fallback mappings")
+    elif len(sections) < len(fallback_sections):
+        print(f"ℹ️  Using {len(sections)} tagged sections + fallback for remaining")
+
+    return {
+        'version': spec_version,
+        'spec_file': SPEC_FILE,
+        'sections': sections
+    }
+
+def _extract_spec_tags(content):
+    """
+    Extract spec tags from HTML comments in markdown content.
+    Pattern: ### 3.3.1 Title <!-- spec:rule_name -->
+
+    Args:
+        content: Full markdown file content
+
+    Returns:
+        dict: Mapping from rule_name to section_number
+    """
+    sections = {}
+
+    # Pattern matches: ##+ section_number anything <!-- spec:rule_name -->
+    pattern = r'^###+\s+(\d+(?:\.\d+)*)\s+[^<]*<!--\s*spec:(\w+)\s*-->'
+
+    for match in re.finditer(pattern, content, re.MULTILINE):
+        section_num = match.group(1)
+        rule_name = match.group(2)
+        sections[rule_name] = section_num
+
+    return sections
+
+# Load specification metadata at module import
+try:
+    SPEC_META = load_spec_sections()
+    SPEC_SECTIONS = SPEC_META['sections']
+    print(f"✓ Loaded {SPEC_META['spec_file']} (parser {PARSER_VERSION})")
+    print(f"  Mapped {len(SPEC_SECTIONS)} section rules")
+except Exception as e:
+    print(f"✗ ERROR: Failed to load specification metadata")
+    print(f"  {e}")
+    raise
 
 def append_to_log(log_file, verse_ref, issue_type, message):
     """
@@ -121,10 +253,31 @@ def fetch_kjv_strongs(verse_ref, target_sn):
     except Exception as e:
         return f"KJV fetch failed: {str(e)[:50]}"
 
-def get_qp_info(sn_value, qp_records):
+def get_qp_info(sn_value, qp_records, verse_ref=None):
+    """
+    Look up a Strong's number in qp.php records.
+
+    Handles edge case where record['sn'] may be a list instead of string
+    (qp.php data type inconsistency). Logs these cases to qp_data_type_errors.txt.
+    """
     sn_value_stripped = sn_value.lstrip('0')
     for record in qp_records:
-        if 'sn' in record and record['sn'].lstrip('0') == sn_value_stripped:
+        if 'sn' not in record:
+            continue
+        sn_field = record['sn']
+        # Handle qp.php data type inconsistency: 'sn' may be list instead of string
+        if isinstance(sn_field, list):
+            # Log this data type error
+            if verse_ref:
+                error_detail = f"qp.php 'sn' field is list instead of string: {sn_field}"
+                append_to_log(QP_DATA_TYPE_ERRORS_LOG, verse_ref, "qp_sn_is_list", error_detail)
+            # Try to match against first element if it's a string
+            if sn_field and isinstance(sn_field[0], str):
+                if sn_field[0].lstrip('0') == sn_value_stripped:
+                    return record
+            continue
+        # Normal case: sn is string
+        if sn_field.lstrip('0') == sn_value_stripped:
             return record
     return None
 
@@ -178,7 +331,12 @@ def detect_generic_compound(tokens, current_index, qp_records):
         if 'sn' not in record:
             continue
 
-        record_sn = record.get('sn', '').lstrip('0')
+        # Handle qp.php data type inconsistency: 'sn' may be list instead of string
+        sn_field = record.get('sn', '')
+        if isinstance(sn_field, list):
+            record_sn = sn_field[0].lstrip('0') if sn_field and isinstance(sn_field[0], str) else ''
+        else:
+            record_sn = sn_field.lstrip('0') if isinstance(sn_field, str) else ''
         wform = record.get('wform', '')
         remark = record.get('remark', '')
 
@@ -266,14 +424,14 @@ def detect_generic_compound(tokens, current_index, qp_records):
         'tokens_to_skip': len(collected_tokens) - 1
     }
 
-def has_pronoun_suffix(sn_value, qp_records):
+def has_pronoun_suffix(sn_value, qp_records, verse_ref=None):
     """
     Check if a Strong's number has a pronoun suffix by examining qp.php wform.
 
     Implements SPECIFICATION_v1.8.md §3.4 Exception 1.
     Returns True if wform contains pronoun suffix markers like "詞尾".
     """
-    qp_info = get_qp_info(sn_value, qp_records)
+    qp_info = get_qp_info(sn_value, qp_records, verse_ref)
     if not qp_info or 'wform' not in qp_info:
         return False
 
@@ -282,10 +440,17 @@ def has_pronoun_suffix(sn_value, qp_records):
     # Examples: "介系詞 מִן + 3 單陽詞尾", "受詞記號 + 3 單陽詞尾"
     return '詞尾' in wform
 
-def is_noun(group, qp_records):
+def is_noun(group, qp_records, verse_ref=None):
     if not group or not group.get('_is_group'):
         return False
-    qp_info = get_qp_info(group['core'], qp_records)
+    core = group['core']
+    # Handle compound prepositions where core is a list of SNs
+    if isinstance(core, list):
+        # For compounds, check the last (main) SN
+        core = core[-1] if core else None
+    if not core:
+        return False
+    qp_info = get_qp_info(core, qp_records, verse_ref)
     if qp_info and 'wform' in qp_info:
         return '名詞' in qp_info['wform'] # Noun
     return False
@@ -336,7 +501,7 @@ def tokenize_and_classify(bible_text_raw):
 
     return tokens
 
-def group_and_merge(tokens, qp_records):
+def group_and_merge(tokens, qp_records, verse_ref=None):
     # Implements the multi-pass grouping logic from SPECIFICATION_v1.8.md (3.3)
 
     # --- Pass 0: Compound Detection (v1.8 generic version) ---
@@ -445,7 +610,7 @@ def group_and_merge(tokens, qp_records):
                     break
         elif item_type == 'object_marker':
             # Exception 1: If object marker has pronoun suffix, left-attach to verb
-            if has_pronoun_suffix(item['value'], qp_records):
+            if has_pronoun_suffix(item['value'], qp_records, verse_ref):
                 for j in range(i - 1, -1, -1):
                     if items[j].get('_is_group'):
                         items[j]["post_brace"].append(item['value'])
@@ -454,13 +619,13 @@ def group_and_merge(tokens, qp_records):
             else:
                 # Exception 2: Object marker normally right-attaches to noun
                 for j in range(i + 1, len(items)):
-                    if items[j].get('_is_group') and is_noun(items[j], qp_records):
+                    if items[j].get('_is_group') and is_noun(items[j], qp_records, verse_ref):
                         items[j]["pre_brace"].append(item['value'])
                         is_attached = True
                         break
         elif item_type == 'brace_prep':
             # Exception 1: If brace prep has pronoun suffix, left-attach to verb
-            if has_pronoun_suffix(item['value'], qp_records):
+            if has_pronoun_suffix(item['value'], qp_records, verse_ref):
                 for j in range(i - 1, -1, -1):
                     if items[j].get('_is_group'):
                         items[j]["post_brace"].append(item['value'])
@@ -469,7 +634,7 @@ def group_and_merge(tokens, qp_records):
             else:
                 # General case: Right-attach to next noun
                 for j in range(i + 1, len(items)):
-                    if items[j].get('_is_group') and is_noun(items[j], qp_records):
+                    if items[j].get('_is_group') and is_noun(items[j], qp_records, verse_ref):
                         items[j]["pre_brace"].append(item['value'])
                         is_attached = True
                         break
@@ -514,8 +679,8 @@ def render_warning_message(group, warning):
     }
     return warning_map.get(warning, f"Unhandled warning {warning} on token <{code}>.")
 
-def extract_word_metadata(group, qp_records):
-    qp_info = get_qp_info(group['core'], qp_records)
+def extract_word_metadata(group, qp_records, verse_ref=None):
+    qp_info = get_qp_info(group['core'], qp_records, verse_ref)
     word_type_pos = "未知詞性"
     chinese_meaning = "未知意義"
     wform = ""
@@ -532,13 +697,263 @@ def extract_word_metadata(group, qp_records):
                 word_type_pos = wform
     return qp_info, word_type_pos, chinese_meaning, wform
 
+def _is_position_consumed(pos, length, consumed_positions):
+    """
+    Check if a position range overlaps with any consumed range.
+
+    Args:
+        pos: Start position of the token
+        length: Length of the token
+        consumed_positions: Set of (start, end) tuples representing consumed ranges
+
+    Returns:
+        bool: True if position overlaps any consumed range, False otherwise
+
+    Examples:
+        >>> _is_position_consumed(5, 5, {(0, 8)})
+        True  # (5, 10) overlaps (0, 8)
+        >>> _is_position_consumed(5, 5, {(10, 15)})
+        False  # (5, 10) doesn't overlap (10, 15)
+    """
+    end_pos = pos + length
+    for consumed_start, consumed_end in consumed_positions:
+        # Check overlap: [pos, end_pos) overlaps [consumed_start, consumed_end)
+        if pos < consumed_end and end_pos > consumed_start:
+            return True
+    return False
+
+def _find_next_unused_position(text, search_token, consumed_positions, start_from=0):
+    """
+    Find the next occurrence of search_token that doesn't overlap with consumed positions.
+
+    Args:
+        text: Text to search in
+        search_token: Token to find
+        consumed_positions: Set of (start, end) tuples representing consumed ranges
+        start_from: Position to start searching from (default: 0)
+
+    Returns:
+        int: Position of next unused occurrence, or -1 if none found
+
+    Examples:
+        >>> _find_next_unused_position("AB AB AB", "AB", {(0, 2)}, 0)
+        3  # Skips first "AB" at 0, returns second at 3
+    """
+    pos = start_from
+    token_length = len(search_token)
+
+    while True:
+        pos = text.find(search_token, pos)
+        if pos == -1:
+            return -1
+
+        # Check if this position overlaps with any consumed range
+        if not _is_position_consumed(pos, token_length, consumed_positions):
+            return pos
+
+        # Try next occurrence
+        pos += 1
+
+def extract_interleaved_text(group, bible_text_raw, consumed_positions=None):
+    """
+    Extract original text showing SN-Chinese-SN arrangement when tokens are
+    interleaved with Chinese characters.
+
+    Args:
+        group: Group dict
+        bible_text_raw: Raw UNV+SN source text
+        consumed_positions: Set of (start, end) tuples marking already-used positions.
+                           Modified in-place when extraction succeeds. If None, creates
+                           a new empty set (default behavior for backward compatibility).
+
+    Returns:
+        str: Interleaved snippet like "{<0853>}天<08064>" or None if not interleaved
+    """
+    # Initialize consumed_positions if not provided (backward compatibility)
+    if consumed_positions is None:
+        consumed_positions = set()
+    # Only extract for multi-token groups
+    token_count = 0
+    tokens_to_find = []
+
+    # Collect prefixes
+    if group.get('prefixes'):
+        for prefix in group['prefixes']:
+            tokens_to_find.append(f"<{prefix}>")
+            token_count += 1
+
+    # Collect pre_brace
+    if group.get('pre_brace'):
+        for code in group['pre_brace']:
+            tokens_to_find.append(f"{{<{code}>}}")
+            token_count += 1
+
+    # Core token
+    if group.get('core'):
+        tokens_to_find.append(f"<{group['core']}>")
+        token_count += 1
+
+    # post_brace
+    if group.get('post_brace'):
+        for code in group['post_brace']:
+            tokens_to_find.append(f"{{<{code}>}}")
+            token_count += 1
+
+    # Need at least 2 tokens for interleaving
+    if token_count < 2:
+        return None
+
+    # Try to find tokens in raw text
+    # We need to detect if Chinese chars exist between tokens
+    try:
+        # Find all token positions (skip consumed positions)
+        positions = []
+        for token in tokens_to_find:
+            # Search with WH/WAH/WTH prefixes
+            if token.startswith('{<'):
+                # For braced tokens like {<0853>}
+                for prefix_variant in ['{<WH', '{<WAH', '{<WTH']:
+                    search_token = token.replace('{<', prefix_variant)
+                    pos = _find_next_unused_position(bible_text_raw, search_token, consumed_positions)
+                    if pos != -1:
+                        positions.append((pos, search_token))
+                        break
+            else:
+                # For regular tokens like <09002>
+                for prefix_variant in ['<WAH', '<WTH', '<WAT', '<WH']:
+                    search_token = token.replace('<', prefix_variant)
+                    pos = _find_next_unused_position(bible_text_raw, search_token, consumed_positions)
+                    if pos != -1:
+                        positions.append((pos, search_token))
+                        break
+
+        if len(positions) < 2:
+            return None
+
+        # Sort by position
+        positions.sort()
+
+        # Check if there are Chinese characters between first and last token
+        first_pos, first_token = positions[0]
+        last_pos, last_token = positions[-1]
+
+        # Extract substring between first and last token
+        snippet_end = last_pos + len(last_token)
+        snippet = bible_text_raw[first_pos:snippet_end]
+
+        # Check if Chinese characters exist in the snippet
+        has_chinese = any('\u4e00' <= ch <= '\u9fff' for ch in snippet)
+
+        if not has_chinese:
+            return None
+
+        # Strip WH/WAH/WTH prefixes for output
+        cleaned = re.sub(r'<W[ATH]*H?', '<', snippet)
+        cleaned = re.sub(r'\{<W[ATH]*H?', '{<', cleaned)
+
+        # Mark this range as consumed (in-place mutation)
+        consumed_positions.add((first_pos, snippet_end))
+
+        return cleaned
+
+    except Exception:
+        # If extraction fails, return None gracefully
+        return None
+
+def determine_spec_rule(group):
+    """
+    Determine which SPECIFICATION rule created this group.
+
+    Args:
+        group: Group dict with keys like 'core', 'prefixes', 'morph', etc.
+
+    Returns:
+        str: Section number (e.g., '3.3.1') or None for single-token groups
+    """
+    # Count distinct tokens (excluding morph which is part of same token)
+    token_count = 0
+    if group.get('prefixes'):
+        token_count += len(group['prefixes'])
+    if group.get('pre_brace'):
+        token_count += len(group['pre_brace'])
+    if group.get('core'):
+        token_count += 1
+    if group.get('post_brace'):
+        token_count += len(group['post_brace'])
+
+    # Single-token groups don't need spec references
+    if token_count <= 1 and not group.get('morph'):
+        return None
+
+    # Priority order (first match wins)
+    if group.get('compound'):
+        return SPEC_SECTIONS.get('compound')
+
+    if '0853' in group.get('pre_brace', []):
+        return SPEC_SECTIONS.get('object_marker')
+
+    if group.get('post_brace'):
+        return SPEC_SECTIONS.get('brace_left')
+
+    if group.get('pre_brace'):
+        return SPEC_SECTIONS.get('brace_right')
+
+    if group.get('morph'):
+        return SPEC_SECTIONS.get('morph')
+
+    if group.get('prefixes'):
+        return SPEC_SECTIONS.get('prefix')
+
+    if group.get('construct_of'):
+        return SPEC_SECTIONS.get('construct')
+
+    return None
+
+def format_line_with_annotations(base_line, interleaved_text=None, spec_ref=None, line_width=LINE_WIDTH):
+    """
+    Format output line with optional interleaved text and spec reference.
+
+    Args:
+        base_line: The main formatted line
+        interleaved_text: Optional interleaved snippet (e.g., "{<0853>}天<08064>")
+        spec_ref: Optional spec section reference (e.g., "3.3.1")
+        line_width: Target width for right-alignment (default: 80)
+
+    Returns:
+        str: Formatted line with annotations
+    """
+    parts = [base_line]
+
+    # Add interleaved text with :: delimiters
+    if interleaved_text:
+        parts.append(f"    ::{interleaved_text}::")
+
+    # Add right-aligned spec reference
+    if spec_ref:
+        current_length = sum(len(p) for p in parts)
+        ref_text = f"[{spec_ref}]"
+        padding_needed = line_width - current_length - len(ref_text)
+
+        if padding_needed > 0:
+            parts.append(' ' * padding_needed)
+        else:
+            # Minimum 2-space gap
+            parts.append('  ')
+
+        parts.append(ref_text)
+
+    return ''.join(parts)
+
 def format_groups_to_text(groups, bible_text_raw, qp_records, verse_ref=None):
-    output_lines = ["Parsed and Formatted Text Section:"]
+    output_lines = ["Parsed and Formatted Text Section (SPECIFICATION_v1.8):"]
     morphology_notes_index = {}
     morphology_notes_entries = []
     morph_ref_counter = 1
     uncertainty_notes = []
     notable_issues = []
+
+    # Track consumed positions across all groups for interleaved text extraction
+    consumed_positions = set()
 
     for group in groups:
         # v1.7: Handle compound prepositions
@@ -562,12 +977,18 @@ def format_groups_to_text(groups, bible_text_raw, qp_records, verse_ref=None):
             morph_ref = ""
 
             formatted_line = f"{prefix_display}{pre_brace_display}{core_display}{morph_display}{post_brace_display} — {word_type_pos} {group['compound_hebrew']}「{chinese_meaning}」{morph_ref}".rstrip()
+
+            # Add spec reference and interleaved text
+            spec_rule = determine_spec_rule(group)
+            interleaved = extract_interleaved_text(group, bible_text_raw, consumed_positions)
+            formatted_line = format_line_with_annotations(formatted_line, interleaved, spec_rule)
+
             output_lines.append(formatted_line)
             output_lines.append(structure_note)
             continue
 
         # Regular processing
-        qp_info, word_type_pos, chinese_meaning, wform = extract_word_metadata(group, qp_records)
+        qp_info, word_type_pos, chinese_meaning, wform = extract_word_metadata(group, qp_records, verse_ref)
 
         if not qp_info:
             # v1.7: Check if this is <04480> with an unmerged compound
@@ -619,6 +1040,12 @@ def format_groups_to_text(groups, bible_text_raw, qp_records, verse_ref=None):
         # Build formatted line with proper ordering
         # Order: prefix + pre_brace + core + morph + post_brace
         formatted_line = f"{prefix_display}{pre_brace_display}{core_display}{morph_display}{post_brace_display} — {word_type_pos}「{chinese_meaning}」{morph_ref}".rstrip()
+
+        # Add spec reference and interleaved text
+        spec_rule = determine_spec_rule(group)
+        interleaved = extract_interleaved_text(group, bible_text_raw, consumed_positions)
+        formatted_line = format_line_with_annotations(formatted_line, interleaved, spec_rule)
+
         output_lines.append(formatted_line)
 
         for warning in group.get('warnings', []):
@@ -665,11 +1092,18 @@ def parse_verse_v1_6(qb_json_str, qp_json_str, *, output_format="text", verse_re
     qb_data = json.loads(qb_json_str)
     qp_data = json.loads(qp_json_str)
 
+    # Handle empty record from FHL API (verse not found in database)
+    if not qb_data.get('record'):
+        error_msg = f"qb.php returned empty record (verse not found in FHL UNV database)"
+        if verse_ref:
+            append_to_log(QP_DATA_TYPE_ERRORS_LOG, verse_ref, "qb_empty_record", error_msg)
+        raise ValueError(error_msg)
+
     bible_text_raw = qb_data['record'][0]['bible_text']
     qp_records = qp_data['record']
 
     tokens = tokenize_and_classify(bible_text_raw)
-    groups = group_and_merge(tokens, qp_records)
+    groups = group_and_merge(tokens, qp_records, verse_ref)
 
     if output_format == "json":
         return json.dumps(groups, indent=2, ensure_ascii=False)

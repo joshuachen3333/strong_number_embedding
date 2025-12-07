@@ -6,3 +6,7 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Large database files
+original_text_preparation/source_sqlite/*.db
+original_text_preparation/source_sqlite/*.zip
