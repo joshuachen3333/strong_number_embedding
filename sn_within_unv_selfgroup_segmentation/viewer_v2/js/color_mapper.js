@@ -90,6 +90,10 @@ const ColorMapper = (() => {
    * Create a mapping from SN code to color
    * @param {Array} groups - Groups from parseGroups()
    * @returns {Object} Map of SN code → color
+   *
+   * Note: When the same SN appears in multiple groups (e.g., "light" <0216>
+   * appears twice in Gen 1:4), we use "first occurrence wins" strategy to
+   * maintain color consistency for the same word throughout the verse.
    */
   function createSNToColorMap(groups) {
     const snToColor = {};
@@ -97,7 +101,10 @@ const ColorMapper = (() => {
     groups.forEach((group, index) => {
       const color = getColorForGroup(index);
       group.sns.forEach(sn => {
-        snToColor[sn] = color;
+        // Only assign color if not already assigned (first occurrence wins)
+        if (!snToColor[sn]) {
+          snToColor[sn] = color;
+        }
       });
     });
 
