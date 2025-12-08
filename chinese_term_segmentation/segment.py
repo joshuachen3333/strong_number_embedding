@@ -64,6 +64,27 @@ def display_segmentation(text: str, tokens: list, segmenter_name: str):
     print(f"  Segment count: {len(tokens)}")
 
 
+def display_refterm_extraction(refinement_results, refterm_source: str = "fhl-chinese"):
+    """Display RefTerm extraction and matching details."""
+    print(f"\n🔍 RefTerm Extraction & Matching (source: {refterm_source}):")
+    print(f"  {'RefTerm':<15} {'SN':<10} {'Matched Term':<15} {'Confidence':<12} {'Method':<10}")
+    print(f"  {'-'*15} {'-'*10} {'-'*15} {'-'*12} {'-'*10}")
+
+    for result in refinement_results:
+        if result.refined_term:
+            conf_str = f"{result.confidence:.2%}"
+            print(f"  {result.refterm.term:<15} {result.refterm.strong_num:<10} "
+                  f"{result.refined_term:<15} {conf_str:<12} {result.method:<10}")
+
+    print(f"\n  📊 Summary:")
+    total = len(refinement_results)
+    successful = len([r for r in refinement_results if r.refined_term])
+    high_conf = len([r for r in refinement_results if r.confidence >= 0.6])
+    print(f"     Total RefTerms: {total}")
+    print(f"     Successfully matched: {successful}/{total} ({successful/total*100:.1f}%)")
+    print(f"     High confidence (≥60%): {high_conf}/{total} ({high_conf/total*100:.1f}%)")
+
+
 def display_correction_results(text: str, initial_segments: list, corrected_segments: list,
                                metrics, segmenter_name: str, unv_sn_text: str = None):
     """Display SN-based boundary correction results."""
@@ -467,10 +488,6 @@ Examples:
 
     # Validate --correct-with-sn usage
     if args.correct_with_sn:
-        if args.version == 'unv':
-            print(f"❌ Error: Cannot use --correct-with-sn with UNV version", file=sys.stderr)
-            print(f"UNV already has Strong's Numbers. Use other versions: lcc, rcuv2010", file=sys.stderr)
-            return 1
         if not args.seg:
             print(f"❌ Error: --correct-with-sn requires --seg to be specified", file=sys.stderr)
             print(f"Example: --seg jieba --correct-with-sn", file=sys.stderr)
@@ -833,6 +850,13 @@ Examples:
                                         )
 
                                     if not args.compact:
+                                        # Display RefTerm extraction details if using RefTerm pipeline
+                                        if args.use_refterm:
+                                            display_refterm_extraction(
+                                                refinement_results,
+                                                refterm_source=args.refterm_source
+                                            )
+
                                         display_correction_results(
                                             verse.text,
                                             segments,

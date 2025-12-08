@@ -79,7 +79,7 @@ def tokenize_and_classify(bible_text_raw):
         # --- Classification Logic ---
         if number.startswith('8') and len(number) == 4:
             token['type'] = 'morph'
-        elif number.startswith('09') and len(number) in (4, 5):
+        elif number.startswith('09') and len(number) == 5:
             token['type'] = 'p900x'
         elif token_type_hint == 'implicit':
             if number == PROFILE['object_marker']:

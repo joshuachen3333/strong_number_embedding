@@ -199,32 +199,61 @@ Add to `warnings[]` array:
 
 ### Issue Logging (New Feature)
 
-The parser automatically logs issues to four files in `output/`:
+The parser automatically logs issues to **eight files** in `output/`:
 
 1. **strong_number_from_qb.php_not_found_in_qp.php.txt** (NEW in v1.8.1)
    - Dedicated log for Strong's number mismatches between qb.php and qp.php
    - These are numbers that appear in UNV text but have no corresponding qp.php morphology record
    - Includes KJV cross-reference to help determine if issue is UNV-specific or broader
    - Example: `Strong's number <03212> from qb.php not found in qp.php records. | KJV also uses <03212>`
-   - **Important**: This separates the most common issue type (117+ entries in Genesis) from other uncertain cases
+   - **Important**: This separates the most common issue type (347 entries in Gen+Exod) from other uncertain cases
 
-2. **uncertain_or_expandable_issues.txt**
-   - Issues that cannot be resolved with confidence (excluding qb_qp_mismatch)
+2. **dangling_prefixes.txt** (NEW in v1.8.1)
+   - **Dedicated log for 900x prefix translation artifacts** (74 cases in Gen+Exod)
+   - These are FHL data encoding artifacts where Chinese translation adds prepositions not present as independent Strong's numbers in Hebrew
+   - **Not parser errors** - correctly identified data quality issues
+   - See `dangling_prefixes.md` for comprehensive analysis
+   - Example: `[2025-11-25] Gen 3:16 | dangling_p900x | 900x prefix <09002> had no following Strong's number to attach to.`
+
+3. **dangling_brace_preps.txt** (NEW in v1.8.2)
+   - **Dedicated log for brace preposition translation artifacts** (12 cases in Gen+Exod)
+   - Implicit prepositions `{<0413>}`, `{<05921>}`, `{<04480>}` at syntactic boundaries without suitable attachment points
+   - Similar to dangling_prefixes but for brace prepositions
+   - **Not parser errors** - FHL data encoding where Chinese translation simplifies original syntax
+   - See `dangling_brace_preps.md` for comprehensive analysis
+   - Example: `[2025-11-25] Gen 19:5 | dangling_brace_prep | Brace preposition <0413> had no suitable attachment point.`
+
+4. **dangling_object_markers.txt** (NEW in v1.8.3)
+   - **Dedicated log for object marker translation artifacts** (19 cases in Gen+Exod)
+   - Implicit object markers `{<0853>}` (אֵת) in sentence-final, appositive, or coordinated object structures
+   - Hebrew uses explicit את to mark definite direct objects, Chinese omits or fuses into verbs
+   - **Not parser errors** - FHL data encoding of translation-source structural differences
+   - See `dangling_object_markers.md` for comprehensive analysis
+   - Example: `[2025-11-25] Gen 22:12 | dangling_object_marker | Object marker <0853> had no suitable noun to attach to.`
+
+5. **uncertain_or_expandable_issues.txt**
+   - Issues that cannot be resolved with confidence (excluding qb_qp_mismatch, dangling_p900x, dangling_brace_prep, and dangling_object_marker)
    - Cases requiring spec expansion or manual review
-   - Logged issue types: `brace_attach_ambiguous`, `dangling_*`
-   - **v1.8.1 change**: No longer contains `qb_qp_mismatch` entries (moved to dedicated file)
+   - Logged issue types: `brace_attach_ambiguous`, other `dangling_*` types
+   - **v1.8.3 changes**: No longer contains `dangling_object_marker` (moved to dedicated file) - now empty or near-empty
 
-3. **compatible_but_notable_issues.txt**
+6. **compatible_but_notable_issues.txt**
    - Successfully parsed cases worth special attention
    - Edge cases, unusual constructions, multiple valid interpretations
    - Helps identify patterns for quality assurance and future spec refinements
 
-4. **compound_prep_plus_noun.txt** (NEW in v1.7)
+7. **compound_prep_plus_noun.txt** (NEW in v1.7)
    - Prep+noun compounds detected but not merged (per `merge_prep_plus_noun: False` config)
    - FHL data encoding artifacts where qb.php splits מִן but qp.php shows compound
    - These are NOT parsing errors - they reflect intentional design choice
    - Example: `<04480><03605>` = מִכָּל "from all" (מִן + כֹּל)
    - **v1.7.1 fix**: Correctly filters these from `uncertain_or_expandable_issues.txt` to avoid duplicate logging
+
+8. **qp_data_type_errors.txt** (NEW in v1.8.4)
+   - **Dedicated log for qp.php data type inconsistencies**
+   - Edge cases where qp.php returns unexpected data types (e.g., `sn` field as list instead of string)
+   - Parser now handles these gracefully instead of crashing
+   - Example: `[2025-11-26] Gen 2:16 | qp_sn_is_list | qp.php 'sn' field is list instead of string: ['01234', '05678']`
 
 **Log Format**: `[timestamp] verse_ref | issue_type | description`
 

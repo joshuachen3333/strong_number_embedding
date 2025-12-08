@@ -190,9 +190,17 @@ curl -sS -G "https://bible.fhl.net/json/qb.php" \
   | jq -r
 echo
 
-echo "=== qp.php（parsing）— ${BOOK_C} ${CHAP}:${SEC}（engs=${BOOK_E}） ==="
+# Convert book name to qp.php compatible abbreviation
+# qp.php uses different abbreviations than our internal mapping
+QP_BOOK_E="${BOOK_E}"
+case "${BOOK_E}" in
+  Exod) QP_BOOK_E="Ex" ;;
+  # Add more mappings here if other books have mismatches
+esac
+
+echo "=== qp.php（parsing）— ${BOOK_C} ${CHAP}:${SEC}（engs=${QP_BOOK_E}） ==="
 curl -sS -G "https://bible.fhl.net/json/qp.php" \
-  --data-urlencode "engs=${BOOK_E}" \
+  --data-urlencode "engs=${QP_BOOK_E}" \
   --data-urlencode "chap=${CHAP}" \
   --data-urlencode "sec=${SEC}" \
   | jq -r

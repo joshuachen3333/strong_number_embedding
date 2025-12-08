@@ -101,11 +101,11 @@
 * **顯性形態碼**：`/(8[6-9]dd)/`
 * **隱性形態碼**：`/\{(8[6-9]dd)\}/`（先判斷 token 不是 `{<...>}` 再比對）
 
-### 3.3 複合介系詞檢測與合併（v1.7 新增）
+### 3.3 複合介系詞檢測與合併（v1.7 新增） <!-- spec:compound -->
 
 **在分組前執行**，檢測並合併複合介系詞：
 
-#### 3.3.1 檢測算法（v1.8 通用版本：支持所有複合詞）
+#### 3.3.1 檢測算法（v1.8 通用版本：支持所有複合詞） <!-- spec:prefix -->
 
 ```python
 def detect_generic_compound_from_qp(tokens, current_index, qp_data, config):
@@ -221,7 +221,7 @@ def detect_generic_compound_from_qp(tokens, current_index, qp_data, config):
     }
 ```
 
-#### 3.3.2 合併規則（v1.8 通用版本）
+#### 3.3.2 合併規則（v1.8 通用版本） <!-- spec:morph -->
 
 **觸發條件（v1.8 擴展）**：
 1. 當前 token 為任何可能的複合詞起始token:
@@ -260,7 +260,7 @@ def detect_generic_compound_from_qp(tokens, current_index, qp_data, config):
 [註]: 介系詞 מִן + 介系詞 עַל
 ```
 
-### 3.4 分組與合併（Grouping & Merging）
+### 3.4 分組與合併（Grouping & Merging） <!-- spec:grouping -->
 
 **掃描方向**：自左往右；**忽略**標點／空白。
 
@@ -276,13 +276,13 @@ def detect_generic_compound_from_qp(tokens, current_index, qp_data, config):
 4. **brace 介詞決策樹（v1.2-A 強化版）**
    遇 `{<PREP>}` 時：
 
-   * **特例 1（最高優先）**：若 `qp.wform` 顯示「介系詞 + 代名詞後綴」（如 מִמֶּנּוּ）或位於動詞不定詞補語語境（如 `<0398>(8800){<04480>}`），則**左附**前一動詞：`G_verb.post_brace += PREP`。
+   * **特例 1（最高優先）** <!-- spec:brace_left -->：若 `qp.wform` 顯示「介系詞 + 代名詞後綴」（如 מִמֶּנּוּ）或位於動詞不定詞補語語境（如 `<0398>(8800){<04480>}`），則**左附**前一動詞：`G_verb.post_brace += PREP`。
      - **檢測方法**：在 qp.php 的 wform 字段中查找「詞尾」關鍵字，如「介系詞 מִן + 3 單陽詞尾」
      - **常見模式**：`/介系詞.*詞尾/` 或 `/介系詞.*\d [單複][陽陰]詞尾/`
 
-   * **特例 2**：`{<0853>}`（受詞記號 אֵת）**總是右附**到後方名詞：`G_noun.pre_brace += 0853`。
+   * **特例 2** <!-- spec:object_marker -->：`{<0853>}`（受詞記號 אֵת）**總是右附**到後方名詞：`G_noun.pre_brace += 0853`。
 
-   * **一般**：若右側就近（可跨 900x）為**名詞**，則**右附**：`G_noun.pre_brace += PREP`；否則**獨立保留**並標 `warning:"brace_attach_ambiguous"`。
+   * **一般** <!-- spec:brace_right -->：若右側就近（可跨 900x）為**名詞**，則**右附**：`G_noun.pre_brace += PREP`；否則**獨立保留**並標 `warning:"brace_attach_ambiguous"`。
 
 5. **Construct Linker（可選 v1.2-B）**
    若 `qp.wform` 指示名詞為附屬形（construct），將其與右側下一個名詞以 `construct_of: <NNNN>` 連結（可跨 `pre_brace` 與 900x）。僅標註鏈接，不改分組。

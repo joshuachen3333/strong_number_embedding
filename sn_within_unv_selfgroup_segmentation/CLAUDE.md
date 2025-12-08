@@ -1,3 +1,22 @@
+<!-- OPENSPEC:START -->
+# OpenSpec Instructions
+
+These instructions are for AI assistants working in this project.
+
+Always open `@/openspec/AGENTS.md` when the request:
+- Mentions planning or proposals (words like proposal, spec, change, plan)
+- Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work
+- Sounds ambiguous and you need the authoritative spec before coding
+
+Use `@/openspec/AGENTS.md` to learn:
+- How to create and apply change proposals
+- Spec format and conventions
+- Project structure and guidelines
+
+Keep this managed block so 'openspec update' can refresh the instructions.
+
+<!-- OPENSPEC:END -->
+
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
@@ -169,13 +188,14 @@ PROFILE = {
 - ✅ Implemented: מִן (04480) compound detection
 - ✅ Implemented: Multi-token compounds across 900x prefixes
 - ✅ Implemented: Pronoun suffix detection (Exception 1)
-- ✅ Implemented: Seven-tier issue logging system (v1.8.3)
+- ✅ Implemented: Eight-tier issue logging system (v1.8.4, includes qp_data_type_errors.txt)
 - ⚠️ Partial: Generic 900x-starting compounds (needs debugging for pure לִפְנֵי cases)
 
 **Known Issues (Not Bugs)**:
 - **Dangling 900x Prefixes** (74 cases in Gen+Exod): FHL data encoding artifacts where Chinese translation adds prepositions not present as independent Strong's numbers in Hebrew. See `dangling_prefixes.md` for full analysis. Parser correctly identifies and logs these to `output/dangling_prefixes.txt`.
 - **Dangling Brace Prepositions** (12 cases in Gen+Exod): FHL data encoding where implicit prepositions `{<0413>}`, `{<05921>}`, `{<04480>}` appear at syntactic boundaries without suitable attachment points. See `dangling_brace_preps.md` for full analysis. Parser correctly identifies and logs these to `output/dangling_brace_preps.txt`.
 - **Dangling Object Markers** (19 cases in Gen+Exod): FHL data encoding where implicit object markers `{<0853>}` (אֵת) appear in sentence-final position, appositive structures, or coordinated objects without suitable noun attachment points. See `dangling_object_markers.md` for full analysis. Parser correctly identifies and logs these to `output/dangling_object_markers.txt`.
+- **qp.php Data Type Errors** (v1.8.4): Edge cases where qp.php returns unexpected data types (e.g., `sn` field as list instead of string, or compound prepositions with list-type `core`). Parser handles these gracefully and logs to `output/qp_data_type_errors.txt`.
 
 ## Testing Strategy
 
