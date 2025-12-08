@@ -944,13 +944,45 @@ def format_line_with_annotations(base_line, interleaved_text=None, spec_ref=None
 
     return ''.join(parts)
 
+def extract_complete_tags_mapping(bible_text_raw):
+    """
+    Extract complete Strong's number tags (with prefixes) from bible_text_raw.
+
+    Args:
+        bible_text_raw: Original text with complete tags like <WAH05921>, <WH0430>, <WTH8804>
+
+    Returns:
+        dict: Mapping from numeric code to complete tag
+              e.g., {'05921': '<WAH05921>', '0430': '<WH0430>', '8804': '<WTH8804>'}
+    """
+    tag_mapping = {}
+
+    # Pattern to match all Strong's number tags with optional prefixes
+    # Matches: <WH0430>, <WAH05921>, <WTH8804>, {<WAH05921>}, etc.
+    pattern = r'<(W[ATH]*H?)(\d+)>'
+
+    for match in re.finditer(pattern, bible_text_raw):
+        prefix = match.group(1)  # e.g., 'WH', 'WAH', 'WTH'
+        numeric_code = match.group(2)  # e.g., '0430', '05921', '8804'
+        complete_tag = f'<{prefix}{numeric_code}>'
+
+        # Store mapping (numeric code -> complete tag)
+        # Keep the first occurrence if duplicate codes exist
+        if numeric_code not in tag_mapping:
+            tag_mapping[numeric_code] = complete_tag
+
+    return tag_mapping
+
 def format_groups_to_text(groups, bible_text_raw, qp_records, verse_ref=None):
-    output_lines = ["Parsed and Formatted Text Section (SPECIFICATION_v1.8):"]
+    output_lines = [f"Parsed and Formatted Text Section (SPECIFICATION_{PARSER_VERSION}):"]
     morphology_notes_index = {}
     morphology_notes_entries = []
     morph_ref_counter = 1
     uncertainty_notes = []
     notable_issues = []
+
+    # Extract complete Strong's number tags from bible_text_raw
+    tag_mapping = extract_complete_tags_mapping(bible_text_raw)
 
     # Track consumed positions across all groups for interleaved text extraction
     consumed_positions = set()
@@ -960,7 +992,7 @@ def format_groups_to_text(groups, bible_text_raw, qp_records, verse_ref=None):
         if group.get('compound'):
             # This is a compound preposition
             components = group['core']
-            core_display = ''.join(f"<{code}>" for code in components)
+            core_display = ''.join(tag_mapping.get(code, f"<{code}>") for code in components)
             word_type_pos = "複合介系詞"
             chinese_meaning = group['compound_meaning']
             wform = group['compound_structure']
@@ -968,9 +1000,9 @@ def format_groups_to_text(groups, bible_text_raw, qp_records, verse_ref=None):
             # Add structure note
             structure_note = f"[註]: {group['compound_structure']}"
 
-            prefix_display = ''.join(f"<{code}>" for code in group.get('prefixes', []))
-            pre_brace_display = ''.join(f"<{code}>" for code in group.get('pre_brace', []))
-            post_brace_display = ''.join(f"<{code}>" for code in group.get('post_brace', []))
+            prefix_display = ''.join(tag_mapping.get(code, f"<{code}>") for code in group.get('prefixes', []))
+            pre_brace_display = ''.join(tag_mapping.get(code, f"<{code}>") for code in group.get('pre_brace', []))
+            post_brace_display = ''.join(tag_mapping.get(code, f"<{code}>") for code in group.get('post_brace', []))
 
             morph_codes = group.get('morph', [])
             morph_display = ''.join(f"({code})" for code in morph_codes)
@@ -1020,10 +1052,10 @@ def format_groups_to_text(groups, bible_text_raw, qp_records, verse_ref=None):
                 # No verse_ref (shouldn't happen in practice)
                 uncertainty_notes.append(note)
 
-        prefix_display = ''.join(f"<{code}>" for code in group.get('prefixes', []))
-        pre_brace_display = ''.join(f"{{<{code}>}}" for code in group.get('pre_brace', []))
-        post_brace_display = ''.join(f"{{<{code}>}}" for code in group.get('post_brace', []))
-        core_display = f"<{group['core']}>"
+        prefix_display = ''.join(tag_mapping.get(code, f"<{code}>") for code in group.get('prefixes', []))
+        pre_brace_display = ''.join(f"{{{tag_mapping.get(code, f'<{code}>')}}}" for code in group.get('pre_brace', []))
+        post_brace_display = ''.join(f"{{{tag_mapping.get(code, f'<{code}>')}}}" for code in group.get('post_brace', []))
+        core_display = tag_mapping.get(group['core'], f"<{group['core']}>")
 
         morph_codes = group.get('morph', [])
         morph_display = ''.join(f"({code})" for code in morph_codes)

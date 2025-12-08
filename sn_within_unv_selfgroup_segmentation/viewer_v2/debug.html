@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Debug Viewer v2</title>
+  <style>
+    body { font-family: monospace; padding: 20px; }
+    .ok { color: green; }
+    .error { color: red; }
+    pre { background: #f5f5f5; padding: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Viewer v2 Debug Tool</h1>
+  <div id="results"></div>
+
+  <script>
+    const results = document.getElementById('results');
+
+    function log(msg, isError = false) {
+      const div = document.createElement('div');
+      div.className = isError ? 'error' : 'ok';
+      div.textContent = msg;
+      results.appendChild(div);
+    }
+
+    function logPre(title, content) {
+      const h3 = document.createElement('h3');
+      h3.textContent = title;
+      results.appendChild(h3);
+      const pre = document.createElement('pre');
+      pre.textContent = content;
+      results.appendChild(pre);
+    }
+
+    async function runTests() {
+      log('Starting debug tests...');
+
+      // Test 1: Check if scripts loaded
+      log('\n1. Checking if modules loaded...');
+      try {
+        if (typeof Mediator !== 'undefined') log('✓ Mediator loaded');
+        else log('✗ Mediator NOT loaded', true);
+
+        if (typeof DataLoader !== 'undefined') log('✓ DataLoader loaded');
+        else log('✗ DataLoader NOT loaded', true);
+
+        if (typeof App !== 'undefined') log('✓ App loaded');
+        else log('✗ App NOT loaded', true);
+      } catch (e) {
+        log('✗ Error checking modules: ' + e.message, true);
+      }
+
+      // Test 2: Check manifest
+      log('\n2. Checking manifest...');
+      try {
+        const response = await fetch('../output/manifest.json');
+        if (response.ok) {
+          const manifest = await response.json();
+          log('✓ Manifest loaded successfully');
+          log(`  - Books: ${Object.keys(manifest.books).length}`);
+          log(`  - First book: ${Object.keys(manifest.books)[0]}`);
+          logPre('Manifest Sample', JSON.stringify(manifest.books.Gen, null, 2).substring(0, 500));
+        } else {
+          log(`✗ Manifest fetch failed: ${response.status}`, true);
+        }
+      } catch (e) {
+        log('✗ Error loading manifest: ' + e.message, true);
+      }
+
+      // Test 3: Check parsed file
+      log('\n3. Checking parsed file Gen 1:1...');
+      try {
+        const response = await fetch('../output/Gen/1/1');
+        if (response.ok) {
+          const content = await response.text();
+          log('✓ Parsed file loaded');
+          logPre('Parsed File Sample', content.substring(0, 300));
+        } else {
+          log(`✗ Parsed file fetch failed: ${response.status}`, true);
+        }
+      } catch (e) {
+        log('✗ Error loading parsed file: ' + e.message, true);
+      }
+
+      // Test 4: Check event system
+      log('\n4. Checking Mediator...');
+      try {
+        if (typeof Mediator !== 'undefined') {
+          log('Event types available:');
+          logPre('Event Catalog', JSON.stringify(Mediator.EVENT_TYPES, null, 2));
+        }
+      } catch (e) {
+        log('✗ Error with Mediator: ' + e.message, true);
+      }
+
+      log('\n✅ Debug complete! Check results above.');
+    }
+
+    // Load scripts first
+    const scripts = [
+      'js/mediator.js',
+      'js/ui_utils.js',
+      'js/book_data.js',
+      'js/data_loader.js',
+      'js/color_mapper.js'
+    ];
+
+    Promise.all(scripts.map(src => {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    }))
+    .then(() => {
+      log('All scripts loaded');
+      runTests();
+    })
+    .catch(e => {
+      log('Error loading scripts: ' + e.message, true);
+    });
+  </script>
+</body>
+</html>

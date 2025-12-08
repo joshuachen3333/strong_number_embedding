@@ -1,0 +1,258 @@
+/**
+ * right_panel.js
+ * Right panel (Parsed Output) with event-driven architecture
+ */
+
+const RightPanel = (() => {
+  let currentSections = { parsed: '', raw: '', notes: '' };
+  let currentGroups = [];
+  let showParsed = true;
+  let showRaw = true;
+  let showNotes = true;
+
+  const rightContent = document.getElementById('right-content');
+  const uncertainBadge = document.getElementById('uncertain-badge');
+  const rightPanel = document.querySelector('.right-panel');
+
+  // Toggle buttons
+  const toggleParsedBtn = document.getElementById('toggle-parsed');
+  const toggleRawBtn = document.getElementById('toggle-raw');
+  const toggleNotesBtn = document.getElementById('toggle-notes');
+
+  /**
+   * Initialize right panel
+   */
+  function init() {
+    console.log('[RightPanel] Initializing...');
+
+    // Initialize toggle buttons
+    initToggleButtons();
+
+    // Subscribe to verse selected event
+    Mediator.subscribe(Mediator.EVENT_TYPES.VERSE_SELECTED, handleVerseSelected);
+    console.log('[RightPanel] Subscribed to VERSE_SELECTED');
+  }
+
+  /**
+   * Initialize toggle buttons
+   */
+  function initToggleButtons() {
+    toggleParsedBtn.addEventListener('click', () => {
+      showParsed = !showParsed;
+      toggleParsedBtn.classList.toggle('active', showParsed);
+      render();
+    });
+
+    toggleRawBtn.addEventListener('click', () => {
+      showRaw = !showRaw;
+      toggleRawBtn.classList.toggle('active', showRaw);
+      render();
+    });
+
+    toggleNotesBtn.addEventListener('click', () => {
+      showNotes = !showNotes;
+      toggleNotesBtn.classList.toggle('active', showNotes);
+      render();
+    });
+  }
+
+  /**
+   * Handle verse selected event
+   * @param {Object} data - {book, chapter, verse, content, isUncertain, exists}
+   */
+  function handleVerseSelected(data) {
+    const { book, chapter, verse, content, isUncertain, exists } = data;
+    console.log(`[RightPanel] Received VERSE_SELECTED:`, data);
+
+    if (!exists) {
+      console.log(`[RightPanel] Verse not parsed, showing "not parsed" message`);
+      displayNotParsed(book, chapter, verse);
+      return;
+    }
+
+    console.log(`[RightPanel] Displaying parsed verse`);
+    displayParsedVerse(book, chapter, verse, content, isUncertain);
+  }
+
+  /**
+   * Display parsed verse
+   * @param {string} book
+   * @param {number} chapter
+   * @param {number} verse
+   * @param {string} content
+   * @param {boolean} isUncertain
+   */
+  function displayParsedVerse(book, chapter, verse, content, isUncertain) {
+    // Parse sections
+    currentSections = DataLoader.parseSections(content);
+
+    // Parse groups
+    currentGroups = ColorMapper.parseGroups(currentSections.parsed);
+
+    // Show/hide uncertain badge
+    if (isUncertain) {
+      uncertainBadge.style.display = 'block';
+      rightPanel.classList.add('uncertain');
+    } else {
+      uncertainBadge.style.display = 'none';
+      rightPanel.classList.remove('uncertain');
+    }
+
+    // Render
+    render();
+
+    // Create color map and publish event
+    const colorMap = ColorMapper.createSNToColorMap(currentGroups);
+    Mediator.publish(Mediator.EVENT_TYPES.COLORS_APPLY, { colorMap });
+  }
+
+  /**
+   * Display "not parsed" message
+   * @param {string} book
+   * @param {number} chapter
+   * @param {number} verse
+   */
+  function displayNotParsed(book, chapter, verse) {
+    uncertainBadge.style.display = 'none';
+    rightPanel.classList.remove('uncertain');
+
+    rightContent.innerHTML = `
+      <div class="not-parsed">
+        <div class="icon">📄</div>
+        <div class="message">此節尚未解析</div>
+        <div class="verse-ref">${book} ${chapter}:${verse}</div>
+      </div>
+    `;
+
+    // Clear colors on left panel
+    Mediator.publish(Mediator.EVENT_TYPES.COLORS_APPLY, { colorMap: {} });
+  }
+
+  /**
+   * Render right panel content
+   */
+  function render() {
+    let html = '';
+
+    // Warning for uncertain verses
+    if (rightPanel.classList.contains('uncertain')) {
+      html += `
+        <div class="warning-message">
+          <strong>⚠️ 此節包含不確定的解析</strong>
+          請參考下方註釋了解詳情
+        </div>
+      `;
+    }
+
+    // Section 1: Parsed and Formatted Text
+    if (showParsed && currentSections.parsed) {
+      const coloredParsed = ColorMapper.applyColorsToParsedText(
+        currentSections.parsed,
+        currentGroups
+      );
+
+      // Wrap each line in pre tag for monospace display
+      const wrappedLines = coloredParsed.split('\n')
+        .map(line => line.trim() ? '<pre class="parsed-line">' + line + '</pre>' : '')
+        .join('');
+
+      html += '<div class="parsed-section">' +
+        '<div class="section-title">' + (currentSections.parsedTitle || 'Parsed and Formatted Text Section') + '</div>' +
+        '<div class="parsed-content">' +
+        wrappedLines +
+        '</div>' +
+        '</div>';
+    }
+
+    // Section 2: Raw UNV+SN Source Text
+    if (showRaw && currentSections.raw) {
+      const colorMap = ColorMapper.createSNToColorMap(currentGroups);
+      const coloredRaw = ColorMapper.applyColorsToRawText(
+        currentSections.raw.trim(),
+        colorMap
+      );
+
+      html += `
+        <div class="parsed-section">
+          <div class="section-title">${currentSections.rawTitle || 'Raw UNV+SN Source Text Section'}</div>
+          <div class="raw-text">${coloredRaw}</div>
+        </div>
+      `;
+
+      // Add SN click handlers after render
+      setTimeout(() => addSNClickHandlers(), 10);
+    }
+
+    // Section 3: Morphology Notes
+    if (showNotes && currentSections.notes) {
+      html += `
+        <div class="parsed-section">
+          <div class="section-title">${currentSections.notesTitle || 'Morphology Notes Section'}</div>
+          <div class="morphology-content">
+            ${currentSections.notes.split('\n').map(line =>
+              line.trim() ? `<div class="morphology-note">${escapeHtml(line)}</div>` : ''
+            ).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    rightContent.innerHTML = html || '<div class="loading-message">無資料可顯示</div>';
+  }
+
+  /**
+   * Add SN click handlers to tags in right panel
+   */
+  function addSNClickHandlers() {
+    rightContent.querySelectorAll('.sn-tag').forEach(tag => {
+      tag.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const snCode = extractSNCode(tag.textContent);
+        if (snCode) {
+          Mediator.publish(Mediator.EVENT_TYPES.SN_CLICK, {
+            element: tag,
+            snCode: snCode
+          });
+        }
+      });
+    });
+  }
+
+  /**
+   * Extract SN code from tag text
+   * @param {string} text
+   * @returns {string|null}
+   */
+  function extractSNCode(text) {
+    const match = text.match(/\d+/);
+    return match ? match[0] : null;
+  }
+
+  /**
+   * Escape HTML
+   * @param {string} text
+   * @returns {string}
+   */
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  /**
+   * Clear right panel
+   */
+  function clear() {
+    currentSections = { parsed: '', raw: '', notes: '' };
+    currentGroups = [];
+    rightContent.innerHTML = '<div class="loading-message">請點擊左側節次以查看解析結果...</div>';
+    uncertainBadge.style.display = 'none';
+    rightPanel.classList.remove('uncertain');
+  }
+
+  // Public API
+  return {
+    init,
+    clear
+  };
+})();

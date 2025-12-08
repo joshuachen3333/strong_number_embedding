@@ -9,8 +9,12 @@ import sqlite3
 # Get the directory where this script is located
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Point to the new v1.8 parser (with generic compound preposition support)
-PARSE_VERSE_SCRIPT = os.path.join(SCRIPT_DIR, "parse_verse_v1_8.py")
+# Parser version configuration
+# TODO: Update this when upgrading to a new parser version
+PARSER_VERSION = "v1_8"  # Format: v1_8, v1_9, etc. (underscore-separated for Python module names)
+
+# Point to the parser script (dynamically constructed from version)
+PARSE_VERSE_SCRIPT = os.path.join(SCRIPT_DIR, f"parse_verse_{PARSER_VERSION}.py")
 FETCH_TEXT_SCRIPT = os.path.join(SCRIPT_DIR, "fetch_text.sh")
 OUTPUT_BASE_DIR = os.path.join(SCRIPT_DIR, "output")
 
@@ -205,16 +209,20 @@ def run_fetch_and_parse(book, chapter, verse, use_local=True):
     qb_json_str_final = json.dumps(qb_data)
     qp_json_str_final = json.dumps(qp_data)
 
-    # Import parse_verse_v1_8 module and call it directly
+    # Import parser module dynamically based on PARSER_VERSION
     sys.path.insert(0, os.path.dirname(PARSE_VERSE_SCRIPT))
-    from parse_verse_v1_8 import parse_verse_v1_6 as parse_verse_v1_8
+    parser_module_name = f"parse_verse_{PARSER_VERSION}"
 
     try:
-        result = parse_verse_v1_8(qb_json_str_final, qp_json_str_final,
+        # Dynamically import the parser module
+        parser_module = __import__(parser_module_name)
+        parse_verse_func = getattr(parser_module, "parse_verse_v1_6")  # Function name for text output
+
+        result = parse_verse_func(qb_json_str_final, qp_json_str_final,
                                    output_format="text", verse_ref=verse_ref)
         return result, qb_data, qp_data
     except Exception as e:
-        print(f"Error running parse_verse_v1_6 for {verse_ref}: {e}", file=sys.stderr)
+        print(f"Error running {parser_module_name} for {verse_ref}: {e}", file=sys.stderr)
         return None, None, None
 
 if __name__ == "__main__":
