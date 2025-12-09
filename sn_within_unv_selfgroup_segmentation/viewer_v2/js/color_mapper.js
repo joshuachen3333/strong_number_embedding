@@ -316,9 +316,10 @@ const ColorMapper = (() => {
           const snPart = matchResult[0];
           const restPart = line.substring(snPart.length);
 
-          // Escape HTML in snPart to prevent browser from interpreting <WHxxxx> as tags
+          // Escape HTML in BOTH snPart and restPart to prevent browser from interpreting <WHxxxx> as tags
           const escapedSnPart = snPart.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-          return `<span class="sn-group" style="background-color: ${color};">${escapedSnPart}</span>${restPart}`;
+          const escapedRestPart = restPart.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          return `<span class="sn-group" style="background-color: ${color};">${escapedSnPart}</span>${escapedRestPart}`;
         }
       }
 
