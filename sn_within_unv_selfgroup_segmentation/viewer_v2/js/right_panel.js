@@ -15,6 +15,7 @@ const RightPanel = (() => {
 
   const rightContent = document.getElementById('right-content');
   const uncertainBadge = document.getElementById('uncertain-badge');
+  const verseRefDisplay = document.getElementById('verse-ref-display');
   const rightPanel = document.querySelector('.right-panel');
   const singleHighlightCheckbox = document.getElementById('single-highlight-mode');
 
@@ -108,6 +109,10 @@ const RightPanel = (() => {
     // Store current verse for single-HL filtering
     currentVerse = verse;
 
+    // Update verse reference display
+    verseRefDisplay.textContent = `${book} ${chapter}:${verse}`;
+    verseRefDisplay.style.display = 'block';
+
     // Parse sections
     currentSections = DataLoader.parseSections(content);
 
@@ -154,6 +159,10 @@ const RightPanel = (() => {
    * @param {number} verse
    */
   function displayNotParsed(book, chapter, verse) {
+    // Update verse reference display
+    verseRefDisplay.textContent = `${book} ${chapter}:${verse}`;
+    verseRefDisplay.style.display = 'block';
+
     uncertainBadge.style.display = 'none';
     rightPanel.classList.remove('uncertain');
 
@@ -391,6 +400,7 @@ const RightPanel = (() => {
     currentGroups = [];
     currentColorMap = {};
     rightContent.innerHTML = '<div class="loading-message">請點擊左側節次以查看解析結果...</div>';
+    verseRefDisplay.style.display = 'none';
     uncertainBadge.style.display = 'none';
     rightPanel.classList.remove('uncertain');
   }

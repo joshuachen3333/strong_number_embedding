@@ -150,6 +150,21 @@ body {
   user-select: none;
 }
 
+.panel-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.verse-ref-display {
+  padding: 4px 10px;
+  background-color: #3498db;
+  color: white;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .uncertain-badge {
   padding: 4px 10px;
   background-color: #f39c12;
