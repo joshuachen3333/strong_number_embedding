@@ -103,15 +103,18 @@ const LeftPanel = (() => {
     const verseEl = e.target.closest('.verse');
     if (!verseEl) return;
 
-    // Don't trigger verse selection if user is selecting text
+    // Check if clicking on an SN tag
+    const snTag = e.target.closest('.sn-tag');
+
+    // Don't trigger verse selection if user is selecting text (unless clicking SN tag)
     const selection = window.getSelection();
-    if (selection && selection.toString().length > 0) {
+    if (!snTag && selection && selection.toString().length > 0) {
       console.log('[LeftPanel] Text selection detected, skipping verse click');
       return;
     }
 
     const verse = parseInt(verseEl.dataset.verse);
-    console.log(`[LeftPanel] Verse ${verse} clicked`);
+    console.log(`[LeftPanel] Verse ${verse} clicked${snTag ? ' (SN tag)' : ''}`);
 
     // Publish verse select event
     Mediator.publish(Mediator.EVENT_TYPES.VERSE_SELECT, {
