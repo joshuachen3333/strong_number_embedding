@@ -177,7 +177,8 @@ const LeftPanel = (() => {
       // Add SN click handlers
       textEl.querySelectorAll('.sn-tag').forEach(tag => {
         tag.addEventListener('click', (e) => {
-          e.stopPropagation();
+          // Don't stop propagation - let event bubble up to verse element
+          // so handleVerseClick() can auto-select the verse
           const snCode = extractSNCode(tag.textContent);
           if (snCode) {
             // Get all SNs in the same group - pass the clicked element for position-based matching
