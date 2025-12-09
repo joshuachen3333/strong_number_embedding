@@ -111,9 +111,6 @@ const RightPanel = (() => {
     // Parse sections
     currentSections = DataLoader.parseSections(content);
 
-    // Parse groups
-    currentGroups = ColorMapper.parseGroups(currentSections.parsed);
-
     // Show/hide uncertain badge
     if (isUncertain) {
       uncertainBadge.style.display = 'block';
@@ -123,11 +120,30 @@ const RightPanel = (() => {
       rightPanel.classList.remove('uncertain');
     }
 
-    // Render
+    // First render without colors (to create DOM elements for group parsing)
     render();
 
-    // Create color map and publish event
+    // Parse groups FROM DOM after rendering (more reliable than parsing from raw text)
+    const parsedContent = rightContent.querySelector('.parsed-section .parsed-content');
+    if (parsedContent) {
+      const preElements = Array.from(parsedContent.querySelectorAll('pre.parsed-line'));
+      const reconstructedText = preElements.map(pre => pre.textContent).join('\n');
+      currentGroups = ColorMapper.parseGroups(reconstructedText);
+      console.log(`[RightPanel] Parsed ${currentGroups.length} groups from DOM`);
+    } else {
+      // Fallback: try parsing from raw text
+      currentGroups = ColorMapper.parseGroups(currentSections.parsed);
+      console.log(`[RightPanel] Parsed ${currentGroups.length} groups from raw text (fallback)`);
+    }
+
+    // Create color map
     currentColorMap = ColorMapper.createSNToColorMap(currentGroups);
+
+    // Re-render with colors applied
+    console.log(`[RightPanel] Re-rendering with ${currentGroups.length} groups and colorMap with ${Object.keys(currentColorMap).length} SNs`);
+    render();
+
+    // Publish event for left panel
     Mediator.publish(Mediator.EVENT_TYPES.COLORS_APPLY, { colorMap: currentColorMap, groups: currentGroups });
   }
 

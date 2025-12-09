@@ -15,6 +15,8 @@
  */
 
 const ColorMapper = (() => {
+  console.log('[ColorMapper] VERSION 20251209-D LOADED - Multi-SN priority coloring');
+
   // Fixed palette of 15 distinct colors
   const GROUP_COLORS = [
     '#E3F2FD', // Light Blue
@@ -102,23 +104,41 @@ const ColorMapper = (() => {
    * @param {Array} groups - Groups from parseGroups()
    * @returns {Object} Map of SN code → color
    *
-   * Note: When the same SN appears in multiple groups (e.g., "light" <0216>
-   * appears twice in Gen 1:4), we use "first occurrence wins" strategy to
-   * maintain color consistency for the same word throughout the verse.
+   * Strategy: Multi-SN groups take priority over single-SN groups.
+   * When an SN appears in both a multi-SN group (e.g., ['09001', '04325'])
+   * and a single-SN group (e.g., ['04325']), the multi-SN group's color wins.
+   * This ensures semantic grouping is reflected in colors.
    */
   function createSNToColorMap(groups) {
     const snToColor = {};
+    console.log(`[ColorMapper] createSNToColorMap: ${groups.length} groups`);
 
+    // First pass: assign colors to SNs in multi-SN groups (priority)
     groups.forEach((group, index) => {
-      const color = getColorForGroup(index);
-      group.sns.forEach(sn => {
-        // Only assign color if not already assigned (first occurrence wins)
-        if (!snToColor[sn]) {
-          snToColor[sn] = color;
-        }
-      });
+      if (group.sns.length > 1) {
+        const color = getColorForGroup(index);
+        console.log(`[ColorMapper] Multi-SN group ${index}: ${group.sns.join(',')} → ${color}`);
+        group.sns.forEach(sn => {
+          snToColor[sn] = color;  // Overwrite any previous assignment
+        });
+      }
     });
 
+    // Second pass: assign colors to SNs in single-SN groups (if not already assigned)
+    groups.forEach((group, index) => {
+      if (group.sns.length === 1) {
+        const color = getColorForGroup(index);
+        const sn = group.sns[0];
+        if (!snToColor[sn]) {
+          console.log(`[ColorMapper] Single-SN group ${index}: ${sn} → ${color} (new)`);
+          snToColor[sn] = color;
+        } else {
+          console.log(`[ColorMapper] Single-SN group ${index}: ${sn} already assigned ${snToColor[sn]} (skipped)`);
+        }
+      }
+    });
+
+    console.log(`[ColorMapper] Final colorMap:`, snToColor);
     return snToColor;
   }
 
@@ -177,6 +197,10 @@ const ColorMapper = (() => {
     // Position-based coloring: collect all matches first, then apply in reverse order
     const allMatches = [];
     const groupPatterns = buildGroupPatterns(groups);
+
+    // IMPORTANT: Sort patterns by number of SNs (descending) so multi-SN groups match first
+    // This prevents single-SN patterns from "consuming" tokens that belong to multi-SN groups
+    groupPatterns.sort((a, b) => b.sns.length - a.sns.length);
 
     // Collect all matches from all groups
     groupPatterns.forEach(({pattern, color, sns}) => {
