@@ -328,14 +328,32 @@ const ColorMapper = (() => {
   }
 
   /**
-   * Get all SNs in the same semantic group as the clicked SN
+   * Get all SNs in the same semantic group as the clicked element
    * @param {string} clickedSN - The SN code that was clicked (e.g., '0216')
-   * @param {Object} colorMap - Map from SN code to color
+   * @param {Object} colorMap - Map from SN code to color (used as fallback)
    * @param {Array} groups - Groups from parseGroups()
+   * @param {HTMLElement} clickedElement - The actual DOM element that was clicked (optional)
    * @returns {string[]} Array of all SN codes in the same group
    */
-  function getSNGroupFromColorMap(clickedSN, colorMap, groups) {
-    // Get the color assigned to clicked SN
+  function getSNGroupFromColorMap(clickedSN, colorMap, groups, clickedElement) {
+    // NEW: If we have the clicked element, use its ACTUAL background color
+    // This handles repeated SNs correctly (e.g., two {<0853>} in different groups)
+    if (clickedElement && clickedElement.style && clickedElement.style.backgroundColor) {
+      const actualColor = clickedElement.style.backgroundColor;
+
+      // Find the group with this exact color
+      for (const group of groups) {
+        const groupColor = getColorForGroup(group.groupIndex);
+        // Convert to rgb() format for comparison
+        const rgbColor = groupColor.startsWith('#') ? hexToRgb(groupColor) : groupColor;
+
+        if (rgbColor === actualColor || groupColor === actualColor) {
+          return group.sns;
+        }
+      }
+    }
+
+    // FALLBACK: Use the old color map approach
     const targetColor = colorMap[clickedSN];
     if (!targetColor) return [clickedSN];
 
@@ -351,24 +369,75 @@ const ColorMapper = (() => {
   }
 
   /**
+   * Convert hex color to rgb() format for comparison
+   * @param {string} hex - Hex color like '#FCE4EC'
+   * @returns {string} RGB color like 'rgb(252, 228, 236)'
+   */
+  function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return hex;
+
+    const r = parseInt(result[1], 16);
+    const g = parseInt(result[2], 16);
+    const b = parseInt(result[3], 16);
+
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+
+  /**
    * Find DOM elements matching the given SN codes in a specific section
    * @param {string[]} snCodes - Array of SN codes to find (e.g., ['0853', '0216'])
    * @param {HTMLElement} container - Container element to search within
    * @param {string} elementClass - Class to search for ('.sn-tag' or '.sn-group')
+   * @param {Array} groups - Optional: groups array for position-based matching
+   * @param {string} targetColor - Optional: color to match for repeated SNs
    * @returns {HTMLElement[]} Array of matching DOM elements
    */
-  function findCorrespondingElements(snCodes, container, elementClass) {
+  function findCorrespondingElements(snCodes, container, elementClass, groups, targetColor) {
     const elements = [];
     const targets = container.querySelectorAll(elementClass);
 
+    // NEW: For position-based matching, find which group these SNs belong to
+    let groupColor = targetColor;
+    if (!groupColor && groups && groups.length > 0) {
+      // Find the group that contains these exact SNs
+      for (let i = 0; i < groups.length; i++) {
+        const group = groups[i];
+        // Check if this group's SNs match the target SNs
+        if (group.sns.length === snCodes.length &&
+            group.sns.every(sn => snCodes.includes(sn))) {
+          groupColor = getColorForGroup(i);
+          break;
+        }
+      }
+    }
+
     targets.forEach(el => {
       const text = el.textContent;
+
       // Check if this element contains any of the target SN codes
+      let hasMatchingSN = false;
       for (const snCode of snCodes) {
         if (text.includes(snCode)) {
-          elements.push(el);
-          break;  // Don't add same element multiple times
+          hasMatchingSN = true;
+          break;
         }
+      }
+
+      if (!hasMatchingSN) return;
+
+      // NEW: If we have a target color, also check if the element's color matches
+      if (groupColor && el.style && el.style.backgroundColor) {
+        const elColor = el.style.backgroundColor;
+        const targetRgb = groupColor.startsWith('#') ? hexToRgb(groupColor) : groupColor;
+
+        // Only include if colors match
+        if (elColor === targetRgb || elColor === groupColor) {
+          elements.push(el);
+        }
+      } else {
+        // No color filtering - use old behavior
+        elements.push(el);
       }
     });
 

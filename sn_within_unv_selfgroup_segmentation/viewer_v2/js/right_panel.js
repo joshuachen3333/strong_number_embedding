@@ -262,8 +262,8 @@ const RightPanel = (() => {
         e.stopPropagation();
         const snCode = extractSNCode(tag.textContent);
         if (snCode) {
-          // Get all SNs in the same group
-          const groupSNs = ColorMapper.getSNGroupFromColorMap(snCode, currentColorMap, currentGroups);
+          // Get all SNs in the same group - pass the clicked element for position-based matching
+          const groupSNs = ColorMapper.getSNGroupFromColorMap(snCode, currentColorMap, currentGroups, tag);
 
           Mediator.publish(Mediator.EVENT_TYPES.SN_CLICK, {
             source: 'right-raw',
@@ -339,7 +339,7 @@ const RightPanel = (() => {
    * Highlight Parsed section locally (blue)
    */
   function highlightParsedLocal(groupSNs) {
-    const elements = ColorMapper.findCorrespondingElements(groupSNs, rightContent, '.sn-group');
+    const elements = ColorMapper.findCorrespondingElements(groupSNs, rightContent, '.sn-group', currentGroups);
     elements.forEach(el => el.classList.add('clicked-local'));
   }
 
@@ -347,7 +347,7 @@ const RightPanel = (() => {
    * Highlight Parsed section remotely (orange)
    */
   function highlightParsedRemote(groupSNs) {
-    const elements = ColorMapper.findCorrespondingElements(groupSNs, rightContent, '.sn-group');
+    const elements = ColorMapper.findCorrespondingElements(groupSNs, rightContent, '.sn-group', currentGroups);
     elements.forEach(el => el.classList.add('clicked-remote'));
   }
 
@@ -355,7 +355,7 @@ const RightPanel = (() => {
    * Highlight Raw section locally (blue)
    */
   function highlightRawLocal(groupSNs) {
-    const elements = ColorMapper.findCorrespondingElements(groupSNs, rightContent, '.sn-tag');
+    const elements = ColorMapper.findCorrespondingElements(groupSNs, rightContent, '.sn-tag', currentGroups);
     elements.forEach(el => el.classList.add('clicked-local'));
   }
 
@@ -363,7 +363,7 @@ const RightPanel = (() => {
    * Highlight Raw section remotely (orange)
    */
   function highlightRawRemote(groupSNs) {
-    const elements = ColorMapper.findCorrespondingElements(groupSNs, rightContent, '.sn-tag');
+    const elements = ColorMapper.findCorrespondingElements(groupSNs, rightContent, '.sn-tag', currentGroups);
     elements.forEach(el => el.classList.add('clicked-remote'));
   }
 

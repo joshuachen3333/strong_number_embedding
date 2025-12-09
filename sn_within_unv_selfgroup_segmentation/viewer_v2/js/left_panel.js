@@ -170,8 +170,8 @@ const LeftPanel = (() => {
           e.stopPropagation();
           const snCode = extractSNCode(tag.textContent);
           if (snCode) {
-            // Get all SNs in the same group
-            const groupSNs = ColorMapper.getSNGroupFromColorMap(snCode, currentColorMap, currentGroups);
+            // Get all SNs in the same group - pass the clicked element for position-based matching
+            const groupSNs = ColorMapper.getSNGroupFromColorMap(snCode, currentColorMap, currentGroups, tag);
 
             Mediator.publish(Mediator.EVENT_TYPES.SN_CLICK, {
               source: 'left',
@@ -282,7 +282,7 @@ const LeftPanel = (() => {
       console.log('[LeftPanel] Multi HL mode - highlighting across all verses');
     }
 
-    const elements = ColorMapper.findCorrespondingElements(groupSNs, container, '.sn-tag');
+    const elements = ColorMapper.findCorrespondingElements(groupSNs, container, '.sn-tag', currentGroups);
     console.log(`[LeftPanel] Found ${elements.length} elements to highlight (local/blue)`);
     elements.forEach(el => el.classList.add('clicked-local'));
   }
@@ -307,7 +307,7 @@ const LeftPanel = (() => {
       console.log('[LeftPanel] Multi HL mode - highlighting across all verses');
     }
 
-    const elements = ColorMapper.findCorrespondingElements(groupSNs, container, '.sn-tag');
+    const elements = ColorMapper.findCorrespondingElements(groupSNs, container, '.sn-tag', currentGroups);
     console.log(`[LeftPanel] Found ${elements.length} elements to highlight (remote/orange)`);
     elements.forEach(el => el.classList.add('clicked-remote'));
   }
