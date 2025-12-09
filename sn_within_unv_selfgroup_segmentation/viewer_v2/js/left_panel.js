@@ -15,6 +15,7 @@ const LeftPanel = (() => {
 
   const leftContent = document.getElementById('left-content');
   const singleHighlightCheckbox = document.getElementById('single-highlight-mode');
+  const leftVerseRef = document.getElementById('left-verse-ref');
 
   /**
    * Initialize left panel (subscribe to events)
@@ -157,6 +158,12 @@ const LeftPanel = (() => {
       verseEl.classList.add('selected');
       // Scroll to selected verse
       verseEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Update verse reference display
+    if (leftVerseRef) {
+      leftVerseRef.textContent = `${currentBook} ${currentChapter}:${verse}`;
+      leftVerseRef.style.display = 'block';
     }
   }
 
@@ -346,6 +353,9 @@ const LeftPanel = (() => {
     chapterVerses = {};
     currentColorMap = {};
     currentGroups = [];
+    if (leftVerseRef) {
+      leftVerseRef.style.display = 'none';
+    }
   }
 
   // Public API

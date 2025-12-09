@@ -150,6 +150,12 @@ body {
   user-select: none;
 }
 
+.panel-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .panel-header-right {
   display: flex;
   align-items: center;

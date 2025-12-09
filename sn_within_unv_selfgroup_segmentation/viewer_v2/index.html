@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Parsed Verse Viewer v2 — UNV+SN</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=20251209M">
 </head>
 <body>
   <!-- Header -->
@@ -35,7 +35,10 @@
     <!-- Left Panel: UNV Reader -->
     <section class="left-panel">
       <div class="panel-header">
-        <h2>UNV+SN Text</h2>
+        <div class="panel-header-left">
+          <h2>UNV+SN Text</h2>
+          <div id="left-verse-ref" class="verse-ref-display" style="display: none;"></div>
+        </div>
         <div class="panel-controls">
           <input type="checkbox" id="single-highlight-mode" checked>
           <label for="single-highlight-mode">Single HL</label>
@@ -49,9 +52,11 @@
     <!-- Right Panel: Parsed Output -->
     <section class="right-panel">
       <div class="panel-header">
-        <h2>Parsed Output</h2>
-        <div class="panel-header-right">
+        <div class="panel-header-left">
+          <h2>Parsed Output</h2>
           <div id="verse-ref-display" class="verse-ref-display" style="display: none;"></div>
+        </div>
+        <div class="panel-header-right">
           <div id="uncertain-badge" class="uncertain-badge" style="display: none;">
             ⚠️ Uncertain
           </div>
@@ -75,8 +80,8 @@
   <script src="js/sn_dictionary.js?v=20251209D"></script>
 
   <!-- 3. UI components -->
-  <script src="js/left_panel.js?v=20251209L"></script>
-  <script src="js/right_panel.js?v=20251209L"></script>
+  <script src="js/left_panel.js?v=20251209M"></script>
+  <script src="js/right_panel.js?v=20251209M"></script>
   <script src="js/navigation.js?v=20251209J"></script>
 
   <!-- 4. App controller last -->
