@@ -4,13 +4,18 @@
  */
 
 const RightPanel = (() => {
+  // localStorage keys
+  const STORAGE_KEY_SHOW_PARSED = 'viewer_v2_show_parsed';
+  const STORAGE_KEY_SHOW_RAW = 'viewer_v2_show_raw';
+  const STORAGE_KEY_SHOW_NOTES = 'viewer_v2_show_notes';
+
   let currentSections = { parsed: '', raw: '', notes: '' };
   let currentGroups = [];
   let currentColorMap = {};
   let currentVerse = null;  // Track current verse for single-HL filtering
-  let showParsed = true;
-  let showRaw = true;
-  let showNotes = true;
+  let showParsed = true;   // Default ON
+  let showRaw = false;     // Default OFF
+  let showNotes = false;   // Default OFF
   let singleHighlightMode = true; // Single highlight mode: true = clear previous, false = multi-highlight
 
   const rightContent = document.getElementById('right-content');
@@ -25,10 +30,46 @@ const RightPanel = (() => {
   const toggleNotesBtn = document.getElementById('toggle-notes');
 
   /**
+   * Load setting from localStorage with error handling
+   * @param {string} key
+   * @param {*} defaultValue
+   * @returns {*}
+   */
+  function loadSetting(key, defaultValue) {
+    try {
+      const stored = localStorage.getItem(key);
+      if (stored === null) return defaultValue;
+      return JSON.parse(stored);
+    } catch (e) {
+      console.warn(`[RightPanel] Failed to load setting ${key}:`, e);
+      return defaultValue;
+    }
+  }
+
+  /**
+   * Save setting to localStorage with error handling
+   * @param {string} key
+   * @param {*} value
+   */
+  function saveSetting(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+      console.warn(`[RightPanel] Failed to save setting ${key}:`, e);
+    }
+  }
+
+  /**
    * Initialize right panel
    */
   function init() {
     console.log('[RightPanel] Initializing...');
+
+    // Load saved toggle states from localStorage
+    showParsed = loadSetting(STORAGE_KEY_SHOW_PARSED, true);
+    showRaw = loadSetting(STORAGE_KEY_SHOW_RAW, false);
+    showNotes = loadSetting(STORAGE_KEY_SHOW_NOTES, false);
+    console.log(`[RightPanel] Loaded settings: Parsed=${showParsed}, Raw=${showRaw}, Notes=${showNotes}`);
 
     // Initialize toggle buttons
     initToggleButtons();
@@ -57,21 +98,29 @@ const RightPanel = (() => {
    * Initialize toggle buttons
    */
   function initToggleButtons() {
+    // Apply initial states from loaded settings
+    toggleParsedBtn.classList.toggle('active', showParsed);
+    toggleRawBtn.classList.toggle('active', showRaw);
+    toggleNotesBtn.classList.toggle('active', showNotes);
+
     toggleParsedBtn.addEventListener('click', () => {
       showParsed = !showParsed;
       toggleParsedBtn.classList.toggle('active', showParsed);
+      saveSetting(STORAGE_KEY_SHOW_PARSED, showParsed);
       render();
     });
 
     toggleRawBtn.addEventListener('click', () => {
       showRaw = !showRaw;
       toggleRawBtn.classList.toggle('active', showRaw);
+      saveSetting(STORAGE_KEY_SHOW_RAW, showRaw);
       render();
     });
 
     toggleNotesBtn.addEventListener('click', () => {
       showNotes = !showNotes;
       toggleNotesBtn.classList.toggle('active', showNotes);
+      saveSetting(STORAGE_KEY_SHOW_NOTES, showNotes);
       render();
     });
   }

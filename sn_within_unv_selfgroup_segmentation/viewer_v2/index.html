@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Parsed Verse Viewer v2 — UNV+SN</title>
-  <link rel="stylesheet" href="css/styles.css?v=20251209M">
+  <link rel="stylesheet" href="css/styles.css?v=20251209N">
 </head>
 <body>
   <!-- Header -->
@@ -24,9 +24,11 @@
     </div>
 
     <div class="header-right">
+      <input type="checkbox" id="sn-dict-toggle">
+      <label for="sn-dict-toggle" title="Enable Strong's Number Dictionary Tooltip">SN Dict</label>
       <button id="toggle-parsed" class="toggle-btn active" title="Show/hide Parsed Text section">Parsed</button>
-      <button id="toggle-raw" class="toggle-btn active" title="Show/hide Raw UNV+SN section">Raw</button>
-      <button id="toggle-notes" class="toggle-btn active" title="Show/hide Morphology Notes section">Notes</button>
+      <button id="toggle-raw" class="toggle-btn" title="Show/hide Raw UNV+SN section">Raw</button>
+      <button id="toggle-notes" class="toggle-btn" title="Show/hide Morphology Notes section">Notes</button>
     </div>
   </header>
 
@@ -77,11 +79,11 @@
   <!-- 2. Service layer -->
   <script src="js/data_loader.js?v=20251209D"></script>
   <script src="js/color_mapper.js?v=20251209D"></script>
-  <script src="js/sn_dictionary.js?v=20251209D"></script>
+  <script src="js/sn_dictionary.js?v=20251209N"></script>
 
   <!-- 3. UI components -->
   <script src="js/left_panel.js?v=20251209M"></script>
-  <script src="js/right_panel.js?v=20251209M"></script>
+  <script src="js/right_panel.js?v=20251209N"></script>
   <script src="js/navigation.js?v=20251209J"></script>
 
   <!-- 4. App controller last -->

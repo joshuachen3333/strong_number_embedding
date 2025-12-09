@@ -4,15 +4,67 @@
  */
 
 const SNDictionary = (() => {
+  // localStorage key
+  const STORAGE_KEY_ENABLED = 'viewer_v2_sn_tooltip_enabled';
+
   // Dictionary cache
   const dictCache = {};
 
   let currentTooltip = null;
+  let tooltipEnabled = false; // Default OFF
+
+  /**
+   * Load setting from localStorage with error handling
+   * @param {string} key
+   * @param {*} defaultValue
+   * @returns {*}
+   */
+  function loadSetting(key, defaultValue) {
+    try {
+      const stored = localStorage.getItem(key);
+      if (stored === null) return defaultValue;
+      return JSON.parse(stored);
+    } catch (e) {
+      console.warn(`[SNDictionary] Failed to load setting ${key}:`, e);
+      return defaultValue;
+    }
+  }
+
+  /**
+   * Save setting to localStorage with error handling
+   * @param {string} key
+   * @param {*} value
+   */
+  function saveSetting(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+      console.warn(`[SNDictionary] Failed to save setting ${key}:`, e);
+    }
+  }
 
   /**
    * Initialize dictionary (subscribe to click events)
    */
   function init() {
+    // Load saved setting
+    tooltipEnabled = loadSetting(STORAGE_KEY_ENABLED, false);
+    console.log(`[SNDictionary] Tooltip enabled: ${tooltipEnabled}`);
+
+    // Initialize checkbox
+    const checkbox = document.getElementById('sn-dict-toggle');
+    if (checkbox) {
+      checkbox.checked = tooltipEnabled;
+      checkbox.addEventListener('change', (e) => {
+        tooltipEnabled = e.target.checked;
+        saveSetting(STORAGE_KEY_ENABLED, tooltipEnabled);
+        console.log(`[SNDictionary] Tooltip ${tooltipEnabled ? 'enabled' : 'disabled'}`);
+        if (!tooltipEnabled) {
+          hideTooltip();
+        }
+      });
+    }
+
     // Subscribe to SN click events
     Mediator.subscribe(Mediator.EVENT_TYPES.SN_CLICK, handleSNClick);
 
@@ -29,6 +81,12 @@ const SNDictionary = (() => {
    * @param {Object} data - {element, snCode}
    */
   async function handleSNClick(data) {
+    // Check if tooltip is enabled
+    if (!tooltipEnabled) {
+      console.log('[SNDictionary] Tooltip disabled, skipping');
+      return;
+    }
+
     const { element, snCode } = data;
 
     // If clicking same element, hide tooltip
