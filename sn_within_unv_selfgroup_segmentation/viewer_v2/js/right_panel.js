@@ -84,8 +84,11 @@ const RightPanel = (() => {
     const { book, chapter, verse, content, isUncertain, exists } = data;
     console.log(`[RightPanel] Received VERSE_SELECTED:`, data);
 
-    // Clear SN highlighting when switching verses
-    clearHighlighting();
+    // Only clear SN highlighting when switching to a DIFFERENT verse
+    // (clicking SN on same verse should preserve highlighting)
+    if (verse !== currentVerse) {
+      clearHighlighting();
+    }
 
     if (!exists) {
       console.log(`[RightPanel] Verse not parsed, showing "not parsed" message`);

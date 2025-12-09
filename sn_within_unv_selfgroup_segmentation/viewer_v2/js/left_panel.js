@@ -114,6 +114,13 @@ const LeftPanel = (() => {
     }
 
     const verse = parseInt(verseEl.dataset.verse);
+
+    // If clicking SN on same verse, don't re-select (preserves highlighting)
+    if (snTag && verse === currentVerse) {
+      console.log(`[LeftPanel] SN click on same verse ${verse}, skipping re-select`);
+      return;
+    }
+
     console.log(`[LeftPanel] Verse ${verse} clicked${snTag ? ' (SN tag)' : ''}`);
 
     // Publish verse select event
@@ -130,10 +137,15 @@ const LeftPanel = (() => {
    */
   function handleVerseSelected(data) {
     const { verse } = data;
+
+    // Only clear SN highlighting when switching to a DIFFERENT verse
+    // (clicking SN on same verse should preserve highlighting)
+    const switchingVerses = verse !== currentVerse;
     currentVerse = verse;
 
-    // Clear SN highlighting when switching verses
-    clearHighlighting();
+    if (switchingVerses) {
+      clearHighlighting();
+    }
 
     // Update selection highlight
     leftContent.querySelectorAll('.verse').forEach(el => {
