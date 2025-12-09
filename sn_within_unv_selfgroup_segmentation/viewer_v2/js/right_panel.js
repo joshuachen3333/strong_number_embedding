@@ -194,7 +194,8 @@ const RightPanel = (() => {
       const colorMap = ColorMapper.createSNToColorMap(currentGroups);
       const coloredRaw = ColorMapper.applyColorsToRawText(
         currentSections.raw.trim(),
-        colorMap
+        colorMap,
+        currentGroups  // Pass groups for position-based coloring
       );
 
       html += `

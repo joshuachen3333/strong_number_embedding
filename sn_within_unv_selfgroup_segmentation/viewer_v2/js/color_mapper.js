@@ -1,6 +1,17 @@
 /**
  * color_mapper.js
  * Color mapping for SN groups
+ *
+ * This module provides position-based color mapping to correctly handle
+ * repeated Strong's Numbers in different groups. When the same SN appears
+ * in multiple groups (e.g., object marker {<0853>} אֵת), each occurrence
+ * receives the color of its respective group, not a single shared color.
+ *
+ * Key features:
+ * - Position-based coloring: matches group patterns sequentially in text
+ * - Handles repeated SNs correctly (e.g., two {<0853>} in different groups)
+ * - Preserves WH/WAH/WTH prefixes in all processing
+ * - Falls back to SN-based coloring for unmatched SNs
  */
 
 const ColorMapper = (() => {
@@ -112,12 +123,110 @@ const ColorMapper = (() => {
   }
 
   /**
-   * Apply color to text containing SN tags
-   * @param {string} text - Raw UNV+SN text with <WHdddd> or {<WHdddd>} tags
-   * @param {Object} snToColorMap - Map from SN code to color
-   * @returns {string} HTML with colored spans
+   * Build regex pattern to match a sequence of SNs in raw text
+   * @param {string[]} sns - Array of SN codes (e.g., ['0853', '08064'])
+   * @returns {RegExp} Regex pattern to match this SN sequence
+   *
+   * Example: ['0853', '08064'] → /\{?<W[ATH]*H?0853>\}?.*?\{?<W[ATH]*H?08064>\}?/
    */
-  function applyColorsToRawText(text, snToColorMap) {
+  function buildRegexPattern(sns) {
+    if (!sns || sns.length === 0) return null;
+
+    const snPatterns = sns.map(sn => {
+      // Escape special regex chars in SN code
+      const escapedSN = sn.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // Match: optional brace, <WH/WAH/WTH prefix>, SN code, >, optional brace
+      // Also handle morphology codes that may follow
+      return `\\{?<W[ATH]*H?${escapedSN}>\\}?(?:<W[ATH]*H?\\d+>|\\(\\*?\\*?\\d+\\))?`;
+    }).join('([^<>{}()]+)?');  // Only match text WITHOUT angle brackets/braces between SNs
+
+    return new RegExp(snPatterns, 'g');
+  }
+
+  /**
+   * Build group pattern matchers for position-based coloring
+   * @param {Array} groups - Groups from parseGroups()
+   * @returns {Array<{groupIndex: number, sns: string[], pattern: RegExp, color: string}>}
+   */
+  function buildGroupPatterns(groups) {
+    return groups.map((group, index) => ({
+      groupIndex: index,
+      sns: group.sns,
+      pattern: buildRegexPattern(group.sns),
+      color: getColorForGroup(index)
+    }));
+  }
+
+  /**
+   * Apply color to text containing SN tags (position-based version)
+   * @param {string} text - Raw UNV+SN text with <WHdddd> or {<WHdddd>} tags
+   * @param {Object} snToColorMap - Map from SN code to color (used as fallback)
+   * @param {Array} groups - Groups from parseGroups() (optional for backward compatibility)
+   * @returns {string} HTML with colored spans
+   *
+   * NEW: When groups is provided, uses position-based matching to handle repeated SNs correctly.
+   * Falls back to SN-based coloring for unmatched SNs.
+   */
+  function applyColorsToRawText(text, snToColorMap, groups) {
+    // Backward compatibility: if no groups provided, use legacy SN-based coloring
+    if (!groups || groups.length === 0) {
+      console.warn('[ColorMapper] No groups provided - using legacy SN-based coloring');
+      return applyColorsToRawTextLegacy(text, snToColorMap);
+    }
+
+    // Position-based coloring: collect all matches first, then apply in reverse order
+    const allMatches = [];
+    const groupPatterns = buildGroupPatterns(groups);
+
+    // Collect all matches from all groups
+    groupPatterns.forEach(({pattern, color, sns}) => {
+      if (!pattern) return;
+
+      let match;
+      pattern.lastIndex = 0;
+
+      while ((match = pattern.exec(text)) !== null) {
+        const matchStart = match.index;
+        const matchEnd = matchStart + match[0].length;
+
+        // Check if this range overlaps with already-recorded matches
+        const overlaps = allMatches.some(m =>
+          (matchStart >= m.start && matchStart < m.end) ||
+          (matchEnd > m.start && matchEnd <= m.end) ||
+          (matchStart <= m.start && matchEnd >= m.end)
+        );
+
+        if (!overlaps) {
+          allMatches.push({
+            start: matchStart,
+            end: matchEnd,
+            text: match[0],
+            color: color
+          });
+        }
+      }
+    });
+
+    // Sort matches by start position (descending) to apply from end to start
+    allMatches.sort((a, b) => b.start - a.start);
+
+    // Apply colors from end to start (so indices remain valid)
+    let result = text;
+    allMatches.forEach(({start, end, text: matchedText, color}) => {
+      const coloredText = colorSNsInSpan(matchedText, color);
+      result = result.substring(0, start) + coloredText + result.substring(end);
+    });
+
+    // Fallback: color any remaining uncolored SNs using SN-based map
+    result = applyFallbackColoring(result, snToColorMap);
+
+    return result;
+  }
+
+  /**
+   * Legacy SN-based coloring (backward compatibility)
+   */
+  function applyColorsToRawTextLegacy(text, snToColorMap) {
     // Match patterns: <WHdddd>, <WTHdddd>, <WAHdddd>, {<WHdddd>}
     // Plus optional morphology codes (**dddd) or (*dddd) that follow
     const snPattern = /(\{?<W[ATH]*H?(\d+)>\}?)(<W[AT]*H?\d+>|\(\*?\*?\d+\))?/g;
@@ -137,6 +246,48 @@ const ColorMapper = (() => {
   }
 
   /**
+   * Color all SNs within a text span with the same color
+   * @param {string} text - Text containing SN tags
+   * @param {string} color - Background color to apply
+   * @returns {string} HTML with colored spans
+   */
+  function colorSNsInSpan(text, color) {
+    const snPattern = /(\{?<W[ATH]*H?(\d+)>\}?)(<W[AT]*H?\d+>|\(\*?\*?\d+\))?/g;
+
+    return text.replace(snPattern, (match, fullTag, snCode, morphCode) => {
+      const escapedTag = fullTag.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const escapedMorph = morphCode ? morphCode.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+
+      return `<span class="sn-tag" style="background-color: ${color};">${escapedTag}${escapedMorph}</span>`;
+    });
+  }
+
+  /**
+   * Apply fallback coloring to SNs not colored by group matching
+   * @param {string} html - Partially colored HTML
+   * @param {Object} snToColorMap - SN-to-color fallback map
+   * @returns {string} HTML with fallback colors applied
+   */
+  function applyFallbackColoring(html, snToColorMap) {
+    // Match uncolored SN patterns (not already wrapped in <span>)
+    const uncoloredPattern = /(?<!<span[^>]*>)(\{?<W[ATH]*H?(\d+)>\}?)(<W[AT]*H?\d+>|\(\*?\*?\d+\))?(?![^<]*<\/span>)/g;
+
+    return html.replace(uncoloredPattern, (match, fullTag, snCode, morphCode) => {
+      const color = snToColorMap[snCode];
+      if (!color) {
+        // No color available - return as-is
+        return match.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      const escapedTag = fullTag.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const escapedMorph = morphCode ? morphCode.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+
+      console.warn(`[ColorMapper] Fallback coloring for unmatched SN: ${snCode}`);
+      return `<span class="sn-tag" style="background-color: ${color};">${escapedTag}${escapedMorph}</span>`;
+    });
+  }
+
+  /**
    * Apply color to parsed text lines
    * @param {string} parsedText - Parsed and Formatted Text section
    * @param {Array} groups - Groups from parseGroups()
@@ -145,8 +296,8 @@ const ColorMapper = (() => {
   function applyColorsToParsedText(parsedText, groups) {
     const lines = parsedText.trim().split('\n');
 
-    // Create SN to color map for consistency with Raw text
-    const snToColorMap = createSNToColorMap(groups);
+    // Position-based coloring: each line corresponds to a group
+    let groupIndex = 0;
 
     return lines.map(line => {
       if (!line.trim() || line.includes('Section:')) {
@@ -155,8 +306,9 @@ const ColorMapper = (() => {
 
       const sns = extractSNsFromLine(line);
       if (sns.length > 0) {
-        // Use the color from the FIRST SN in this group to ensure consistency
-        const color = snToColorMap[sns[0]] || '#FFFFFF';
+        // Use position-based color: each group gets its own color based on index
+        const color = getColorForGroup(groupIndex);
+        groupIndex++;
 
         // Color the SN group part (including braced patterns and morphology codes)
         const matchResult = line.match(/^(\{<[^>]+>\}|<[^>]+>)+(\(\*?\*?\d+\))?/);

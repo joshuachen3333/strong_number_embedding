@@ -11,6 +11,7 @@ from functools import lru_cache
 # v1.7 adds compound preposition detection by querying qp.php wform field
 # v1.7.2 enhances compound detection to skip 900x prefixes (multi-token compounds)
 # v1.8 generalizes compound detection to support all compound prepositions (not just מִן)
+# v1.8.5 preserves WH/WAH/WTH prefixes in :: :: markers for visual consistency with viewer
 
 # ============================================================================
 # Version and Specification Metadata
@@ -847,14 +848,14 @@ def extract_interleaved_text(group, bible_text_raw, consumed_positions=None):
         if not has_chinese:
             return None
 
-        # Strip WH/WAH/WTH prefixes for output
-        cleaned = re.sub(r'<W[ATH]*H?', '<', snippet)
-        cleaned = re.sub(r'\{<W[ATH]*H?', '{<', cleaned)
+        # v1.8.5: Preserve WH/WAH/WTH prefixes in markers for visual consistency
+        # (Previous versions stripped these prefixes, causing format mismatch)
+        # Return the snippet as-is with original prefixes intact
 
         # Mark this range as consumed (in-place mutation)
         consumed_positions.add((first_pos, snippet_end))
 
-        return cleaned
+        return snippet
 
     except Exception:
         # If extraction fails, return None gracefully

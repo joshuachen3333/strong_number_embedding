@@ -158,7 +158,10 @@ const LeftPanel = (() => {
       if (!textEl) return;
 
       // Apply colors to raw text
-      const coloredHtml = ColorMapper.applyColorsToRawText(verseData.text, colorMap);
+      // Use position-based coloring only for the currently selected verse
+      // For other verses, fall back to SN-based coloring
+      const useGroups = (verseNum === currentVerse) ? groups : undefined;
+      const coloredHtml = ColorMapper.applyColorsToRawText(verseData.text, colorMap, useGroups);
       textEl.innerHTML = coloredHtml;
 
       // Add SN click handlers
