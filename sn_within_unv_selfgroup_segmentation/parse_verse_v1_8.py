@@ -807,40 +807,110 @@ def extract_interleaved_text(group, bible_text_raw, consumed_positions=None):
     # Try to find tokens in raw text
     # We need to detect if Chinese chars exist between tokens
     try:
-        # Find all token positions (skip consumed positions)
+        # v1.8.6: Find tokens sequentially within proximity (max 50 chars between consecutive tokens)
+        # This ensures we find tokens that are actually part of the same group
         positions = []
-        for token in tokens_to_find:
-            # Search with WH/WAH/WTH prefixes
+        search_start = 0  # Start searching from beginning for first token
+
+        for token_idx, token in enumerate(tokens_to_find):
+
+            found_pos = -1
+            found_token = None
+
+            # v1.8.6: Search for both braced and unbraced versions
+            # Some tokens appear as implicit in raw text even when not in pre_brace/post_brace
+            search_variants = []
+
             if token.startswith('{<'):
-                # For braced tokens like {<0853>}
+                # Already braced - try variants
                 for prefix_variant in ['{<WH', '{<WAH', '{<WTH']:
-                    search_token = token.replace('{<', prefix_variant)
-                    pos = _find_next_unused_position(bible_text_raw, search_token, consumed_positions)
-                    if pos != -1:
-                        positions.append((pos, search_token))
-                        break
+                    search_variants.append(token.replace('{<', prefix_variant))
             else:
-                # For regular tokens like <09002>
-                for prefix_variant in ['<WAH', '<WTH', '<WAT', '<WH']:
-                    search_token = token.replace('<', prefix_variant)
-                    pos = _find_next_unused_position(bible_text_raw, search_token, consumed_positions)
-                    if pos != -1:
-                        positions.append((pos, search_token))
+                # Regular token - try both unbraced and braced versions
+                base_code = token.strip('<>')
+                for prefix_variant in ['WAH', 'WTH', 'WAT', 'WH']:
+                    # Unbraced version
+                    search_variants.append(f"<{prefix_variant}{base_code}>")
+                    # Braced version (for implicit tokens)
+                    search_variants.append(f"{{<{prefix_variant}{base_code}>}}")
+
+            # Try each variant
+            for search_token in search_variants:
+                pos = _find_next_unused_position(bible_text_raw, search_token, consumed_positions, search_start)
+                if pos != -1:
+                    # v1.8.7: Check if unbraced token is actually inside a braced token
+                    # If we found <WAH1234> but it's preceded by {, we should match {<WAH1234>} instead
+                    if not search_token.startswith('{') and pos > 0 and bible_text_raw[pos - 1] == '{':
+                        # Adjust to include the opening brace
+                        pos = pos - 1
+                        search_token = '{' + search_token + '}'
+                        # Verify the closing brace exists
+                        if pos + len(search_token) <= len(bible_text_raw) and \
+                           bible_text_raw[pos:pos + len(search_token)] == search_token:
+                            # Valid braced token
+                            pass
+                        else:
+                            # Not a valid braced token, skip this match
+                            continue
+
+                    if token_idx == 0 or pos - positions[-1][0] <= 50:
+                        found_pos = pos
+                        found_token = search_token
                         break
+
+            if found_pos == -1:
+                # Token not found within proximity, try searching from beginning again
+                if token.startswith('{<'):
+                    for prefix_variant in ['{<WH', '{<WAH', '{<WTH']:
+                        search_token = token.replace('{<', prefix_variant)
+                        pos = _find_next_unused_position(bible_text_raw, search_token, consumed_positions, 0)
+                        if pos != -1:
+                            found_pos = pos
+                            found_token = search_token
+                            break
+                else:
+                    for prefix_variant in ['<WAH', '<WTH', '<WAT', '<WH']:
+                        search_token = token.replace('<', prefix_variant)
+                        pos = _find_next_unused_position(bible_text_raw, search_token, consumed_positions, 0)
+                        if pos != -1:
+                            # v1.8.7: Check if unbraced token is inside a braced token
+                            if pos > 0 and bible_text_raw[pos - 1] == '{':
+                                pos = pos - 1
+                                search_token = '{' + search_token + '}'
+                                if pos + len(search_token) <= len(bible_text_raw) and \
+                                   bible_text_raw[pos:pos + len(search_token)] == search_token:
+                                    found_pos = pos
+                                    found_token = search_token
+                                    break
+                                else:
+                                    continue
+                            else:
+                                found_pos = pos
+                                found_token = search_token
+                                break
+
+                if found_pos == -1:
+                    return None
+
+            positions.append((found_pos, found_token))
+            # Next token should be searched starting from current position
+            search_start = found_pos + len(found_token)
 
         if len(positions) < 2:
             return None
 
-        # Sort by position
-        positions.sort()
-
-        # Check if there are Chinese characters between first and last token
+        # Check if tokens are within reasonable total distance
         first_pos, first_token = positions[0]
         last_pos, last_token = positions[-1]
 
         # Extract substring between first and last token
         snippet_end = last_pos + len(last_token)
         snippet = bible_text_raw[first_pos:snippet_end]
+
+        # Check if total snippet length is reasonable (max 100 chars)
+        snippet_length = snippet_end - first_pos
+        if snippet_length > 100:
+            return None
 
         # Check if Chinese characters exist in the snippet
         has_chinese = any('\u4e00' <= ch <= '\u9fff' for ch in snippet)
