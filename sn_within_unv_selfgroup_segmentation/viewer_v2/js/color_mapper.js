@@ -136,8 +136,8 @@ const ColorMapper = (() => {
       // Escape special regex chars in SN code
       const escapedSN = sn.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       // Match: optional brace, <WH/WAH/WTH prefix>, SN code, >, optional brace
-      // Also handle morphology codes that may follow
-      return `\\{?<W[ATH]*H?${escapedSN}>\\}?(?:<W[ATH]*H?\\d+>|\\(\\*?\\*?\\d+\\))?`;
+      // Also handle morphology codes that may follow (with or without braces)
+      return `\\{?<W[ATH]*H?${escapedSN}>\\}?(?:\\{?<W[ATH]*H?\\d+>\\}?|\\(\\*?\\*?\\d+\\))?`;
     }).join('([^<>{}()]+)?');  // Only match text WITHOUT angle brackets/braces between SNs
 
     return new RegExp(snPatterns, 'g');
@@ -228,8 +228,8 @@ const ColorMapper = (() => {
    */
   function applyColorsToRawTextLegacy(text, snToColorMap) {
     // Match patterns: <WHdddd>, <WTHdddd>, <WAHdddd>, {<WHdddd>}
-    // Plus optional morphology codes (**dddd) or (*dddd) that follow
-    const snPattern = /(\{?<W[ATH]*H?(\d+)>\}?)(<W[AT]*H?\d+>|\(\*?\*?\d+\))?/g;
+    // Plus optional morphology codes (**dddd) or (*dddd) or {<WTHdddd>} that follow
+    const snPattern = /(\{?<W[ATH]*H?(\d+)>\}?)(\{?<W[AT]*H?\d+>\}?|\(\*?\*?\d+\))?/g;
 
     return text.replace(snPattern, (match, fullTag, snCode, morphCode) => {
       const color = snToColorMap[snCode];
@@ -252,7 +252,7 @@ const ColorMapper = (() => {
    * @returns {string} HTML with colored spans
    */
   function colorSNsInSpan(text, color) {
-    const snPattern = /(\{?<W[ATH]*H?(\d+)>\}?)(<W[AT]*H?\d+>|\(\*?\*?\d+\))?/g;
+    const snPattern = /(\{?<W[ATH]*H?(\d+)>\}?)(\{?<W[AT]*H?\d+>\}?|\(\*?\*?\d+\))?/g;
 
     return text.replace(snPattern, (match, fullTag, snCode, morphCode) => {
       const escapedTag = fullTag.replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -270,7 +270,7 @@ const ColorMapper = (() => {
    */
   function applyFallbackColoring(html, snToColorMap) {
     // Match uncolored SN patterns (not already wrapped in <span>)
-    const uncoloredPattern = /(?<!<span[^>]*>)(\{?<W[ATH]*H?(\d+)>\}?)(<W[AT]*H?\d+>|\(\*?\*?\d+\))?(?![^<]*<\/span>)/g;
+    const uncoloredPattern = /(?<!<span[^>]*>)(\{?<W[ATH]*H?(\d+)>\}?)(\{?<W[AT]*H?\d+>\}?|\(\*?\*?\d+\))?(?![^<]*<\/span>)/g;
 
     return html.replace(uncoloredPattern, (match, fullTag, snCode, morphCode) => {
       const color = snToColorMap[snCode];
