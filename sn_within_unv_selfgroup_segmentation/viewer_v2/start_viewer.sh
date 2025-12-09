@@ -51,7 +51,7 @@ else
 fi
 
 # Open browser
-URL="http://localhost:$PORT/viewer/"
+URL="http://localhost:$PORT/viewer_v2/"
 echo "Opening viewer at: $URL"
 echo ""
 

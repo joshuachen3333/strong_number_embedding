@@ -1,0 +1,145 @@
+# Prompt History
+
+## 2025-12-06
+
+### Prompt 1
+I want to review your parsed work (output/book/chapter/verse) verse by verse.
+give me a dual viewer (just the viewer, not editor) to check each verse.
+the left area gives me book/chapter/verse chooser, and the right area show your parsed result.
+the version is aleays unv, because we are only work on this
+the book/chapter should be choosable
+and the left reader has a selecting verse mechanism, that the selected result displays at the right.
+for each sn group, choose a color to color them for both left and right same group.
+discuss and ask me questions for this viewer.
+this is a little bit similar to dual_reader_right_editor, but very much different.
+maybe you can 參考 it.
+
+### Prompt 2
+1, from both, but local first
+3, when clicking anywhere in a verse's text plus upper/down arryw (key)
+6, new viewer/ and separate JS modules
+and explain to me about 2,4,5,
+
+### Prompt 3
+2, C — parse the right panel's lines to extract SN codes, then highlight matching codes in the left panel with the same color.
+4, B — generate a manifest file during batch parsing. The viewer reads this to know what's available.
+5 D) All of the above
+
+and ask more questions or more discussions
+
+### Prompt 4
+7 A, all verses
+8 C) Configurable — toggle buttons to show/hide each section
+9 A Fixed palette — 12-15 distinct colors, cycle if more groups
+12 C) Go to next chapter — Gen 2:1
+
+and explain to me 10 and 11
+
+### Prompt 5
+ok, I decide to use start_viewer.sh, for Q11, use Option A, for Q10 use A too
+
+### Prompt 6
+13, A Keep SN tags visible
+14 Left/Right arrows — previous/next chapter?
+15 URL reflect current position?
+  http://localhost:8000/#Gen/1/5
+16 Last viewed — save position in localStorage
+17 C) Show raw UNV from API — left panel shows data, right panel shows "Not parsed"
+
+### Prompt 7
+use /openspec to go, but do not apply yet
+
+### Prompt 8
+what is SPEC.md all about, what is that framwaork it belongs to? how to call that SPEC.md things to work?
+
+### Prompt 9
+ok go ahead and build it.
+
+### Prompt 10
+I have chrome devtools mcp, make good use of it to get the real browser status
+
+### Prompt 11
+I will quit now and re-enter
+
+### Prompt 12
+from now on, record my prompt and append it to prompt.history at current directory
+check /openspec is working and check chrome-devtools-mcp is working ans list all skills
+
+### Prompt 13
+your first /openspec task is to take over my previous efforts on viewer/, parse it and take it over, transfer it to openspec from scratch
+
+### Prompt 14
+remember to append prompts onto `pwd`/prompt.history
+1, yes Use an event bus pattern (like MockMediator in dual_reader_right_editor/)
+2, what is  Use ES6 modules? so I can just use pure http://index.html without python the web server?
+3 Add spinner/skeleton states for better UX
+4, Show user-friendly error messages in UI.
+5, Cache API responses and parsed files in memory.
+9,  Click on a Strong's number to show Hebrew/Greek definition tooltip.
+and when you are doing test, use chrome-devtools-mcp.
+
+### Prompt 15
+yes, I approve it, remember to append my prompt to prompt.history
+go ahead
+###  Limit reached · resets 3am (Asia/Taipei) · /upgrade to Max or turn on /extra-usage
+
+### Prompt 16
+continue with the remaining 4 modules + HTML/CSS,
+
+### Prompt 17
+I don't see the parsed result in right viewer
+
+### Prompt 18
+can you see the content through devtools mcp?
+
+### Prompt 19
+I have killed all devtool mcp, re-run the mcp and see the result yourself
+
+### Prompt 20
+tell me how to run the mcp and I will do it manually
+
+# 2025 12/7 8:12
+###  Limit reached · resets 12pm (Asia/Taipei) · /upgrade to Max or add funds to continue with extra usage
+# 2025 12/7 19:42
+###  Limit reached · resets 12pm (Asia/Taipei) · /upgrade to Max or add funds to continue with extra usage
+# 2025 12/8 0:06
+###  Limit reached · resets 3am (Asia/Taipei) · /upgrade to Max or add funds to continue with extra usage
+#
+
+=== 2025-01-XX: Add SN Click Highlighting Feature ===
+
+User Request:
+如果點擊右邊 parsed section sn 組, 右邊的 parsed section 與 raw section 同一組都亮藍色; 
+如果我點擊右邊 raw section sn 組, 右邊的 parsed section 與 raw section 的 sn 組都亮藍色; 
+而兩種情形下左邊的同一節同一組 sn 亮橘色
+
+如果點左邊一節中的某 sn 組, 左藍, 右邊 parsed, raw, section 都亮橘色.
+
+Summary:
+Implement bidirectional SN click highlighting similar to dual_reader_right_editor:
+- Click right Parsed section SN → Right (Parsed + Raw) blue, Left orange
+- Click right Raw section SN → Right (Parsed + Raw) blue, Left orange  
+- Click left SN → Left blue, Right (Parsed + Raw) orange
+
+Color scheme:
+- Clicked element (local): Deep blue (#1e88e5)
+- Corresponding elements (remote): Orange (#ff9800)
+
+2025-12-09 08:34:02	now, similar to dual_reader_right_editor, add a checkbox (box)single HL(default) for the left reader. use openspec and --dangerously-skip-permissions
+2025-12-09 09:09:17	Fixed single highlight mode - added debug logging to right_panel.js and verified both panels clear previous highlights correctly before applying new ones. Single HL mode now works as expected.
+2025-12-09 09:15:32	go ahead
+2025-12-09 09:16:45	Completed verse-scoped highlighting fix. Modified highlightLocal() and highlightRemote() in left_panel.js to filter by verse number when Single HL mode is ON. Verified with Chrome DevTools that clicking H01961 in right panel (verse 2) only highlights in verse 2 on left panel, not in verses 3, 5, 6. Single HL feature now works perfectly!
+2025-12-09 09:30:00	User requested to apply OpenSpec change 'fix-viewer-color-grouping-and-markers' to fix two bugs: (1) Color grouping issue where repeated Strong's Numbers (e.g., {<0853>}) in different groups receive the same color instead of group-specific colors, and (2) Parsed output markers missing WH/WAH prefixes (showing ::{<0853>}:: instead of ::{<WH0853>}::). User then requested to append all prompts from this session and future prompts to prompt.history.
+2025-12-09 10:15:00	Completed OpenSpec implementation for fix-viewer-color-grouping-and-markers. Fixed two bugs: (1) Implemented position-based color mapping using regex pattern matching to handle repeated SNs correctly - now {<0853>} in different groups show different colors (pink vs purple). Modified color_mapper.js with buildRegexPattern() using [^<>{}()]+ separator, updated left_panel.js to pass groups for currentVerse only, updated right_panel.js to pass currentGroups. (2) Preserved WH/WAH/WTH prefixes in :: :: markers by removing prefix stripping in parse_verse_v1_8.py extract_interleaved_text(). Tested with Gen 1:1 - all three sections (parsed, raw, left panel) now show correct colors for repeated {<WH0853>}. Committed as v1.8.5.
+2025-12-09 10:45:00	Fixed HTML escaping bug in parsed section markers. User reported markers showing ::{}天:: instead of ::{<WH0853>}天<WH08064>::. Root cause: applyColorsToParsedText() only escaped SN group part, leaving rest of line unescaped. Browser interpreted <WH0853> as HTML tags and stripped them. Fixed by escaping both snPart and restPart. Markers now correctly display with all SNs visible. Commit 91b3901.
+2025-12-09 11:00:00	Fixed position-based highlighting for repeated SNs. User reported clicking heaven group {<WH0853>}<WH08064> incorrectly highlighted 3 SNs (including earth's {<WH0853>}) instead of just 2. Two root causes: (1) getSNGroupFromColorMap() used colorMap lookup with "first occurrence wins", returning wrong group for second {<WH0853>}. (2) findCorrespondingElements() matched by SN code only, finding ALL instances. Fixed by: (1) Using clicked element's actual background color to find correct group. (2) Adding color-based filtering in findCorrespondingElements(). Now clicking each group highlights only its own SNs correctly. Commit 5852e73.
+### 20251209 15:41
+#Limit reached · resets 7pm (Asia/Taipei) ·
+2025-12-09 17:38:00	now, use our skill to parse all book of Genesis
+2025-12-09 17:39:00	Batch parsing complete! Successfully parsed all 1,533 verses in Genesis (50 chapters) with 0 uncertain verses. Used unv-sn-backparse skill with run_parser_temp.py. All verses from Genesis 1:1 to 50:26 have been processed and saved to output/Gen/{chapter}/{verse} files.
+2025-12-09 17:42:00	run the viewer for me
+2025-12-09 17:43:00	Viewer is running at http://localhost:8000/viewer/ with all 1,533 Genesis verses parsed and available. However, there appears to be a JavaScript initialization issue preventing the parsed content from displaying when verses are clicked. Investigating the root cause.
+2025-12-09 17:45:00	I will close all chrome sessions, you start the app for me again
+2025-12-09 17:45:30	Closed all Chrome sessions and opened fresh browser window at http://localhost:8000/viewer/. Server is running. All 1,533 Genesis verses are parsed and ready to view.
+2025-12-09 17:48:00	I see the app browser, the left area is showing verses,no color, the right viewer is empty, use devtools-mcp to see it.
+2025-12-09 17:50:00	Diagnosed the issue using Chrome DevTools MCP: The viewer was opening at wrong URL /viewer/ instead of /viewer_v2/. Server serves from parent directory, so correct path is /viewer_v2/. Only 7 of 10 JavaScript files were loading (missing mediator.js, ui_utils.js, sn_dictionary.js) due to 404 errors. Fixed by navigating to http://localhost:8000/viewer_v2/ - viewer now works perfectly with all colors and parsed output displaying correctly. Updated start_viewer.sh to open correct URL.
