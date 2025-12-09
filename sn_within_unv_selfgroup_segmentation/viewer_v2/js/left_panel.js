@@ -9,8 +9,12 @@ const LeftPanel = (() => {
   let currentVerse = null;
   let chapterVerses = {};
   let clickHandlerAttached = false;
+  let currentColorMap = {};
+  let currentGroups = [];
+  let singleHighlightMode = true; // Single highlight mode: true = clear previous, false = multi-highlight
 
   const leftContent = document.getElementById('left-content');
+  const singleHighlightCheckbox = document.getElementById('single-highlight-mode');
 
   /**
    * Initialize left panel (subscribe to events)
@@ -26,6 +30,21 @@ const LeftPanel = (() => {
 
     // Subscribe to verse selected event (for highlighting only)
     Mediator.subscribe(Mediator.EVENT_TYPES.VERSE_SELECTED, handleVerseSelected);
+
+    // Subscribe to SN click event for highlighting
+    Mediator.subscribe(Mediator.EVENT_TYPES.SN_CLICK, handleSNClickForHighlighting);
+
+    // Initialize Single Highlight mode checkbox
+    if (singleHighlightCheckbox) {
+      singleHighlightMode = singleHighlightCheckbox.checked;
+      console.log(`[LeftPanel] Single HL checkbox initialized: ${singleHighlightMode ? 'ON (checked)' : 'OFF (unchecked)'}`);
+      singleHighlightCheckbox.addEventListener('change', (e) => {
+        singleHighlightMode = e.target.checked;
+        console.log(`[LeftPanel] Single highlight mode: ${singleHighlightMode ? 'ON' : 'OFF'}`);
+      });
+    } else {
+      console.warn('[LeftPanel] Single HL checkbox not found!');
+    }
 
     // Add click handler once (event delegation)
     if (!clickHandlerAttached) {
@@ -103,6 +122,9 @@ const LeftPanel = (() => {
     const { verse } = data;
     currentVerse = verse;
 
+    // Clear SN highlighting when switching verses
+    clearHighlighting();
+
     // Update selection highlight
     leftContent.querySelectorAll('.verse').forEach(el => {
       el.classList.remove('selected');
@@ -118,10 +140,14 @@ const LeftPanel = (() => {
 
   /**
    * Handle colors apply event
-   * @param {Object} data - {colorMap}
+   * @param {Object} data - {colorMap, groups}
    */
   function handleColorsApply(data) {
-    const { colorMap } = data;
+    const { colorMap, groups } = data;
+
+    // Store for highlighting
+    currentColorMap = colorMap || {};
+    currentGroups = groups || [];
 
     leftContent.querySelectorAll('.verse').forEach(verseEl => {
       const verseNum = parseInt(verseEl.dataset.verse);
@@ -141,9 +167,15 @@ const LeftPanel = (() => {
           e.stopPropagation();
           const snCode = extractSNCode(tag.textContent);
           if (snCode) {
+            // Get all SNs in the same group
+            const groupSNs = ColorMapper.getSNGroupFromColorMap(snCode, currentColorMap, currentGroups);
+
             Mediator.publish(Mediator.EVENT_TYPES.SN_CLICK, {
+              source: 'left',
               element: tag,
-              snCode: snCode
+              snCode: snCode,
+              groupSNs: groupSNs,
+              verse: verseNum  // Add verse number for single-HL filtering
             });
           }
         });
@@ -193,6 +225,91 @@ const LeftPanel = (() => {
   }
 
   /**
+   * Handle SN click for highlighting
+   * @param {Object} event - {source, snCode, groupSNs, element, verse}
+   */
+  function handleSNClickForHighlighting(event) {
+    const { source, groupSNs, verse } = event;
+
+    console.log(`[LeftPanel] SN click - singleHighlightMode=${singleHighlightMode}, source=${source}, verse=${verse}`);
+
+    // Only clear previous highlighting if single highlight mode is ON
+    if (singleHighlightMode) {
+      console.log('[LeftPanel] Clearing previous highlights (Single HL is ON)');
+      clearHighlighting();
+    } else {
+      console.log('[LeftPanel] Keeping previous highlights (Single HL is OFF)');
+    }
+
+    if (source === 'left') {
+      // Clicked in left panel - highlight local (blue)
+      highlightLocal(groupSNs, verse);
+    } else {
+      // Clicked in right panel - highlight remote (orange)
+      highlightRemote(groupSNs, verse);
+    }
+  }
+
+  /**
+   * Clear all highlighting classes
+   */
+  function clearHighlighting() {
+    leftContent.querySelectorAll('.clicked-local, .clicked-remote').forEach(el => {
+      el.classList.remove('clicked-local', 'clicked-remote');
+    });
+  }
+
+  /**
+   * Highlight local SNs (blue) - for clicks originating in left panel
+   * @param {string[]} groupSNs - Array of SN codes to highlight
+   * @param {number} verse - Verse number to limit highlighting (when Single HL mode is ON)
+   */
+  function highlightLocal(groupSNs, verse) {
+    let container = leftContent;
+
+    // If single HL mode is ON and verse is specified, limit to that verse
+    if (singleHighlightMode && verse) {
+      container = leftContent.querySelector(`.verse[data-verse="${verse}"]`);
+      if (!container) {
+        console.warn(`[LeftPanel] Verse ${verse} not found for highlighting`);
+        return;
+      }
+      console.log(`[LeftPanel] Single HL ON - limiting highlight to verse ${verse}`);
+    } else {
+      console.log('[LeftPanel] Multi HL mode - highlighting across all verses');
+    }
+
+    const elements = ColorMapper.findCorrespondingElements(groupSNs, container, '.sn-tag');
+    console.log(`[LeftPanel] Found ${elements.length} elements to highlight (local/blue)`);
+    elements.forEach(el => el.classList.add('clicked-local'));
+  }
+
+  /**
+   * Highlight remote SNs (orange) - for clicks originating in right panel
+   * @param {string[]} groupSNs - Array of SN codes to highlight
+   * @param {number} verse - Verse number to limit highlighting (when Single HL mode is ON)
+   */
+  function highlightRemote(groupSNs, verse) {
+    let container = leftContent;
+
+    // If single HL mode is ON and verse is specified, limit to that verse
+    if (singleHighlightMode && verse) {
+      container = leftContent.querySelector(`.verse[data-verse="${verse}"]`);
+      if (!container) {
+        console.warn(`[LeftPanel] Verse ${verse} not found for highlighting`);
+        return;
+      }
+      console.log(`[LeftPanel] Single HL ON - limiting highlight to verse ${verse}`);
+    } else {
+      console.log('[LeftPanel] Multi HL mode - highlighting across all verses');
+    }
+
+    const elements = ColorMapper.findCorrespondingElements(groupSNs, container, '.sn-tag');
+    console.log(`[LeftPanel] Found ${elements.length} elements to highlight (remote/orange)`);
+    elements.forEach(el => el.classList.add('clicked-remote'));
+  }
+
+  /**
    * Clear left panel
    */
   function clear() {
@@ -201,6 +318,8 @@ const LeftPanel = (() => {
     currentChapter = null;
     currentVerse = null;
     chapterVerses = {};
+    currentColorMap = {};
+    currentGroups = [];
   }
 
   // Public API

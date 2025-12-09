@@ -174,6 +174,54 @@ const ColorMapper = (() => {
     }).join('\n');
   }
 
+  /**
+   * Get all SNs in the same semantic group as the clicked SN
+   * @param {string} clickedSN - The SN code that was clicked (e.g., '0216')
+   * @param {Object} colorMap - Map from SN code to color
+   * @param {Array} groups - Groups from parseGroups()
+   * @returns {string[]} Array of all SN codes in the same group
+   */
+  function getSNGroupFromColorMap(clickedSN, colorMap, groups) {
+    // Get the color assigned to clicked SN
+    const targetColor = colorMap[clickedSN];
+    if (!targetColor) return [clickedSN];
+
+    // Find the group that has this color
+    for (const group of groups) {
+      const groupColor = getColorForGroup(group.groupIndex);
+      if (groupColor === targetColor) {
+        return group.sns;  // Return all SNs in this group
+      }
+    }
+
+    return [clickedSN];  // Fallback to single SN
+  }
+
+  /**
+   * Find DOM elements matching the given SN codes in a specific section
+   * @param {string[]} snCodes - Array of SN codes to find (e.g., ['0853', '0216'])
+   * @param {HTMLElement} container - Container element to search within
+   * @param {string} elementClass - Class to search for ('.sn-tag' or '.sn-group')
+   * @returns {HTMLElement[]} Array of matching DOM elements
+   */
+  function findCorrespondingElements(snCodes, container, elementClass) {
+    const elements = [];
+    const targets = container.querySelectorAll(elementClass);
+
+    targets.forEach(el => {
+      const text = el.textContent;
+      // Check if this element contains any of the target SN codes
+      for (const snCode of snCodes) {
+        if (text.includes(snCode)) {
+          elements.push(el);
+          break;  // Don't add same element multiple times
+        }
+      }
+    });
+
+    return elements;
+  }
+
   // Public API
   return {
     parseGroups,
@@ -181,6 +229,8 @@ const ColorMapper = (() => {
     createSNToColorMap,
     applyColorsToRawText,
     applyColorsToParsedText,
-    extractSNsFromLine
+    extractSNsFromLine,
+    getSNGroupFromColorMap,
+    findCorrespondingElements
   };
 })();

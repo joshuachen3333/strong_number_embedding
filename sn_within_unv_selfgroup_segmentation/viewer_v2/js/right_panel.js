@@ -6,13 +6,17 @@
 const RightPanel = (() => {
   let currentSections = { parsed: '', raw: '', notes: '' };
   let currentGroups = [];
+  let currentColorMap = {};
+  let currentVerse = null;  // Track current verse for single-HL filtering
   let showParsed = true;
   let showRaw = true;
   let showNotes = true;
+  let singleHighlightMode = true; // Single highlight mode: true = clear previous, false = multi-highlight
 
   const rightContent = document.getElementById('right-content');
   const uncertainBadge = document.getElementById('uncertain-badge');
   const rightPanel = document.querySelector('.right-panel');
+  const singleHighlightCheckbox = document.getElementById('single-highlight-mode');
 
   // Toggle buttons
   const toggleParsedBtn = document.getElementById('toggle-parsed');
@@ -28,9 +32,24 @@ const RightPanel = (() => {
     // Initialize toggle buttons
     initToggleButtons();
 
+    // Initialize Single Highlight mode checkbox (cross-panel coordination with left panel)
+    if (singleHighlightCheckbox) {
+      singleHighlightMode = singleHighlightCheckbox.checked;
+      console.log(`[RightPanel] Single HL checkbox initialized: ${singleHighlightMode ? 'ON (checked)' : 'OFF (unchecked)'}`);
+      singleHighlightCheckbox.addEventListener('change', (e) => {
+        singleHighlightMode = e.target.checked;
+        console.log(`[RightPanel] Single highlight mode: ${singleHighlightMode ? 'ON' : 'OFF'}`);
+      });
+    } else {
+      console.warn('[RightPanel] Single HL checkbox not found!');
+    }
+
     // Subscribe to verse selected event
     Mediator.subscribe(Mediator.EVENT_TYPES.VERSE_SELECTED, handleVerseSelected);
     console.log('[RightPanel] Subscribed to VERSE_SELECTED');
+
+    // Subscribe to SN click event for highlighting
+    Mediator.subscribe(Mediator.EVENT_TYPES.SN_CLICK, handleSNClickForHighlighting);
   }
 
   /**
@@ -64,6 +83,9 @@ const RightPanel = (() => {
     const { book, chapter, verse, content, isUncertain, exists } = data;
     console.log(`[RightPanel] Received VERSE_SELECTED:`, data);
 
+    // Clear SN highlighting when switching verses
+    clearHighlighting();
+
     if (!exists) {
       console.log(`[RightPanel] Verse not parsed, showing "not parsed" message`);
       displayNotParsed(book, chapter, verse);
@@ -83,6 +105,9 @@ const RightPanel = (() => {
    * @param {boolean} isUncertain
    */
   function displayParsedVerse(book, chapter, verse, content, isUncertain) {
+    // Store current verse for single-HL filtering
+    currentVerse = verse;
+
     // Parse sections
     currentSections = DataLoader.parseSections(content);
 
@@ -102,8 +127,8 @@ const RightPanel = (() => {
     render();
 
     // Create color map and publish event
-    const colorMap = ColorMapper.createSNToColorMap(currentGroups);
-    Mediator.publish(Mediator.EVENT_TYPES.COLORS_APPLY, { colorMap });
+    currentColorMap = ColorMapper.createSNToColorMap(currentGroups);
+    Mediator.publish(Mediator.EVENT_TYPES.COLORS_APPLY, { colorMap: currentColorMap, groups: currentGroups });
   }
 
   /**
@@ -179,8 +204,13 @@ const RightPanel = (() => {
         </div>
       `;
 
-      // Add SN click handlers after render
-      setTimeout(() => addSNClickHandlers(), 10);
+      // Add SN click handlers for Raw section after render
+      setTimeout(() => addSNClickHandlersRaw(), 10);
+    }
+
+    // Add SN click handlers for Parsed section after first render
+    if (showParsed && currentSections.parsed) {
+      setTimeout(() => addSNClickHandlersParsed(), 10);
     }
 
     // Section 3: Morphology Notes
@@ -201,17 +231,45 @@ const RightPanel = (() => {
   }
 
   /**
-   * Add SN click handlers to tags in right panel
+   * Add SN click handlers to Parsed section groups
    */
-  function addSNClickHandlers() {
+  function addSNClickHandlersParsed() {
+    rightContent.querySelectorAll('.sn-group').forEach(group => {
+      group.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Extract all SN codes from the group
+        const sns = ColorMapper.extractSNsFromLine(group.textContent);
+        if (sns.length > 0) {
+          Mediator.publish(Mediator.EVENT_TYPES.SN_CLICK, {
+            source: 'right-parsed',
+            element: group,
+            snCode: sns[0],  // Primary SN
+            groupSNs: sns,
+            verse: currentVerse  // Add verse number for single-HL filtering
+          });
+        }
+      });
+    });
+  }
+
+  /**
+   * Add SN click handlers to Raw section tags
+   */
+  function addSNClickHandlersRaw() {
     rightContent.querySelectorAll('.sn-tag').forEach(tag => {
       tag.addEventListener('click', (e) => {
         e.stopPropagation();
         const snCode = extractSNCode(tag.textContent);
         if (snCode) {
+          // Get all SNs in the same group
+          const groupSNs = ColorMapper.getSNGroupFromColorMap(snCode, currentColorMap, currentGroups);
+
           Mediator.publish(Mediator.EVENT_TYPES.SN_CLICK, {
+            source: 'right-raw',
             element: tag,
-            snCode: snCode
+            snCode: snCode,
+            groupSNs: groupSNs,
+            verse: currentVerse  // Add verse number for single-HL filtering
           });
         }
       });
@@ -240,11 +298,81 @@ const RightPanel = (() => {
   }
 
   /**
+   * Handle SN click for highlighting
+   * @param {Object} event - {source, snCode, groupSNs, element, verse}
+   */
+  function handleSNClickForHighlighting(event) {
+    const { source, groupSNs, verse } = event;
+
+    console.log(`[RightPanel] SN click - singleHighlightMode=${singleHighlightMode}, source=${source}, verse=${verse}`);
+
+    // Only clear previous highlighting if single highlight mode is ON
+    if (singleHighlightMode) {
+      console.log('[RightPanel] Clearing previous highlights (Single HL is ON)');
+      clearHighlighting();
+    } else {
+      console.log('[RightPanel] Keeping previous highlights (Single HL is OFF)');
+    }
+
+    if (source && source.startsWith('right-')) {
+      // Clicked in right panel - highlight local (blue)
+      highlightParsedLocal(groupSNs);
+      highlightRawLocal(groupSNs);
+    } else {
+      // Clicked in left panel - highlight remote (orange)
+      highlightParsedRemote(groupSNs);
+      highlightRawRemote(groupSNs);
+    }
+  }
+
+  /**
+   * Clear all highlighting classes
+   */
+  function clearHighlighting() {
+    rightContent.querySelectorAll('.clicked-local, .clicked-remote').forEach(el => {
+      el.classList.remove('clicked-local', 'clicked-remote');
+    });
+  }
+
+  /**
+   * Highlight Parsed section locally (blue)
+   */
+  function highlightParsedLocal(groupSNs) {
+    const elements = ColorMapper.findCorrespondingElements(groupSNs, rightContent, '.sn-group');
+    elements.forEach(el => el.classList.add('clicked-local'));
+  }
+
+  /**
+   * Highlight Parsed section remotely (orange)
+   */
+  function highlightParsedRemote(groupSNs) {
+    const elements = ColorMapper.findCorrespondingElements(groupSNs, rightContent, '.sn-group');
+    elements.forEach(el => el.classList.add('clicked-remote'));
+  }
+
+  /**
+   * Highlight Raw section locally (blue)
+   */
+  function highlightRawLocal(groupSNs) {
+    const elements = ColorMapper.findCorrespondingElements(groupSNs, rightContent, '.sn-tag');
+    elements.forEach(el => el.classList.add('clicked-local'));
+  }
+
+  /**
+   * Highlight Raw section remotely (orange)
+   */
+  function highlightRawRemote(groupSNs) {
+    const elements = ColorMapper.findCorrespondingElements(groupSNs, rightContent, '.sn-tag');
+    elements.forEach(el => el.classList.add('clicked-remote'));
+  }
+
+  /**
    * Clear right panel
    */
   function clear() {
     currentSections = { parsed: '', raw: '', notes: '' };
     currentGroups = [];
+    currentColorMap = {};
     rightContent.innerHTML = '<div class="loading-message">請點擊左側節次以查看解析結果...</div>';
     uncertainBadge.style.display = 'none';
     rightPanel.classList.remove('uncertain');

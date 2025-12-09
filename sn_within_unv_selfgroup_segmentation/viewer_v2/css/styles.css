@@ -133,6 +133,23 @@ body {
   color: #2c3e50;
 }
 
+.panel-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.panel-controls input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.panel-controls label {
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
 .uncertain-badge {
   padding: 4px 10px;
   background-color: #f39c12;
@@ -596,4 +613,23 @@ body {
 
 .sn-tag:hover {
   opacity: 0.8;
+}
+
+/* SN Click Highlighting */
+.sn-tag.clicked-local,
+.sn-group.clicked-local {
+  background-color: #1e88e5 !important;
+  color: white !important;
+  font-weight: bold;
+  border-radius: 3px;
+  padding: 2px 4px;
+}
+
+.sn-tag.clicked-remote,
+.sn-group.clicked-remote {
+  background-color: #ff9800 !important;
+  color: white !important;
+  font-weight: bold;
+  border-radius: 3px;
+  padding: 2px 4px;
 }

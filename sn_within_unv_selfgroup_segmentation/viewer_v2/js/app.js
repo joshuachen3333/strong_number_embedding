@@ -30,6 +30,9 @@ const App = (() => {
     bookSelect.addEventListener('change', onBookChange);
     chapterSelect.addEventListener('change', onChapterChange);
 
+    // Global click handler to clear highlighting
+    document.addEventListener('click', handleGlobalClick);
+
     // Load manifest
     manifest = await DataLoader.loadManifest();
     if (!manifest || Object.keys(manifest.books).length === 0) {
@@ -296,6 +299,22 @@ const App = (() => {
         book,
         chapter,
         verse: verseToSelect
+      });
+    }
+  }
+
+  /**
+   * Handle global click to clear highlighting when clicking away from SN elements
+   * @param {Event} e
+   */
+  function handleGlobalClick(e) {
+    // Check if click was on an SN element
+    const clickedOnSN = e.target.closest('.sn-tag') || e.target.closest('.sn-group');
+
+    if (!clickedOnSN) {
+      // Clear all highlighting by removing CSS classes
+      document.querySelectorAll('.clicked-local, .clicked-remote').forEach(el => {
+        el.classList.remove('clicked-local', 'clicked-remote');
       });
     }
   }
