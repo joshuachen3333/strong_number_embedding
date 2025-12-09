@@ -103,6 +103,13 @@ const LeftPanel = (() => {
     const verseEl = e.target.closest('.verse');
     if (!verseEl) return;
 
+    // Don't trigger verse selection if user is selecting text
+    const selection = window.getSelection();
+    if (selection && selection.toString().length > 0) {
+      console.log('[LeftPanel] Text selection detected, skipping verse click');
+      return;
+    }
+
     const verse = parseInt(verseEl.dataset.verse);
     console.log(`[LeftPanel] Verse ${verse} clicked`);
 
