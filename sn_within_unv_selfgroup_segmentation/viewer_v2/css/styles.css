@@ -180,16 +180,16 @@ body {
 .panel-header-right .toggle-btn {
   padding: 4px 10px;
   font-size: 12px;
-  border: 1px solid #3498db;
+  border: 1px solid #27ae60;
   border-radius: 4px;
   background-color: transparent;
-  color: #3498db;
+  color: #27ae60;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .panel-header-right .toggle-btn:hover {
-  background-color: rgba(52, 152, 219, 0.1);
+  background-color: rgba(39, 174, 96, 0.1);
 }
 
 .panel-header-right .toggle-btn.active {
