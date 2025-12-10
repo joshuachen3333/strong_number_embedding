@@ -20,15 +20,11 @@
 
     <div class="header-center">
       <h1>Parsed Verse Viewer v2</h1>
-      <div class="version-badge">Event-Driven Architecture</div>
     </div>
 
     <div class="header-right">
       <input type="checkbox" id="sn-dict-toggle">
       <label for="sn-dict-toggle" title="Enable Strong's Number Dictionary Tooltip">SN Dict</label>
-      <button id="toggle-parsed" class="toggle-btn active" title="Show/hide Parsed Text section">Parsed</button>
-      <button id="toggle-raw" class="toggle-btn" title="Show/hide Raw UNV+SN section">Raw</button>
-      <button id="toggle-notes" class="toggle-btn" title="Show/hide Morphology Notes section">Notes</button>
     </div>
   </header>
 
@@ -62,6 +58,9 @@
           <div id="uncertain-badge" class="uncertain-badge" style="display: none;">
             ⚠️ Uncertain
           </div>
+          <button id="toggle-parsed" class="toggle-btn active" title="Show/hide Parsed Text section">Parsed</button>
+          <button id="toggle-raw" class="toggle-btn" title="Show/hide Raw UNV+SN section">Raw</button>
+          <button id="toggle-notes" class="toggle-btn" title="Show/hide Morphology Notes section">Notes</button>
         </div>
       </div>
       <div id="right-content" class="panel-content">

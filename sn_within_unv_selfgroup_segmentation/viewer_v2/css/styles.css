@@ -173,7 +173,29 @@ body {
 .panel-header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
+}
+
+/* Toggle buttons in panel header */
+.panel-header-right .toggle-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+  border: 1px solid #3498db;
+  border-radius: 4px;
+  background-color: transparent;
+  color: #3498db;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.panel-header-right .toggle-btn:hover {
+  background-color: rgba(52, 152, 219, 0.1);
+}
+
+.panel-header-right .toggle-btn.active {
+  background-color: #3498db;
+  border-color: #3498db;
+  color: white;
 }
 
 .verse-ref-display {
@@ -386,14 +408,6 @@ body {
 }
 
 /* ===== V2 Enhancements ===== */
-
-/* Version Badge */
-.version-badge {
-  font-size: 10px;
-  color: #3498db;
-  font-weight: normal;
-  margin-top: -4px;
-}
 
 /* Spinner Overlay */
 .spinner-overlay {
