@@ -176,6 +176,20 @@ body {
   gap: 6px;
 }
 
+/* Checkbox styling in panel headers */
+.panel-header-right input[type="checkbox"],
+.panel-controls input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.panel-header-right label,
+.panel-controls label {
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  margin-right: 8px;
+}
+
 /* Toggle buttons in panel header */
 .panel-header-right .toggle-btn {
   padding: 4px 10px;
@@ -732,4 +746,98 @@ body {
 
 .spec-tooltip-container .tooltip-content {
   color: #bdc3c7;
+}
+
+/* SN Dict Floating Tooltip (hover-style, similar to Spec tooltip) */
+.sn-dict-floating-tooltip {
+  position: fixed;
+  background-color: #2c3e50;
+  color: #ecf0f1;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 420px;
+  min-width: 280px;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 10000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+}
+
+.sn-dict-floating-tooltip .tooltip-sn {
+  font-weight: bold;
+  color: #3498db;
+  font-family: monospace;
+  font-size: 14px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.sn-dict-floating-tooltip .tooltip-word {
+  font-size: 20px;
+  font-weight: bold;
+  color: #ecf0f1;
+  margin-bottom: 4px;
+}
+
+.sn-dict-floating-tooltip .tooltip-translit {
+  font-size: 13px;
+  font-style: italic;
+  color: #95a5a6;
+  margin-bottom: 8px;
+}
+
+.sn-dict-floating-tooltip .tooltip-divider {
+  border-top: 1px solid #4a6278;
+  margin: 8px 0;
+}
+
+.sn-dict-floating-tooltip .tooltip-meta {
+  color: #7f8c8d;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.sn-dict-floating-tooltip .tooltip-pos {
+  color: #27ae60;
+  font-weight: 500;
+}
+
+.sn-dict-floating-tooltip .tooltip-twot {
+  color: #9b59b6;
+  margin-left: 12px;
+}
+
+.sn-dict-floating-tooltip .tooltip-def-list {
+  color: #bdc3c7;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.sn-dict-floating-tooltip .tooltip-def-item {
+  margin-bottom: 4px;
+}
+
+.sn-dict-floating-tooltip .tooltip-subdef {
+  margin-left: 16px;
+  color: #95a5a6;
+  font-size: 12px;
+}
+
+.sn-dict-floating-tooltip .tooltip-def {
+  color: #bdc3c7;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.sn-dict-floating-tooltip .tooltip-loading {
+  text-align: center;
+  color: #95a5a6;
+}
+
+.sn-dict-floating-tooltip .tooltip-error {
+  color: #e74c3c;
+  text-align: center;
 }

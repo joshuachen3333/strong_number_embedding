@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Parsed Verse Viewer v2 — UNV+SN</title>
-  <link rel="stylesheet" href="css/styles.css?v=20251212A">
+  <link rel="stylesheet" href="css/styles.css?v=20251212C">
 </head>
 <body>
   <!-- Header -->
@@ -23,8 +23,7 @@
     </div>
 
     <div class="header-right">
-      <input type="checkbox" id="sn-dict-toggle">
-      <label for="sn-dict-toggle" title="Enable Strong's Number Dictionary Tooltip">SN Dict</label>
+      <!-- Global SN Dict removed - now panel-specific -->
     </div>
   </header>
 
@@ -38,6 +37,8 @@
           <div id="left-verse-ref" class="verse-ref-display" style="display: none;"></div>
         </div>
         <div class="panel-controls">
+          <input type="checkbox" id="left-sn-dict-toggle">
+          <label for="left-sn-dict-toggle" title="Enable Strong's Number Dictionary Tooltip for left panel">SN Dict</label>
           <input type="checkbox" id="single-highlight-mode" checked>
           <label for="single-highlight-mode">Single HL</label>
         </div>
@@ -58,10 +59,13 @@
           <div id="uncertain-badge" class="uncertain-badge" style="display: none;">
             ⚠️ Uncertain
           </div>
+          <input type="checkbox" id="right-sn-dict-toggle">
+          <label for="right-sn-dict-toggle" title="Enable Strong's Number Dictionary Tooltip for right panel">SN Dict</label>
+          <input type="checkbox" id="toggle-spec">
+          <label for="toggle-spec" title="Enable spec tooltips on [3.x.x] references">Spec</label>
           <button id="toggle-parsed" class="toggle-btn active" title="Show/hide Parsed Text section">Parsed</button>
           <button id="toggle-raw" class="toggle-btn" title="Show/hide Raw UNV+SN section">Raw</button>
           <button id="toggle-notes" class="toggle-btn" title="Show/hide Morphology Notes section">Notes</button>
-          <button id="toggle-spec" class="toggle-btn" title="Enable spec tooltips on [3.x.x] references">Spec</button>
         </div>
       </div>
       <div id="right-content" class="panel-content">
@@ -79,11 +83,11 @@
   <!-- 2. Service layer -->
   <script src="js/data_loader.js?v=20251209D"></script>
   <script src="js/color_mapper.js?v=20251209D"></script>
-  <script src="js/sn_dictionary.js?v=20251209N"></script>
+  <script src="js/sn_dictionary.js?v=20251212I"></script>
 
   <!-- 3. UI components -->
   <script src="js/left_panel.js?v=20251209M"></script>
-  <script src="js/right_panel.js?v=20251209N"></script>
+  <script src="js/right_panel.js?v=20251212B"></script>
   <script src="js/navigation.js?v=20251212A"></script>
 
   <!-- 4. App controller last -->

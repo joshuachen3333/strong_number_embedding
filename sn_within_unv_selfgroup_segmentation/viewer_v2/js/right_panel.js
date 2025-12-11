@@ -31,7 +31,8 @@ const RightPanel = (() => {
   const toggleParsedBtn = document.getElementById('toggle-parsed');
   const toggleRawBtn = document.getElementById('toggle-raw');
   const toggleNotesBtn = document.getElementById('toggle-notes');
-  const toggleSpecBtn = document.getElementById('toggle-spec');
+  // Spec is now a checkbox, not a button
+  const toggleSpecCheckbox = document.getElementById('toggle-spec');
 
   /**
    * Load setting from localStorage with error handling
@@ -107,7 +108,10 @@ const RightPanel = (() => {
     toggleParsedBtn.classList.toggle('active', showParsed);
     toggleRawBtn.classList.toggle('active', showRaw);
     toggleNotesBtn.classList.toggle('active', showNotes);
-    toggleSpecBtn.classList.toggle('active', showSpec);
+    // Spec is now a checkbox
+    if (toggleSpecCheckbox) {
+      toggleSpecCheckbox.checked = showSpec;
+    }
 
     toggleParsedBtn.addEventListener('click', () => {
       showParsed = !showParsed;
@@ -130,12 +134,14 @@ const RightPanel = (() => {
       render();
     });
 
-    toggleSpecBtn.addEventListener('click', () => {
-      showSpec = !showSpec;
-      toggleSpecBtn.classList.toggle('active', showSpec);
-      saveSetting(STORAGE_KEY_SHOW_SPEC, showSpec);
-      render();
-    });
+    // Spec checkbox handler
+    if (toggleSpecCheckbox) {
+      toggleSpecCheckbox.addEventListener('change', (e) => {
+        showSpec = e.target.checked;
+        saveSetting(STORAGE_KEY_SHOW_SPEC, showSpec);
+        render();
+      });
+    }
   }
 
   /**
