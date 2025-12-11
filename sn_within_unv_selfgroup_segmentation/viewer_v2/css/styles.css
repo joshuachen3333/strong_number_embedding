@@ -755,8 +755,8 @@ body {
   color: #ecf0f1;
   padding: 15px 20px;
   border-radius: 6px;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 18px;
+  line-height: 1.3;
   max-width: 500px;
   min-width: 340px;
   max-height: 480px;
@@ -770,20 +770,20 @@ body {
   font-weight: bold;
   color: #3498db;
   font-family: monospace;
-  font-size: 17px;
+  font-size: 19px;
   margin-bottom: 6px;
   display: block;
 }
 
 .sn-dict-floating-tooltip .tooltip-word {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: bold;
   color: #ecf0f1;
   margin-bottom: 4px;
 }
 
 .sn-dict-floating-tooltip .tooltip-translit {
-  font-size: 16px;
+  font-size: 18px;
   font-style: italic;
   color: #95a5a6;
   margin-bottom: 8px;
@@ -796,7 +796,7 @@ body {
 
 .sn-dict-floating-tooltip .tooltip-meta {
   color: #7f8c8d;
-  font-size: 14px;
+  font-size: 16px;
   margin-bottom: 8px;
 }
 
@@ -812,8 +812,8 @@ body {
 
 .sn-dict-floating-tooltip .tooltip-def-list {
   color: #bdc3c7;
-  font-size: 16px;
-  line-height: 1.7;
+  font-size: 18px;
+  line-height: 1.5;
 }
 
 .sn-dict-floating-tooltip .tooltip-def-item {
@@ -823,13 +823,13 @@ body {
 .sn-dict-floating-tooltip .tooltip-subdef {
   margin-left: 16px;
   color: #95a5a6;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .sn-dict-floating-tooltip .tooltip-def {
   color: #bdc3c7;
-  font-size: 16px;
-  line-height: 1.6;
+  font-size: 18px;
+  line-height: 1.4;
 }
 
 .sn-dict-floating-tooltip .tooltip-loading {
