@@ -1,35 +1,31 @@
 # Proposal: Enlarge SN Dictionary Tooltip Font
 
 ## Summary
-Increase the font size of the SN Dictionary tooltip for better readability, with proportionally larger tooltip dimensions.
+Increase the font size of the SN Dictionary tooltip for better readability, with proportionally larger tooltip dimensions and reduced line spacing.
 
 ## Motivation
-The current tooltip font sizes (12-14px) can be difficult to read, especially for the Chinese definition text. Enlarging the fonts and proportionally scaling the tooltip container will improve the user reading experience.
+The original tooltip font sizes (12-14px) were difficult to read, especially for the Chinese definition text. Enlarging the fonts and proportionally scaling the tooltip container improves the user reading experience.
 
-## Current State
-- Container: 420px max-width, 400px max-height, 13px base font
-- Hebrew/Greek word: 20px
-- Definition text: 12-13px
-- Padding: 12px 16px
+## Final Implementation (User Specified)
 
-## Proposed Changes
-Proportionally enlarge all font sizes by 20%:
-
-| Element | Current | Proposed (+20%) |
-|---------|---------|-----------------|
-| Container max-width | 420px | 500px |
-| Container max-height | 400px | 480px |
-| Container min-width | 280px | 340px |
-| Padding | 12px 16px | 15px 20px |
-| Base font | 13px | 16px |
-| SN code | 14px | 17px |
-| Hebrew/Greek word | 20px | 24px |
-| Transliteration | 13px | 16px |
-| Meta (詞性/TWOT) | 12px | 14px |
-| Definition list | 13px | 16px |
-| Sub-definition | 12px | 14px |
+| 元素 | CSS Class | 原始值 | 最終值 |
+|------|-----------|--------|--------|
+| 容器最大寬度 | max-width | 420px | 500px |
+| 容器最大高度 | max-height | 400px | 480px |
+| 容器最小寬度 | min-width | 280px | 340px |
+| 內距 | padding | 12px 16px | 15px 20px |
+| 基本字體 | font-size | 13px | 18px |
+| 基本行距 | line-height | 1.5 | 1.3 |
+| SN 編號 | .tooltip-sn | 14px | 19px |
+| 希伯來/希臘文 | .tooltip-word | 20px | 26px |
+| 音譯 | .tooltip-translit | 13px | 18px |
+| 詞性/TWOT | .tooltip-meta | 12px | 16px |
+| 定義列表 | .tooltip-def-list | 13px, 1.7 | 18px, 1.5 |
+| 子定義 | .tooltip-subdef | 12px | 16px |
+| 定義 | .tooltip-def | 13px, 1.6 | 18px, 1.4 |
 
 ## Impact
 - CSS-only change in `viewer_v2/css/styles.css`
 - No JavaScript changes required
 - Improved readability for all users
+- Tighter line spacing for better content density
