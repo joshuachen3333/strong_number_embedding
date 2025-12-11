@@ -1,10 +1,15 @@
 /**
  * navigation.js
  * Keyboard navigation, URL hash, and localStorage with event-driven architecture
+ * v2.0: Context-aware hotkeys for left/right panel
  */
 
 const Navigation = (() => {
   const LOCALSTORAGE_KEY = 'parsedViewerLastPosition';
+
+  // Context-aware hotkey state
+  let activePanel = 'left'; // 'left' | 'right'
+  let selectedGroupIndex = -1; // Index of currently selected SN group in right panel (-1 = none)
 
   /**
    * Initialize navigation (keyboard, hash, localStorage)
@@ -13,8 +18,58 @@ const Navigation = (() => {
     // Initialize keyboard
     initKeyboard();
 
+    // Initialize panel detection (hover and click)
+    initPanelDetection();
+
     // Subscribe to verse selected event for hash/storage updates
     Mediator.subscribe(Mediator.EVENT_TYPES.VERSE_SELECTED, handleVerseSelected);
+  }
+
+  /**
+   * Initialize panel detection (hover and click)
+   */
+  function initPanelDetection() {
+    const leftPanel = document.querySelector('.left-panel');
+    const rightPanel = document.querySelector('.right-panel');
+
+    if (leftPanel) {
+      leftPanel.addEventListener('mouseenter', () => {
+        activePanel = 'left';
+        console.log('[Navigation] Active panel: left (hover)');
+      });
+
+      // Click on left panel also sets it active
+      leftPanel.addEventListener('click', (e) => {
+        if (e.target.closest('.verse') || e.target.closest('.sn-tag')) {
+          activePanel = 'left';
+          clearGroupSelection();
+          console.log('[Navigation] Active panel: left (click)');
+        }
+      });
+    }
+
+    if (rightPanel) {
+      rightPanel.addEventListener('mouseenter', () => {
+        activePanel = 'right';
+        console.log('[Navigation] Active panel: right (hover)');
+      });
+
+      // Click on SN group in parsed section sets right panel active and selects that group
+      rightPanel.addEventListener('click', (e) => {
+        const snGroup = e.target.closest('.sn-group');
+        if (snGroup) {
+          activePanel = 'right';
+          const groups = getSnGroups();
+          const index = Array.from(groups).indexOf(snGroup);
+          if (index >= 0) {
+            selectGroup(index);
+          }
+          console.log('[Navigation] Active panel: right (click on group)');
+        }
+      });
+    }
+
+    console.log('[Navigation] Panel detection initialized');
   }
 
   /**
@@ -27,33 +82,233 @@ const Navigation = (() => {
         return;
       }
 
-      switch (e.key) {
-        case 'ArrowUp':
-          e.preventDefault();
-          navigatePreviousVerse();
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          navigateNextVerse();
-          break;
-        case 'ArrowLeft':
-          e.preventDefault();
-          navigatePreviousChapter();
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          navigateNextChapter();
-          break;
-        case 'Home':
-          e.preventDefault();
-          navigateFirstVerse();
-          break;
-        case 'End':
-          e.preventDefault();
-          navigateLastVerse();
-          break;
+      // Route to appropriate handler based on active panel
+      if (activePanel === 'left') {
+        handleLeftPanelKeys(e);
+      } else {
+        handleRightPanelKeys(e);
       }
     });
+  }
+
+  /**
+   * Handle keyboard events when left panel is active (verse/chapter navigation)
+   * @param {KeyboardEvent} e
+   */
+  function handleLeftPanelKeys(e) {
+    switch (e.key) {
+      case 'ArrowUp':
+        e.preventDefault();
+        navigatePreviousVerse();
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        navigateNextVerse();
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        navigatePreviousChapter();
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        navigateNextChapter();
+        break;
+      case 'Home':
+        e.preventDefault();
+        navigateFirstVerse();
+        break;
+      case 'End':
+        e.preventDefault();
+        navigateLastVerse();
+        break;
+    }
+  }
+
+  /**
+   * Handle keyboard events when right panel is active (SN group navigation)
+   * @param {KeyboardEvent} e
+   */
+  function handleRightPanelKeys(e) {
+    const groups = getSnGroups();
+
+    // If no groups available, fall back to left panel behavior
+    if (groups.length === 0) {
+      handleLeftPanelKeys(e);
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowUp':
+        e.preventDefault();
+        navigatePreviousGroup();
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        navigateNextGroup();
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        navigatePreviousVerse();
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        navigateNextVerse();
+        break;
+      case 'Home':
+        e.preventDefault();
+        navigateFirstGroup();
+        break;
+      case 'End':
+        e.preventDefault();
+        navigateLastGroup();
+        break;
+    }
+  }
+
+  /**
+   * Get all SN group elements from the parsed section (Section 1 only)
+   * @returns {NodeListOf<Element>}
+   */
+  function getSnGroups() {
+    // Only get groups from the first parsed-section (Parsed and Formatted Text Section)
+    const parsedSection = document.querySelector('.parsed-section .parsed-content');
+    if (!parsedSection) return document.querySelectorAll('.nonexistent'); // Empty NodeList
+    return parsedSection.querySelectorAll('.sn-group');
+  }
+
+  /**
+   * Navigate to previous SN group, or previous verse if at first group
+   */
+  function navigatePreviousGroup() {
+    const groups = getSnGroups();
+    if (groups.length === 0) return;
+
+    // If no group selected, select the last one
+    if (selectedGroupIndex < 0) {
+      selectGroup(groups.length - 1);
+      return;
+    }
+
+    if (selectedGroupIndex > 0) {
+      selectGroup(selectedGroupIndex - 1);
+    } else {
+      // At first group, go to previous verse and select last group
+      navigatePreviousVerse();
+      // Wait for verse to load, then select last group
+      setTimeout(() => {
+        const newGroups = getSnGroups();
+        if (newGroups.length > 0) {
+          selectGroup(newGroups.length - 1);
+        }
+      }, 150);
+    }
+  }
+
+  /**
+   * Navigate to next SN group, or next verse if at last group
+   */
+  function navigateNextGroup() {
+    const groups = getSnGroups();
+    if (groups.length === 0) return;
+
+    // If no group selected, select the first one
+    if (selectedGroupIndex < 0) {
+      selectGroup(0);
+      return;
+    }
+
+    if (selectedGroupIndex < groups.length - 1) {
+      selectGroup(selectedGroupIndex + 1);
+    } else {
+      // At last group, go to next verse and select first group
+      navigateNextVerse();
+      // Wait for verse to load, then select first group
+      setTimeout(() => {
+        selectGroup(0);
+      }, 150);
+    }
+  }
+
+  /**
+   * Navigate to first SN group in current verse
+   */
+  function navigateFirstGroup() {
+    selectGroup(0);
+  }
+
+  /**
+   * Navigate to last SN group in current verse
+   */
+  function navigateLastGroup() {
+    const groups = getSnGroups();
+    if (groups.length > 0) {
+      selectGroup(groups.length - 1);
+    }
+  }
+
+  /**
+   * Select an SN group by index and apply highlighting
+   * @param {number} index
+   */
+  function selectGroup(index) {
+    const groups = getSnGroups();
+    if (index < 0 || index >= groups.length) return;
+
+    // Clear previous selection
+    clearGroupSelection();
+
+    // Set new selection
+    selectedGroupIndex = index;
+    const group = groups[index];
+    group.classList.add('keyboard-selected');
+
+    // Scroll the group into view if needed
+    group.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    // Trigger bidirectional highlighting via click simulation
+    // This integrates with existing SN_CLICK event system
+    group.click();
+
+    console.log(`[Navigation] Selected group ${index}`);
+  }
+
+  /**
+   * Clear keyboard selection from all groups
+   */
+  function clearGroupSelection() {
+    document.querySelectorAll('.sn-group.keyboard-selected').forEach(el => {
+      el.classList.remove('keyboard-selected');
+    });
+    selectedGroupIndex = -1;
+  }
+
+  /**
+   * Reset group selection (called when verse changes)
+   */
+  function resetGroupSelection() {
+    selectedGroupIndex = -1;
+    clearGroupSelection();
+  }
+
+  /**
+   * Get current active panel
+   * @returns {string} 'left' or 'right'
+   */
+  function getActivePanel() {
+    return activePanel;
+  }
+
+  /**
+   * Set active panel programmatically
+   * @param {string} panel - 'left' or 'right'
+   */
+  function setActivePanel(panel) {
+    if (panel === 'left' || panel === 'right') {
+      activePanel = panel;
+      if (panel === 'left') {
+        clearGroupSelection();
+      }
+    }
   }
 
   /**
@@ -359,6 +614,12 @@ const Navigation = (() => {
     updateHash,
     parseHash,
     savePosition,
-    loadPosition
+    loadPosition,
+    // Context-aware hotkey API
+    getActivePanel,
+    setActivePanel,
+    resetGroupSelection,
+    selectGroup,
+    getSnGroups
   };
 })();

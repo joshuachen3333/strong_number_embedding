@@ -683,6 +683,13 @@ body {
   padding: 2px 4px;
 }
 
+/* Context-Aware Hotkey: Keyboard Selected SN Group */
+.sn-group.keyboard-selected {
+  outline: 2px solid #1976D2;
+  outline-offset: 2px;
+  box-shadow: 0 0 4px rgba(25, 118, 210, 0.5);
+}
+
 /* Spec Reference Tooltip Styles */
 .spec-ref-tooltip {
   color: #8e44ad;
