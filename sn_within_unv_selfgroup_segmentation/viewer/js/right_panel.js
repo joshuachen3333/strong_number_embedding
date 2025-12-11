@@ -277,17 +277,43 @@ const RightPanel = (() => {
 
   /**
    * Highlight elements in raw section matching SN codes
+   * Uses consecutive sequence matching to avoid highlighting wrong occurrences
    * @param {string[]} snCodes - Array of SN codes to highlight
    */
   function highlightInRawSection(snCodes) {
     if (!snCodes || snCodes.length === 0) return;
 
-    rightContent.querySelectorAll('.raw-text .sn-tag').forEach(snTag => {
-      const tagSNs = extractSNsFromElement(snTag);
-      if (tagSNs.some(sn => snCodes.includes(sn))) {
-        snTag.classList.add('sn-highlight-local');
+    const snTags = Array.from(rightContent.querySelectorAll('.raw-text .sn-tag'));
+    if (snTags.length === 0) return;
+
+    // For multiple SNs, find consecutive sequence matching all SNs in order
+    if (snCodes.length > 1) {
+      for (let i = 0; i <= snTags.length - snCodes.length; i++) {
+        let matches = true;
+        for (let j = 0; j < snCodes.length; j++) {
+          const tagSNs = extractSNsFromElement(snTags[i + j]);
+          if (!tagSNs.includes(snCodes[j])) {
+            matches = false;
+            break;
+          }
+        }
+        if (matches) {
+          // Found a matching sequence, highlight it
+          for (let j = 0; j < snCodes.length; j++) {
+            snTags[i + j].classList.add('sn-highlight-local');
+          }
+          return; // Only highlight the first matching sequence
+        }
       }
-    });
+    } else {
+      // For single SN, highlight all matches (fallback behavior)
+      snTags.forEach(snTag => {
+        const tagSNs = extractSNsFromElement(snTag);
+        if (tagSNs.includes(snCodes[0])) {
+          snTag.classList.add('sn-highlight-local');
+        }
+      });
+    }
   }
 
   /**
@@ -307,26 +333,52 @@ const RightPanel = (() => {
 
   /**
    * Apply remote highlighting (orange) to elements matching SN codes
+   * Uses consecutive sequence matching for raw section to avoid highlighting wrong occurrences
    * @param {string[]} snCodes - Array of SN codes to highlight
    */
   function highlightRemote(snCodes) {
     if (!snCodes || snCodes.length === 0) return;
 
-    // Highlight in parsed section
+    // Highlight in parsed section - match groups by exact SN signature
     rightContent.querySelectorAll('.sn-group').forEach(snGroup => {
       const groupSNs = extractSNsFromElement(snGroup);
-      if (groupSNs.some(sn => snCodes.includes(sn))) {
+      // Check if the group's SNs match all the snCodes in order
+      if (snCodes.length === groupSNs.length &&
+          snCodes.every((sn, idx) => groupSNs[idx] === sn)) {
         snGroup.classList.add('sn-highlight-remote');
       }
     });
 
-    // Highlight in raw section
-    rightContent.querySelectorAll('.raw-text .sn-tag').forEach(snTag => {
-      const tagSNs = extractSNsFromElement(snTag);
-      if (tagSNs.some(sn => snCodes.includes(sn))) {
-        snTag.classList.add('sn-highlight-remote');
+    // Highlight in raw section with consecutive sequence matching
+    const snTags = Array.from(rightContent.querySelectorAll('.raw-text .sn-tag'));
+    if (snTags.length === 0) return;
+
+    if (snCodes.length > 1) {
+      for (let i = 0; i <= snTags.length - snCodes.length; i++) {
+        let matches = true;
+        for (let j = 0; j < snCodes.length; j++) {
+          const tagSNs = extractSNsFromElement(snTags[i + j]);
+          if (!tagSNs.includes(snCodes[j])) {
+            matches = false;
+            break;
+          }
+        }
+        if (matches) {
+          for (let j = 0; j < snCodes.length; j++) {
+            snTags[i + j].classList.add('sn-highlight-remote');
+          }
+          return; // Only highlight the first matching sequence
+        }
       }
-    });
+    } else {
+      // For single SN, highlight all matches
+      snTags.forEach(snTag => {
+        const tagSNs = extractSNsFromElement(snTag);
+        if (tagSNs.includes(snCodes[0])) {
+          snTag.classList.add('sn-highlight-remote');
+        }
+      });
+    }
   }
 
   /**
