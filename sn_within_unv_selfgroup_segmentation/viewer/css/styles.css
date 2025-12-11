@@ -1,0 +1,354 @@
+/**
+ * styles.css
+ * Styling for Parsed Verse Viewer
+ */
+
+/* Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', '微軟正黑體', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f5f5f5;
+  overflow: hidden;
+}
+
+/* Header */
+.viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background-color: #2c3e50;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header-left {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+}
+
+.header-center {
+  flex: 1;
+  text-align: center;
+}
+
+.header-center h1 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.header-right {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+/* Dropdowns */
+.book-select,
+.chapter-select {
+  padding: 6px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+  min-width: 120px;
+}
+
+.book-select:focus,
+.chapter-select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Toggle Buttons */
+.toggle-btn {
+  padding: 6px 14px;
+  font-size: 13px;
+  border: 1px solid #fff;
+  border-radius: 4px;
+  background-color: transparent;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.toggle-btn.active {
+  background-color: #3498db;
+  border-color: #3498db;
+}
+
+/* Main Content */
+.viewer-main {
+  display: flex;
+  height: calc(100vh - 60px);
+  gap: 0;
+}
+
+/* Panels */
+.left-panel,
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  overflow: hidden;
+}
+
+.left-panel {
+  flex: 1;
+  border-right: 2px solid #ddd;
+}
+
+.right-panel {
+  flex: 1;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #ecf0f1;
+  border-bottom: 1px solid #ddd;
+}
+
+.panel-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.uncertain-badge {
+  padding: 4px 10px;
+  background-color: #f39c12;
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+/* Left Panel: Verses */
+.verse {
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-left: 3px solid transparent;
+}
+
+.verse:hover {
+  background-color: #f8f9fa;
+}
+
+.verse.selected {
+  background-color: #e3f2fd;
+  border-left-color: #2196f3;
+}
+
+.verse.uncertain {
+  border-left-color: #f39c12;
+}
+
+.verse-num {
+  display: inline-block;
+  min-width: 30px;
+  font-weight: bold;
+  color: #666;
+  margin-right: 8px;
+}
+
+.verse-text {
+  display: inline;
+  line-height: 1.8;
+}
+
+/* Strong's Number Tags */
+.sn-tag {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85em;
+  padding: 1px 3px;
+  border-radius: 2px;
+  margin: 0 1px;
+}
+
+/* Right Panel: Parsed Output */
+.parsed-section {
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid #3498db;
+}
+
+.parsed-line {
+  padding: 6px 0;
+  line-height: 1.8;
+  font-family: 'Microsoft YaHei', '微軟正黑體', sans-serif;
+}
+
+.parsed-line .sn-group {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  padding: 2px 4px;
+  border-radius: 2px;
+  margin-right: 8px;
+}
+
+.raw-text {
+  line-height: 2;
+  font-size: 18px;
+  white-space: pre-wrap;
+}
+
+.morphology-note {
+  padding: 4px 0;
+  color: #555;
+  font-size: 14px;
+}
+
+/* Uncertain Verse Styling */
+.right-panel.uncertain {
+  background-color: #fffbea;
+}
+
+.warning-message {
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 16px;
+  color: #856404;
+}
+
+.warning-message strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* Not Parsed Message */
+.not-parsed {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.not-parsed .icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.not-parsed .message {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.not-parsed .verse-ref {
+  font-weight: bold;
+  color: #666;
+}
+
+/* Loading Message */
+.loading-message {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+  font-size: 14px;
+}
+
+/* Hidden sections */
+.section-hidden {
+  display: none;
+}
+
+/* Scrollbar Styling */
+.panel-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.panel-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.panel-content::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.panel-content::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Context-Aware Hotkey: Keyboard Selected SN Group */
+.sn-group.keyboard-selected {
+  outline: 2px solid #1976D2;
+  outline-offset: 2px;
+  box-shadow: 0 0 4px rgba(25, 118, 210, 0.5);
+}
+
+/* Bidirectional SN Click Highlighting */
+.sn-highlight-local {
+  background-color: #1e88e5 !important;
+  color: white !important;
+  border-radius: 2px;
+}
+
+.sn-highlight-remote {
+  background-color: #ff9800 !important;
+  color: white !important;
+  border-radius: 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .viewer-main {
+    flex-direction: column;
+  }
+
+  .left-panel {
+    flex: 1;
+    border-right: none;
+    border-bottom: 2px solid #ddd;
+  }
+
+  .right-panel {
+    flex: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-center h1 {
+    font-size: 16px;
+  }
+
+  .toggle-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+}
