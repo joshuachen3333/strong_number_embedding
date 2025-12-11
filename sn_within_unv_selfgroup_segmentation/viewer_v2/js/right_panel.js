@@ -8,15 +8,18 @@ const RightPanel = (() => {
   const STORAGE_KEY_SHOW_PARSED = 'viewer_v2_show_parsed';
   const STORAGE_KEY_SHOW_RAW = 'viewer_v2_show_raw';
   const STORAGE_KEY_SHOW_NOTES = 'viewer_v2_show_notes';
+  const STORAGE_KEY_SHOW_SPEC = 'viewer_v2_show_spec';
 
-  let currentSections = { parsed: '', raw: '', notes: '' };
+  let currentSections = { parsed: '', raw: '', notes: '', specRefs: null };
   let currentGroups = [];
   let currentColorMap = {};
   let currentVerse = null;  // Track current verse for single-HL filtering
   let showParsed = true;   // Default ON
   let showRaw = false;     // Default OFF
   let showNotes = false;   // Default OFF
+  let showSpec = false;    // Default OFF - spec tooltips
   let singleHighlightMode = true; // Single highlight mode: true = clear previous, false = multi-highlight
+  let specTooltipElement = null; // Tooltip element for spec references
 
   const rightContent = document.getElementById('right-content');
   const uncertainBadge = document.getElementById('uncertain-badge');
@@ -28,6 +31,7 @@ const RightPanel = (() => {
   const toggleParsedBtn = document.getElementById('toggle-parsed');
   const toggleRawBtn = document.getElementById('toggle-raw');
   const toggleNotesBtn = document.getElementById('toggle-notes');
+  const toggleSpecBtn = document.getElementById('toggle-spec');
 
   /**
    * Load setting from localStorage with error handling
@@ -69,7 +73,8 @@ const RightPanel = (() => {
     showParsed = loadSetting(STORAGE_KEY_SHOW_PARSED, true);
     showRaw = loadSetting(STORAGE_KEY_SHOW_RAW, false);
     showNotes = loadSetting(STORAGE_KEY_SHOW_NOTES, false);
-    console.log(`[RightPanel] Loaded settings: Parsed=${showParsed}, Raw=${showRaw}, Notes=${showNotes}`);
+    showSpec = loadSetting(STORAGE_KEY_SHOW_SPEC, false);
+    console.log(`[RightPanel] Loaded settings: Parsed=${showParsed}, Raw=${showRaw}, Notes=${showNotes}, Spec=${showSpec}`);
 
     // Initialize toggle buttons
     initToggleButtons();
@@ -102,6 +107,7 @@ const RightPanel = (() => {
     toggleParsedBtn.classList.toggle('active', showParsed);
     toggleRawBtn.classList.toggle('active', showRaw);
     toggleNotesBtn.classList.toggle('active', showNotes);
+    toggleSpecBtn.classList.toggle('active', showSpec);
 
     toggleParsedBtn.addEventListener('click', () => {
       showParsed = !showParsed;
@@ -121,6 +127,13 @@ const RightPanel = (() => {
       showNotes = !showNotes;
       toggleNotesBtn.classList.toggle('active', showNotes);
       saveSetting(STORAGE_KEY_SHOW_NOTES, showNotes);
+      render();
+    });
+
+    toggleSpecBtn.addEventListener('click', () => {
+      showSpec = !showSpec;
+      toggleSpecBtn.classList.toggle('active', showSpec);
+      saveSetting(STORAGE_KEY_SHOW_SPEC, showSpec);
       render();
     });
   }
@@ -231,6 +244,92 @@ const RightPanel = (() => {
   }
 
   /**
+   * Convert [3.x.x] spec references to tooltip spans
+   * @param {string} text - Text containing spec references
+   * @param {Object} specRefs - Spec references data { "3.3.2": { title, content } }
+   * @returns {string} Text with tooltip spans
+   */
+  function addSpecTooltips(text, specRefs) {
+    // Pattern to match spec references like [3.3.2], [3.4.4]
+    return text.replace(/\[(\d+(?:\.\d+)+)\]/g, (match, refNum) => {
+      const ref = specRefs[refNum];
+      if (ref) {
+        // Create span with only ref number - tooltip content comes from specRefs on hover
+        return `<span class="spec-ref-tooltip" data-spec-ref="${refNum}">[${refNum}]</span>`;
+      }
+      return match;  // No tooltip for unknown references
+    });
+  }
+
+  /**
+   * Create or get the spec tooltip element
+   */
+  function getSpecTooltip() {
+    if (!specTooltipElement) {
+      specTooltipElement = document.createElement('div');
+      specTooltipElement.className = 'spec-tooltip-container';
+      specTooltipElement.style.display = 'none';
+      document.body.appendChild(specTooltipElement);
+    }
+    return specTooltipElement;
+  }
+
+  /**
+   * Show spec tooltip near the element
+   * @param {HTMLElement} element - The spec-ref-tooltip element
+   */
+  function showSpecTooltip(element) {
+    const refNum = element.dataset.specRef;
+    const ref = currentSections.specRefs?.[refNum];
+    if (!ref) return;
+
+    const tooltip = getSpecTooltip();
+    tooltip.innerHTML = `<div class="tooltip-title">[${refNum}] ${escapeHtml(ref.title)}</div><div class="tooltip-content">${escapeHtml(ref.content.trim())}</div>`;
+
+    // Position tooltip above the element
+    const rect = element.getBoundingClientRect();
+    tooltip.style.display = 'block';
+
+    // Calculate position
+    const tooltipRect = tooltip.getBoundingClientRect();
+    let top = rect.top - tooltipRect.height - 10;
+    let left = rect.left;
+
+    // Adjust if tooltip goes off screen
+    if (top < 10) {
+      top = rect.bottom + 10;  // Show below instead
+    }
+    if (left + tooltipRect.width > window.innerWidth - 10) {
+      left = window.innerWidth - tooltipRect.width - 10;
+    }
+    if (left < 10) left = 10;
+
+    tooltip.style.top = `${top}px`;
+    tooltip.style.left = `${left}px`;
+  }
+
+  /**
+   * Hide spec tooltip
+   */
+  function hideSpecTooltip() {
+    const tooltip = getSpecTooltip();
+    tooltip.style.display = 'none';
+  }
+
+  /**
+   * Attach hover listeners to spec tooltip spans
+   */
+  function attachSpecTooltipListeners() {
+    if (!showSpec || !currentSections.specRefs) return;
+
+    const spans = rightContent.querySelectorAll('.spec-ref-tooltip');
+    spans.forEach(span => {
+      span.addEventListener('mouseenter', () => showSpecTooltip(span));
+      span.addEventListener('mouseleave', hideSpecTooltip);
+    });
+  }
+
+  /**
    * Render right panel content
    */
   function render() {
@@ -248,10 +347,15 @@ const RightPanel = (() => {
 
     // Section 1: Parsed and Formatted Text
     if (showParsed && currentSections.parsed) {
-      const coloredParsed = ColorMapper.applyColorsToParsedText(
+      let coloredParsed = ColorMapper.applyColorsToParsedText(
         currentSections.parsed,
         currentGroups
       );
+
+      // If spec tooltips enabled, convert [3.x.x] references to tooltip spans
+      if (showSpec && currentSections.specRefs) {
+        coloredParsed = addSpecTooltips(coloredParsed, currentSections.specRefs);
+      }
 
       // Wrap each line in pre tag for monospace display
       const wrappedLines = coloredParsed.split('\n')
@@ -306,6 +410,11 @@ const RightPanel = (() => {
     }
 
     rightContent.innerHTML = html || '<div class="loading-message">無資料可顯示</div>';
+
+    // Attach spec tooltip listeners after render
+    if (showSpec && currentSections.specRefs) {
+      setTimeout(attachSpecTooltipListeners, 10);
+    }
   }
 
   /**
@@ -373,6 +482,23 @@ const RightPanel = (() => {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+  }
+
+  /**
+   * Escape text for use in HTML data attributes
+   * More aggressive escaping including quotes and newlines
+   * @param {string} text - Text to escape
+   * @returns {string} Escaped text safe for data attributes
+   */
+  function escapeForAttribute(text) {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/\n/g, '&#10;')
+      .replace(/\r/g, '&#13;');
   }
 
   /**

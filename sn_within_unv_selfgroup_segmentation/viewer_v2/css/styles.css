@@ -682,3 +682,47 @@ body {
   border-radius: 3px;
   padding: 2px 4px;
 }
+
+/* Spec Reference Tooltip Styles */
+.spec-ref-tooltip {
+  color: #8e44ad;
+  cursor: help;
+  position: relative;
+  text-decoration: underline dotted;
+}
+
+.spec-ref-tooltip:hover {
+  color: #9b59b6;
+  background-color: rgba(142, 68, 173, 0.1);
+}
+
+/* Spec Tooltip Container - created dynamically by JavaScript */
+.spec-tooltip-container {
+  position: fixed;
+  background-color: #2c3e50;
+  color: #ecf0f1;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  max-width: 450px;
+  min-width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 10000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  white-space: pre-wrap;
+  font-family: monospace;
+}
+
+.spec-tooltip-container .tooltip-title {
+  font-weight: bold;
+  color: #3498db;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.spec-tooltip-container .tooltip-content {
+  color: #bdc3c7;
+}

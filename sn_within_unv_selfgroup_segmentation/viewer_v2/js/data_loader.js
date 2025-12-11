@@ -275,29 +275,69 @@ const DataLoader = (() => {
       parsed: '',
       raw: '',
       notes: '',
+      spec: '',
+      specRefs: {},  // Parsed spec references: { "3.3.2": { title: "...", content: "..." } }
       parsedTitle: 'Parsed and Formatted Text Section',
       rawTitle: 'Raw UNV+SN Source Text Section',
-      notesTitle: 'Morphology Notes Section'
+      notesTitle: 'Morphology Notes Section',
+      specTitle: 'Spec References Section'
     };
 
     if (!content) return sections;
 
     const lines = content.split('\n');
     let currentSection = null;
+    let currentSpecRef = null;  // For parsing spec references
 
     for (const line of lines) {
       if (line.includes('Parsed and Formatted Text Section')) {
         currentSection = 'parsed';
+        currentSpecRef = null;
         // Extract full title (including version info if present)
         sections.parsedTitle = line.replace(/:\s*$/, '');  // Remove trailing colon
         continue;
       } else if (line.includes('Raw UNV+SN Source Text Section')) {
         currentSection = 'raw';
+        currentSpecRef = null;
         sections.rawTitle = line.replace(/:\s*$/, '');
         continue;
       } else if (line.includes('Morphology Notes Section')) {
         currentSection = 'notes';
+        currentSpecRef = null;
         sections.notesTitle = line.replace(/:\s*$/, '');
+        continue;
+      } else if (line.includes('Spec References Section')) {
+        currentSection = 'spec';
+        currentSpecRef = null;
+        sections.specTitle = line.replace(/:\s*$/, '');
+        continue;
+      } else if (line.startsWith('--- UNCERTAINTY')) {
+        // Stop parsing at uncertainty notes
+        currentSection = null;
+        currentSpecRef = null;
+        continue;
+      }
+
+      // Parse spec references section into structured data
+      if (currentSection === 'spec') {
+        // Check for new spec reference header: [3.3.2]: Title
+        const refMatch = line.match(/^\[(\d+(?:\.\d+)*)\]:\s*(.+)$/);
+        if (refMatch) {
+          currentSpecRef = refMatch[1];
+          sections.specRefs[currentSpecRef] = {
+            title: refMatch[2],
+            content: ''
+          };
+          continue;
+        }
+        // Append content to current spec reference
+        if (currentSpecRef && line.trim()) {
+          sections.specRefs[currentSpecRef].content += line + '\n';
+        }
+        // Also store raw text
+        if (line.trim()) {
+          sections.spec += line + '\n';
+        }
         continue;
       }
 

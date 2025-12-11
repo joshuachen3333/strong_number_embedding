@@ -104,6 +104,12 @@ def load_spec_sections():
     # Strategy 1: Try to extract HTML comment tags (preferred)
     sections = _extract_spec_tags(content)
 
+    # Extract section titles for tooltip support
+    section_titles = _extract_spec_section_titles(content)
+
+    # Extract full section content (title + body) for detailed tooltips
+    section_content = _extract_spec_section_content(content)
+
     # Strategy 2: Fallback to known section mappings for missing rules
     # Always apply fallback for rules not found in tags
     fallback_sections = {
@@ -129,7 +135,9 @@ def load_spec_sections():
     return {
         'version': spec_version,
         'spec_file': SPEC_FILE,
-        'sections': sections
+        'sections': sections,
+        'section_titles': section_titles,
+        'section_content': section_content
     }
 
 def _extract_spec_tags(content):
@@ -155,12 +163,104 @@ def _extract_spec_tags(content):
 
     return sections
 
+
+def _extract_spec_section_titles(content):
+    """
+    Extract section titles from markdown content for all numbered sections.
+    Pattern: ### 3.3.1 Title Text (with or without spec tags)
+
+    Args:
+        content: Full markdown file content
+
+    Returns:
+        dict: Mapping from section_number to title
+              e.g., {'3.3.1': '檢測算法（v1.8 通用版本：支持所有複合詞）'}
+    """
+    titles = {}
+
+    # Pattern matches: ##+ section_number Title (optional <!-- ... -->)
+    # Captures section number and title text (excluding HTML comments)
+    pattern = r'^(###+)\s+(\d+(?:\.\d+)*)\s+([^<\n]+?)(?:\s*<!--[^>]*-->)?\s*$'
+
+    for match in re.finditer(pattern, content, re.MULTILINE):
+        section_num = match.group(2)
+        title = match.group(3).strip()
+        titles[section_num] = title
+
+    return titles
+
+
+def _extract_spec_section_content(content):
+    """
+    Extract section titles AND content from markdown for all numbered sections.
+    Each section's content extends from the title to the next section of same or higher level.
+
+    Args:
+        content: Full markdown file content
+
+    Returns:
+        dict: Mapping from section_number to {title, content}
+              e.g., {'3.3.1': {'title': '檢測算法...', 'content': '**在分組前執行**...'}}
+    """
+    sections = {}
+    lines = content.split('\n')
+
+    # First pass: find all section headers with their line numbers and levels
+    header_pattern = r'^(#{2,})\s+(\d+(?:\.\d+)*)\s+([^<\n]+?)(?:\s*<!--[^>]*-->)?\s*$'
+    headers = []
+
+    for i, line in enumerate(lines):
+        match = re.match(header_pattern, line)
+        if match:
+            level = len(match.group(1))  # Number of # characters
+            section_num = match.group(2)
+            title = match.group(3).strip()
+            headers.append({
+                'line': i,
+                'level': level,
+                'section': section_num,
+                'title': title
+            })
+
+    # Second pass: extract content for each section
+    for idx, header in enumerate(headers):
+        start_line = header['line'] + 1  # Start after the header
+
+        # Find end line: next header of same or higher level (fewer or equal #)
+        if idx + 1 < len(headers):
+            end_line = headers[idx + 1]['line']
+        else:
+            end_line = len(lines)
+
+        # Extract content lines (skip empty lines at start/end)
+        content_lines = lines[start_line:end_line]
+
+        # Strip leading/trailing empty lines
+        while content_lines and not content_lines[0].strip():
+            content_lines.pop(0)
+        while content_lines and not content_lines[-1].strip():
+            content_lines.pop()
+
+        # Join and limit content length for tooltip (max ~500 chars)
+        section_content = '\n'.join(content_lines)
+        if len(section_content) > 500:
+            section_content = section_content[:500] + '...'
+
+        sections[header['section']] = {
+            'title': header['title'],
+            'content': section_content
+        }
+
+    return sections
+
 # Load specification metadata at module import
 try:
     SPEC_META = load_spec_sections()
     SPEC_SECTIONS = SPEC_META['sections']
+    SPEC_TITLES = SPEC_META['section_titles']
+    SPEC_CONTENT = SPEC_META['section_content']
     print(f"✓ Loaded {SPEC_META['spec_file']} (parser {PARSER_VERSION})")
-    print(f"  Mapped {len(SPEC_SECTIONS)} section rules")
+    print(f"  Mapped {len(SPEC_SECTIONS)} section rules, {len(SPEC_CONTENT)} section contents for tooltips")
 except Exception as e:
     print(f"✗ ERROR: Failed to load specification metadata")
     print(f"  {e}")
@@ -1051,6 +1151,7 @@ def format_groups_to_text(groups, bible_text_raw, qp_records, verse_ref=None):
     morph_ref_counter = 1
     uncertainty_notes = []
     notable_issues = []
+    used_spec_refs = set()  # Collect spec references for tooltip output
 
     # Extract complete Strong's number tags from bible_text_raw
     tag_mapping = extract_complete_tags_mapping(bible_text_raw)
@@ -1083,6 +1184,8 @@ def format_groups_to_text(groups, bible_text_raw, qp_records, verse_ref=None):
 
             # Add spec reference and interleaved text
             spec_rule = determine_spec_rule(group)
+            if spec_rule:
+                used_spec_refs.add(spec_rule)
             interleaved = extract_interleaved_text(group, bible_text_raw, consumed_positions)
             formatted_line = format_line_with_annotations(formatted_line, interleaved, spec_rule)
 
@@ -1146,6 +1249,8 @@ def format_groups_to_text(groups, bible_text_raw, qp_records, verse_ref=None):
 
         # Add spec reference and interleaved text
         spec_rule = determine_spec_rule(group)
+        if spec_rule:
+            used_spec_refs.add(spec_rule)
         interleaved = extract_interleaved_text(group, bible_text_raw, consumed_positions)
         formatted_line = format_line_with_annotations(formatted_line, interleaved, spec_rule)
 
@@ -1182,6 +1287,18 @@ def format_groups_to_text(groups, bible_text_raw, qp_records, verse_ref=None):
         output_lines.append("Morphology Notes Section:")
         for label, desc in morphology_notes_entries:
             output_lines.append(f"{label}: {desc}")
+        output_lines.append("")
+
+    # Spec References Section: provide tooltip content for referenced spec sections
+    if used_spec_refs:
+        output_lines.append("Spec References Section:")
+        for ref in sorted(used_spec_refs):
+            if ref in SPEC_CONTENT:
+                info = SPEC_CONTENT[ref]
+                # Output format: [section]: title\ncontent
+                output_lines.append(f"[{ref}]: {info['title']}")
+                output_lines.append(info['content'])
+                output_lines.append("")  # Blank line between sections
         output_lines.append("")
 
     if uncertainty_notes:
