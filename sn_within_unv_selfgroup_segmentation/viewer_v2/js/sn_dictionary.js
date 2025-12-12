@@ -22,7 +22,11 @@ const SNDictionary = (() => {
   let leftEnabled = false;
   let rightEnabled = false;
 
-  // Floating tooltip elements - one for each panel (independent)
+  // Floating tooltip elements - pool of 3 per panel for multi-SN groups
+  const leftTooltips = [null, null, null];
+  const rightTooltips = [null, null, null];
+
+  // Legacy references for backwards compatibility
   let leftTooltip = null;
   let rightTooltip = null;
 
@@ -107,26 +111,36 @@ const SNDictionary = (() => {
   }
 
   /**
-   * Create floating tooltip elements for both panels
+   * Create floating tooltip elements for both panels (pool of 3 each)
    */
   function createFloatingTooltips() {
-    if (!leftTooltip) {
-      leftTooltip = document.createElement('div');
-      leftTooltip.className = 'sn-dict-floating-tooltip sn-tooltip-left';
-      leftTooltip.style.display = 'none';
-      document.body.appendChild(leftTooltip);
+    // Create tooltip pool for left panel
+    for (let i = 0; i < 3; i++) {
+      if (!leftTooltips[i]) {
+        leftTooltips[i] = document.createElement('div');
+        leftTooltips[i].className = `sn-dict-floating-tooltip sn-tooltip-left sn-tooltip-${i}`;
+        leftTooltips[i].style.display = 'none';
+        document.body.appendChild(leftTooltips[i]);
+      }
     }
-    if (!rightTooltip) {
-      rightTooltip = document.createElement('div');
-      rightTooltip.className = 'sn-dict-floating-tooltip sn-tooltip-right';
-      rightTooltip.style.display = 'none';
-      document.body.appendChild(rightTooltip);
+    // Create tooltip pool for right panel
+    for (let i = 0; i < 3; i++) {
+      if (!rightTooltips[i]) {
+        rightTooltips[i] = document.createElement('div');
+        rightTooltips[i].className = `sn-dict-floating-tooltip sn-tooltip-right sn-tooltip-${i}`;
+        rightTooltips[i].style.display = 'none';
+        document.body.appendChild(rightTooltips[i]);
+      }
     }
+    // Legacy references point to first tooltip
+    leftTooltip = leftTooltips[0];
+    rightTooltip = rightTooltips[0];
   }
 
   /**
    * Handle SN highlight event - auto-show tooltip if panel's SN Dict is enabled
    * BOTH panels can show tooltips independently when both checkboxes are enabled
+   * Now shows tooltips for ALL SNs in a group (up to 3)
    * @param {Object} data - {source, element, snCode, groupSNs, verse}
    */
   async function handleSNHighlight(data) {
@@ -139,11 +153,11 @@ const SNDictionary = (() => {
     // Reset highlight timeout
     resetHighlightTimeout();
 
-    // Get the primary SN code
-    const primarySN = snCode || (groupSNs && groupSNs[0]);
-    if (!primarySN) return;
+    // Get all SN codes (use groupSNs if available, otherwise wrap snCode)
+    const allSNs = (groupSNs && groupSNs.length > 0) ? groupSNs : (snCode ? [snCode] : []);
+    if (allSNs.length === 0) return;
 
-    console.log(`[SNDictionary] Handling highlight: source=${source}, leftEnabled=${leftEnabled}, rightEnabled=${rightEnabled}`);
+    console.log(`[SNDictionary] Handling highlight: source=${source}, SNs=[${allSNs.join(',')}], leftEnabled=${leftEnabled}, rightEnabled=${rightEnabled}`);
 
     // Show tooltips on BOTH panels independently (not mutually exclusive)
 
@@ -152,23 +166,23 @@ const SNDictionary = (() => {
     // - If click from right AND left enabled → show on receiving element (orange)
     if (leftEnabled) {
       if (isLeftPanelSource) {
-        console.log('[SNDictionary] Showing LEFT tooltip (local/blue highlight)');
-        await showTooltipForPanel('left', element, primarySN);
+        console.log(`[SNDictionary] Showing LEFT tooltips for ${allSNs.length} SNs (local/blue highlight)`);
+        await showMultipleTooltipsForPanel('left', element, allSNs);
       } else if (isRightPanelSource) {
         // Wait for orange highlights to be applied, then find element in left panel
         setTimeout(async () => {
           console.log('[SNDictionary] Looking for highlighted element in LEFT panel (remote/orange)...');
           const leftElement = findHighlightedElementInPanel('left', groupSNs);
           if (leftElement) {
-            await showTooltipForPanel('left', leftElement, primarySN);
+            await showMultipleTooltipsForPanel('left', leftElement, allSNs);
           } else {
             console.log('[SNDictionary] No element found in LEFT panel for tooltip');
-            hideTooltipForPanel('left');
+            hideAllTooltipsForPanel('left');
           }
         }, 50);
       }
     } else {
-      hideTooltipForPanel('left');
+      hideAllTooltipsForPanel('left');
     }
 
     // RIGHT panel tooltip:
@@ -176,23 +190,23 @@ const SNDictionary = (() => {
     // - If click from left AND right enabled → show on receiving element (orange)
     if (rightEnabled) {
       if (isRightPanelSource) {
-        console.log('[SNDictionary] Showing RIGHT tooltip (local/blue highlight)');
-        await showTooltipForPanel('right', element, primarySN);
+        console.log(`[SNDictionary] Showing RIGHT tooltips for ${allSNs.length} SNs (local/blue highlight)`);
+        await showMultipleTooltipsForPanel('right', element, allSNs);
       } else if (isLeftPanelSource) {
         // Wait for orange highlights to be applied, then find element in right panel
         setTimeout(async () => {
           console.log('[SNDictionary] Looking for highlighted element in RIGHT panel (remote/orange)...');
           const rightElement = findHighlightedElementInPanel('right', groupSNs);
           if (rightElement) {
-            await showTooltipForPanel('right', rightElement, primarySN);
+            await showMultipleTooltipsForPanel('right', rightElement, allSNs);
           } else {
             console.log('[SNDictionary] No element found in RIGHT panel for tooltip');
-            hideTooltipForPanel('right');
+            hideAllTooltipsForPanel('right');
           }
         }, 50);
       }
     } else {
-      hideTooltipForPanel('right');
+      hideAllTooltipsForPanel('right');
     }
 
     // If neither panel is enabled, log it
@@ -376,6 +390,229 @@ const SNDictionary = (() => {
     tooltip.style.left = `${left}px`;
   }
 
+  /**
+   * Show multiple tooltips for all SNs in a group
+   * @param {string} panel - 'left' or 'right'
+   * @param {HTMLElement} element - The highlighted element
+   * @param {string[]} snCodes - Array of SN codes to display
+   */
+  async function showMultipleTooltipsForPanel(panel, element, snCodes) {
+    const tooltips = panel === 'left' ? leftTooltips : rightTooltips;
+
+    // Ensure tooltips exist
+    if (!tooltips[0]) {
+      createFloatingTooltips();
+    }
+
+    // Limit to 3 tooltips max
+    const codes = snCodes.slice(0, 3);
+    const count = codes.length;
+
+    console.log(`[SNDictionary] showMultipleTooltipsForPanel: panel=${panel}, SNs=${codes.join(',')}`);
+
+    // Hide all tooltips first
+    hideAllTooltipsForPanel(panel);
+
+    // Show loading state for all tooltips
+    showMultipleLoadingTooltips(panel, element, count);
+
+    // Fetch all definitions in parallel
+    const definitions = await Promise.all(codes.map(sn => fetchDefinition(sn)));
+
+    // Calculate positions for all tooltips
+    const positions = calculateMultiTooltipPositions(element, count);
+
+    // Show each tooltip with its definition
+    for (let i = 0; i < count; i++) {
+      const tooltip = tooltips[i];
+      const sn = codes[i];
+      const def = definitions[i];
+      const pos = positions[i];
+
+      if (def) {
+        renderDefinitionTooltip(tooltip, sn, def);
+      } else {
+        renderErrorTooltip(tooltip, sn);
+      }
+
+      // Position and show
+      tooltip.style.top = `${pos.top}px`;
+      tooltip.style.left = `${pos.left}px`;
+      tooltip.style.display = 'block';
+    }
+  }
+
+  /**
+   * Hide all tooltips for a panel
+   * @param {string} panel - 'left' or 'right'
+   */
+  function hideAllTooltipsForPanel(panel) {
+    const tooltips = panel === 'left' ? leftTooltips : rightTooltips;
+    for (const tooltip of tooltips) {
+      if (tooltip) {
+        tooltip.style.display = 'none';
+      }
+    }
+  }
+
+  /**
+   * Show loading state for multiple tooltips
+   * @param {string} panel
+   * @param {HTMLElement} element
+   * @param {number} count
+   */
+  function showMultipleLoadingTooltips(panel, element, count) {
+    const tooltips = panel === 'left' ? leftTooltips : rightTooltips;
+    const positions = calculateMultiTooltipPositions(element, count);
+
+    for (let i = 0; i < count; i++) {
+      const tooltip = tooltips[i];
+      tooltip.innerHTML = `
+        <div class="tooltip-loading">
+          <div class="mini-spinner"></div>
+          <div>載入中...</div>
+        </div>
+      `;
+      tooltip.style.top = `${positions[i].top}px`;
+      tooltip.style.left = `${positions[i].left}px`;
+      tooltip.style.display = 'block';
+    }
+  }
+
+  /**
+   * Calculate positions for multiple tooltips around an element
+   * @param {HTMLElement} element
+   * @param {number} count - Number of tooltips (1, 2, or 3)
+   * @returns {Array<{top: number, left: number}>}
+   */
+  function calculateMultiTooltipPositions(element, count) {
+    if (!element) return [];
+
+    const rect = element.getBoundingClientRect();
+    const tooltipWidth = 500;  // max-width from CSS
+    const tooltipHeight = 200; // estimated height
+    const gap = 10;
+
+    const positions = [];
+
+    if (count === 1) {
+      // Single tooltip: above or below
+      let top = rect.top - tooltipHeight - gap;
+      if (top < gap) {
+        top = rect.bottom + gap;
+      }
+      positions.push({ top, left: Math.max(gap, rect.left) });
+    }
+    else if (count === 2) {
+      // 2 tooltips: one above, one below
+      const aboveTop = rect.top - tooltipHeight - gap;
+      const belowTop = rect.bottom + gap;
+
+      // First tooltip above (or below if no space)
+      if (aboveTop >= gap) {
+        positions.push({ top: aboveTop, left: Math.max(gap, rect.left) });
+        positions.push({ top: belowTop, left: Math.max(gap, rect.left) });
+      } else {
+        // Both below, stacked
+        positions.push({ top: belowTop, left: Math.max(gap, rect.left) });
+        positions.push({ top: belowTop + tooltipHeight + gap, left: Math.max(gap, rect.left) });
+      }
+    }
+    else if (count === 3) {
+      // 3 tooltips: distribute based on available space
+      const spaceAbove = rect.top;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const halfWidth = tooltipWidth / 2 + gap;
+
+      if (spaceAbove > spaceBelow) {
+        // More space above: 2 above (horizontal), 1 below
+        const aboveTop = rect.top - tooltipHeight - gap;
+        const belowTop = rect.bottom + gap;
+
+        // 2 above, side by side
+        const leftPos1 = Math.max(gap, rect.left - halfWidth);
+        const leftPos2 = leftPos1 + halfWidth + gap;
+
+        positions.push({ top: aboveTop, left: leftPos1 });
+        positions.push({ top: aboveTop, left: Math.min(leftPos2, window.innerWidth - tooltipWidth - gap) });
+        positions.push({ top: belowTop, left: Math.max(gap, rect.left) });
+      } else {
+        // More space below: 1 above, 2 below (horizontal)
+        const aboveTop = rect.top - tooltipHeight - gap;
+        const belowTop = rect.bottom + gap;
+
+        // 1 above
+        positions.push({ top: aboveTop >= gap ? aboveTop : belowTop + tooltipHeight + gap, left: Math.max(gap, rect.left) });
+
+        // 2 below, side by side
+        const leftPos1 = Math.max(gap, rect.left - halfWidth);
+        const leftPos2 = leftPos1 + halfWidth + gap;
+
+        positions.push({ top: belowTop, left: leftPos1 });
+        positions.push({ top: belowTop, left: Math.min(leftPos2, window.innerWidth - tooltipWidth - gap) });
+      }
+    }
+
+    // Adjust all positions to stay within viewport
+    return positions.map(pos => ({
+      top: Math.max(gap, Math.min(pos.top, window.innerHeight - tooltipHeight - gap)),
+      left: Math.max(gap, Math.min(pos.left, window.innerWidth - tooltipWidth - gap))
+    }));
+  }
+
+  /**
+   * Render definition content into a tooltip element
+   * @param {HTMLElement} tooltip
+   * @param {string} snCode
+   * @param {Object} definition
+   */
+  function renderDefinitionTooltip(tooltip, snCode, definition) {
+    const prefix = definition.testament === 'ot' ? 'H' : 'G';
+
+    // Build meta section
+    let metaHtml = '';
+    if (definition.partOfSpeech || definition.twot) {
+      const posHtml = definition.partOfSpeech ? `<span class="tooltip-pos">${definition.partOfSpeech}</span>` : '';
+      const twotHtml = definition.twot ? `<span class="tooltip-twot">TWOT ${definition.twot}</span>` : '';
+      metaHtml = `<div class="tooltip-meta">${posHtml}${twotHtml}</div>`;
+    }
+
+    // Build definitions list
+    let defsHtml = '';
+    if (definition.definitions && definition.definitions.length > 0) {
+      const defItems = definition.definitions.map(d => {
+        const className = d.level === 0 ? 'tooltip-def-item' : 'tooltip-subdef';
+        return `<div class="${className}">${d.text}</div>`;
+      }).join('');
+      defsHtml = `<div class="tooltip-def-list">${defItems}</div>`;
+    } else if (definition.definition) {
+      defsHtml = `<div class="tooltip-def">${definition.definition}</div>`;
+    }
+
+    tooltip.innerHTML = `
+      <span class="tooltip-sn">${prefix}${snCode}</span>
+      <div class="tooltip-word">${definition.word}</div>
+      <div class="tooltip-translit">${definition.transliteration}</div>
+      <div class="tooltip-divider"></div>
+      ${metaHtml}
+      ${defsHtml}
+    `;
+  }
+
+  /**
+   * Render error content into a tooltip element
+   * @param {HTMLElement} tooltip
+   * @param {string} snCode
+   */
+  function renderErrorTooltip(tooltip, snCode) {
+    tooltip.innerHTML = `
+      <div class="tooltip-error">
+        <div>無法載入字典資料</div>
+        <div style="font-family: monospace; margin-top: 4px;">${snCode}</div>
+      </div>
+    `;
+  }
+
   // DEPRECATED: Keep old functions for backwards compatibility
   /**
    * Show tooltip for a specific element (deprecated - use showTooltipForPanel)
@@ -468,9 +705,9 @@ const SNDictionary = (() => {
       el.classList.remove('keyboard-selected');
     });
 
-    // 4. Hide both tooltips
-    hideTooltipForPanel('left');
-    hideTooltipForPanel('right');
+    // 4. Hide all tooltips for both panels
+    hideAllTooltipsForPanel('left');
+    hideAllTooltipsForPanel('right');
 
     // Clear timeout ID
     highlightTimeoutId = null;
@@ -833,8 +1070,8 @@ const SNDictionary = (() => {
    * Hide all floating tooltips (for backwards compatibility and checkbox toggle)
    */
   function hideFloatingTooltip() {
-    hideTooltipForPanel('left');
-    hideTooltipForPanel('right');
+    hideAllTooltipsForPanel('left');
+    hideAllTooltipsForPanel('right');
   }
 
   /**
