@@ -25,7 +25,7 @@ const RightPanel = (() => {
   const uncertainBadge = document.getElementById('uncertain-badge');
   const verseRefDisplay = document.getElementById('verse-ref-display');
   const rightPanel = document.querySelector('.right-panel');
-  const singleHighlightCheckbox = document.getElementById('single-highlight-mode');
+  const singleHighlightCheckbox = document.getElementById('right-single-highlight-mode');
 
   // Toggle buttons
   const toggleParsedBtn = document.getElementById('toggle-parsed');
@@ -80,16 +80,16 @@ const RightPanel = (() => {
     // Initialize toggle buttons
     initToggleButtons();
 
-    // Initialize Single Highlight mode checkbox (cross-panel coordination with left panel)
+    // Initialize Single Highlight mode checkbox (right panel has its own independent checkbox)
     if (singleHighlightCheckbox) {
       singleHighlightMode = singleHighlightCheckbox.checked;
-      console.log(`[RightPanel] Single HL checkbox initialized: ${singleHighlightMode ? 'ON (checked)' : 'OFF (unchecked)'}`);
+      console.log(`[RightPanel] Right panel Single HL checkbox initialized: ${singleHighlightMode ? 'ON (checked)' : 'OFF (unchecked)'}`);
       singleHighlightCheckbox.addEventListener('change', (e) => {
         singleHighlightMode = e.target.checked;
-        console.log(`[RightPanel] Single highlight mode: ${singleHighlightMode ? 'ON' : 'OFF'}`);
+        console.log(`[RightPanel] Right panel Single highlight mode: ${singleHighlightMode ? 'ON' : 'OFF'}`);
       });
     } else {
-      console.warn('[RightPanel] Single HL checkbox not found!');
+      console.warn('[RightPanel] Right panel Single HL checkbox not found!');
     }
 
     // Subscribe to verse selected event

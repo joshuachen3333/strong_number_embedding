@@ -15,7 +15,7 @@
  */
 
 const ColorMapper = (() => {
-  console.log('[ColorMapper] VERSION 20251209-D LOADED - Multi-SN priority coloring');
+  console.log('[ColorMapper] VERSION 20251214-A LOADED - Fixed regex for parsed output format');
 
   // Fixed palette of 15 distinct colors
   const GROUP_COLORS = [
@@ -47,8 +47,10 @@ const ColorMapper = (() => {
     const match = line.match(/^(\{<[^>]+>\}|<[^>]+>)+/);
     if (!match) return [];
 
-    // Updated pattern to handle prefixed tags: <WHdddd>, <WAHdddd>, <WTHdddd>
-    const snPattern = /<W[ATH]*H?(\d+)>|\((\*?\*?\d+)\)/g;
+    // Updated pattern to handle both formats:
+    // - Prefixed: <WHdddd>, <WAHdddd>, <WTHdddd> (raw UNV+SN)
+    // - Non-prefixed: <dddd> (parsed output)
+    const snPattern = /<(?:W[ATH]*H?)?(\d+)>|\((\*?\*?\d+)\)/g;
     const sns = [];
     let m;
 

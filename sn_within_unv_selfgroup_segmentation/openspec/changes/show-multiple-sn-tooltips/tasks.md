@@ -22,6 +22,12 @@
 
 ## 5. Testing
 - [x] 5.1 Test 2-SN group (e.g., prefix + core) - Verified with Gen 1:6 `<WAH09002><WH08432>`
-- [ ] 5.2 Test 3-SN group (e.g., prefix + prefix + core)
-- [ ] 5.3 Test edge cases near screen boundaries
+- [x] 5.2 Test 3-SN group (e.g., prefix + prefix + core) - Verified with Gen 37:10 `<09001><09001><07812>`
+- [x] 5.3 Test edge cases near screen boundaries - Top: tooltips below; Bottom: tooltips above ✓
 - [x] 5.4 Test single SN (backwards compatibility)
+
+## 6. Bug Fix (discovered during testing)
+- [x] 6.1 Fixed `extractSNsFromLine()` regex in color_mapper.js to support both formats:
+  - Raw UNV+SN: `<WHxxxx>`, `<WAHxxxx>`, `<WTHxxxx>`
+  - Parsed output: `<xxxx>` (no W prefix)
+  - Changed pattern from `/<W[ATH]*H?(\d+)>/` to `/<(?:W[ATH]*H?)?(\d+)>/`
