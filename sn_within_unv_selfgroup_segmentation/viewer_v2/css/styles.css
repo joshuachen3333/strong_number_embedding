@@ -750,7 +750,7 @@ body {
 
 /* SN Dict Floating Tooltip (hover-style, similar to Spec tooltip) */
 .sn-dict-floating-tooltip {
-  --tooltip-opacity: 0.30; /* Adjust 0.0-1.0 for transparency */
+  --tooltip-opacity: 0.70; /* Adjust 0.0-1.0 for transparency */
   position: fixed;
   background-color: rgba(44, 62, 80, var(--tooltip-opacity));
   color: #ecf0f1;
