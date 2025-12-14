@@ -644,8 +644,23 @@ const SNDictionary = (() => {
     }
 
     // Look for elements with clicked-remote class (orange highlight)
-    const remoteHighlighted = container.querySelector('.clicked-remote');
-    if (remoteHighlighted) {
+    const allRemoteHighlighted = container.querySelectorAll('.clicked-remote');
+    if (allRemoteHighlighted.length > 0) {
+      // For left panel with multiple sections (UNV/KJV), find one whose SN Dict is enabled
+      if (panel === 'left' && allRemoteHighlighted.length > 1) {
+        for (const el of allRemoteHighlighted) {
+          if (getLeftPanelSNDictEnabled(el)) {
+            const rect = el.getBoundingClientRect();
+            console.log(`[SNDictionary] Found .clicked-remote with SN Dict enabled in ${panel} panel at (${rect.left.toFixed(0)}, ${rect.top.toFixed(0)})`);
+            return el;
+          }
+        }
+        // No element has SN Dict enabled, return null (no tooltip)
+        console.log(`[SNDictionary] Found ${allRemoteHighlighted.length} .clicked-remote elements but none have SN Dict enabled`);
+        return null;
+      }
+      // Single element or right panel: return first match
+      const remoteHighlighted = allRemoteHighlighted[0];
       const rect = remoteHighlighted.getBoundingClientRect();
       console.log(`[SNDictionary] Found .clicked-remote element in ${panel} panel at (${rect.left.toFixed(0)}, ${rect.top.toFixed(0)})`);
       return remoteHighlighted;
