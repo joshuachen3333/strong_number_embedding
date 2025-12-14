@@ -9,8 +9,9 @@
 #   git commit --no-verify
 
 # Configuration - adjust paths for your project
-JS_DIR="viewer_v2/js"
-CLAUDE_MD="viewer_v2/CLAUDE.md"
+# Note: Paths must be relative to git repo root
+JS_DIR="sn_within_unv_selfgroup_segmentation/viewer_v2/js"
+CLAUDE_MD="sn_within_unv_selfgroup_segmentation/viewer_v2/CLAUDE.md"
 
 # Colors for output
 RED='\033[0;31m'
