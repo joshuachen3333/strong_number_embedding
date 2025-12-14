@@ -1,0 +1,67 @@
+#!/bin/bash
+# Pre-commit hook: Ensure CLAUDE.md is updated when JS files change
+#
+# Installation:
+#   ln -sf ../../viewer_v2/hooks/pre-commit .git/hooks/pre-commit
+#   chmod +x .git/hooks/pre-commit
+#
+# To bypass (emergency only):
+#   git commit --no-verify
+
+# Configuration - adjust paths for your project
+JS_DIR="viewer_v2/js"
+CLAUDE_MD="viewer_v2/CLAUDE.md"
+
+# Colors for output
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+# Get staged files
+STAGED_JS=$(git diff --cached --name-only --diff-filter=ACMR | grep "^${JS_DIR}/.*\.js$" || true)
+STAGED_CLAUDE=$(git diff --cached --name-only --diff-filter=ACMR | grep "^${CLAUDE_MD}$" || true)
+
+# If no JS files staged, allow commit
+if [ -z "$STAGED_JS" ]; then
+    exit 0
+fi
+
+# JS files are staged - check if CLAUDE.md is also staged
+if [ -z "$STAGED_CLAUDE" ]; then
+    echo ""
+    echo -e "${RED}╔════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${RED}║  COMMIT BLOCKED: CLAUDE.md not updated                        ║${NC}"
+    echo -e "${RED}╚════════════════════════════════════════════════════════════════╝${NC}"
+    echo ""
+    echo -e "${YELLOW}You modified these JS files:${NC}"
+    echo "$STAGED_JS" | sed 's/^/  - /'
+    echo ""
+    echo -e "${YELLOW}But ${CLAUDE_MD} is not staged.${NC}"
+    echo ""
+    echo "Before committing, please verify:"
+    echo "  1. Did you add new functions? → Add to Component Index"
+    echo "  2. Did you remove functions? → Remove from Component Index"
+    echo "  3. Did you change function behavior? → Update description"
+    echo "  4. Did you discover new patterns/anti-patterns? → Update Patterns section"
+    echo ""
+    echo "If CLAUDE.md genuinely doesn't need updates, stage it anyway with a comment:"
+    echo -e "  ${GREEN}git add ${CLAUDE_MD}${NC}"
+    echo ""
+    echo "To bypass this check (emergency only):"
+    echo -e "  ${RED}git commit --no-verify${NC}"
+    echo ""
+    exit 1
+fi
+
+# Both JS and CLAUDE.md are staged - show reminder
+echo ""
+echo -e "${GREEN}✓ CLAUDE.md is staged along with JS changes${NC}"
+echo ""
+echo -e "${YELLOW}Quick verification checklist:${NC}"
+echo "  □ Component Index reflects new/changed functions"
+echo "  □ Design Patterns updated if new pattern discovered"
+echo "  □ Anti-Patterns updated if new pitfall discovered"
+echo ""
+
+exit 0

@@ -219,3 +219,14 @@ This directory is a subdirectory of the larger **Strong's Number Embedding Proje
 - `dual_reader_right_editor/` - Advanced reader with edit mode
 
 This directory focuses exclusively on UNV parsing logic; dual readers consume processed data for visualization.
+
+## Subdirectory Documentation
+
+**When modifying `viewer_v2/`**:
+- **MUST READ** `viewer_v2/CLAUDE.md` first
+- Contains component index with all existing functions
+- Documents design patterns (group-based coloring, color filtering, Mediator events)
+- Lists anti-patterns to avoid (禁止疊床架屋 — no redundant components)
+- Provides pre-task checklist for bug fixes
+
+The `viewer_v2/CLAUDE.md` file is the authoritative reference for the Parsed Verse Viewer web application.
