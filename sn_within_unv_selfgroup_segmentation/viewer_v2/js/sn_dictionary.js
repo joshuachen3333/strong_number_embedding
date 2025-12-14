@@ -492,7 +492,6 @@ const SNDictionary = (() => {
     const tooltipWidth = 500;  // max-width from CSS
     const tooltipHeight = 200; // estimated height
     const gap = 10;
-
     const positions = [];
 
     if (count === 1) {
@@ -501,7 +500,7 @@ const SNDictionary = (() => {
       if (top < gap) {
         top = rect.bottom + gap;
       }
-      positions.push({ top, left: Math.max(gap, rect.left) });
+      positions.push({ top, left: rect.left });
     }
     else if (count === 2) {
       // 2 tooltips: one above, one below
@@ -510,12 +509,12 @@ const SNDictionary = (() => {
 
       // First tooltip above (or below if no space)
       if (aboveTop >= gap) {
-        positions.push({ top: aboveTop, left: Math.max(gap, rect.left) });
-        positions.push({ top: belowTop, left: Math.max(gap, rect.left) });
+        positions.push({ top: aboveTop, left: rect.left });
+        positions.push({ top: belowTop, left: rect.left });
       } else {
         // Both below, stacked
-        positions.push({ top: belowTop, left: Math.max(gap, rect.left) });
-        positions.push({ top: belowTop + tooltipHeight + gap, left: Math.max(gap, rect.left) });
+        positions.push({ top: belowTop, left: rect.left });
+        positions.push({ top: belowTop + tooltipHeight + gap, left: rect.left });
       }
     }
     else if (count === 3) {
@@ -530,26 +529,26 @@ const SNDictionary = (() => {
         const belowTop = rect.bottom + gap;
 
         // 2 above, side by side
-        const leftPos1 = Math.max(gap, rect.left - halfWidth);
-        const leftPos2 = leftPos1 + halfWidth + gap;
+        const leftPos1 = rect.left;
+        const leftPos2 = Math.min(rect.left + halfWidth + gap, window.innerWidth - tooltipWidth - gap);
 
         positions.push({ top: aboveTop, left: leftPos1 });
-        positions.push({ top: aboveTop, left: Math.min(leftPos2, window.innerWidth - tooltipWidth - gap) });
-        positions.push({ top: belowTop, left: Math.max(gap, rect.left) });
+        positions.push({ top: aboveTop, left: leftPos2 });
+        positions.push({ top: belowTop, left: rect.left });
       } else {
         // More space below: 1 above, 2 below (horizontal)
         const aboveTop = rect.top - tooltipHeight - gap;
         const belowTop = rect.bottom + gap;
 
         // 1 above
-        positions.push({ top: aboveTop >= gap ? aboveTop : belowTop + tooltipHeight + gap, left: Math.max(gap, rect.left) });
+        positions.push({ top: aboveTop >= gap ? aboveTop : belowTop + tooltipHeight + gap, left: rect.left });
 
         // 2 below, side by side
-        const leftPos1 = Math.max(gap, rect.left - halfWidth);
-        const leftPos2 = leftPos1 + halfWidth + gap;
+        const leftPos1 = rect.left;
+        const leftPos2 = Math.min(rect.left + halfWidth + gap, window.innerWidth - tooltipWidth - gap);
 
         positions.push({ top: belowTop, left: leftPos1 });
-        positions.push({ top: belowTop, left: Math.min(leftPos2, window.innerWidth - tooltipWidth - gap) });
+        positions.push({ top: belowTop, left: leftPos2 });
       }
     }
 

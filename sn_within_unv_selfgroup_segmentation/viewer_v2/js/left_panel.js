@@ -157,7 +157,7 @@ const LeftPanel = (() => {
     if (verseEl) {
       verseEl.classList.add('selected');
       // Scroll to selected verse
-      verseEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      verseEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     // Update verse reference display
