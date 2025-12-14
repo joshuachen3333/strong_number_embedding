@@ -342,6 +342,9 @@ const LeftPanel = (() => {
 
     if (kjvVerseEl) {
       kjvVerseEl.classList.add('selected');
+      if (kjvActive) {
+        kjvVerseEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
 
     // Update verse reference display

@@ -212,6 +212,103 @@ body {
   color: white;
 }
 
+/* Version Toggle Colors */
+:root {
+  --unv-color: #3498db;
+  --kjv-color: #1abc9c;
+}
+
+/* Version Toggle Buttons in Left Panel */
+.panel-controls .version-toggle {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.panel-controls .version-toggle.unv {
+  border: 1px solid var(--unv-color);
+  color: var(--unv-color);
+  background-color: transparent;
+}
+
+.panel-controls .version-toggle.unv:hover {
+  background-color: rgba(52, 152, 219, 0.1);
+}
+
+.panel-controls .version-toggle.unv.active {
+  background-color: var(--unv-color);
+  color: white;
+}
+
+.panel-controls .version-toggle.kjv {
+  border: 1px solid var(--kjv-color);
+  color: var(--kjv-color);
+  background-color: transparent;
+}
+
+.panel-controls .version-toggle.kjv:hover {
+  background-color: rgba(26, 188, 156, 0.1);
+}
+
+.panel-controls .version-toggle.kjv.active {
+  background-color: var(--kjv-color);
+  color: white;
+}
+
+/* Version-specific Control Labels */
+.unv-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 8px;
+}
+
+.kjv-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 8px;
+}
+
+.unv-label {
+  color: var(--unv-color) !important;
+  font-weight: 500;
+}
+
+.kjv-label {
+  color: var(--kjv-color) !important;
+  font-weight: 500;
+}
+
+/* Version Content Sections */
+.version-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.version-content.unv-section {
+  border-left: 3px solid var(--unv-color);
+  border-bottom: 5px solid var(--unv-color);
+}
+
+.version-content.kjv-section {
+  border-left: 3px solid var(--kjv-color);
+  border-top: 5px solid var(--kjv-color);
+}
+
+/* When both versions are shown */
+#left-content {
+  display: flex;
+  flex-direction: column;
+}
+
+#left-content .version-content {
+  min-height: 0;
+}
+
 .verse-ref-display {
   padding: 4px 10px;
   background-color: #3498db;
@@ -242,8 +339,8 @@ body {
   margin-bottom: 8px;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.2s;
-  border-left: 3px solid transparent;
+  transition: background-color 0.2s, border-color 0.2s;
+  border: 4px solid transparent;
 }
 
 .verse:hover {
@@ -251,12 +348,21 @@ body {
 }
 
 .verse.selected {
-  border-left-color: #2196f3;
-  border-right: 3px solid #2196f3;
+  border: 4px solid #2196f3;
+  border-radius: 4px;
+}
+
+/* Version-specific selected verse borders */
+.unv-section .verse.selected {
+  border-color: var(--unv-color);
+}
+
+.kjv-section .verse.selected {
+  border-color: var(--kjv-color);
 }
 
 .verse.uncertain {
-  border-left-color: #f39c12;
+  border-color: #f39c12;
 }
 
 .verse-num {

@@ -237,6 +237,11 @@ Before fixing ANY bug in viewer_v2:
 - [ ] **Check if fix already exists elsewhere**: Read this CLAUDE.md component index
 - [ ] **Before adding new function**: Explain why existing functions cannot solve it
 
+When adding a parallel component (e.g., KJV viewer alongside UNV):
+
+- [ ] **Feature parity check**: Diff the new component against the original to ensure ALL behaviors are replicated
+- [ ] **UX details matter**: Scroll behavior, focus states, animations — not just "core" functionality
+
 ---
 
 ## File Load Order

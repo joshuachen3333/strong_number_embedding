@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Parsed Verse Viewer v2 — UNV+SN</title>
-  <link rel="stylesheet" href="css/styles.css?v=20251214F">
+  <link rel="stylesheet" href="css/styles.css?v=20251215A">
 </head>
 <body>
   <!-- Header -->
@@ -29,22 +29,41 @@
 
   <!-- Main Content -->
   <main class="viewer-main">
-    <!-- Left Panel: UNV Reader -->
+    <!-- Left Panel: UNV/KJV Reader -->
     <section class="left-panel">
       <div class="panel-header">
         <div class="panel-header-left">
-          <h2>UNV+SN Text</h2>
           <div id="left-verse-ref" class="verse-ref-display" style="display: none;"></div>
         </div>
         <div class="panel-controls">
-          <input type="checkbox" id="left-sn-dict-toggle">
-          <label for="left-sn-dict-toggle" title="Enable Strong's Number Dictionary Tooltip for left panel">SN Dict</label>
-          <input type="checkbox" id="single-highlight-mode" checked>
-          <label for="single-highlight-mode">Single HL</label>
+          <!-- UNV Controls (blue) - visible when UNV toggle is active -->
+          <span class="unv-controls" style="display: none;">
+            <input type="checkbox" id="unv-sn-dict-toggle">
+            <label for="unv-sn-dict-toggle" class="unv-label" title="Enable Strong's Number Dictionary Tooltip for UNV">SN Dict</label>
+            <input type="checkbox" id="unv-single-hl-mode" checked>
+            <label for="unv-single-hl-mode" class="unv-label" title="Clear previous highlights when clicking new SN in UNV">Single HL</label>
+          </span>
+          <!-- KJV Controls (teal) - visible when KJV toggle is active -->
+          <span class="kjv-controls" style="display: none;">
+            <input type="checkbox" id="kjv-sn-dict-toggle">
+            <label for="kjv-sn-dict-toggle" class="kjv-label" title="Enable Strong's Number Dictionary Tooltip for KJV">SN Dict</label>
+            <input type="checkbox" id="kjv-single-hl-mode" checked>
+            <label for="kjv-single-hl-mode" class="kjv-label" title="Clear previous highlights when clicking new SN in KJV">Single HL</label>
+          </span>
+          <!-- Version Toggle Buttons -->
+          <button id="toggle-unv" class="toggle-btn version-toggle unv active" title="Show/hide UNV (和合本) text">UNV</button>
+          <button id="toggle-kjv" class="toggle-btn version-toggle kjv" title="Show/hide KJV (King James Version) text">KJV</button>
         </div>
       </div>
       <div id="left-content" class="panel-content">
-        <div class="loading-message">請選擇書卷和章節...</div>
+        <!-- UNV Content Section -->
+        <div id="unv-content" class="version-content unv-section">
+          <div class="loading-message">請選擇書卷和章節...</div>
+        </div>
+        <!-- KJV Content Section -->
+        <div id="kjv-content" class="version-content kjv-section" style="display: none;">
+          <div class="loading-message">Loading KJV...</div>
+        </div>
       </div>
     </section>
 
@@ -84,12 +103,12 @@
 
   <!-- 2. Service layer -->
   <script src="js/data_loader.js?v=20251209D"></script>
-  <script src="js/color_mapper.js?v=20251214B"></script>
-  <script src="js/sn_dictionary.js?v=20251212J"></script>
+  <script src="js/color_mapper.js?v=20251214C"></script>
+  <script src="js/sn_dictionary.js?v=20251214A"></script>
 
   <!-- 3. UI components -->
-  <script src="js/left_panel.js?v=20251214D"></script>
-  <script src="js/right_panel.js?v=20251212B"></script>
+  <script src="js/left_panel.js?v=20251215A"></script>
+  <script src="js/right_panel.js?v=20251214C"></script>
   <script src="js/navigation.js?v=20251212A"></script>
 
   <!-- 4. App controller last -->
