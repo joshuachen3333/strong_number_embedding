@@ -15,7 +15,7 @@
  */
 
 const ColorMapper = (() => {
-  console.log('[ColorMapper] VERSION 20251214-A LOADED - Fixed regex for parsed output format');
+  console.log('[ColorMapper] VERSION 20251214-B LOADED - Fixed morphology code extraction');
 
   // Fixed palette of 15 distinct colors
   const GROUP_COLORS = [
@@ -40,16 +40,22 @@ const ColorMapper = (() => {
    * Extract Strong's Numbers from a parsed text line
    * Example: "<WAH09002><WH07225> — 介系詞..." → ['09002', '07225']
    * Example: "{<WAH0853>}<WH08064> — 冠詞..." → ['0853', '08064']
+   * Example: "<WH07121>(8799) — 動詞..." → ['07121', '8799']
+   * Example: "<WH07121>(**8799) — 動詞..." → ['07121', '8799']
    * @param {string} line - Line from parsed output
    * @returns {string[]} Array of SN codes (numeric only, without prefixes)
    */
   function extractSNsFromLine(line) {
-    const match = line.match(/^(\{<[^>]+>\}|<[^>]+>)+/);
+    // Match SN group at start of line including:
+    // - Angle bracket patterns: <WHdddd>, {<WHdddd>}
+    // - Parenthetical morphology codes: (8799), (**8799), (*8799)
+    const match = line.match(/^((\{<[^>]+>\}|<[^>]+>)(\(\*?\*?\d+\))?)+/);
     if (!match) return [];
 
     // Updated pattern to handle both formats:
     // - Prefixed: <WHdddd>, <WAHdddd>, <WTHdddd> (raw UNV+SN)
     // - Non-prefixed: <dddd> (parsed output)
+    // - Morphology codes: (8xxx), (*8xxx), (**8xxx)
     const snPattern = /<(?:W[ATH]*H?)?(\d+)>|\((\*?\*?\d+)\)/g;
     const sns = [];
     let m;
@@ -337,7 +343,8 @@ const ColorMapper = (() => {
         groupIndex++;
 
         // Color the SN group part (including braced patterns and morphology codes)
-        const matchResult = line.match(/^(\{<[^>]+>\}|<[^>]+>)+(\(\*?\*?\d+\))?/);
+        // Updated regex to capture trailing morphology codes for each SN pattern
+        const matchResult = line.match(/^((\{<[^>]+>\}|<[^>]+>)(\(\*?\*?\d+\))?)+/);
         if (matchResult) {
           const snPart = matchResult[0];
           const restPart = line.substring(snPart.length);
