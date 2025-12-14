@@ -157,24 +157,34 @@ const SNDictionary = (() => {
 
     // LEFT panel tooltip:
     // - If click from left AND snDictEnabled → show on source element (blue)
-    // - If click from right AND left enabled → show on receiving element (orange)
-    if (leftEnabledForThisClick) {
-      if (isLeftPanelSource) {
+    // - If click from right → check per-section checkbox for receiving element (orange)
+    if (isLeftPanelSource) {
+      // Left panel click: use snDictEnabled from event data
+      if (leftEnabledForThisClick) {
         console.log(`[SNDictionary] Showing LEFT tooltips for ${allSNs.length} SNs (local/blue highlight)`);
         await showMultipleTooltipsForPanel('left', element, allSNs);
-      } else if (isRightPanelSource) {
-        // Wait for orange highlights to be applied, then find element in left panel
-        setTimeout(async () => {
-          console.log('[SNDictionary] Looking for highlighted element in LEFT panel (remote/orange)...');
-          const leftElement = findHighlightedElementInPanel('left', groupSNs);
-          if (leftElement) {
+      } else {
+        hideAllTooltipsForPanel('left');
+      }
+    } else if (isRightPanelSource) {
+      // Right panel click: find highlighted element and check its section's checkbox
+      setTimeout(async () => {
+        console.log('[SNDictionary] Looking for highlighted element in LEFT panel (remote/orange)...');
+        const leftElement = findHighlightedElementInPanel('left', groupSNs);
+        if (leftElement) {
+          // Check if that section's SN Dict checkbox is enabled
+          const sectionEnabled = getLeftPanelSNDictEnabled(leftElement);
+          if (sectionEnabled) {
             await showMultipleTooltipsForPanel('left', leftElement, allSNs);
           } else {
-            console.log('[SNDictionary] No element found in LEFT panel for tooltip');
+            console.log('[SNDictionary] Left panel section SN Dict disabled, not showing tooltip');
             hideAllTooltipsForPanel('left');
           }
-        }, 50);
-      }
+        } else {
+          console.log('[SNDictionary] No element found in LEFT panel for tooltip');
+          hideAllTooltipsForPanel('left');
+        }
+      }, 50);
     } else {
       hideAllTooltipsForPanel('left');
     }
@@ -660,6 +670,37 @@ const SNDictionary = (() => {
 
     console.log(`[SNDictionary] No element found for tooltip in ${panel} panel`);
     return null;
+  }
+
+  /**
+   * Get left panel SN Dict enabled state based on element's section
+   * For cross-panel highlighting, checks which section (UNV/KJV) contains the element
+   * @param {HTMLElement} element - The highlighted element in left panel
+   * @returns {boolean} - True if that section's SN Dict checkbox is checked
+   */
+  function getLeftPanelSNDictEnabled(element) {
+    if (!element) return false;
+
+    // Check if element is in UNV section
+    const unvSection = element.closest('.unv-section');
+    if (unvSection) {
+      const unvCheckbox = document.getElementById('unv-sn-dict-toggle');
+      const enabled = unvCheckbox ? unvCheckbox.checked : false;
+      console.log(`[SNDictionary] Element in UNV section, checkbox enabled: ${enabled}`);
+      return enabled;
+    }
+
+    // Check if element is in KJV section
+    const kjvSection = element.closest('.kjv-section');
+    if (kjvSection) {
+      const kjvCheckbox = document.getElementById('kjv-sn-dict-toggle');
+      const enabled = kjvCheckbox ? kjvCheckbox.checked : false;
+      console.log(`[SNDictionary] Element in KJV section, checkbox enabled: ${enabled}`);
+      return enabled;
+    }
+
+    console.log('[SNDictionary] Element not in UNV or KJV section');
+    return false;
   }
 
   /**

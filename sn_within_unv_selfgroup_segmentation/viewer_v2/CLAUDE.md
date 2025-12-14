@@ -86,6 +86,7 @@ Quick reference of all functions by file. Use this to find existing solutions be
 | `fetchDefinition(snCode)` | Load definition from JSON dictionary files |
 | `loadFullDictionary(testament)` | Load OT/NT dictionary with caching |
 | `findHighlightedElementInPanel(panel, sns)` | Find highlighted element for tooltip positioning |
+| `getLeftPanelSNDictEnabled(element)` | Check section-specific SN Dict checkbox for cross-panel tooltips |
 | `resetHighlightTimeout()` | Reset 30-second auto-clear timer |
 
 ### app.js — Application Controller
