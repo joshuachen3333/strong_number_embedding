@@ -73,19 +73,9 @@ const SNDictionary = (() => {
     rightEnabled = loadSetting(STORAGE_KEY_RIGHT_ENABLED, false);
     console.log(`[SNDictionary] Left enabled: ${leftEnabled}, Right enabled: ${rightEnabled}`);
 
-    // Initialize left panel checkbox
-    const leftCheckbox = document.getElementById('left-sn-dict-toggle');
-    if (leftCheckbox) {
-      leftCheckbox.checked = leftEnabled;
-      leftCheckbox.addEventListener('change', (e) => {
-        leftEnabled = e.target.checked;
-        saveSetting(STORAGE_KEY_LEFT_ENABLED, leftEnabled);
-        console.log(`[SNDictionary] Left panel SN Dict: ${leftEnabled ? 'enabled' : 'disabled'}`);
-        if (!leftEnabled) {
-          hideFloatingTooltip();
-        }
-      });
-    }
+    // Note: Left panel SN Dict is controlled per-version (UNV/KJV) via left_panel.js
+    // The snDictEnabled flag is passed through SN_CLICK events from left_panel.js
+    // No global left checkbox needed - see fix-left-panel-sn-dict-checkbox OpenSpec
 
     // Initialize right panel checkbox
     const rightCheckbox = document.getElementById('right-sn-dict-toggle');
@@ -141,10 +131,10 @@ const SNDictionary = (() => {
    * Handle SN highlight event - auto-show tooltip if panel's SN Dict is enabled
    * BOTH panels can show tooltips independently when both checkboxes are enabled
    * Now shows tooltips for ALL SNs in a group (up to 3)
-   * @param {Object} data - {source, element, snCode, groupSNs, verse}
+   * @param {Object} data - {source, element, snCode, groupSNs, verse, snDictEnabled}
    */
   async function handleSNHighlight(data) {
-    const { source, element, snCode, groupSNs } = data;
+    const { source, element, snCode, groupSNs, snDictEnabled } = data;
 
     // Determine which panel the click originated from
     const isLeftPanelSource = source === 'left';
@@ -157,14 +147,18 @@ const SNDictionary = (() => {
     const allSNs = (groupSNs && groupSNs.length > 0) ? groupSNs : (snCode ? [snCode] : []);
     if (allSNs.length === 0) return;
 
-    console.log(`[SNDictionary] Handling highlight: source=${source}, SNs=[${allSNs.join(',')}], leftEnabled=${leftEnabled}, rightEnabled=${rightEnabled}`);
+    // For left panel clicks, use snDictEnabled from event data (passed from left_panel.js)
+    // This respects the per-version UNV/KJV checkbox state
+    const leftEnabledForThisClick = isLeftPanelSource ? snDictEnabled : leftEnabled;
+
+    console.log(`[SNDictionary] Handling highlight: source=${source}, SNs=[${allSNs.join(',')}], leftEnabled=${leftEnabledForThisClick}, rightEnabled=${rightEnabled}, snDictEnabled=${snDictEnabled}`);
 
     // Show tooltips on BOTH panels independently (not mutually exclusive)
 
     // LEFT panel tooltip:
-    // - If click from left AND left enabled → show on source element (blue)
+    // - If click from left AND snDictEnabled → show on source element (blue)
     // - If click from right AND left enabled → show on receiving element (orange)
-    if (leftEnabled) {
+    if (leftEnabledForThisClick) {
       if (isLeftPanelSource) {
         console.log(`[SNDictionary] Showing LEFT tooltips for ${allSNs.length} SNs (local/blue highlight)`);
         await showMultipleTooltipsForPanel('left', element, allSNs);

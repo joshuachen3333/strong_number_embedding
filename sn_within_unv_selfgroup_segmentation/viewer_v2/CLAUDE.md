@@ -226,6 +226,26 @@ const elements = ColorMapper.findCorrespondingElements(sns, container, '.sn-tag'
 elements.forEach(el => el.classList.add('clicked'));
 ```
 
+### 4. Module Disconnect (模組斷線)
+
+**FORBIDDEN**: Changing HTML IDs without updating all JS references.
+
+When restructuring HTML (e.g., splitting one checkbox into two version-specific checkboxes), you **MUST** grep for the old ID in all JS files and update them.
+
+**Example** (from 2024-12-15 bug):
+```
+BUG: Left panel SN Dict checkboxes don't show tooltips
+ROOT CAUSE: HTML changed from `left-sn-dict-toggle` to `unv-sn-dict-toggle`/`kjv-sn-dict-toggle`
+            but sn_dictionary.js still looked for `left-sn-dict-toggle`
+FIX: Use snDictEnabled flag from event data instead of looking for checkbox
+```
+
+**Pre-Commit Check**: Before committing HTML ID changes:
+```bash
+# Find all references to the old ID
+grep -rn "old-element-id" viewer_v2/js/
+```
+
 ---
 
 ## Pre-Task Checklist
@@ -241,6 +261,11 @@ When adding a parallel component (e.g., KJV viewer alongside UNV):
 
 - [ ] **Feature parity check**: Diff the new component against the original to ensure ALL behaviors are replicated
 - [ ] **UX details matter**: Scroll behavior, focus states, animations — not just "core" functionality
+
+When changing HTML element IDs:
+
+- [ ] **Grep for old ID**: `grep -rn "old-id" viewer_v2/js/` before committing
+- [ ] **Update all references**: Every JS file that uses `getElementById('old-id')` must be updated
 
 ---
 
