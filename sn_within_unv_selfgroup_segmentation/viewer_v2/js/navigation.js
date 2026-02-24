@@ -23,6 +23,26 @@ const Navigation = (() => {
 
     // Subscribe to verse selected event for hash/storage updates
     Mediator.subscribe(Mediator.EVENT_TYPES.VERSE_SELECTED, handleVerseSelected);
+
+    // Subscribe to SN_CLICK to track selected group index
+    // (needed because right_panel.js uses stopPropagation on clicks)
+    Mediator.subscribe(Mediator.EVENT_TYPES.SN_CLICK, handleSNClick);
+  }
+
+  /**
+   * Handle SN click event to track selected group index
+   * @param {Object} data - {source, element, snCode, groupSNs, verse}
+   */
+  function handleSNClick(data) {
+    if (data.source === 'right-parsed' && data.element) {
+      const groups = getSnGroups();
+      const index = Array.from(groups).indexOf(data.element);
+      if (index >= 0) {
+        selectedGroupIndex = index;
+        activePanel = 'right';
+        console.log(`[Navigation] SN_CLICK tracked group ${index}`);
+      }
+    }
   }
 
   /**
@@ -54,7 +74,8 @@ const Navigation = (() => {
         console.log('[Navigation] Active panel: right (hover)');
       });
 
-      // Click on SN group in parsed section sets right panel active and selects that group
+      // CAPTURE phase: Track clicks on SN groups BEFORE stopPropagation is called
+      // This ensures we track selectedGroupIndex even when right_panel.js calls stopPropagation
       rightPanel.addEventListener('click', (e) => {
         const snGroup = e.target.closest('.sn-group');
         if (snGroup) {
@@ -62,11 +83,11 @@ const Navigation = (() => {
           const groups = getSnGroups();
           const index = Array.from(groups).indexOf(snGroup);
           if (index >= 0) {
-            selectGroup(index);
+            selectedGroupIndex = index;
+            console.log(`[Navigation] Capture: tracked group ${index}, total groups: ${groups.length}`);
           }
-          console.log('[Navigation] Active panel: right (click on group)');
         }
-      });
+      }, true);  // true = capture phase (fires before target handlers)
     }
 
     console.log('[Navigation] Panel detection initialized');

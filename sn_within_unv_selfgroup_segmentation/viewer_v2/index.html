@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Parsed Verse Viewer v2 — UNV+SN</title>
-  <link rel="stylesheet" href="css/styles.css?v=20251215A">
+  <link rel="stylesheet" href="css/styles.css?v=20260218B">
 </head>
 <body>
   <!-- Header -->
@@ -50,9 +50,15 @@
             <input type="checkbox" id="kjv-single-hl-mode" checked>
             <label for="kjv-single-hl-mode" class="kjv-label" title="Clear previous highlights when clicking new SN in KJV">Single HL</label>
           </span>
+          <!-- LCC Controls (amber) - visible when LCC toggle is active -->
+          <span class="lcc-controls" style="display: none;">
+            <input type="checkbox" id="lcc-single-hl-mode" checked>
+            <label for="lcc-single-hl-mode" class="lcc-label" title="Clear previous highlights when clicking new word in LCC">Single HL</label>
+          </span>
           <!-- Version Toggle Buttons -->
           <button id="toggle-unv" class="toggle-btn version-toggle unv active" title="Show/hide UNV (和合本) text">UNV</button>
           <button id="toggle-kjv" class="toggle-btn version-toggle kjv" title="Show/hide KJV (King James Version) text">KJV</button>
+          <button id="toggle-lcc" class="toggle-btn version-toggle lcc" title="Show/hide LCC (呂振中譯本) text">LCC</button>
         </div>
       </div>
       <div id="left-content" class="panel-content">
@@ -63,6 +69,10 @@
         <!-- KJV Content Section -->
         <div id="kjv-content" class="version-content kjv-section" style="display: none;">
           <div class="loading-message">Loading KJV...</div>
+        </div>
+        <!-- LCC Content Section -->
+        <div id="lcc-content" class="version-content lcc-section" style="display: none;">
+          <div class="loading-message">Loading LCC (呂振中譯本)...</div>
         </div>
       </div>
     </section>
@@ -102,14 +112,14 @@
   <script src="js/book_data.js"></script>
 
   <!-- 2. Service layer -->
-  <script src="js/data_loader.js?v=20251209D"></script>
-  <script src="js/color_mapper.js?v=20251214C"></script>
+  <script src="js/data_loader.js?v=20260218B"></script>
+  <script src="js/color_mapper.js?v=20260218B"></script>
   <script src="js/sn_dictionary.js?v=20251215C"></script>
 
   <!-- 3. UI components -->
-  <script src="js/left_panel.js?v=20251215A"></script>
+  <script src="js/left_panel.js?v=20260218B"></script>
   <script src="js/right_panel.js?v=20251214C"></script>
-  <script src="js/navigation.js?v=20251212A"></script>
+  <script src="js/navigation.js?v=20251215B"></script>
 
   <!-- 4. App controller last -->
   <script src="js/app.js"></script>

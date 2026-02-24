@@ -215,6 +215,102 @@ const DataLoader = (() => {
   }
 
   /**
+   * Fetch KJV chapter from FHL API with caching
+   * @param {string} book - English book abbreviation (e.g., "Gen")
+   * @param {number} chapter
+   * @returns {Promise<Array>}
+   */
+  async function fetchKJVChapterFromAPI(book, chapter) {
+    const cacheKey = `kjv/${book}/${chapter}`;
+
+    // Check cache
+    if (cache.apiChapters[cacheKey]) {
+      console.log(`[DataLoader] KJV API chapter ${cacheKey} from cache`);
+      return cache.apiChapters[cacheKey];
+    }
+
+    try {
+      const bookData = BOOK_MAP_ENG[book];
+      if (!bookData) {
+        throw new Error(`Unknown book: ${book}`);
+      }
+
+      const url = `${FHL_API_BASE}?version=kjv&chineses=${encodeURIComponent(bookData.chi)}&chap=${chapter}&strong=1`;
+      console.log(`[DataLoader] Fetching KJV: ${url}`);
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`KJV API request failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const result = data.record || [];
+
+      // Cache result
+      cache.apiChapters[cacheKey] = result;
+
+      console.log(`[DataLoader] KJV loaded: ${result.length} verses`);
+      return result;
+
+    } catch (error) {
+      console.error(`Error fetching KJV chapter from API:`, error);
+      Mediator.publish(Mediator.EVENT_TYPES.ERROR_SHOW, {
+        message: '無法載入 KJV 經文資料',
+        type: 'toast'
+      });
+      return [];
+    }
+  }
+
+  /**
+   * Fetch LCC chapter from FHL API with caching
+   * @param {string} book - English book abbreviation (e.g., "Gen")
+   * @param {number} chapter
+   * @returns {Promise<Array>}
+   */
+  async function fetchLCCChapterFromAPI(book, chapter) {
+    const cacheKey = `lcc/${book}/${chapter}`;
+
+    // Check cache
+    if (cache.apiChapters[cacheKey]) {
+      console.log(`[DataLoader] LCC API chapter ${cacheKey} from cache`);
+      return cache.apiChapters[cacheKey];
+    }
+
+    try {
+      const bookData = BOOK_MAP_ENG[book];
+      if (!bookData) {
+        throw new Error(`Unknown book: ${book}`);
+      }
+
+      const url = `${FHL_API_BASE}?version=lcc&chineses=${encodeURIComponent(bookData.chi)}&chap=${chapter}`;
+      console.log(`[DataLoader] Fetching LCC: ${url}`);
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`LCC API request failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const result = data.record || [];
+
+      // Cache result
+      cache.apiChapters[cacheKey] = result;
+
+      console.log(`[DataLoader] LCC loaded: ${result.length} verses`);
+      return result;
+
+    } catch (error) {
+      console.error(`Error fetching LCC chapter from API:`, error);
+      Mediator.publish(Mediator.EVENT_TYPES.ERROR_SHOW, {
+        message: '無法載入呂振中譯本經文資料',
+        type: 'toast'
+      });
+      return [];
+    }
+  }
+
+  /**
    * Load chapter data (combo of local + API)
    * @param {string} book
    * @param {number} chapter
@@ -368,6 +464,8 @@ const DataLoader = (() => {
     getVerseInfo,
     loadParsedVerse,
     fetchChapterFromAPI,
+    fetchKJVChapterFromAPI,
+    fetchLCCChapterFromAPI,
     loadChapter,
     parseSections,
     clearCache

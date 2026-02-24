@@ -14,31 +14,44 @@ Quick reference of all functions by file. Use this to find existing solutions be
 | `publish(eventType, data)` | Broadcast event to all subscribers |
 | `EVENT_TYPES` | Catalog of all event names (VERSE_SELECT, SN_CLICK, COLORS_APPLY, etc.) |
 
-### color_mapper.js — SN Coloring Engine (Position-Based)
+### color_mapper.js — SN Coloring Engine (Token-Based) [SHARED: `shared/js/color_mapper.js`]
+**Note**: Canonical file lives at repo root `shared/js/color_mapper.js`. Local path is a symlink. Also used by `dual_reader_right_editor`.
 | Function | Purpose |
 |----------|---------|
 | `parseGroups(parsedText)` | Extract SN groups from parsed output, returns `[{groupIndex, sns[], text}]` |
 | `createSNToColorMap(groups)` | Map each SN code to a color (multi-SN groups take priority) |
-| `applyColorsToRawText(text, colorMap, groups)` | **KEY**: Color raw UNV+SN text; `groups` enables position-aware coloring |
+| `applyColorsToRawText(text, colorMap, groups)` | **KEY**: Color raw UNV+SN text AND Chinese/English text segments; uses token-based pipeline when `groups` provided, legacy SN-only fallback otherwise |
 | `applyColorsToParsedText(parsedText, groups)` | Color parsed section with group-based backgrounds |
 | `extractSNsFromLine(line)` | Parse SN codes from a single line (handles `<WHxxxx>`, `{<WHxxxx>}`, `(**8xxx)`) |
 | `getSNGroupFromColorMap(sn, colorMap, groups, element)` | Get all SNs in same group; uses element's actual color for repeated SNs |
 | `findCorrespondingElements(sns, container, selector, groups)` | **KEY**: Find DOM elements matching SNs + color |
+| `applyColorsToPlainText(plainText, rawText, groups)` | **KEY**: Color plain text (LCC) by matching Chinese words from UNV raw text; greedy longest-first left-to-right scan |
 | `getColorForGroup(index)` | Get color from 15-color palette by group index |
 | `hexToRgb(hex)` | Convert hex color to rgb() for comparison |
 
-### left_panel.js — UNV/KJV Reader
+**Internal functions** (not exported, used by `applyColorsToRawText`):
+| Function | Purpose |
+|----------|---------|
+| `tokenizeRawText(text)` | Split raw text into `{type:"text"|"sn", value, snCode, groupIndex}` tokens |
+| `assignGroupsToTokens(tokens, groups)` | Pass 1: match SN tokens to groups sequentially; Pass 2: assign text tokens to nearest following SN's group |
+| `renderColoredTokens(tokens)` | Render tokens as HTML: SN→`.sn-tag`, text→`.sn-text` (both with group background color) |
+| `applyColorsToRawTextLegacy(text, colorMap)` | Legacy SN-only coloring fallback (no groups) |
+
+### left_panel.js — UNV/KJV/LCC Reader
 | Function | Purpose |
 |----------|---------|
 | `init()` | Subscribe to events, initialize toggles and checkboxes |
 | `applyColorsToUNV()` | **KEY**: Color UNV text; passes `groups` for selected verse |
 | `applyColorsToKJV()` | **KEY**: Color KJV text; passes `groups` for selected verse (same as UNV) |
-| `handleSNClickForHighlighting(event)` | Handle SN clicks, apply highlighting to both versions |
+| `applyColorsToLCC()` | **KEY**: Color LCC text; uses `applyColorsToPlainText` to match Chinese words from UNV |
+| `handleSNClickForHighlighting(event)` | Handle SN clicks, apply highlighting to all versions |
 | `highlightInContainer(container, sns, verse, className, singleHL)` | Apply highlight class using `findCorrespondingElements` |
+| `highlightInLCCContainer(container, sns, verse, className, singleHL)` | Apply highlight to LCC by matching group background color |
 | `addSNClickHandlers(textEl, verseNum, version)` | Attach click handlers to SN tags |
 | `getCurrentPosition()` | Returns `{book, chapter, verse}` |
 | `getVerseNumbers()` | Returns sorted array of verse numbers in current chapter |
 | `loadKJVData()` | Fetch KJV chapter from API |
+| `loadLCCData()` | Fetch LCC chapter from API |
 | `clearHighlighting()` | Remove all highlight classes |
 
 ### right_panel.js — Parsed Output Viewer
@@ -62,6 +75,7 @@ Quick reference of all functions by file. Use this to find existing solutions be
 | `loadParsedVerse(book, chapter, verse)` | Load parsed output file (or `_uncertain` variant) |
 | `fetchChapterFromAPI(book, chapter)` | Fetch UNV chapter from FHL API |
 | `fetchKJVChapterFromAPI(book, chapter)` | Fetch KJV chapter from FHL API |
+| `fetchLCCChapterFromAPI(book, chapter)` | Fetch LCC (呂振中) chapter from FHL API |
 | `parseSections(content)` | Split parsed output into `{parsed, raw, notes, specRefs}` |
 | `getChapters(book)` | Get available chapters for a book |
 | `getVerseInfo(book, chapter)` | Get verse list for a chapter |
@@ -69,9 +83,11 @@ Quick reference of all functions by file. Use this to find existing solutions be
 ### navigation.js — Keyboard & URL Navigation
 | Function | Purpose |
 |----------|---------|
-| `init()` | Initialize keyboard handlers, panel detection |
+| `init()` | Initialize keyboard handlers, panel detection, SN_CLICK subscription |
+| `initPanelDetection()` | Set up hover/click handlers; uses **capture phase** for right panel to track clicks before `stopPropagation()` |
 | `handleLeftPanelKeys(e)` | Arrow keys for verse/chapter navigation |
 | `handleRightPanelKeys(e)` | Arrow keys for SN group navigation |
+| `handleSNClick(data)` | Track selected group index from SN_CLICK events (backup for capture phase) |
 | `selectGroup(index)` | Select and highlight SN group by index |
 | `navigatePreviousVerse/NextVerse()` | Verse navigation with chapter boundary handling |
 | `getInitialPosition()` | Get position from URL hash or localStorage |
@@ -117,18 +133,23 @@ Quick reference of all functions by file. Use this to find existing solutions be
 
 ## Design Patterns
 
-### Pattern 1: Group-Based Coloring
+### Pattern 1: Group-Based Coloring (Token Pipeline)
 
-**Problem**: Same SN (e.g., `<0853>` אֵת) appears multiple times in a verse in different semantic groups. How to distinguish them?
+**Problem**: Same SN (e.g., `<0853>` אֵת) appears multiple times in a verse in different semantic groups. How to distinguish them? Also, Chinese/English text between SN tags should share the group's color.
 
-**Solution**: `applyColorsToRawText(text, colorMap, groups)` — the third parameter `groups` enables position-based matching.
+**Solution**: `applyColorsToRawText(text, colorMap, groups)` — when `groups` is provided, uses a 3-step token-based pipeline:
+1. `tokenizeRawText()` — splits text into alternating text/SN tokens
+2. `assignGroupsToTokens()` — matches SN tokens to groups sequentially, then assigns text tokens to nearest following SN's group
+3. `renderColoredTokens()` — wraps SN tokens in `.sn-tag` and text tokens in `.sn-text`, both with group background color
+
+When `groups` is `undefined`, falls back to legacy SN-only coloring (only SN tags get color, text stays plain).
 
 ```javascript
-// CORRECT: Selected verse uses groups for position-aware coloring
+// CORRECT: Selected verse uses groups for full text+SN coloring
 const useGroups = (verseNum === currentVerse) ? currentGroups : undefined;
 ColorMapper.applyColorsToRawText(text, colorMap, useGroups);
 
-// WRONG: Passing undefined loses position awareness
+// WRONG: Passing undefined loses position awareness AND text coloring
 ColorMapper.applyColorsToRawText(text, colorMap, undefined);  // Legacy mode
 ```
 
@@ -161,7 +182,30 @@ const elements = ColorMapper.findCorrespondingElements(
 
 ---
 
-### Pattern 3: Mediator Event Flow
+### Pattern 3: Capture Phase for Cross-Module State Tracking
+
+**Problem**: Module A uses `stopPropagation()` to prevent event bubbling, but Module B needs to track the same clicks for state management.
+
+**Solution**: Use capture phase (`addEventListener(..., true)`) to intercept events before `stopPropagation()` is called.
+
+```javascript
+// In navigation.js - track clicks before right_panel.js calls stopPropagation
+rightPanel.addEventListener('click', (e) => {
+  const snGroup = e.target.closest('.sn-group');
+  if (snGroup) {
+    selectedGroupIndex = Array.from(getSnGroups()).indexOf(snGroup);
+  }
+}, true);  // true = capture phase (fires BEFORE target handlers)
+```
+
+**Why Not Mediator?**: While `SN_CLICK` events via Mediator work for most cases, capture phase is more reliable because:
+1. It fires synchronously at click time
+2. It doesn't depend on the target handler publishing events
+3. It works even if the target handler throws an error
+
+---
+
+### Pattern 4: Mediator Event Flow
 
 **Problem**: Components need to communicate without direct coupling.
 

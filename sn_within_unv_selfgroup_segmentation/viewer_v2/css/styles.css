@@ -216,6 +216,7 @@ body {
 :root {
   --unv-color: #3498db;
   --kjv-color: #1abc9c;
+  --lcc-color: #e67e22;
 }
 
 /* Version Toggle Buttons in Left Panel */
@@ -257,6 +258,21 @@ body {
   color: white;
 }
 
+.panel-controls .version-toggle.lcc {
+  border: 1px solid var(--lcc-color);
+  color: var(--lcc-color);
+  background-color: transparent;
+}
+
+.panel-controls .version-toggle.lcc:hover {
+  background-color: rgba(230, 126, 34, 0.1);
+}
+
+.panel-controls .version-toggle.lcc.active {
+  background-color: var(--lcc-color);
+  color: white;
+}
+
 /* Version-specific Control Labels */
 .unv-controls {
   display: inline-flex;
@@ -272,6 +288,13 @@ body {
   margin-right: 8px;
 }
 
+.lcc-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 8px;
+}
+
 .unv-label {
   color: var(--unv-color) !important;
   font-weight: 500;
@@ -279,6 +302,11 @@ body {
 
 .kjv-label {
   color: var(--kjv-color) !important;
+  font-weight: 500;
+}
+
+.lcc-label {
+  color: var(--lcc-color) !important;
   font-weight: 500;
 }
 
@@ -297,6 +325,11 @@ body {
 .version-content.kjv-section {
   border-left: 3px solid var(--kjv-color);
   border-top: 5px solid var(--kjv-color);
+}
+
+.version-content.lcc-section {
+  border-left: 3px solid var(--lcc-color);
+  border-top: 5px solid var(--lcc-color);
 }
 
 /* When both versions are shown */
@@ -361,6 +394,10 @@ body {
   border-color: var(--kjv-color);
 }
 
+.lcc-section .verse.selected {
+  border-color: var(--lcc-color);
+}
+
 .verse.uncertain {
   border-color: #f39c12;
 }
@@ -385,6 +422,12 @@ body {
   padding: 1px 3px;
   border-radius: 2px;
   margin: 0 1px;
+}
+
+/* Chinese/English text segments colored by group */
+.sn-text {
+  padding: 1px 2px;
+  border-radius: 2px;
 }
 
 /* Right Panel: Parsed Output */

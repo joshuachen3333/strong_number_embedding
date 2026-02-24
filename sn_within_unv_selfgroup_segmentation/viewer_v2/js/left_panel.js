@@ -9,6 +9,7 @@ const LeftPanel = (() => {
   let currentVerse = null;
   let chapterVerses = {};      // UNV verse data
   let kjvChapterVerses = {};   // KJV verse data
+  let lccChapterVerses = {};   // LCC verse data
   let clickHandlerAttached = false;
   let currentColorMap = {};
   let currentGroups = [];
@@ -16,32 +17,38 @@ const LeftPanel = (() => {
   // Version toggle states
   let unvActive = true;
   let kjvActive = false;
+  let lccActive = false;
 
   // Per-version settings
   let unvSNDict = false;
   let unvSingleHL = true;
   let kjvSNDict = false;
   let kjvSingleHL = true;
+  let lccSingleHL = true;
 
   // DOM elements
   const leftContent = document.getElementById('left-content');
   const unvContent = document.getElementById('unv-content');
   const kjvContent = document.getElementById('kjv-content');
+  const lccContent = document.getElementById('lcc-content');
   const leftVerseRef = document.getElementById('left-verse-ref');
 
   // Toggle buttons
   const toggleUNV = document.getElementById('toggle-unv');
   const toggleKJV = document.getElementById('toggle-kjv');
+  const toggleLCC = document.getElementById('toggle-lcc');
 
   // Control groups
   const unvControls = document.querySelector('.unv-controls');
   const kjvControls = document.querySelector('.kjv-controls');
+  const lccControls = document.querySelector('.lcc-controls');
 
   // Checkboxes
   const unvSNDictCheckbox = document.getElementById('unv-sn-dict-toggle');
   const unvSingleHLCheckbox = document.getElementById('unv-single-hl-mode');
   const kjvSNDictCheckbox = document.getElementById('kjv-sn-dict-toggle');
   const kjvSingleHLCheckbox = document.getElementById('kjv-single-hl-mode');
+  const lccSingleHLCheckbox = document.getElementById('lcc-single-hl-mode');
 
   /**
    * Initialize left panel (subscribe to events)
@@ -103,6 +110,19 @@ const LeftPanel = (() => {
         console.log(`[LeftPanel] KJV toggle: ${kjvActive ? 'ON' : 'OFF'}`);
       });
     }
+
+    if (toggleLCC) {
+      toggleLCC.addEventListener('click', () => {
+        lccActive = !lccActive;
+        toggleLCC.classList.toggle('active', lccActive);
+        updateVersionVisibility();
+        // Load LCC data if activating and we have a current chapter
+        if (lccActive && currentBook && currentChapter) {
+          loadLCCData();
+        }
+        console.log(`[LeftPanel] LCC toggle: ${lccActive ? 'ON' : 'OFF'}`);
+      });
+    }
   }
 
   /**
@@ -140,6 +160,14 @@ const LeftPanel = (() => {
         console.log(`[LeftPanel] KJV Single HL: ${kjvSingleHL ? 'ON' : 'OFF'}`);
       });
     }
+
+    if (lccSingleHLCheckbox) {
+      lccSingleHL = lccSingleHLCheckbox.checked;
+      lccSingleHLCheckbox.addEventListener('change', (e) => {
+        lccSingleHL = e.target.checked;
+        console.log(`[LeftPanel] LCC Single HL: ${lccSingleHL ? 'ON' : 'OFF'}`);
+      });
+    }
   }
 
   /**
@@ -153,6 +181,9 @@ const LeftPanel = (() => {
     if (kjvContent) {
       kjvContent.style.display = kjvActive ? 'block' : 'none';
     }
+    if (lccContent) {
+      lccContent.style.display = lccActive ? 'block' : 'none';
+    }
 
     // Update control visibility
     if (unvControls) {
@@ -160,6 +191,9 @@ const LeftPanel = (() => {
     }
     if (kjvControls) {
       kjvControls.style.display = kjvActive ? 'inline-flex' : 'none';
+    }
+    if (lccControls) {
+      lccControls.style.display = lccActive ? 'inline-flex' : 'none';
     }
   }
 
@@ -191,6 +225,32 @@ const LeftPanel = (() => {
   }
 
   /**
+   * Load LCC data for current chapter
+   */
+  async function loadLCCData() {
+    if (!currentBook || !currentChapter) return;
+
+    console.log(`[LeftPanel] Loading LCC data for ${currentBook} ${currentChapter}`);
+
+    try {
+      const lccData = await DataLoader.fetchLCCChapterFromAPI(currentBook, currentChapter);
+      lccChapterVerses = {};
+
+      lccData.forEach(verseObj => {
+        const verseNum = verseObj.sec;
+        lccChapterVerses[verseNum] = {
+          text: verseObj.bible_text || ''
+        };
+      });
+
+      renderLCCContent();
+      console.log(`[LeftPanel] LCC data loaded: ${Object.keys(lccChapterVerses).length} verses`);
+    } catch (error) {
+      console.error('[LeftPanel] Error loading LCC data:', error);
+    }
+  }
+
+  /**
    * Handle chapter loaded event
    * @param {Object} data - {book, chapter, verseData}
    */
@@ -205,6 +265,11 @@ const LeftPanel = (() => {
     // Load KJV data if KJV is active
     if (kjvActive) {
       loadKJVData();
+    }
+
+    // Load LCC data if LCC is active
+    if (lccActive) {
+      loadLCCData();
     }
   }
 
@@ -273,6 +338,40 @@ const LeftPanel = (() => {
   }
 
   /**
+   * Render LCC chapter verses
+   */
+  function renderLCCContent() {
+    if (!lccContent) return;
+
+    if (Object.keys(lccChapterVerses).length === 0) {
+      lccContent.innerHTML = '<div class="loading-message">Loading LCC (呂振中譯本)...</div>';
+      return;
+    }
+
+    let html = '';
+    const verseNumbers = Object.keys(lccChapterVerses).map(Number).sort((a, b) => a - b);
+
+    verseNumbers.forEach(verseNum => {
+      const data = lccChapterVerses[verseNum];
+
+      html += `
+        <div class="verse" data-verse="${verseNum}" data-version="lcc">
+          <span class="verse-num">${verseNum}</span>
+          <span class="verse-text">${escapeHtml(data.text)}</span>
+        </div>
+      `;
+    });
+
+    lccContent.innerHTML = html;
+    console.log(`[LeftPanel] Rendered ${verseNumbers.length} LCC verses`);
+
+    // Apply colors if we have a color map
+    if (Object.keys(currentColorMap).length > 0) {
+      applyColorsToLCC();
+    }
+  }
+
+  /**
    * Handle verse click
    * @param {Event} e
    */
@@ -329,9 +428,10 @@ const LeftPanel = (() => {
       el.classList.remove('selected');
     });
 
-    // Select verse in both versions
+    // Select verse in all versions
     const unvVerseEl = unvContent?.querySelector(`.verse[data-verse="${verse}"]`);
     const kjvVerseEl = kjvContent?.querySelector(`.verse[data-verse="${verse}"]`);
+    const lccVerseEl = lccContent?.querySelector(`.verse[data-verse="${verse}"]`);
 
     if (unvVerseEl) {
       unvVerseEl.classList.add('selected');
@@ -344,6 +444,13 @@ const LeftPanel = (() => {
       kjvVerseEl.classList.add('selected');
       if (kjvActive) {
         kjvVerseEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    if (lccVerseEl) {
+      lccVerseEl.classList.add('selected');
+      if (lccActive) {
+        lccVerseEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
 
@@ -371,6 +478,11 @@ const LeftPanel = (() => {
     // Apply colors to KJV content if active
     if (kjvActive && Object.keys(kjvChapterVerses).length > 0) {
       applyColorsToKJV();
+    }
+
+    // Apply colors to LCC content if active
+    if (lccActive && Object.keys(lccChapterVerses).length > 0) {
+      applyColorsToLCC();
     }
   }
 
@@ -419,6 +531,32 @@ const LeftPanel = (() => {
 
       // Add SN click handlers
       addSNClickHandlers(textEl, verseNum, 'kjv');
+    });
+  }
+
+  /**
+   * Apply colors to LCC content by matching Chinese words from UNV
+   */
+  function applyColorsToLCC() {
+    if (!lccContent) return;
+
+    lccContent.querySelectorAll('.verse').forEach(verseEl => {
+      const verseNum = parseInt(verseEl.dataset.verse);
+      const lccData = lccChapterVerses[verseNum];
+      if (!lccData) return;
+
+      const textEl = verseEl.querySelector('.verse-text');
+      if (!textEl) return;
+
+      // Only color the selected verse (need UNV raw text + groups)
+      if (verseNum === currentVerse && currentGroups.length > 0) {
+        const unvData = chapterVerses[verseNum];
+        const unvRawText = unvData ? unvData.text : null;
+        const coloredHtml = ColorMapper.applyColorsToPlainText(lccData.text, unvRawText, currentGroups);
+        textEl.innerHTML = coloredHtml;
+      } else {
+        textEl.innerHTML = escapeHtml(lccData.text);
+      }
     });
   }
 
@@ -502,6 +640,7 @@ const LeftPanel = (() => {
     // Determine which Single HL mode to use based on source
     const useUnvSingleHL = source === 'left' && version === 'unv' ? unvSingleHL : unvSingleHL;
     const useKjvSingleHL = source === 'left' && version === 'kjv' ? kjvSingleHL : kjvSingleHL;
+    const useLccSingleHL = lccSingleHL;
 
     // Clear previous highlighting based on per-version settings
     if (unvActive && useUnvSingleHL) {
@@ -510,18 +649,22 @@ const LeftPanel = (() => {
     if (kjvActive && useKjvSingleHL) {
       clearHighlightingInContainer(kjvContent);
     }
+    if (lccActive && useLccSingleHL) {
+      clearHighlightingInContainer(lccContent);
+    }
 
-    // Apply highlighting to both active versions
-    // Both UNV and KJV now use group-based coloring for the selected verse,
-    // so color-based filtering works for both
+    // Apply highlighting to all active versions
+    // UNV and KJV use group-based coloring, LCC uses word-match coloring
     if (source === 'left') {
       // Clicked in left panel - highlight local (blue)
       if (unvActive) highlightInContainer(unvContent, groupSNs, verse, 'clicked-local', useUnvSingleHL);
       if (kjvActive) highlightInContainer(kjvContent, groupSNs, verse, 'clicked-local', useKjvSingleHL);
+      if (lccActive) highlightInLCCContainer(lccContent, groupSNs, verse, 'clicked-local', useLccSingleHL);
     } else {
       // Clicked in right panel - highlight remote (orange)
       if (unvActive) highlightInContainer(unvContent, groupSNs, verse, 'clicked-remote', useUnvSingleHL);
       if (kjvActive) highlightInContainer(kjvContent, groupSNs, verse, 'clicked-remote', useKjvSingleHL);
+      if (lccActive) highlightInLCCContainer(lccContent, groupSNs, verse, 'clicked-remote', useLccSingleHL);
     }
   }
 
@@ -542,6 +685,7 @@ const LeftPanel = (() => {
   function clearHighlighting() {
     clearHighlightingInContainer(unvContent);
     clearHighlightingInContainer(kjvContent);
+    clearHighlightingInContainer(lccContent);
   }
 
   /**
@@ -574,6 +718,54 @@ const LeftPanel = (() => {
   }
 
   /**
+   * Highlight matching words in LCC container by group color
+   * LCC has .sn-text spans (no .sn-tag), so we match by background color
+   * @param {Element} container
+   * @param {string[]} groupSNs - SN codes in the clicked group
+   * @param {number} verse - Verse number
+   * @param {string} className - CSS class ('clicked-local' or 'clicked-remote')
+   * @param {boolean} singleHLMode - Limit to current verse
+   */
+  function highlightInLCCContainer(container, groupSNs, verse, className, singleHLMode) {
+    if (!container) return;
+
+    let searchContainer = container;
+    if (singleHLMode && verse) {
+      searchContainer = container.querySelector(`.verse[data-verse="${verse}"]`);
+      if (!searchContainer) return;
+    }
+
+    // Find the group color for these SNs
+    let targetColor = null;
+    for (let i = 0; i < currentGroups.length; i++) {
+      const group = currentGroups[i];
+      if (group.sns.some(sn => groupSNs.includes(sn))) {
+        targetColor = ColorMapper.getColorForGroup(i);
+        break;
+      }
+    }
+    if (!targetColor) return;
+
+    // Find .sn-text elements with matching background color
+    const targetRgb = hexToRgb(targetColor);
+    searchContainer.querySelectorAll('.sn-text').forEach(el => {
+      const elColor = el.style.backgroundColor;
+      if (elColor === targetRgb || elColor === targetColor) {
+        el.classList.add(className);
+      }
+    });
+  }
+
+  /**
+   * Convert hex to rgb for color comparison
+   */
+  function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return hex;
+    return `rgb(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)})`;
+  }
+
+  /**
    * Get SN Dict enabled state for a version
    * @param {string} version - 'unv' or 'kjv'
    * @returns {boolean}
@@ -592,11 +784,15 @@ const LeftPanel = (() => {
     if (kjvContent) {
       kjvContent.innerHTML = '<div class="loading-message">Loading KJV...</div>';
     }
+    if (lccContent) {
+      lccContent.innerHTML = '<div class="loading-message">Loading LCC (呂振中譯本)...</div>';
+    }
     currentBook = null;
     currentChapter = null;
     currentVerse = null;
     chapterVerses = {};
     kjvChapterVerses = {};
+    lccChapterVerses = {};
     currentColorMap = {};
     currentGroups = [];
     if (leftVerseRef) {
