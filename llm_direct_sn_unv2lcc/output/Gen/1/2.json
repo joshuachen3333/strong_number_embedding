@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 1,
+  "sec": 2,
+  "lcc_sn": "地<WH0776>還沒有定形<WH01961><WTH8804><WH08414>、混混沌沌<WH0922>；黑暗<WH02822>在<WAH05921>深淵<WH08415>上面<WH06440>；上帝<WH0430>的靈<WH07307>覆煦<WH07363><WTH8764>在<WH05921>水<WH04325>面<WH06440>上。",
+  "lcc_original": "地還沒有定形、混混沌沌；黑暗在深淵上面；上帝的靈覆煦在水面上。",
+  "unv_sn_reference": "地<WH0776>是<WH01961><WTH8804>空虛<WH08414>混沌<WH0922>，淵<WH08415>面{<WAH05921>}<WH06440>黑暗<WH02822>；　神<WH0430>的靈<WH07307>運行<WH07363><WTH8764>在<WH05921>水<WH04325>面<WH06440>上。",
+  "confidence": 0.82,
+  "notes": [
+    "LCC '還沒有定形' collapses two Hebrew words into one phrase — H1961 (הָיְתָה, was) + H8414 (תֹהוּ, formless); both tags appended at end of phrase with morphology <WTH8804> kept adjacent to H1961.",
+    "UNV's implicit {<WAH05921>} (עַל) becomes explicit 在 in LCC due to word order inversion (UNV: 淵面黑暗 vs. LCC: 黑暗在深淵上面); braces dropped per Rule 3.",
+    "In '在深淵上面': 在 = H5921 (עַל, upon), 深淵 = H8415 (תְהֹום, deep), 上面 = H6440 (פְּנֵי, face/surface).",
+    "LCC 上帝 = UNV 神 = H430 (אֱלֹהִים); LCC 覆煦 = UNV 運行 = H7363 (מְרַחֶפֶת, hovering/brooding)."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-24T14:57:02.328489+00:00"
+}

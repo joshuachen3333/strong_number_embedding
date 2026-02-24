@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 1,
+  "sec": 6,
+  "lcc_sn": "上帝<WH0430>說<WH0559><WTH8799>：『衆水<WH04325>之間<WAH09002><WH08432>要有<WAH01961><WTH8799>穹蒼<WH07549>，將{<WAH01961>}{<WTH8799>}水<WAH0996><WH04325>和水<WAH09001><WH04325>分開<WH0914><WTH8688>。』",
+  "lcc_original": "上帝說：『衆水之間要有穹蒼，將水和水分開。』",
+  "unv_sn_reference": "　神<WH0430>說<WH0559><WTH8799>：「諸水<WH04325>之間<WAH09002><WH08432>要有<WAH01961><WTH8799>空氣<WH07549>，將{<WAH01961>}{<WTH8799>}水<WAH0996><WH04325>分<WH0914><WTH8688>為上下{<WAH09001>}{<WH04325>}。」",
+  "confidence": 0.9,
+  "notes": [
+    "上帝 (LCC) vs 神 (UNV) — both render אֱלֹהִים (H0430); systematic LCC/UNV difference",
+    "穹蒼 (LCC) vs 空氣 (UNV) — both render רָקִיעַ (H07549, firmament/expanse); LCC uses more astronomically precise term",
+    "LCC's second explicit 水 (in 和水) corresponds to UNV's implicit {<WAH09001>}{<WH04325>} (לָמָיִם) — applied Rule 3, dropped braces",
+    "LCC 分開 (two-char compound) carries the SN and morphology of UNV 分 (<WH0914><WTH8688>)",
+    "{<WAH01961>}{<WTH8799>} (וִיהִי, 'and let it be') remains implicit in LCC — no explicit Chinese word corresponds to it in the 將…分開 structure"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-24T15:09:36.093751+00:00"
+}

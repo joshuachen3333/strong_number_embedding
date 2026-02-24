@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 1,
+  "sec": 10,
+  "lcc_sn": "上帝<WH0430>稱<WH07121><WTH8799>旱地<WAH09001><WH03004>爲地<WH0776>，稱<WH07121><WTH8804>水<WH04325>之積聚<WAH09001><WH04723>爲海<WH03220>：上帝<WH0430>看<WH07200><WTH8799>這<WAH03588>很好<WH02896>。",
+  "lcc_original": "上帝稱旱地爲地，稱水之積聚爲海：上帝看這很好。",
+  "unv_sn_reference": "　神<WH0430>稱<WH07121><WTH8799>旱地<WAH09001><WH03004>為「地<WH0776>」，稱<WH07121><WTH8804>水<WH04325>的聚處<WAH09001><WH04723>為「海<WH03220>」。　神<WH0430>看著<WH07200><WTH8799>{<WAH03588>}是好的<WH02896>。",
+  "confidence": 0.92,
+  "notes": [
+    "上帝 (LCC) vs 神 (UNV) both = H0430 Elohim — straightforward lexical variant",
+    "之 before 積聚 is a Chinese genitive particle with no Hebrew counterpart — left unannotated; 積聚 carries WAH09001+WH04723 (מִקְוֵה miqveh)",
+    "{<WAH03588>} is implicit כִּי in UNV but LCC renders it explicitly as 這 ('this/that') — dropped braces per Rule 3",
+    "很好 annotated as a phrase with WH02896 (טוֹב); 很 is a Chinese intensifier with no Hebrew equivalent but inseparable from the headword 好 in LCC's rendering"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-24T15:16:25.465673+00:00"
+}
