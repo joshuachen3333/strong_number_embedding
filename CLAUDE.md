@@ -4,239 +4,204 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Strong's Number Embedding Project** - A system that leverages AI and Large Language Models to (semi)automate the insertion of Strong's Numbers into various Bible translations. Strong's Numbers are unique identifiers for Hebrew (Old Testament) and Greek (New Testament) root words that enable deep linguistic Bible study across translations.
+**Strong's Number Embedding Project** — A system using AI/LLMs to (semi)automate the insertion of Strong's Numbers into Bible translations. Strong's Numbers are unique identifiers for Hebrew (OT) and Greek (NT) root words. UNV (Chinese Union Version) and KJV already have Strong's annotations from FHL (bible.fhl.net) and serve as reference data. All bible.fhl.net API usage is authorized for this project.
 
-## Project Structure
+## Components
 
-The repository has three main components:
+### `sn_within_unv_selfgroup_segmentation/` — UNV+SN Parser (Python)
 
-### 1. `original_text_preparation/`
-Data processing toolkit for extracting and preparing Bible texts from SQLite databases.
+Parses UNV text with Strong's Numbers into structured semantic groups. Three-stage pipeline: `fetch_text.sh` → `parse_verse_v1_8.py` → `run_parser_temp.py`. Output goes to `output/{Book}/{Chapter}/{verse}`.
 
-**Purpose**: Download and convert FHL (Faith, Hope, Love) Bible database snapshots into structured JSON datasets.
+```bash
+# Single verse (Genesis 1:1)
+python run_parser_temp.py 1 1
+python run_parser_temp.py --no-write 1 1   # preview without saving
 
-**Key Scripts** (in `helper_scripts/`):
-- `extract_whole_bible_db2json2.sh` - Extract complete Bible versions to JSON (KJV, UNV, BHS Hebrew, FHLWH Greek)
-- `batch_extract_strong_dictionary_words2.sh` - Extract Strong's dictionaries (Hebrew/Greek mappings)
+# Fetch raw data
+./fetch_text.sh --engs Gen --chap 1 --sec 1
+./fetch_text.sh --list                      # list all 66 book codes
 
-**Data Flow**:
-1. Download SQLite zips from `https://ftp.fhl.net/FHL/COBS/data/` (e.g., `bible_little.zip`, `bible_kjv.zip`)
-2. Extract to `source_sqlite/`
-3. Run scripts to generate JSON in `bible_text_json/` and `strong_dict_json/`
+# Batch parsing
+./batch_parse_book.sh Gen                   # full book
 
-**Important**: This directory does NOT create new translations. It strictly follows FHL data snapshots and may need periodic updates when FHL revises source data.
-
-### 2. `dual_reader/`
-Basic dual Bible reader web application with synchronized reading and Strong's number support.
-
-**How to Run**: Open `dual_reader/index.html` directly in a browser (no server required).
-
-**Features**:
-- Side-by-side synchronized Bible reading
-- Multiple Bible versions (UNV, KJV, ESV, RCUV2010, LCC)
-- Strong's number display with multiple format support
-- Follow checkbox system for main/follower synchronization
-- Live API integration with bible.fhl.net
-
-**See**: `dual_reader/CLAUDE.md` for detailed development guidance on this component.
-
-### 3. `dual_reader_right_editor/`
-**Advanced variant** with edit mode, localStorage persistence, and word-level highlighting.
-
-**How to Run**: Open `dual_reader_right_editor/index.html` directly in a browser.
-
-**Additional Features** (beyond basic dual_reader):
-- **Edit Mode**: Right reader supports editing with auto-save to localStorage
-- **Undo/Redo**: Full edit history management
-- **Three-tier Loading**: JSON → localStorage → API fallback
-- **A1 Highlighting**: Click-to-highlight word system (dark blue)
-- **Advanced Synchronization**: Granular follow controls (text selection vs verse scroll)
-
-**Default Setup**:
-- Left reader: UNV with Strong's enabled (follower mode)
-- Right reader: LCC with edit mode enabled (main mode)
-
-**See**: `dual_reader_right_editor/CLAUDE.md` for comprehensive development rules, architecture details, and critical anti-patterns.
-
-## Architecture Overview
-
-Both dual reader variants use a **Mediator Pattern** with these core components:
-
-- **MockMediator** (`mock_mediator.js`): Central event hub for publish/subscribe communication
-- **Left Reader** (`left_reader_frontend.js`): Reference reader, can be main or follower
-- **Right Reader** (`right_reader_frontend.js`): Can sync or operate independently; has edit mode in advanced variant
-- **App Controller** (`app.js`): Global UI coordination, internationalization (EN/正體中文)
-
-**Critical Design Rules**:
-- Components communicate ONLY through MockMediator events (never direct calls)
-- Follow checkbox logic: checked = follower, unchecked = independent/main
-- Parent-child hierarchy: "FL TxT Sel" (Follow Text Selection) enables "FL Ver Scrl" (Follow Verse Scroll)
-- Last checkbox wins: checking any follow box makes that reader the follower
-- Other abbreviated controls: "SN" (Strong's Numbers), "Ver HL" (Verse Highlight), "Single HL" (Single Highlight)
-
-## API Integration
-
-**Data Source**: bible.fhl.net (authorized for this project)
-
-**Bible Text API**: `https://bible.fhl.net/json/qb.php`
-- Parameters: `version` (unv, kjv, esv, etc.), `chineses` (Chinese book abbreviation), `chap` (chapter), `strong` (0 or 1)
-- Response: `{record: [{sec, bible_text}, ...]}`
-
-**Book Mapping**: 66 books with English ↔ Chinese abbreviations (e.g., "Genesis" ↔ "創", "Matthew" ↔ "太")
-
-**API Characteristics**:
-- Chinese abbreviations required regardless of Bible version
-- English versions may return Chinese text (handled with fallbacks)
-- Strong's numbers not consistently available via JSON API (web interface has more complete data)
-
-## Strong's Number Formats
-
-The application parses four formats from FHL API:
-- `<WH1234>` / `<WG5678>` - FHL Hebrew/Greek format
-- `{<WH1234>}` / `{<WG5678>}` - Wrapped format
-- `{H1234}` / `{G5678}` - Simple format
-- `(H1234)` / `(G5678)` - Parentheses format
-
-Rendered as clickable spans:
-```html
-<span class="strongs-number" data-strong="G1722" title="Strong's G1722">[G1722]</span>
+# Generate manifest for viewer
+python generate_manifest.py
 ```
 
-## UI Control Abbreviations
+**Authoritative spec**: `SPECIFICATION_v1.8.md` (standalone, self-contained).
 
-To save horizontal space, control labels use abbreviated strings:
+**Token classification** (non-overlapping):
+- Core (Strong's 1–8999): `<dddd>` or `{<dddd>}`
+- Morphology (8xxx, 4-digit): `(**8ddd)` or `{8ddd}` — verbal stems/tenses
+- 900x prefixes (5-digit 09000–09999 ONLY): `<09ddd>` — inseparable particles
+- CRITICAL: 4-digit `<0914>` is NOT a 900x prefix — must be exactly 5 digits starting with `09`
 
-**Follow Controls**:
-- **FL TxT Sel** - Follow Text Selection (parent control for chapter/book sync)
-- **FL Ver Scrl** - Follow Verse Scroll (child control for verse-level scroll sync)
+**Output format**: Three sections in order (Parsed Text → Raw UNV+SN → Morphology Notes). Never insert commentary between sections.
 
-**Display Controls**:
-- **SN** - Strong's Numbers toggle
-- **Ver HL** - Verse Highlight toggle
-- **Single HL** - Single Highlight mode (left reader only)
+**Hybrid architecture**: Rule-based parser handles ~80-90%; `ai_resolver.py` handles uncertain cases via Claude API; human review for AI confidence ≤ 0.85.
 
-**Other Controls**:
-- **Edit** - Edit mode toggle (right reader only in advanced variant)
-- **SN cpd** - Strong's Number compound input field (for manual entry)
-- **Ver** - Bible version selector
-- **BK** - Book selector
-- **Cptr** - Chapter selector
+### `sn_within_unv_selfgroup_segmentation/viewer_v2/` — Parsed Verse Viewer (HTML/JS)
 
-## Development Commands
+Event-driven web viewer with Mediator pattern, in-memory caching, Strong's Dictionary tooltips, group-based color coding.
 
-**No build system required** - these are pure client-side web applications with shell script data processing.
-
-### Running Applications
 ```bash
-# Basic dual reader
-open dual_reader/index.html
-
-# Advanced variant with edit mode
-open dual_reader_right_editor/index.html
+cd sn_within_unv_selfgroup_segmentation
+./viewer_v2/start_viewer.sh    # starts python http.server on port 8000
 ```
 
-### Data Processing
+**MUST READ `viewer_v2/CLAUDE.md` before ANY code change.** It contains the Component Index for all JS modules and is enforced by a git pre-commit hook.
+
+**Git pre-commit hook**: If you stage `viewer_v2/js/*.js` files without also staging `viewer_v2/CLAUDE.md`, the commit will be blocked. Always update the Component Index in `viewer_v2/CLAUDE.md` when modifying JS files. If no CLAUDE.md changes are needed, stage it anyway.
+
+**File load order** (immutable, in index.html):
+1. `mediator.js`, `ui_utils.js`, `book_data.js`
+2. `data_loader.js`, `color_mapper.js`, `sn_dictionary.js`
+3. `left_panel.js`, `right_panel.js`, `navigation.js`
+4. `app.js` (last)
+
+**Key pattern — group-based coloring**: Always pass `currentGroups` for position-aware coloring. Applies to both UNV AND KJV in `left_panel.js`. If one version works but the other doesn't, compare how they call the same coloring function.
+
+**Event flow**: `VERSE_SELECT → App loads data → VERSE_SELECTED → RightPanel parses → COLORS_APPLY → LeftPanel colors`
+
+### `chinese_term_segmentation/` — Chinese Segmentation Framework (Python)
+
+Segments Chinese biblical text and maps terms to Strong's Numbers using pluggable NLP engines.
+
 ```bash
-# Navigate to original_text_preparation/
+cd chinese_term_segmentation
+pip install -r requirements.txt
 
-# Download source data
-cd source_sqlite/
-wget https://ftp.fhl.net/FHL/COBS/data/bible_little.zip
-wget https://ftp.fhl.net/FHL/COBS/data/bible_kjv.zip
-unzip bible_little.zip
-unzip bible_kjv.zip
+# Segment a verse
+python segment.py --verse "Gen 1:3" --version unv
+python segment.py --verse "創 1:1" --version unv --seg jieba
 
-# Extract Strong's dictionaries
-cd ../strong_dict_json/
-# Copy script and database, then run:
-./batch_extract_strong_dictionary_words2.sh 1 9015 ot  # Old Testament
-./batch_extract_strong_dictionary_words2.sh 1 1768 nt  # New Testament
+# SN-based boundary correction
+python segment.py --engs gen --chap 3 --sec 3 --version lcc \
+  --seg pkuseg --correct-with-sn --use-refinement --semantic-engine edit-distance
 
-# Extract Bible versions
-cd ../bible_text_json/
+# Run tests
+pytest tests/ -v
+pytest tests/ --cov=src --cov-report=term-missing
+```
+
+**Plugin architecture**: jieba, pkuseg, LAC, Stanza segmenters. `BoundaryCorrector` uses UNV+SN boundaries as reference to correct target text segmentation.
+
+### `dual_reader/` — Basic Dual Bible Reader (HTML/JS)
+
+Side-by-side synchronized Bible reading. `open dual_reader/index.html` (no server needed).
+
+### `dual_reader_right_editor/` — Advanced Dual Reader with Edit Mode (HTML/JS)
+
+Extends `dual_reader/` with edit mode, localStorage persistence, undo/redo, A1 word highlighting, and on-click group-based verse coloring (requires `start_server.py`).
+
+```bash
+# With group coloring (requires server for parsed verse data):
+python start_server.py                    # from repo root, port 8080
+# Open http://localhost:8080/dual_reader_right_editor/
+
+# Without server (basic mode, no group coloring):
+open dual_reader_right_editor/index.html  # all features except group coloring
+```
+
+**MUST READ `dual_reader_right_editor/CLAUDE.md` before modifying.** Contains critical rules about immutable initialization sequences, state management, and anti-patterns learned from debugging.
+
+Key rules:
+- HTML checkbox is Single Source of Truth for edit mode state — never let `editModeToggle.checked` diverge from `isEditMode`
+- Three-tier loading: JSON → localStorage → API fallback. Never skip API to load directly from localStorage.
+- Follow checkbox logic: checked = follower, unchecked = main. Parent-child: "FL Ver Scrl" requires "FL TxT Sel". Last checkbox wins.
+
+### `hebrew_lesson/` — Biblical Hebrew Study Resource (HTML/JS)
+
+Flashcard app for Hebrew alphabet with Strong's Number examples. `open hebrew_lesson/alphabet_cards/index.html`. See `hebrew_lesson/CLAUDE.md` for reference tables.
+
+### `original_text_preparation/` — Data Extraction Pipeline (Bash/SQLite)
+
+Extracts Bible texts and Strong's dictionaries from FHL SQLite databases into JSON.
+
+```bash
+cd original_text_preparation/bible_text_json/
 ./extract_whole_bible_db2json2.sh -f ../source_sqlite/bible_kjv.db -d kjv
 ./extract_whole_bible_db2json2.sh -f ../source_sqlite/bible_little.db -d unv
+
+cd ../strong_dict_json/
+./batch_extract_strong_dictionary_words2.sh 1 9015 ot   # Old Testament
+./batch_extract_strong_dictionary_words2.sh 1 1768 nt   # New Testament
 ```
 
-## Working with Subdirectories
+## Architecture Patterns
 
-**When modifying `dual_reader/`**: Consult `dual_reader/CLAUDE.md` for basic dual reader architecture.
+### Shared Libraries (`shared/js/`)
 
-**When modifying `dual_reader_right_editor/`**:
-- **MUST READ** `dual_reader_right_editor/CLAUDE.md` first
-- Contains critical development rules learned from painful debugging experiences
-- Documents immutable initialization sequences, anti-patterns to avoid, and state management rules
-- See `dual_reader_right_editor/dev_criteria_en.md` for comprehensive development checklist
+Reusable JavaScript modules shared across multiple web applications. All web apps reference these via relative paths (e.g., `../shared/js/color_mapper.js`).
 
-**When modifying `original_text_preparation/`**: Focus on shell script robustness and data format compatibility.
+| File | Purpose | Used By |
+|------|---------|---------|
+| `color_mapper.js` | Group-based SN coloring engine (token pipeline, color palette, group parsing) | `viewer_v2`, `dual_reader_right_editor` |
 
-## Common Development Tasks
+**Convention**: When a module is needed by 2+ web apps, move it to `shared/js/`. Create symlinks at original locations for backward compatibility. Document in this table.
 
-### Adding Bible Versions
-1. Update `<select>` options in `index.html` for both readers
-2. Ensure version code matches FHL API conventions
-3. Test with both Strong's enabled and disabled
+### Development Server (`start_server.py`)
 
-### Modifying Synchronization
-1. Work through MockMediator's event system
-2. Use `MockMediator.publish(eventName, data)` - never direct component calls
-3. Check follow checkbox state before publishing events
-4. Test bidirectional sync (both readers as main/follower)
+Lightweight Python server (port 8080) that serves static files from repo root and provides an on-demand verse parsing API. Required for features that access parsed verse data (group coloring in `dual_reader_right_editor`).
 
-### UI Changes
-1. Update HTML structure in `index.html`
-2. Update corresponding JavaScript selectors (avoid ID changes for critical elements)
-3. Test resizable components still function
-4. Verify internationalization (EN/中文) for new UI elements
+```bash
+python start_server.py              # default port 8080
+python start_server.py --port 9000  # custom port
+```
 
-### Strong's Number Handling
-1. Update parsing regex patterns in both reader files
-2. Test all four Strong's number formats
-3. Ensure clickability and event publishing work
-4. Verify proper rendering with `data-strong` attributes
+API: `GET /api/parse?chineses=創&chapter=1&verse=1` — returns parsed verse content (from pre-parsed files or on-demand parsing).
 
-## File Organization
+### Mediator Pattern (all web apps)
 
-**Root Level**:
-- `CLAUDE.md` (this file) - Project-wide guidance
-- `README.txt` - Project purpose and background
-- `CHANGELOG.md` - Version history and breaking changes
-- `LICENSE`, `seek4help.txt` - Legal and support info
+All web applications use a central event bus (MockMediator or Mediator). Components communicate ONLY through publish/subscribe — never direct calls between components.
 
-**Critical Files by Component**:
-- **original_text_preparation**: `helper_scripts/*.sh`, READMEs in `doc/`
-- **dual_reader**: `index.html`, `js/mock_mediator.js`, `js/*_reader_frontend.js`, `js/app.js`
-- **dual_reader_right_editor**: Same as dual_reader + `js/highlighting_foundation.js`, comprehensive documentation files
+```javascript
+// CORRECT
+MockMediator.publish('eventName', data);
+// WRONG — never do this
+rightReader.someFunction(data);
+```
+
+### Strong's Number Formats
+
+Four formats from FHL API (all must be handled):
+- `<WH1234>` / `<WG5678>` — FHL Hebrew/Greek
+- `{<WH1234>}` / `{<WG5678>}` — Wrapped
+- `{H1234}` / `{G5678}` — Simple
+- `(H1234)` / `(G5678)` — Parentheses
+
+### API Integration
+
+**Bible Text**: `https://bible.fhl.net/json/qb.php?version=unv&chineses=創&chap=1&strong=1`
+- Chinese abbreviations required regardless of Bible version (e.g., "創" for Genesis, "太" for Matthew)
+- Response: `{record: [{sec, bible_text}, ...]}`
+
+### OpenSpec Workflow
+
+Used in `sn_within_unv_selfgroup_segmentation/` and `chinese_term_segmentation/` for feature planning. Proposals required before implementing new features, breaking changes, or architecture changes. Skip for bug fixes, typos, tests.
+
+```bash
+openspec list                          # active changes
+openspec validate [change-id] --strict # validate before implementing
+openspec archive [change-id] --yes     # after deployment
+```
 
 ## Supported Bible Versions
 
-- **UNV** (和合本) - Chinese Union Version with Strong's
-- **KJV** - King James Version with Strong's
-- **ESV** - English Standard Version
-- **RCUV2010** (和合本2010) - Revised Chinese Union Version 2010
-- **LCC** (呂振中譯本) - Lü Zhènzhōng Translation
-- **BHS** - Biblia Hebraica Stuttgartensia (Hebrew OT, via data extraction)
-- **FHLWH** - FHL Westcott-Hort Greek NT (via data extraction)
+| Code | Name | Strong's? |
+|------|------|-----------|
+| UNV | 和合本 (Chinese Union Version) | Yes |
+| KJV | King James Version | Yes |
+| ESV | English Standard Version | No |
+| RCUV2010 | 和合本2010 | No |
+| LCC | 呂振中譯本 | No |
+| BHS | Biblia Hebraica Stuttgartensia | Hebrew OT source |
+| FHLWH | FHL Westcott-Hort | Greek NT source |
 
 ## Internationalization
 
-Both dual reader applications support:
-- **English** (default)
-- **正體中文** (Traditional Chinese)
+Web apps support English (default) and 正體中文 (Traditional Chinese). Language persists in localStorage. Dynamic UI updates via `translations` object in `app.js`.
 
-Language preference persists in localStorage. Dynamic UI updates via `translations` object in `app.js`.
+## No Build System
 
-## Important Notes
-
-**Data Authorization**: All bible.fhl.net usage is authorized for this project.
-
-**Browser Requirements**: Modern browsers with localStorage and fetch API support.
-
-**No Backend**: Pure client-side applications with RESTful API integration.
-
-**Development Focus**:
-- `dual_reader/` = basic synchronized reading
-- `dual_reader_right_editor/` = advanced editing and highlighting capabilities
-- Choose appropriate variant based on feature requirements
-
-**Future Goals**: AI/LLM integration to automate Strong's number embedding into unannotated Bible translations, with human-in-the-loop editing environment.
+All web applications are pure client-side HTML/JS/CSS — open `index.html` directly in browser. The only server requirement is `python3 -m http.server` for `viewer_v2/` (due to fetch API CORS restrictions on local files). Python components have no packaging — run scripts directly.

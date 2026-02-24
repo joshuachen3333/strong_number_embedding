@@ -8,7 +8,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Running the Application
 
-Open `index.html` directly in a web browser. No server setup required - this is a pure client-side application.
+**Basic mode** (no server): Open `index.html` directly in a web browser. All features work except group-based verse coloring.
+
+**With group coloring** (requires server): Run `python start_server.py` from the repo root, then open `http://localhost:8080/dual_reader_right_editor/`. Click any verse in the left panel (UNV/KJV with SN enabled) to apply semantic group coloring.
 
 ## Architecture
 
@@ -29,9 +31,22 @@ All components communicate through **MockMediator** using publish/subscribe even
 
 ### Component Responsibilities
 
+**ColorMapper** (`../shared/js/color_mapper.js`):
+- Shared group-based SN coloring engine (from viewer_v2)
+- Token pipeline: tokenize → assign groups → render colored HTML
+- 15-color palette for semantic group backgrounds
+
+**VerseColoring** (`verse_coloring.js`):
+- Fetches parsed verse data from `/api/parse` endpoint (start_server.py)
+- Extracts groups using ColorMapper.parseGroups()
+- Applies group coloring on verse click (left panel, UNV/KJV only)
+- Gracefully disabled when server not running (typeof guard)
+- In-memory cache for parsed data
+
 **Left Reader** (`left_reader_frontend.js`):
 - Reference Bible text display (read-only)
 - Strong's number source for word mapping
+- On-click group-based verse coloring (via VerseColoring module)
 - Default: UNV version with Strong's enabled
 - Can be main or follower based on follow checkboxes
 

@@ -299,3 +299,28 @@ label[for="right-reader-follow-scroll"]:hover {
     -webkit-text-stroke-width: 0.3px;
     -webkit-text-stroke-color: transparent;
 }
+
+/* === Group-Based Verse Coloring (ColorMapper output) === */
+.sn-tag {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    padding: 1px 3px;
+    border-radius: 2px;
+    margin: 0 1px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.sn-tag:hover {
+    opacity: 0.8;
+}
+
+.sn-text {
+    padding: 1px 2px;
+    border-radius: 2px;
+}
+
+.verse[data-group-colored="true"] {
+    border-left: 3px solid #4caf50;
+    padding-left: 8px;
+}

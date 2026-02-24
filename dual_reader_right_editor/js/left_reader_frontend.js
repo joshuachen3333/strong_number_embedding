@@ -656,6 +656,56 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Handle verse click for group-based coloring.
+     * Active when Strong's is ON and version is UNV or KJV.
+     * Gracefully does nothing if VerseColoring is unavailable (no server).
+     */
+    function handleVerseClickForColoring(event) {
+        if (!strongToggle.checked) return;
+        const version = versionSelect.value;
+        if (version !== 'unv' && version !== 'kjv') return;
+        if (typeof VerseColoring === 'undefined' || !VerseColoring) return;
+
+        // Don't interfere with SN clicks (A1 handles those)
+        if (event.target.classList.contains('strongs-number') ||
+            event.target.classList.contains('sn-tag')) return;
+
+        const verseEl = event.target.closest('.verse[data-verse]');
+        if (!verseEl) return;
+
+        VerseColoring.colorVerse(verseEl).then(success => {
+            if (success) {
+                logStatus(`🎨 Group coloring: verse ${verseEl.dataset.verse}`);
+                // Re-attach SN click handlers for the newly colored elements
+                attachStrongsEventListenersForVerse(verseEl);
+            }
+        });
+    }
+
+    // Attach verse click handler via event delegation
+    contentArea.addEventListener('click', handleVerseClickForColoring);
+
+    /**
+     * Attaches Strong's click handlers to elements within a specific verse
+     * @param {HTMLElement} verseEl - The verse element
+     */
+    function attachStrongsEventListenersForVerse(verseEl) {
+        const strongsElements = verseEl.querySelectorAll('.strongs-number');
+        strongsElements.forEach(el => {
+            el.addEventListener('click', () => {
+                const strongNum = el.dataset.strong;
+                if (!strongNum) return;
+                logStatus(`🔗 Strong's clicked: ${strongNum}`);
+                console.log(`LeftReader: Strong's number ${strongNum} clicked.`);
+                MockMediator.publish('strongsNumberClicked', {
+                    strongNumber: strongNum,
+                    version: versionSelect.value
+                });
+            });
+        });
+    }
+
+    /**
      * Attaches event listeners to Strong's number elements.
      */
     function attachStrongsEventListeners() {
