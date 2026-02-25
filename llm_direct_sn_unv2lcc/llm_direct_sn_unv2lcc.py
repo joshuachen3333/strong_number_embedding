@@ -179,19 +179,51 @@ def call_claude(model: str, unv_sn: str, lcc: str,
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
 
-    result_proc = subprocess.run(
-        cmd, capture_output=True, text=True, timeout=300, env=env,
-        input=prompt
-    )
+    # Retry loop for rate-limit / token exhaustion errors
+    RETRY_INTERVAL = 30 * 60  # 30 minutes
+    MAX_RETRIES = 48  # 48 x 30min = 24 hours max
+    RATE_LIMIT_PATTERNS = [
+        "rate limit", "rate_limit", "token limit", "too many requests",
+        "overloaded", "capacity", "quota", "throttl", "429",
+    ]
 
-    if result_proc.returncode != 0:
-        stderr = result_proc.stderr.strip()
-        return {
-            "lcc_sn": "",
-            "confidence": 0.0,
-            "notes": [f"claude CLI error: {stderr[:300]}"],
-            "error": True
-        }
+    for attempt in range(MAX_RETRIES + 1):
+        result_proc = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=300, env=env,
+            input=prompt
+        )
+
+        if result_proc.returncode == 0:
+            break
+
+        stderr = result_proc.stderr.strip().lower()
+        is_rate_limit = any(pat in stderr for pat in RATE_LIMIT_PATTERNS)
+
+        if not is_rate_limit:
+            # Non-rate-limit error — return immediately
+            return {
+                "lcc_sn": "",
+                "confidence": 0.0,
+                "notes": [f"claude CLI error: {result_proc.stderr.strip()[:300]}"],
+                "error": True
+            }
+
+        # Rate limit hit — wait and retry
+        now = datetime.now().strftime("%H:%M:%S")
+        next_try = datetime.now(timezone.utc).timestamp() + RETRY_INTERVAL
+        next_str = datetime.fromtimestamp(next_try).strftime("%H:%M:%S")
+        print(f"  ⏸ [{now}] Rate limit hit (attempt {attempt + 1}). "
+              f"Waiting 30 min, next retry at {next_str}...", flush=True)
+
+        if attempt >= MAX_RETRIES:
+            return {
+                "lcc_sn": "",
+                "confidence": 0.0,
+                "notes": [f"Rate limit: gave up after {MAX_RETRIES} retries"],
+                "error": True
+            }
+
+        time.sleep(RETRY_INTERVAL)
 
     raw = result_proc.stdout.strip()
 
@@ -436,12 +468,14 @@ def main():
                         help="List all 66 book abbreviations and exit")
     parser.add_argument("--sec", type=int, default=None,
                         help="Section/verse number (omit for whole chapter)")
-    parser.add_argument("--model", default="opus",
-                        help="Claude model (default: opus; alternatives: sonnet, haiku)")
+    parser.add_argument("--model", default="sonnet",
+                        help="Claude model (default: sonnet; alternatives: opus, haiku)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Fetch data but skip claude calls")
     parser.add_argument("--force", action="store_true",
                         help="Reprocess all verses, overwrite existing files")
+    parser.add_argument("--reprocess-low-confidence", action="store_true",
+                        help="Reprocess verses with confidence < 0.85 using opus (or --model)")
     parser.add_argument("--quiet", action="store_true",
                         help="Suppress prompt and claude command details")
     args = parser.parse_args()
@@ -460,6 +494,10 @@ def main():
     if not args.chineses or not args.chap:
         parser.error("--chineses and --chap are required (or use --list-books)")
 
+    # --reprocess-low-confidence defaults to opus unless --model was explicitly set
+    if args.reprocess_low_confidence and '--model' not in sys.argv:
+        args.model = 'opus'
+
     book_chi = args.chineses
     book_eng = CHI_TO_ENG.get(book_chi)
     if not book_eng:
@@ -472,7 +510,9 @@ def main():
 
     print(f"═══ LLM-Direct SN Transfer: {book_eng} ({book_chi}) Chap {chap_label} ═══")
     print(f"Model: {args.model}")
-    if not args.force:
+    if args.reprocess_low_confidence:
+        print(f"Mode: reprocess low confidence (<0.85)")
+    elif not args.force:
         print(f"Skip existing: ON (use --force to reprocess)")
 
     if not args.dry_run:
@@ -508,10 +548,29 @@ def main():
         chap_failed = 0
 
         for i, s in enumerate(secs):
-            # Skip existing files unless --force
-            if not args.force:
-                out_path = os.path.join(OUTPUT_DIR, book_eng, str(chap), f"{s}.json")
-                if os.path.isfile(out_path):
+            out_path = os.path.join(OUTPUT_DIR, book_eng, str(chap), f"{s}.json")
+
+            # Skip logic: --force skips nothing, --reprocess-low-confidence only reprocesses low conf
+            if not args.force and os.path.isfile(out_path):
+                if args.reprocess_low_confidence:
+                    # Check confidence — skip if >= 0.85
+                    try:
+                        with open(out_path, 'r', encoding='utf-8') as f:
+                            existing = json.load(f)
+                        conf = existing.get('confidence', 0.0)
+                        if conf >= 0.85:
+                            chap_skipped += 1
+                            total_skipped += 1
+                            if len(secs) <= 5 or (i + 1) == len(secs):
+                                print(f"  {chap}:{s} skipped (conf {conf:.2f})")
+                            elif chap_skipped == 1:
+                                print(f"  {chap}:{s} skipped (conf {conf:.2f})...", end="", flush=True)
+                            continue
+                        # Low confidence — will reprocess below
+                        print(f"\n  ── {book_eng} {chap}:{s} ({i+1}/{len(secs)}) ── [reprocess: conf {conf:.2f}]")
+                    except (json.JSONDecodeError, IOError):
+                        print(f"\n  ── {book_eng} {chap}:{s} ({i+1}/{len(secs)}) ── [reprocess: unreadable]")
+                else:
                     chap_skipped += 1
                     total_skipped += 1
                     if len(secs) <= 5 or (i + 1) == len(secs):
@@ -519,8 +578,8 @@ def main():
                     elif chap_skipped == 1:
                         print(f"  {chap}:{s} skipped (exists)...", end="", flush=True)
                     continue
-
-            print(f"\n  ── {book_eng} {chap}:{s} ({i+1}/{len(secs)}) ──")
+            else:
+                print(f"\n  ── {book_eng} {chap}:{s} ({i+1}/{len(secs)}) ──")
             result = process_sec(args.model, book_chi, chap, s,
                                  dry_run=args.dry_run,
                                  verbose=not args.quiet)
