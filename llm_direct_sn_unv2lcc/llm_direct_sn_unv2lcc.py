@@ -21,7 +21,7 @@ import sys
 import time
 import urllib.parse
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import shutil
 import subprocess
@@ -464,7 +464,7 @@ def main():
                         help="Chinese book abbreviation (e.g., 創, 出, 詩)")
     parser.add_argument("--chap", required=False, type=str,
                         help="Chapter: single (1), range (1-10), or 'all'")
-    parser.add_argument("--list-books", action="store_true",
+    parser.add_argument("--list-books", "--book-list", action="store_true",
                         help="List all 66 book abbreviations and exit")
     parser.add_argument("--sec", type=int, default=None,
                         help="Section/verse number (omit for whole chapter)")
@@ -478,6 +478,16 @@ def main():
                         help="Reprocess verses with confidence < 0.85 using opus (or --model)")
     parser.add_argument("--quiet", action="store_true",
                         help="Suppress prompt and claude command details")
+    parser.add_argument("--no-work-hours-stop", action="store_true",
+                        help="Disable automatic pause before work hours")
+    parser.add_argument("--work-hours-start", default="06:50",
+                        help="Pause time in HH:MM format (default: 06:50)")
+    parser.add_argument("--midnight-resume-at", default="01:00",
+                        help="Resume time in HH:MM format (default: 01:00)")
+    parser.add_argument("--quit-at-work-hours", action="store_true",
+                        help="Quit instead of pausing when work hours reached")
+    parser.add_argument("--immediately-restrict-first-session", action="store_true",
+                        help="Enforce pause window immediately (default: always run on first start)")
     args = parser.parse_args()
 
     if args.list_books:
@@ -508,22 +518,60 @@ def main():
     chapters = parse_chap_arg(args.chap, book_chi)
     chap_label = f"{chapters[0]}-{chapters[-1]}" if len(chapters) > 1 else str(chapters[0])
 
+    # Validate work-hours times
+    stop_hour, stop_minute = 6, 50
+    resume_hour, resume_minute = 1, 0
+    if not args.no_work_hours_stop:
+        try:
+            t = datetime.strptime(args.work_hours_start, "%H:%M")
+            stop_hour, stop_minute = t.hour, t.minute
+        except ValueError:
+            print(f"Error: Invalid --work-hours-start '{args.work_hours_start}' "
+                  f"(expected HH:MM)", file=sys.stderr)
+            sys.exit(1)
+        try:
+            t = datetime.strptime(args.midnight_resume_at, "%H:%M")
+            resume_hour, resume_minute = t.hour, t.minute
+        except ValueError:
+            print(f"Error: Invalid --midnight-resume-at '{args.midnight_resume_at}' "
+                  f"(expected HH:MM)", file=sys.stderr)
+            sys.exit(1)
+
     print(f"═══ LLM-Direct SN Transfer: {book_eng} ({book_chi}) Chap {chap_label} ═══")
     print(f"Model: {args.model}")
     if args.reprocess_low_confidence:
         print(f"Mode: reprocess low confidence (<0.85)")
     elif not args.force:
         print(f"Skip existing: ON (use --force to reprocess)")
+    if not args.no_work_hours_stop:
+        print(f"Work hours: pause at {args.work_hours_start}, "
+              f"resume at {args.midnight_resume_at}"
+              f" (--quit-at-work-hours to exit instead)"
+              if not args.quit_at_work_hours else
+              f"Work hours: quit at {args.work_hours_start}")
 
     if not args.dry_run:
         if not shutil.which("claude"):
             print("Error: 'claude' CLI not found in PATH.", file=sys.stderr)
             sys.exit(1)
 
+    # Work-hours pause window helper
+    def in_pause_window(now):
+        now_mins = now.hour * 60 + now.minute
+        stop_mins = stop_hour * 60 + stop_minute
+        resume_mins = resume_hour * 60 + resume_minute
+        if stop_mins < resume_mins:
+            return stop_mins <= now_mins < resume_mins
+        else:
+            # Crosses midnight: e.g., stop=06:50, resume=01:00
+            return now_mins >= stop_mins or now_mins < resume_mins
+
     start_time = time.time()
     total_processed = 0
     total_skipped = 0
     total_failed = 0
+    work_hours_stop = False
+    enforce_work_hours = args.immediately_restrict_first_session
 
     for chap in chapters:
         if args.sec and len(chapters) == 1:
@@ -580,6 +628,30 @@ def main():
                     continue
             else:
                 print(f"\n  ── {book_eng} {chap}:{s} ({i+1}/{len(secs)}) ──")
+            # Work-hours pause/quit check
+            if not args.no_work_hours_stop and not args.dry_run:
+                now = datetime.now()
+                currently_in_window = in_pause_window(now)
+                if currently_in_window and enforce_work_hours:
+                    if args.quit_at_work_hours:
+                        print(f"\n⏹ Work hours ({now.strftime('%H:%M')}). Quitting.")
+                        work_hours_stop = True
+                        break
+                    else:
+                        resume = now.replace(hour=resume_hour, minute=resume_minute, second=0)
+                        if resume <= now:
+                            resume += timedelta(days=1)
+                        wait_secs = (resume - now).total_seconds()
+                        wait_hours = wait_secs / 3600
+                        print(f"\n⏸ Work hours ({now.strftime('%H:%M')}). "
+                              f"Pausing until {args.midnight_resume_at} "
+                              f"({wait_hours:.1f}h)...", flush=True)
+                        time.sleep(wait_secs)
+                        print(f"⏵ {args.midnight_resume_at} reached, resuming.",
+                              flush=True)
+                elif not currently_in_window:
+                    enforce_work_hours = True
+
             result = process_sec(args.model, book_chi, chap, s,
                                  dry_run=args.dry_run,
                                  verbose=not args.quiet)
@@ -598,13 +670,17 @@ def main():
             print(f"\n  Chapter {chap}: {chap_processed} processed, "
                   f"{chap_skipped} skipped, {chap_failed} failed")
 
+        if work_hours_stop:
+            break
+
     elapsed = time.time() - start_time
     minutes = int(elapsed // 60)
     seconds = int(elapsed % 60)
     total = total_processed + total_skipped + total_failed
+    stop_note = " (stopped for work hours)" if work_hours_stop else ""
     print(f"\n═══ Done: {total_processed}/{total} processed, "
           f"{total_skipped} skipped, {total_failed} failed "
-          f"({minutes}m {seconds}s) ═══")
+          f"({minutes}m {seconds}s){stop_note} ═══")
 
 
 if __name__ == "__main__":
