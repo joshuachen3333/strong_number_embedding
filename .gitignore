@@ -14,3 +14,6 @@ __pycache__/
 # OS files
 .DS_Store
 Thumbs.db
+
+# LLM-direct SN transfer output (large, machine-generated)
+llm_direct_sn_unv2lcc/output/
