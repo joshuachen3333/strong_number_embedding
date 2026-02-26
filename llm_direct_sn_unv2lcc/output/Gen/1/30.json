@@ -1,0 +1,20 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 1,
+  "sec": 30,
+  "lcc_sn": "至於{<WAH09001>}地上<WH0776>各樣<WAH03605>走獸<WH02416>、{<WAH09001>}空中<WH08064>各樣<WAH03605>飛鳥<WH05775>、和爬<WH07430><WTH8802>在<WAH05921>地上<WH0776>的各樣<WAH09001><WAH03605>活物<WH05315>、{<WAH0834>}裏面<WAH09002>有生命<WH02416>的、我卻將<WAH0853>菜蔬<WH06212>所有<WAH03605>的青<WH03418>葉子給他們做食物<WAH09001><WH0402>：』就這樣<WAH03651>成了<WAH01961><WTH8799>。",
+  "lcc_original": "至於地上各樣走獸、空中各樣飛鳥、和爬在地上的各樣活物、裏面有生命的、我卻將菜蔬所有的青葉子給他們做食物：』就這樣成了。",
+  "unv_sn_reference": "至於{<WAH09001>}{<WAH03605>}地上<WH0776>的走獸<WH02416>和{<WAH09001>}{<WAH03605>}空中<WH08064>的飛鳥<WH05775>，並各樣<WAH09001><WAH03605>爬<WH07430><WTH8802>在<WAH05921>地上<WH0776>有{<WAH0834>}{<WAH09002>}生命<WH02416>的物<WH05315>，我將<WAH0853>{<WAH03605>}青<WH03418>草<WH06212>賜給牠們作食物<WAH09001><WH0402>。」事就這樣<WAH03651>成了<WAH01961><WTH8799>。",
+  "confidence": 0.75,
+  "notes": [
+    "First two creature groups: lamed prefix {<WAH09001>} stays implicit (no explicit word in LCC); 各樣 is explicit for כָּל so braces dropped → 各樣<WAH03605>.",
+    "Third creature group: LCC reorders to 爬在地上的各樣活物 — tags follow LCC word order, so 各樣<WAH09001><WAH03605> lands after 地上 instead of before 爬.",
+    "Hebrew נֶפֶשׁ חַיָּה (WH05315 + WH02416) is split across two LCC clauses: 活物 takes WH05315 (the creature/noun), 生命 in 裏面有生命的 takes WH02416 (the living/life qualifier).",
+    "LCC 裏面 is an explicit rendering of Hebrew בּוֹ ({<WAH09002>}), so braces dropped: 裏面<WAH09002>. The relative pronoun אֲשֶׁר {<WAH0834>} remains implicit — no explicit word in LCC.",
+    "Food clause: LCC expands 青草 (green herb) into 菜蔬所有的青葉子. 菜蔬 takes WH06212 (עֵשֶׂב), 所有 takes WAH03605 (כָּל, explicit in LCC so braces dropped), 青 takes WH03418 (יֶרֶק); 葉子 is a Chinese expansion with no Hebrew equivalent, left unannotated.",
+    "我卻將<WAH0853>: WAH0853 (אֵת, direct object marker) attaches to 將, parallel to UNV's 我將<WAH0853>."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T13:55:41.366894+00:00"
+}

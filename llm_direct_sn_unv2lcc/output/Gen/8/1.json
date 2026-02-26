@@ -1,0 +1,24 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 8,
+  "sec": 1,
+  "lcc_sn": "上帝<WH0430>記起<WH02142><WTH8799>{<WAH0853>}挪亞<WH05146>來，也記起那些同挪亞<WAH0854>在<WAH09002>樓船<WH08392>裏的<WAH0834>一切<WAH03605>走獸<WH02416>、{<WAH0853>}一切<WAH03605>牲口<WH0929>；上帝<WH0430>叫<WH05674><WH00>風<WH07307>吹過<WH05674><WTH8686>地<WH0776>上<WH05921>，水<WH04325>就漸漸消退<WH07918><WTH8799>。",
+  "lcc_original": "上帝記起挪亞來，也記起那些同挪亞在樓船裏的一切走獸、一切牲口；上帝叫風吹過地上，水就漸漸消退。",
+  "unv_sn_reference": "　神<WH0430>記念<WH02142><WTH8799>{<WAH0853>}挪亞<WH05146>和<WAH0853>挪亞<WAH0854>方舟<WAH09002><WH08392>裡的<WAH0834>一切<WAH03605>走獸<WH02416>{<WAH0853>}{<WAH03605>}牲畜<WH0929>。　神<WH0430>叫<WH05674><WH00>風<WH07307>吹<WH05674><WTH8686>{<WH05921>}地<WH0776>，水<WH04325>勢漸落<WH07918><WTH8799>。",
+  "confidence": 0.85,
+  "notes": [
+    "LCC restructures the single Hebrew verb זָכַר (WH02142) into a parallel construction 記起…也記起 for literary effect; only the first 記起 is tagged since Hebrew has one verb with multiple objects; 也記起 left unannotated.",
+    "LCC 那些 is a demonstrative pronoun added for fluency with no Hebrew equivalent; left unannotated.",
+    "UNV 挪亞<WAH0854> represents the Hebrew pronoun אִתּוֹ (with him); LCC expresses this as 同挪亞, with WAH0854 attached to 挪亞 following UNV convention of tagging the content noun.",
+    "Hebrew בַּתֵּבָה is split in LCC into two words: 在 takes WAH09002 (inseparable preposition בְּ) and 樓船 takes WH08392 (noun תֵּבָה), since LCC makes the preposition explicit.",
+    "UNV has {<WH05921>} implicit for Hebrew עַל (over/upon); LCC makes it explicit as 上 in 地上, so tag is applied directly per Rule 3: 地<WH0776>上<WH05921>.",
+    "UNV {<WAH03605>} before 牲畜 is implicit; LCC has explicit 一切 before 牲口, so braces dropped per Rule 3.",
+    "First {<WAH0853>} (before 挪亞) and second {<WAH0853>} (וְאֵת conjunction+object-marker before cattle group) both remain implicit—LCC has no explicit content word for either.",
+    "WH00 on 叫 preserved as-is from UNV (FHL causative-construction marker for the Hiphil; meaning opaque but duplication of WH05674 across 叫 and 吹過 is the FHL convention for Chinese causative split).",
+    "LCC 來 (after 挪亞) and 就 (before 消退) are Chinese aspect/conjunctive particles with no Hebrew equivalents; left unannotated.",
+    "Missing SNs: 0853"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T22:42:55.711204+00:00"
+}

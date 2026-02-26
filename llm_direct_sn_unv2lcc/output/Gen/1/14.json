@@ -1,0 +1,17 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 1,
+  "sec": 14,
+  "lcc_sn": "上帝<WH0430>說<WH0559><WTH8799>：『天穹<WAH09002><WH07549><WH08064>要有<WAH01961><WTH8799>發光之體<WH03974>來分<WAH09001><WH0914><WTH8687>{<WAH0996>}晝<WH03117>{<WAH0996>}夜<WH03915>；它們要做<WAH01961><WTH8804>天象<WAH09001><WH0226>，定節令<WAH09001><WH04150>、日子<WAH09001><WH03117>、年歲<WH08141>；",
+  "lcc_original": "上帝說：『天穹要有發光之體來分晝夜；它們要做天象，定節令、日子、年歲；",
+  "unv_sn_reference": "　神<WH0430>說<WH0559><WTH8799>：「天上<WAH09002><WH07549><WH08064>要有<WAH01961><WTH8799>光體<WH03974>，可以分<WAH09001><WH0914><WTH8687>{<WAH0996>}晝<WH03117>{<WAH0996>}夜<WH03915>，{<WAH01961>}{<WTH8804>}作記號<WAH09001><WH0226>，定節令<WAH09001><WH04150>、日子<WAH09001><WH03117>、年歲<WH08141>，",
+  "confidence": 0.92,
+  "notes": [
+    "LCC 天穹 (vault of heaven) absorbs both H07549 (raqia/firmament) and H08064 (shamayim/heavens) since LCC combines the two Hebrew nouns into a single compound",
+    "UNV implicit {<WAH01961>}{<WTH8804>} (והיו, 'and they shall be') becomes explicit in LCC as 它們要做 — braces dropped per Rule 3, tags attached after 做 (the verb corresponding to היה)",
+    "LCC 天象 (celestial signs) maps to H0226 (oth/sign); UNV uses 記號 — different Chinese word but same semantic referent"
+  ],
+  "model": "opus",
+  "timestamp": "2026-02-24T18:44:15.038933+00:00"
+}

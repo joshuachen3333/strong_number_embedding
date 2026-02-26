@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 4,
+  "sec": 4,
+  "lcc_sn": "亞伯<WH01893>也<WAH01571>帶了他<WH01931>羊羣<WH06629>中那些頭一胎生的<WAH04480><WH01062>、和羊的脂肪<WAH04480><WH02459>來獻上<WH0935><WTH8689>。永恆主<WH03068>看中了<WH08159><WTH8799>{<WAH0413>}亞伯<WH01893>和{<WAH0413>}他的供物<WH04503>；",
+  "lcc_original": "亞伯也帶了他羊羣中那些頭一胎生的、和羊的脂肪來獻上。永恆主看中了亞伯和他的供物；",
+  "unv_sn_reference": "亞伯<WH01893>也<WAH01571>將他<WH01931>羊群<WH06629>中頭生的<WAH04480><WH01062>和羊的脂油<WAH04480><WH02459>獻上<WH0935><WTH8689>。耶和華<WH03068>看中了<WH08159><WTH8799>{<WAH0413>}亞伯<WH01893>和{<WAH0413>}他的供物<WH04503>，",
+  "confidence": 0.92,
+  "notes": [
+    "H0935 (הֵבִיא, bring/come) placed at end of the split verbal construction '帶了...來獻上', following UNV's pattern of tagging at the end of the verbal phrase; '帶了' is part of LCC's periphrastic rendering and has no separate Hebrew lexeme.",
+    "H01931 (הוּא, he) attaches to '他' in '帶了他'; the preceding '帶了' is part of the verbal idea, not a discrete Hebrew word.",
+    "Both {<WAH0413>} markers kept implicit: LCC also uses no explicit preposition before 亞伯 or 供物, mirroring UNV.",
+    "永恆主 is LCC's rendering of יְהוָה (H03068), replacing UNV's 耶和華; tagged identically."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-24T23:16:15.335419+00:00"
+}

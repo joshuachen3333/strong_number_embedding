@@ -1,0 +1,20 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 7,
+  "sec": 15,
+  "lcc_sn": "都進<WH0935><WTH8799>到<WAH0413>挪亞<WH05146>那裏，入<WAH0413>了樓船<WH08392>。凡<WAH04480><WAH03605>有血肉<WH01320>的，就是<WH0834>裏面<WAH09002>有生氣<WH07307>的活物<WH02416>，都兩隻<WH08147>兩隻地<WH08147>進去，",
+  "lcc_original": "都進到挪亞那裏，入了樓船。凡有血肉的，就是裏面有生氣的活物，都兩隻兩隻地進去，",
+  "unv_sn_reference": "凡<WAH04480><WAH03605>有血肉<WH01320>{<WH0834>}{<WAH09002>}、有氣息的<WH07307>活物<WH02416>，都一對<WH08147>一對地<WH08147>到<WAH0413>挪亞<WH05146>那裡，進<WH0935><WTH8799>入<WAH0413>方舟<WH08392>。",
+  "confidence": 0.75,
+  "notes": [
+    "LCC restructures the sentence: the action clause (都進到挪亞那裏，入了樓船) front-loads the main verb, while the descriptive subject (凡有血肉的...活物) follows with a repeated motion verb 進去. SNs are distributed across both clauses accordingly.",
+    "H935 (בּוֹא 'come/enter') attached to 進 in 進到; 進去 at the end of LCC's descriptive clause left unannotated — it is LCC's structural addition for the rearranged subject clause, not a second Hebrew verb occurrence.",
+    "H834 (אֲשֶׁר, implicit in UNV via {}) made explicit in LCC as 就是 ('that is/namely'); braces dropped, attached as 就是<WH0834>.",
+    "H09002 (בּ prefix in בּוֹ 'in it', implicit in UNV via {}) made explicit in LCC as 裏面 ('inside/within'); braces dropped, attached as 裏面<WAH09002>.",
+    "入 in 入了樓船 tagged as WAH0413 (second אֶל, 'into the ark'), matching UNV's split of 進<WH0935>入<WAH0413>方舟 — 入 functions as directional complement 'into' while 進 carries the main verb semantics.",
+    "LCC 樓船 ('multi-storey vessel') = UNV 方舟, both H8392 (תֵּבָה). LCC 生氣 = UNV 氣息, both H7307 (רוּחַ)."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T22:25:02.870992+00:00"
+}

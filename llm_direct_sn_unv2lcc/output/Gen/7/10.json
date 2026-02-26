@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 7,
+  "sec": 10,
+  "lcc_sn": "過了{<WAH01961>}{<WTH8799>}那七<WAH09001><WH07651>天<WH03117>，洪流<WH03999>的水<WH04325>就氾濫{<WAH01961>}{<WTH8804>}在<WAH05921>地上<WH0776>了。",
+  "lcc_original": "過了那七天，洪流的水就氾濫在地上了。",
+  "unv_sn_reference": "過了{<WAH01961>}{<WTH8799>}那七<WAH09001><WH07651>天<WH03117>，洪水<WH04325><WH03999>氾濫{<WAH01961>}{<WTH8804>}在<WAH05921>地上<WH0776>。",
+  "confidence": 0.9,
+  "notes": [
+    "LCC rephrases UNV's 洪水 as 洪流的水 — H03999 (מַבּוּל, flood) attached to 洪流, H04325 (מַיִם, waters) attached to 水, reflecting the Hebrew construct chain מֵי הַמַּבּוּל.",
+    "就 (emphasis/sequential adverb) has no Hebrew equivalent; left unannotated.",
+    "了 (sentence-final aspectual particle) has no Hebrew equivalent; left unannotated.",
+    "Both {<WAH01961>} markers remain implicit: 過了 is a temporal idiom for וַיְהִי ('and it came to pass'), not a literal rendering of H01961; the second occurrence likewise has no explicit copula in LCC."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T22:12:30.241483+00:00"
+}

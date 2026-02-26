@@ -1,0 +1,17 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 5,
+  "sec": 6,
+  "lcc_sn": "塞特<WH08352>活到<WH02421><WTH8799>一百<WH03967><WH08141>零五<WH02568>歲<WH08141>，生了<WH03205><WTH8686>{<WAH0853>}以挪士<WH0583>。",
+  "lcc_original": "塞特活到一百零五歲，生了以挪士。",
+  "unv_sn_reference": "塞特<WH08352>活到<WH02421><WTH8799>一百<WH03967><WH08141>零五<WH02568>歲<WH08141>，生了<WH03205><WTH8686>{<WAH0853>}以挪士<WH0583>。",
+  "confidence": 0.98,
+  "notes": [
+    "LCC and UNV texts for this verse are lexically identical, so all SN tags map 1-to-1 with no reordering or rephrasing decisions required.",
+    "WH08141 (שָׁנָה, year) appears twice — once attached to 一百 (reflecting the Hebrew construct 'hundred of years') and once to 歲 (the explicit 'years' word); this dual attachment is preserved from UNV.",
+    "The direct object marker {<WAH0853>} (אֵת) remains implicit in LCC just as in UNV — neither version has an explicit Chinese word for it."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T20:35:42.184210+00:00"
+}

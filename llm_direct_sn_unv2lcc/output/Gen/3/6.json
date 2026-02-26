@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 3,
+  "sec": 6,
+  "lcc_sn": "於是女人<WH0802>見<WH07200><WTH8799>{<WAH03588>}那棵樹<WH06086>的果子做食品<WAH09001><WH03978>似乎好<WH02896>喫，{<WH01931>}又<WAH03588>悅人<WH08378>眼目<WAH09001><WH05869>，{<WH06086>}而且可喜愛<WH02530><WTH8737>、能使人有智慧<WAH09001><WH07919><WTH8687>，就摘取<WH03947><WTH8799>那果子<WAH04480><WH06529>來喫<WH0398><WTH8799>了；又<WH01571>給<WH05414><WTH8799>她丈夫<WAH09001><WH0376>一齊<WAH05973>喫，她丈夫也喫<WH0398><WTH8799>了。",
+  "lcc_original": "於是女人見那棵樹的果子做食品似乎好喫，又悅人眼目，而且可喜愛、能使人有智慧，就摘取那果子來喫了；又給她丈夫一齊喫，她丈夫也喫了。",
+  "unv_sn_reference": "於是女人<WH0802>見<WH07200><WTH8799>{<WAH03588>}那棵樹<WH06086>的果子好<WH02896>作食物<WAH09001><WH03978>，{<WH01931>}也<WAH03588>悅人<WH08378>的眼目<WAH09001><WH05869>，且{<WH06086>}是可喜愛的<WH02530><WTH8737>，能使人有智慧<WAH09001><WH07919><WTH8687>，就摘下<WH03947><WTH8799>果子<WAH04480><WH06529>來吃了<WH0398><WTH8799>，又<WH01571>給<WH05414><WTH8799>她丈夫<WAH09001><WH0376>，她丈夫也<WAH05973>吃了<WH0398><WTH8799>。",
+  "confidence": 0.88,
+  "notes": [
+    "LCC restructures the first clause as '做食品似乎好喫' (food/seemingly-good-to-eat) vs UNV '果子好作食物'; WAH09001+WH03978 anchored to 做食品, WH02896 anchored to 好.",
+    "{<WAH03588>} (כִּי 'that') kept implicit after 見 — LCC has no explicit connective particle before the object clause.",
+    "{<WH01931>} (הוּא 'it') kept implicit before 又 — no explicit subject pronoun in LCC.",
+    "{<WH06086>} (הָעֵץ 'the tree') kept implicit before 而且 — LCC does not restate the subject for the third clause.",
+    "WAH05973 (עִמָּהּ 'with her') mapped to 一齊 (together) — LCC reformulates as 'gave husband to eat together'; WH0398+WTH8799 for the husband's eating anchored to 她丈夫也喫了 (the explicit eating statement) rather than the complement 喫 in 一齊喫 (which functions as an infinitive complement of 給)."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T19:34:54.930386+00:00"
+}

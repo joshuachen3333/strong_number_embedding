@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 4,
+  "sec": 9,
+  "lcc_sn": "永恆主<WH03068>對<WAH0413>該隱<WH07014>說<WH0559><WTH8799>：『你兄弟<WH0251>亞伯<WH01893>在哪裏<WH0335>？』他說<WH0559><WTH8799>：『我不<WAH03808>知道<WH03045><WTH8804>。』我，我<WAH0595>哪是看守<WH08104><WTH8802>我兄弟<WH0251>的呢？』",
+  "lcc_original": "永恆主對該隱說：『你兄弟亞伯在哪裏？』他說：『我不知道。』我，我哪是看守我兄弟的呢？』",
+  "unv_sn_reference": "耶和華<WH03068>對<WAH0413>該隱<WH07014>說<WH0559><WTH8799>：「你兄弟<WH0251>亞伯<WH01893>在哪裡<WH0335>？」他說<WH0559><WTH8799>：「我不<WAH03808>知道<WH03045><WTH8804>！我<WAH0595>豈是看守<WH08104><WTH8802>我兄弟<WH0251>的嗎？」",
+  "confidence": 0.9,
+  "notes": [
+    "耶和華→永恆主: LCC uses 永恆主 as its rendering of the Tetragrammaton (YHWH); <WH03068> attached to the full phrase 永恆主 as a unit.",
+    "Emphatic pronoun 我，我: LCC doubles 我 to render the emphatic אָנֹכִי; <WAH0595> is placed after the second 我 since that is the grammatical subject of the predicate 哪是看守.",
+    "Punctuation divergence: LCC closes the first quotation after 知道。』 and opens the second clause (我，我哪是…) without a new opening quote, ending with 』. The original punctuation is preserved exactly; SN tags are only inserted within this existing structure.",
+    "在哪裡→在哪裏: orthographic variant (里/裏) only; SN placement identical."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T20:03:48.309333+00:00"
+}

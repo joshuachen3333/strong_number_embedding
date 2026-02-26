@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 6,
+  "sec": 13,
+  "lcc_sn": "上帝<WH0430>就對挪亞<WAH09001><WH05146>說<WH0559><WTH8799>：『凡<WAH03605>有血肉的<WH01320>，我<WAH09001><WH06440>決定<WH0935><WTH8804>要結束<WH07093>他們的生命了，因爲<WAH03588>全地<WH0776>都因了他們而<WAH04480><WH06440>滿有<WH04390><WTH8804>強暴<WH02555>；看吧<WAH02009>，我要把他們、連<WH0854>全地<WH0776>、都毀滅<WH07843><WTH8688>【2】。",
+  "lcc_original": "上帝就對挪亞說：『凡有血肉的，我決定要結束他們的生命了，因爲全地都因了他們而滿有強暴；看吧，我要把他們、連全地、都毀滅【2】。",
+  "unv_sn_reference": "　神<WH0430>就對挪亞<WAH09001><WH05146>說<WH0559><WTH8799>：「凡<WAH03605>有血氣的人<WH01320>，他的盡頭<WH07093>已經來到<WH0935><WTH8804>我面前<WAH09001><WH06440>；因為<WAH03588>地上<WH0776>滿了<WH04390><WTH8804>他們的<WAH04480><WH06440>強暴<WH02555>，我{<WAH02009>}要把他們和<WH0854>地<WH0776>一併毀滅<WH07843><WTH8688>。",
+  "confidence": 0.75,
+  "notes": [
+    "神→上帝: standard UNV/LCC difference for אֱלֹהִים (WH0430)",
+    "קֵץ כָּל-בָּשָׂר בָּא לְפָנַי ('his end has come before me') is heavily paraphrased in LCC as '我決定要結束他們的生命了' ('I have decided to end their lives'): WAH09001+WH06440 (לְפָנַי=before me) anchored to 我; WH0935+WTH8804 (בָּא=came) to 決定; WH07093 (קֵץ=end) to 要結束; 他們的生命了 is LCC expansion with no direct SN",
+    "{<WAH02009>} implicit in UNV (הִנְנִי); LCC makes it explicit as 看吧 — braces dropped per Rule 3",
+    "מִפְּנֵיהֶם (WAH04480+WH06440 = 'from before them / because of them') maps to LCC's 因了他們而; tags placed after 而",
+    "LCC uses 全地 twice for Hebrew הָאָרֶץ (WH0776); the 全 is LCC's elaboration, not a separate SN"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T21:31:15.850002+00:00"
+}

@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 7,
+  "sec": 23,
+  "lcc_sn": "水把<WAH0853>{<WAH0834>}{<WAH05921>}地<WH0127>上<WH06440>的衆生<WAH03605><WH03351>、從<WAH04480>人類<WH0120>到<WAH05704>獸類<WH0929>、到<WAH05704>爬行動物<WH07431>、以及<WAH05704>空中的<WH08064>飛鳥<WH05775>、都擦滅了；他們都從<WAH04480>地上<WH0776>被擦滅<WH04229><WTH8735>。只有<WH0389>挪亞<WH05146>和那些<WH0834>同他<WAH0854>在樓船裏的<WAH09002><WH08392>、得存活<WH07604><WTH8735>，",
+  "lcc_original": "水把地上的衆生、從人類到獸類、到爬行動物、以及空中的飛鳥、都擦滅了；他們都從地上被擦滅。只有挪亞和那些同他在樓船裏的、得存活，",
+  "unv_sn_reference": "{<WAH0853>}凡{<WAH0834>}{<WAH05921>}地<WH0127>上<WH06440>各類的<WAH03605>活物<WH03351>，連人<WAH04480><WH0120>帶<WAH05704>牲畜<WH0929>、{<WAH05704>}昆蟲<WH07431>，以及{<WAH05704>}空中的<WH08064>飛鳥<WH05775>，都從<WAH04480>地上<WH0776>除滅了<WH04229><WTH8735>，只<WH0389>留下<WH07604><WTH8735>挪亞<WH05146>和那些<WH0834>與他<WAH0854>同在方舟裡的<WAH09002><WH08392>。",
+  "confidence": 0.83,
+  "notes": [
+    "LCC adds 水 (water) as the explicit subject for the active Qal verb וַיִּמַח; no Hebrew SN exists for 水 in this verse so it is left unannotated.",
+    "LCC splits the verse's 'wiping out' concept into two clauses: active '都擦滅了' (unannotated—corresponds to the Qal form, which has no separate SN in UNV) and passive '被擦滅' (annotated WH04229+WTH8735, corresponding to the Niphal וַיִּמָּחוּ whose morphology H8735 = Niphal matches the passive voice).",
+    "{<WAH0853>} implicit braces dropped because LCC has explicit 把 as object marker (= Hebrew אֵת); similarly {<WAH05704>} braces dropped for explicit 到 in the creeping-things clause and 以及 in the birds clause.",
+    "衆生 absorbs both WAH03605 (כֹּל = all) and WH03351 (יְקוּם = living things) since LCC collapses UNV's 各類的活物 into one word.",
+    "LCC's 得存活 at the end corresponds to UNV's 留下 (WH07604 שָׁאַר + WTH8735 Niphal = remained/survived); the survival is implied in UNV's sentence structure but made explicit in LCC."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T22:38:35.378835+00:00"
+}

@@ -1,0 +1,17 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 5,
+  "sec": 10,
+  "lcc_sn": "以挪士<WH0583>生<WH03205><WTH8687>{<WAH0853>}該南<WH07018>之後<WH0310>，又活了<WH02421><WTH8799>八<WH08083>百<WH03967>一十五<WH02568><WH06240>年<WH08141><WH08141>，這期間還生<WH03205><WTH8686>兒<WH01121>養女<WH01323>。",
+  "lcc_original": "以挪士生該南之後，又活了八百一十五年，這期間還生兒養女。",
+  "unv_sn_reference": "以挪士<WH0583>生<WH03205><WTH8687>{<WAH0853>}該南<WH07018>之後<WH0310>，又活了<WH02421><WTH8799>八<WH08083>百<WH03967><WH08141>一十五<WH02568><WH06240>年<WH08141>，並且生<WH03205><WTH8686>兒<WH01121>養女<WH01323>。",
+  "confidence": 0.92,
+  "notes": [
+    "Hebrew numeric construction has שָׁנָה (WH08141) twice — once mid-compound after 'hundreds' (百) and once at the end; LCC has only one 年, so both WH08141 tags are attached to 年.",
+    "UNV 並且生 → LCC 這期間還生: LCC adds 這期間 (a temporal phrase) with no Hebrew equivalent, left unannotated; 還生 receives WH03205+WTH8686.",
+    "{<WAH0853>} (direct object marker, Hebrew אֵת) has no explicit word in LCC; kept implicit with braces, placed after the morphology tag on 生 as in UNV."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T20:39:41.317810+00:00"
+}

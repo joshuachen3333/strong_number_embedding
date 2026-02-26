@@ -1,0 +1,20 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 6,
+  "sec": 1,
+  "lcc_sn": "{<WAH01961>}{<WTH8799>}{<WAH03588>}人類<WH0120>開始<WH02490><WTH8689>在<WH05921>地上<WH06440><WH0127>增多起來<WAH09001><WH07231><WTH8800>，又生着<WH03205><WTH8795>女兒<WH01323>{<WAH09001>}。",
+  "lcc_original": "人類開始在地上增多起來，又生着女兒。",
+  "unv_sn_reference": "{<WAH01961>}{<WTH8799>}當<WAH03588>人<WH0120>{<WH02490>}{<WTH8689>}在<WH05921>世上<WH06440><WH0127>多起來<WAH09001><WH07231><WTH8800>、又生<WH03205><WTH8795>女兒<WH01323>的時候{<WAH09001>}，",
+  "confidence": 0.88,
+  "notes": [
+    "H02490 (חֵחֵל, 'began'): implicit in UNV {<WH02490>}{<WTH8689>} but LCC has explicit 開始 — per Rule 3, braces dropped and tags attached directly to 開始.",
+    "H03588 (כִּי, 'when'): explicit as 當 in UNV but LCC restructures the clause as a plain statement with no temporal marker — made implicit {<WAH03588>}.",
+    "H01961 (וַיְהִי, 'and it came to pass'): implicit in both UNV and LCC — retained as {<WAH01961>}{<WTH8799>} at sentence start.",
+    "Trailing {<WAH09001>} from UNV's 的時候 construction (marking waw on וּבָנוֹת) has no explicit LCC counterpart — kept implicit before sentence-final 。.",
+    "人類 (LCC) maps to 人 (UNV) for H0120 (הָאָדָם, 'mankind'); LCC's more formal compound is semantically equivalent.",
+    "地上 (LCC) maps to 世上 (UNV) for H06440+H0127 (פְּנֵי הָאֲדָמָה, 'face of the ground')."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T21:09:56.321462+00:00"
+}

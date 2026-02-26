@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 1,
+  "sec": 16,
+  "lcc_sn": "於是上帝<WH0430>造了<WH06213><WTH8799>{<WAH0853>}兩個<WH08147>大的<WH01419>發光體<WH03974>：{<WAH0853>}一個較大的<WH01419>發光體<WH03974>來管<WAH09001><WH04475>白晝<WH03117>，{<WAH0853>}一個較小的<WH06996>發光體<WH03974>來管<WAH09001><WH04475>黑夜<WH03915>；又造{<WAH0853>}星辰<WH03556>。",
+  "lcc_original": "於是上帝造了兩個大的發光體：一個較大的發光體來管白晝，一個較小的發光體來管黑夜；又造星辰。",
+  "unv_sn_reference": "於是　神<WH0430>造了<WH06213><WTH8799>{<WAH0853>}兩個<WH08147>大<WH01419>光<WH03974>，{<WAH0853>}大的<WH01419>{<WH03974>}管<WAH09001><WH04475>晝<WH03117>，{<WAH0853>}小的<WH06996>{<WH03974>}管<WAH09001><WH04475>夜<WH03915>，又造{<WAH0853>}眾星<WH03556>，",
+  "confidence": 0.92,
+  "notes": [
+    "UNV has implicit {<WH03974>} (luminary) for both the 'greater' and 'lesser' clauses, but LCC explicitly says 發光體 in all three instances — braces dropped per Rule 3",
+    "來 (purpose particle) left unannotated; Hebrew prefix ל (H9001) kept attached to 管 following UNV convention",
+    "一個 (classifier) and 較 (comparative marker) are Chinese grammatical words with no Hebrew equivalent — left unannotated per Rule 5",
+    "又造 carries no separate SN (Hebrew repeats וְאֵת but not the verb עָשָׂה); follows UNV which also leaves 又造 untagged"
+  ],
+  "model": "opus",
+  "timestamp": "2026-02-24T18:46:26.341692+00:00"
+}

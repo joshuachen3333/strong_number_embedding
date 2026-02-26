@@ -1,0 +1,17 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 6,
+  "sec": 6,
+  "lcc_sn": "永恆主<WH03068>就後悔<WH05162><WTH8735>{<WAH03588>}造<WH06213><WTH8804>了{<WAH0853>}人<WH0120>在地上<WAH09002><WH0776>，心中<WH0413><WH03820>憂傷<WH06087><WTH8691>。",
+  "lcc_original": "永恆主就後悔造了人在地上，心中憂傷。",
+  "unv_sn_reference": "耶和華<WH03068>就後悔<WH05162><WTH8735>{<WAH03588>}造<WH06213><WTH8804>{<WAH0853>}人<WH0120>在地上<WAH09002><WH0776>，心中<WH0413><WH03820>憂傷<WH06087><WTH8691>。",
+  "confidence": 0.95,
+  "notes": [
+    "耶和華→永恆主: LCC's distinctive rendering of יהוה (WH03068), attached normally as explicit word",
+    "了 is a Chinese perfective aspect particle with no Hebrew correspondent — left unannotated between 造 and {<WAH0853>}人",
+    "Both implicit markers {<WAH03588>} (כִּי) and {<WAH0853>} (אֵת) remain implicit — LCC has no explicit words for them either"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T21:19:38.379847+00:00"
+}

@@ -1,0 +1,15 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 1,
+  "sec": 13,
+  "lcc_sn": "有<WAH01961><WTH8799>晚上<WH06153>，有<WAH01961><WTH8799>早晨<WH01242>，是第三<WH07992>日<WH03117>。",
+  "lcc_original": "有晚上有早晨，是第三日。",
+  "unv_sn_reference": "有<WAH01961><WTH8799>晚上<WH06153>，有<WAH01961><WTH8799>早晨<WH01242>，是第三<WH07992>日<WH03117>。",
+  "confidence": 0.99,
+  "notes": [
+    "UNV and LCC text are identical for this verse — direct 1:1 tag transfer with no ambiguity."
+  ],
+  "model": "opus",
+  "timestamp": "2026-02-24T18:42:14.143729+00:00"
+}

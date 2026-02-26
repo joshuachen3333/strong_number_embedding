@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 5,
+  "sec": 17,
+  "lcc_sn": "瑪勒列<WH04111>在世的日子<WH03117>、共<WAH03605>有<WAH01961><WTH8799>八<WH08083>百<WH03967>{<WH08141>}九十<WH08673>五<WH02568>年<WH08141>，然後死<WH04191><WTH8799>。",
+  "lcc_original": "瑪勒列在世的日子、共有八百九十五年，然後死。",
+  "unv_sn_reference": "{<WAH01961>}{<WTH8799>}{<WH03117>}瑪勒列<WH04111>共<WAH03605>活了八<WH08083>百<WH03967><WH08141>九十<WH08673>五<WH02568>歲<WH08141>就死了<WH04191><WTH8799>。",
+  "confidence": 0.88,
+  "notes": [
+    "日子 explicitly renders {<WH03117>} (יְמֵי) in LCC — braces dropped per Rule 3; 在世的 is a LCC expansion with no Hebrew equivalent and is left unannotated",
+    "共有 split: 共<WAH03605> = כָּל (all/total), 有<WAH01961><WTH8799> = הָיָה (were/had) with morphology code kept on the verb",
+    "Hebrew שָׁנָה (WH08141) appears twice in the source — first instance (after מֵאוֹת/百) has no explicit LCC word so kept as {<WH08141>} implicit; second instance attaches to 年",
+    "然後 (then/after that) has no Hebrew equivalent — left unannotated; 死 alone receives WH04191+WTH8799"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T20:48:22.907114+00:00"
+}

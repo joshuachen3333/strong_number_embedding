@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 6,
+  "sec": 14,
+  "lcc_sn": "你<WAH09001>要用松柏<WH01613>木<WH06086>造<WH06213><WTH8798>一隻樓船<WH08392>：你造<WH06213><WTH8799>那<WAH0853>樓船<WH08392>、要有許多艙窩<WH07064>，船內<WAH04480><WH01004>外<WAH04480><WH02351>要糊上<WH03722><WTH8804>{<WAH0853>}松香<WAH09002><WH03724>【3】。",
+  "lcc_original": "你要用松柏木造一隻樓船：你造那樓船、要有許多艙窩，船內外要糊上松香【3】。",
+  "unv_sn_reference": "你<WAH09001>要用歌斐<WH01613>木<WH06086>造<WH06213><WTH8798>一隻方舟<WH08392>，分一間一間<WH07064>地造<WH06213><WTH8799>{<WAH0853>}{<WH08392>}，裡<WAH04480><WH01004>外<WAH04480><WH02351>抹上<WH03722><WTH8804>{<WAH0853>}松香<WAH09002><WH03724>。",
+  "confidence": 0.82,
+  "notes": [
+    "LCC uses 松柏 (pine-cypress) where UNV has 歌斐 for WH01613 (gopher wood); SN attached to 松柏 accordingly.",
+    "Second clause restructured: UNV '分一間一間<WH07064>地造{<WAH0853>}{<WH08392>}' becomes '你造那樓船、要有許多艙窩'. SNs redistributed: 造<WH06213><WTH8799>, 那<WAH0853> for formerly implicit אֵת, 樓船<WH08392> for formerly implicit תֵּבָה, 艙窩<WH07064> for compartments (קִנִּים).",
+    "LCC inserts 船 (ship) before 內外 as contextual qualifier; 船 left unannotated — no Hebrew equivalent.",
+    "Second 你 in LCC ('你造那樓船') is a Chinese stylistic addition; Hebrew embeds the subject in verb conjugation תַּעֲשֶׂה, so no <WAH09001> applied.",
+    "{<WAH0853>} retained as implicit before 松香: LCC has no explicit pronominal object for אֹתָהּ in the pitch-covering clause."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T21:33:16.754497+00:00"
+}

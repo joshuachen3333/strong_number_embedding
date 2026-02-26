@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 2,
+  "sec": 11,
+  "lcc_sn": "第一<WH0259>道名叫<WH08034>比遜<WH06376>，就是<WH01931>環繞<WH05437><WTH8802>{<WAH0853>}哈腓拉<WH02341>全<WAH03605>地<WH0776>的；{<WH0834>}那裏<WAH08033>有金子<WH02091>；",
+  "lcc_original": "第一道名叫比遜，就是環繞哈腓拉全地的；那裏有金子；",
+  "unv_sn_reference": "第一<WH0259>道名叫<WH08034>比遜<WH06376>，就是<WH01931>環繞<WH05437><WTH8802>{<WAH0853>}哈腓拉<WH02341>全<WAH03605>地<WH0776>的。{<WH0834>}在那裡<WAH08033>有金子<WH02091>，",
+  "confidence": 0.97,
+  "notes": [
+    "WH0834 (אֲשֶׁר, relative pronoun) kept implicit {<WH0834>}: LCC omits the relative clause entirely and shifts directly to '那裏', as UNV also treats it as implicit.",
+    "UNV '在那裡<WAH08033>' → LCC '那裏<WAH08033>': LCC drops the preposition 在, but 那裏 still corresponds to שָׁם (WH08033 = there); tag attached to 那裏.",
+    "LCC uses ；(semicolons) where UNV uses 。and ，; LCC's original punctuation preserved exactly.",
+    "WAH0853 (direct object marker את) kept implicit {<WAH0853>}: LCC likewise has no explicit word for it."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T19:10:40.723047+00:00"
+}

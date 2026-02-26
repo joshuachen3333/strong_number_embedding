@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 4,
+  "sec": 6,
+  "lcc_sn": "永恆主<WH03068>對<WAH0413>該隱<WH07014>說<WH0559><WTH8799>：『你<WAH09001>爲甚麼<WAH09001><WAH04100>惱怒<WH02734><WTH8804>？你臉色<WH06440>爲甚麼<WAH09001><WAH04100>變了<WH05307><WTH8804>呢？",
+  "lcc_original": "永恆主對該隱說：『你爲甚麼惱怒？你臉色爲甚麼變了呢？",
+  "unv_sn_reference": "耶和華<WH03068>對<WAH0413>該隱<WH07014>說<WH0559><WTH8799>：「你<WAH09001>為甚麼<WAH09001><WAH04100>發怒<WH02734><WTH8804>呢？你為甚麼<WAH09001><WAH04100>變了<WH05307><WTH8804>臉色<WH06440>呢？",
+  "confidence": 0.93,
+  "notes": [
+    "耶和華 (UNV) → 永恆主 (LCC): both are renderings of the Tetragrammaton; <WH03068> attached to 永恆主 as the full divine-name phrase",
+    "發怒 (UNV, H02734 חרה) → 惱怒 (LCC): synonymous verbs for 'be angry/furious'; SN transferred directly",
+    "Second clause word order inversion: UNV has 你為甚麼…臉色 but LCC has 你臉色…爲甚麼; <WH06440> (פנים, face) moved to follow 臉色, and <WAH09001><WAH04100> moved to follow 爲甚麼, preserving semantic attachment",
+    "First clause 你<WAH09001>爲甚麼<WAH09001><WAH04100> mirrors UNV exactly (dual WAH09001 for the ל+מָּה prefix+root split); second clause 你 carries no tag, consistent with UNV's second-clause encoding",
+    "LCC omits 呢 after first question; no SN impact since 呢 is an unannotated Chinese aspect particle in both versions"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-24T23:18:32.363650+00:00"
+}

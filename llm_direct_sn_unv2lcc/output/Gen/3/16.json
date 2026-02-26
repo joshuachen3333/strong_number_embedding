@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 3,
+  "sec": 16,
+  "lcc_sn": "對<WAH0413>那女人<WH0802>呢，永恆主上帝也說<WH0559><WTH8804>：『我必定增多<WH07235><WTH8687><WH07235><WTH8686>你懷孕<WH02032>的疼痛<WH06093>【2】；你必在疼痛<WAH09002><WH06089>中生<WH03205><WTH8799>兒女<WH01121>；你必戀慕<WH08669>【3】{<WAH0413>}你丈夫<WH0376>；你丈夫必{<WAH01931>}管轄<WH04910><WTH8799>你<WAH09002>。』",
+  "lcc_original": "對那女人呢，永恆主上帝也說：『我必定增多你懷孕的疼痛【2】；你必在疼痛中生兒女；你必戀慕【3】你丈夫；你丈夫必管轄你。』",
+  "unv_sn_reference": "又對<WAH0413>女人<WH0802>說<WH0559><WTH8804>：我必多多<WH07235><WTH8687>加增<WH07235><WTH8686>你懷胎<WH02032>的苦楚<WH06093>；你生產<WH03205><WTH8799>兒女<WH01121>必多受苦楚<WAH09002><WH06089>。你必戀慕<WH08669>{<WAH0413>}你丈夫<WH0376>；你丈夫必{<WAH01931>}管轄<WH04910><WTH8799>你<WAH09002>。",
+  "confidence": 0.9,
+  "notes": [
+    "永恆主上帝: LCC makes the subject (יְהוָה אֱלֹהִים) explicit while UNV omits it; no SNs assigned because the provided UNV+SN input does not include them for this verse.",
+    "Inf. abs. + finite verb construction (הַרְבָּה אַרְבֶּה, H7235 twice with WTH8687/8686): UNV splits into 多多…加增; LCC merges into 必定增多; both tags attached to 增多 as the single verbal complex.",
+    "LCC restructures the pain/bearing clause: Hebrew בְּעֶצֶב תֵּלְדִי בָנִים becomes 在疼痛中生兒女 (in pain bear children) rather than UNV 生產兒女必多受苦楚; tags distributed to maintain Hebrew word order: <WAH09002><WH06089> on 疼痛 (בְּעֶצֶב), <WH03205><WTH8799> on 生, <WH01121> on 兒女.",
+    "戀慕 implicit preposition {<WAH0413>}: LCC uses no explicit preposition after 戀慕, so the implicit brace form is preserved.",
+    "Footnote markers 【2】 and 【3】 are kept in place after the immediately preceding annotated word."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T19:56:26.291875+00:00"
+}

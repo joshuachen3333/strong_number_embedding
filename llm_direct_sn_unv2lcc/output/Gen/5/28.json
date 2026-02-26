@@ -1,0 +1,16 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 5,
+  "sec": 28,
+  "lcc_sn": "拉麥<WH03929>活到<WH02421><WTH8799>一百<WH03967><WH08141>八十<WH08084>二<WH08147>歲<WH08141>，生了<WH03205><WTH8686>一個兒子<WH01121>：",
+  "lcc_original": "拉麥活到一百八十二歲，生了一個兒子：",
+  "unv_sn_reference": "拉麥<WH03929>活到<WH02421><WTH8799>一百<WH03967><WH08141>八十<WH08084>二<WH08147>歲<WH08141>，生了<WH03205><WTH8686>一個兒子<WH01121>，",
+  "confidence": 0.99,
+  "notes": [
+    "UNV and LCC texts are lexically identical for this verse; only terminal punctuation differs (LCC uses ： instead of ，). All SNs transferred in place with no realignment needed.",
+    "WH08141 (שָׁנָה, year) appears twice: once attached to 一百 (reflecting the Hebrew construct 'hundred year') and once to 歲 (the final year-count word), matching the UNV distribution exactly."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T20:59:56.677009+00:00"
+}

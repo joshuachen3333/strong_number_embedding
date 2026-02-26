@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 3,
+  "sec": 4,
+  "lcc_sn": "蛇<WH05175>對<WAH0413>女人<WH0802>說<WH0559><WTH8799>：『你一定<WH04191><WTH8800>不<WAH03808>會死<WH04191><WTH8799>：",
+  "lcc_original": "蛇對女人說：『你一定不會死：",
+  "unv_sn_reference": "蛇<WH05175>對<WAH0413>女人<WH0802>說<WH0559><WTH8799>：「你們不<WAH03808>一定<WH04191><WTH8800>死<WH04191><WTH8799>；",
+  "confidence": 0.92,
+  "notes": [
+    "UNV and LCC both render the infinitive absolute (H04191/WTH8800) as 一定, but the word order differs: UNV has 不一定死 while LCC has 一定不會死 — SNs follow LCC word order, so 一定<WH04191><WTH8800> precedes 不<WAH03808>.",
+    "LCC inserts 會 (modal auxiliary 'will') between 不 and 死 with no Hebrew equivalent; left unannotated.",
+    "LCC uses singular 你 vs UNV plural 你們; both derive from the same finite verb תְּמֻתוּן — no separate SN for 你 as the subject is embedded in the verb suffix.",
+    "Final closing punctuation follows LCC (：) rather than UNV (；)."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T19:09:37.936464+00:00"
+}

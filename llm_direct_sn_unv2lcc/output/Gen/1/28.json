@@ -1,0 +1,20 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 1,
+  "sec": 28,
+  "lcc_sn": "上帝<WH0430>就給他們<WAH0853>祝福<WH01288><WTH8762>{<WH0430>}說<WAH09001><WH0559><WTH8799>：『要繁殖<WH06509><WTH8798>增多<WH07235><WTH8798>，充滿<WH04390><WTH8798>全地<WAH0853><WH0776>，去征服<WH03533><WTH8798>它；也要管理<WH07287><WTH8798>海<WH03220>裏的魚<WAH09002><WH01710>、空<WH08064>中的飛鳥<WAH09002><WH05775>、和在地上<WAH05921><WH0776>行動的<WH07430><WTH8802>各樣<WAH09002><WAH03605>活物<WH02416>。』",
+  "lcc_original": "上帝就給他們祝福說：『要繁殖增多，充滿全地，去征服它；也要管理海裏的魚、空中的飛鳥、和在地上行動的各樣活物。』",
+  "unv_sn_reference": "　神<WH0430>就賜福<WH01288><WTH8762>給他們<WAH0853>，{<WH0430>}又對他們<WAH09001>說<WH0559><WTH8799>：「要生養<WH06509><WTH8798>眾多<WH07235><WTH8798>，遍滿<WH04390><WTH8798>{<WAH0853>}地面<WH0776>，治理<WH03533><WTH8798>這地，也要管理<WH07287><WTH8798>海<WH03220>裡的魚<WAH09002><WH01710>、空<WH08064>中的鳥<WAH09002><WH05775>，和地上<WAH05921><WH0776>各樣<WAH09002><WAH03605>行動的<WH07430><WTH8802>活物<WH02416>。」",
+  "confidence": 0.88,
+  "notes": [
+    "LCC condenses UNV's two distinct clauses (וַיְבָרֶךְ / וַיֹּאמֶר) into one: 給他們祝福說 — WAH0853 (accusative 'them') attaches to 給他們, WH01288+WTH8762 (bless) attaches to 祝福, WAH09001+WH0559+WTH8799 (said-to-them) attaches to 說",
+    "{<WH0430>} kept implicit before 說: LCC does not repeat 上帝 as the explicit subject of the saying clause, matching UNV's implicit marker",
+    "UNV {<WAH0853>} (implicit accusative marker on 地面) — LCC has explicit 全地 for the same referent, so braces dropped per rule 3: 全地<WAH0853><WH0776>",
+    "LCC inverts UNV word order in the final NP: 行動的各樣 vs UNV's 各樣行動的 — tags redistributed to preserve LCC order: 行動的<WH07430><WTH8802>各樣<WAH09002><WAH03605>",
+    "LCC 去 (directional auxiliary before 征服) and 在 (locative particle in 在地上) are Chinese grammatical particles with no Hebrew equivalent — both left unannotated",
+    "LCC uses 飛鳥 (flying birds) where UNV has 鳥 — both map to WH05775 (עוֹף); LCC uses 上帝 where UNV has 神 — both map to WH0430 (אֱלֹהִים)"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T13:47:32.804568+00:00"
+}

@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 1,
+  "sec": 25,
+  "lcc_sn": "於是上帝<WH0430>造了<WH06213><WTH8799>{<WAH0853>}地上<WH0776>各種<WAH09001><WH04327>走獸<WH02416>，{<WAH0853>}各種<WAH09001><WH04327>牲口<WH0929>，和{<WAH0853>}地上<WH0127>各種各樣的<WAH03605><WAH09001><WH04327>昆蟲<WH07431>：上帝<WH0430>看<WH07200><WTH8799>這<WAH03588>很好<WH02896>。",
+  "lcc_original": "於是上帝造了地上各種走獸，各種牲口，和地上各種各樣的昆蟲：上帝看這很好。",
+  "unv_sn_reference": "於是　神<WH0430>造出<WH06213><WTH8799>{<WAH0853>}野獸<WH02416><WH0776>，各從其類<WAH09001><WH04327>；{<WAH0853>}牲畜<WH0929>，各從其類<WAH09001><WH04327>；{<WAH0853>}地上<WH0127>一切<WAH03605>昆蟲<WH07431>，各從其類<WAH09001><WH04327>。　神<WH0430>看著<WH07200><WTH8799>{<WAH03588>}是好的<WH02896>。",
+  "confidence": 0.82,
+  "notes": [
+    "LCC restructures the first beast clause from UNV's 野獸<WH02416><WH0776> into 地上+走獸; WH0776 (הָאָרֶץ) is assigned to LCC's first 地上 and WH02416 to 走獸.",
+    "LCC uses 地上 twice but they map to two distinct Hebrew words: WH0776 (הָאָרֶץ, 'the earth/land') for the first beast group and WH0127 (הָאֲדָמָה, 'the ground/soil') for the creeping-things group.",
+    "In the third clause LCC's 各種各樣的 is a single compound phrase rendering both כָּל (WAH03605, 'all') and לְמִינֵהוּ (WAH09001+WH04327, 'according to its kind'); all three tags are attached to this phrase.",
+    "UNV has {<WAH03588>} (כִּי, complementizer 'that') implicit, but LCC's 這 provides a loose explicit equivalent; braces dropped per Rule 3, though the match is imperfect (demonstrative vs. conjunction)."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T13:40:20.336953+00:00"
+}

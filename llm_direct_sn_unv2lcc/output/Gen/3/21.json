@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 3,
+  "sec": 21,
+  "lcc_sn": "永恆主<WH03068>上帝<WH0430>爲亞當<WAH09001><WH0121>【4】和他的妻子<WAH09001><WH0802>作了<WH06213><WTH8799>皮褂子<WH05785><WH03801>給他們穿<WH03847><WTH8686>。",
+  "lcc_original": "永恆主上帝爲亞當【4】和他的妻子作了皮褂子給他們穿。",
+  "unv_sn_reference": "耶和華<WH03068>　神<WH0430>為亞當<WAH09001><WH0121>和他妻子<WAH09001><WH0802>用皮子<WH05785>做<WH06213><WTH8799>衣服<WH03801>給他們穿<WH03847><WTH8686>。",
+  "confidence": 0.9,
+  "notes": [
+    "LCC 皮褂子 merges UNV's 皮子 (WH05785, עוֹר skin/leather) and 衣服 (WH03801, כָּתְנוֹת tunics) into one compound word; both SNs attached to 皮褂子.",
+    "Footnote marker 【4】 preserved in-place after 亞當 as in the original LCC text.",
+    "LCC 永恆主 = UNV 耶和華 (WH03068); LCC 上帝 = UNV 神 (WH0430) — standard LCC substitutions.",
+    "作了: aspectual particle 了 carries no SN; verbal root 作 takes WH06213+WTH8799."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-24T23:03:38.255296+00:00"
+}

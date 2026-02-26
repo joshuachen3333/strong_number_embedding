@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 6,
+  "sec": 18,
+  "lcc_sn": "但是我要同你<WAH0854>立<WH06965><WTH8689>{<WAH0853>}約<WH01285>。你要進<WH0935><WTH8804>樓船<WH0413><WH08392>；你<WH0859>和你兒子<WH01121>，妻子<WH0802>跟兒<WH01121>媳婦<WH0802>，都要同<WAH0854>你進去。",
+  "lcc_original": "但是我要同你立約。你要進樓船；你和你兒子，妻子跟兒媳婦，都要同你進去。",
+  "unv_sn_reference": "我卻要與你<WAH0854>立<WH06965><WTH8689>{<WAH0853>}約<WH01285>；你<WH0859>同<WAH0854>你的妻<WH0802>，與兒子<WH01121>兒<WH01121>婦<WH0802>，都要進<WH0935><WTH8804>入<WH0413>方舟<WH08392>。",
+  "confidence": 0.82,
+  "notes": [
+    "LCC restructures the single Hebrew clause (enter-ark + compound subject list) into two sub-clauses: 你要進樓船 and 你和你兒子…都要同你進去; all SNs distributed across both sub-clauses accordingly",
+    "WH0413 (אֶל, into/to) has no explicit counterpart in LCC's 進樓船; attached to 樓船 since the directional preposition is absorbed into the verb-noun compound",
+    "WH0859 (emphatic אַתָּה) placed on the 你 that heads the family list, not on the introductory subject 你要進樓船, matching Hebrew's appositive structure",
+    "LCC lists family in order sons→wife→daughters-in-law, matching Hebrew word order (בָנֶיךָ / אִשְׁתְּךָ / נְשֵׁי-בָנֶיךָ); UNV lists wife first—SN assignment follows LCC's own sequence",
+    "Second 進 in 都要同你進去 left unannotated; it is LCC's structural repetition of the entry verb, not a second Hebrew occurrence of H935"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T21:48:31.016937+00:00"
+}

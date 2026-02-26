@@ -1,0 +1,15 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 5,
+  "sec": 9,
+  "lcc_sn": "以挪士<WH0583>活到<WH02421><WTH8799>九十<WH08673>歲<WH08141>，生了<WH03205><WTH8686>{<WAH0853>}該南<WH07018>。",
+  "lcc_original": "以挪士活到九十歲，生了該南。",
+  "unv_sn_reference": "以挪士<WH0583>活到<WH02421><WTH8799>九十<WH08673>歲<WH08141>，生了<WH03205><WTH8686>{<WAH0853>}該南<WH07018>。",
+  "confidence": 0.99,
+  "notes": [
+    "LCC and UNV are lexically identical for this verse; all SNs transfer 1-to-1 with no rephrasing. The implicit {<WAH0853>} (direct object marker אֵת) is retained in braces as LCC has no explicit word for it."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T20:38:37.327128+00:00"
+}

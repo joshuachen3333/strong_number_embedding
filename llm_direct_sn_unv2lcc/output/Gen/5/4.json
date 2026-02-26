@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 5,
+  "sec": 4,
+  "lcc_sn": "亞當<WH0121>生<WH03205><WTH8687>了{<WAH0853>}塞特<WH08352>之後<WH0310>，在世的日子<WH03117>還有<WAH01961><WTH8799>八<WH08083>百<WH03967>年<WH08141>；這期間他還生<WH03205><WTH8686>兒<WH01121>養女<WH01323>。",
+  "lcc_original": "亞當生了塞特之後，在世的日子還有八百年；這期間他還生兒養女。",
+  "unv_sn_reference": "亞當<WH0121>生<WH03205><WTH8687>{<WAH0853>}塞特<WH08352>之後<WH0310>，又在<WAH01961><WTH8799>世<WH03117>八<WH08083>百<WH03967>年<WH08141>，並且生<WH03205><WTH8686>兒<WH01121>養女<WH01323>。",
+  "confidence": 0.9,
+  "notes": [
+    "生了: tags attach to 生 only; 了 is a Chinese aspect particle with no Hebrew equivalent (Rule 5)",
+    "{<WAH0853>} remains implicit — the Hebrew object marker אֶת has no explicit word in LCC just as in UNV (Rule 4)",
+    "UNV's 又在<WAH01961><WTH8799>世<WH03117> restructured in LCC as 在世的日子<WH03117>還有<WAH01961><WTH8799>: LCC fronts the subject phrase 日子 and places the copular verb 還有 after it, inverting UNV's word order; <WH03117> (יְמֵי, days) maps to LCC's 日子 rather than 世",
+    "LCC's 這期間他還 is an explanatory expansion (no Hebrew lexeme behind it) → left unannotated"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T20:33:25.004845+00:00"
+}

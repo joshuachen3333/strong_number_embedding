@@ -1,0 +1,21 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 6,
+  "sec": 12,
+  "lcc_sn": "上帝<WH0430>看<WH07200><WTH8799>{<WAH0853>}全地<WH0776>{<WAH02009>}都敗壞了<WH07843><WTH8738>：{<WAH03588>}凡<WAH03605>有血肉的<WH01320>在<WAH05921>地上<WH0776>{<WAH0853>}所行的<WH01870>全都敗壞<WH07843><WTH8689>。",
+  "lcc_original": "上帝看全地都敗壞了：凡有血肉的在地上所行的全都敗壞。",
+  "unv_sn_reference": "　神<WH0430>觀看<WH07200><WTH8799>{<WAH0853>}世界<WH0776>，見<WAH02009>是敗壞了<WH07843><WTH8738>；{<WAH03588>}凡<WAH03605>有血氣的<WH01320>人在<WAH05921>地上<WH0776>都敗壞了<WH07843><WTH8689>{<WAH0853>}行為<WH01870>。",
+  "confidence": 0.88,
+  "notes": [
+    "上帝 (LCC) ↔ 神 (UNV) both map to WH0430 (Elohim); systematic LCC/UNV difference, no ambiguity",
+    "LCC 看 absorbs only 觀看 (WH07200+WTH8799); UNV 見 maps to WAH02009 (וְהִנֵּה hinneh, presentational particle 'and behold') which has no explicit LCC counterpart — kept implicit as {<WAH02009>}",
+    "LCC 全地 ↔ UNV 世界, both receive WH0776 (אֶרֶץ); 全 is LCC-only emphasis with no SN",
+    "{<WAH0853>} (אֶת direct-object marker) placed before 全地 in first clause (matching Hebrew word order: וַיַּרְא...אֶת-הָאָרֶץ)",
+    "LCC second clause topicalizes the direct object: 所行的全都敗壞 (their-deeds [all] corrupted) vs UNV 都敗壞了行為 (corrupted [their] way); {<WAH0853>} placed before 所行的<WH01870> to mark it as the Hebrew direct object despite the reordering",
+    "LCC 所行的 ↔ UNV 行為 (WH01870, דֶּרֶךְ way/conduct); LCC uses a verbal relative clause while UNV uses a noun, but semantic content matches",
+    "LCC 全 before 都敗壞 in second clause is LCC-only (no SN), intensifying 都敗壞<WH07843><WTH8689>"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T21:28:50.554323+00:00"
+}

@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 4,
+  "sec": 10,
+  "lcc_sn": "永恆主說<WH0559><WTH8799>：『你幹了<WH06213><WTH8804>甚麼<WH04100>事？你兄弟<WH0251>的血<WH01818>有聲音<WH06963>從<WAH04480>地<WH0127>裏向我<WAH0413>哀叫<WH06817><WTH8802>呢。",
+  "lcc_original": "永恆主說：『你幹了甚麼事？你兄弟的血有聲音從地裏向我哀叫呢。",
+  "unv_sn_reference": "耶和華說<WH0559><WTH8799>：「你做了<WH06213><WTH8804>甚麼<WH04100>事呢？你兄弟<WH0251>的血<WH01818>有聲音<WH06963>從<WAH04480>地<WH0127>裡向我<WAH0413>哀告<WH06817><WTH8802>。",
+  "confidence": 0.97,
+  "notes": [
+    "耶和華 (YHWH, H03068) has no SN tag in the source UNV data, so 永恆主 receives no SN annotation",
+    "LCC 幹了 replaces UNV 做了 — both map to H06213 (עָשָׂה, to do/make)",
+    "LCC 哀叫 replaces UNV 哀告 — both map to H06817 (צָעַק, to cry out); morphology WTH8802 attached accordingly",
+    "LCC adds sentence-final particle 呢 with no Hebrew equivalent — left unannotated",
+    "裏 (LCC) vs 裡 (UNV) are orthographic variants; WH0127 attaches to 地 in both cases"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T20:04:41.773041+00:00"
+}

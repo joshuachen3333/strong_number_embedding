@@ -1,0 +1,16 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 4,
+  "sec": 20,
+  "lcc_sn": "亞大<WH05711>生<WH03205><WTH8799>{<WAH0853>}雅八<WH02989>；雅八<WAH01931>就是<WAH01961><WTH8804>住<WH03427><WTH8802>帳棚<WH0168>牧養牲畜<WH04735>之人的祖師<WH01>。",
+  "lcc_original": "亞大生雅八；雅八就是住帳棚牧養牲畜之人的祖師。",
+  "unv_sn_reference": "亞大<WH05711>生<WH03205><WTH8799>{<WAH0853>}雅八<WH02989>；雅八<WAH01931>就是<WAH01961><WTH8804>住<WH03427><WTH8802>帳棚<WH0168>、牧養牲畜<WH04735>之人的祖師<WH01>。",
+  "confidence": 0.97,
+  "notes": [
+    "LCC omits the Chinese list comma 、 between 帳棚 and 牧養牲畜 that UNV has; tag positions follow LCC word order without it",
+    "{<WAH0853>} kept implicit — את (direct object marker) has no explicit counterpart in either Chinese version"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T20:16:58.328541+00:00"
+}

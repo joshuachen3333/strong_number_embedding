@@ -1,0 +1,20 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 6,
+  "sec": 9,
+  "lcc_sn": "以下這些人<WAH0428>是挪亞的後代<WH08435>。挪亞<WH05146>是<WAH01961><WTH8804>個義<WH06662>人<WH0376>：在當時的世代<WAH09002><WH01755>、他純全無疵<WH08549>：挪亞<WH05146>跟<WAH0854>上帝<WH0430>往來<WH01980><WTH8694>。",
+  "lcc_original": "以下這些人是挪亞的後代。挪亞是個義人：在當時的世代、他純全無疵：挪亞跟上帝往來。",
+  "unv_sn_reference": "挪亞的後代<WH08435>記在下面<WAH0428>。挪亞<WH05146>是<WAH01961><WTH8804>個義<WH06662>人<WH0376>，在當時的世代<WAH09002><WH01755>是個完全<WH08549>人。挪亞<WH05146>與<WAH0854>　神<WH0430>同行<WH01980><WTH8694>。",
+  "confidence": 0.92,
+  "notes": [
+    "LCC inverts the first clause relative to UNV/Hebrew (אֵלֶּה תּוֹלְדֹת נֹחַ): UNV renders '挪亞的後代<WH08435>記在下面<WAH0428>', while LCC renders '以下這些人<WAH0428>是挪亞的後代<WH08435>'. WAH0428 (וְאֵלֶּה, 'these') attaches to 人 as the head of '以下這些人'; WH08435 (תּוֹלְדֹת) attaches to 後代.",
+    "LCC uses 上帝 where UNV uses 神, both mapping to WH0430 (אֱלֹהִים).",
+    "LCC uses 往來 ('go back and forth / commune') for UNV's 同行 ('walk together'), both rendering the hithpael of הָלַךְ; WH01980+WTH8694 attached to 往來.",
+    "LCC uses 純全無疵 for UNV's 完全 (WH08549, תָּמִים = blameless/perfect); WH08549 attached after 疵 as the terminal word of the phrase.",
+    "LCC inserts 他 as an explicit subject ('he was blameless') with no Hebrew equivalent; left untagged.",
+    "The 挪亞 in LCC's first clause ('挪亞的後代') corresponds to the unnoted נֹחַ in the construct chain תּוֹלְדֹת נֹחַ, consistent with UNV not tagging that occurrence; WH05146 is not attached there."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T21:25:42.460149+00:00"
+}

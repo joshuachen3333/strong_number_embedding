@@ -62,10 +62,22 @@ def fetch_chap(book_chi: str, chap: int, version: str, strong: int = 0) -> dict:
     return secs
 
 
+# Chapter cache: {(book_chi, chap, version): {sec: text}}
+_chap_cache = {}
+
+
+def fetch_chap_cached(book_chi: str, chap: int, version: str, strong: int = 0) -> dict:
+    """Fetch a chapter, with caching to avoid redundant API calls."""
+    key = (book_chi, chap, version)
+    if key not in _chap_cache:
+        _chap_cache[key] = fetch_chap(book_chi, chap, version, strong)
+    return _chap_cache[key]
+
+
 def fetch_sec_pair(book_chi: str, chap: int, sec: int) -> tuple:
     """Fetch both UNV+SN and LCC for a single sec. Returns (unv_sn, lcc)."""
-    unv_chap = fetch_chap(book_chi, chap, "unv", strong=1)
-    lcc_chap = fetch_chap(book_chi, chap, "lcc", strong=0)
+    unv_chap = fetch_chap_cached(book_chi, chap, "unv", strong=1)
+    lcc_chap = fetch_chap_cached(book_chi, chap, "lcc", strong=0)
 
     unv_sn = unv_chap.get(sec)
     lcc = lcc_chap.get(sec)
@@ -188,10 +200,29 @@ def call_claude(model: str, unv_sn: str, lcc: str,
     ]
 
     for attempt in range(MAX_RETRIES + 1):
-        result_proc = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=300, env=env,
-            input=prompt
-        )
+        try:
+            result_proc = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=300, env=env,
+                input=prompt
+            )
+        except subprocess.TimeoutExpired:
+            # Timeout often means rate-limit (CLI hangs waiting for capacity)
+            now_str = datetime.now().strftime("%H:%M:%S")
+            next_try = datetime.now(timezone.utc).timestamp() + RETRY_INTERVAL
+            next_str = datetime.fromtimestamp(next_try).strftime("%H:%M:%S")
+            print(f"  ⏸ [{now_str}] Timed out (likely rate limit, attempt {attempt + 1}). "
+                  f"Waiting 30 min, next retry at {next_str}...", flush=True)
+
+            if attempt >= MAX_RETRIES:
+                return {
+                    "lcc_sn": "",
+                    "confidence": 0.0,
+                    "notes": [f"Timeout: gave up after {MAX_RETRIES} retries"],
+                    "error": True
+                }
+
+            time.sleep(RETRY_INTERVAL)
+            continue
 
         if result_proc.returncode == 0:
             break
@@ -209,10 +240,10 @@ def call_claude(model: str, unv_sn: str, lcc: str,
             }
 
         # Rate limit hit — wait and retry
-        now = datetime.now().strftime("%H:%M:%S")
+        now_str = datetime.now().strftime("%H:%M:%S")
         next_try = datetime.now(timezone.utc).timestamp() + RETRY_INTERVAL
         next_str = datetime.fromtimestamp(next_try).strftime("%H:%M:%S")
-        print(f"  ⏸ [{now}] Rate limit hit (attempt {attempt + 1}). "
+        print(f"  ⏸ [{now_str}] Rate limit hit (attempt {attempt + 1}). "
               f"Waiting 30 min, next retry at {next_str}...", flush=True)
 
         if attempt >= MAX_RETRIES:
@@ -578,10 +609,10 @@ def main():
             # Single verse mode
             secs = [args.sec]
         else:
-            # Whole chapter — fetch UNV to get sec list
+            # Whole chapter — fetch UNV to get sec list (also warms cache)
             print(f"\nFetching verse list for {book_eng} {chap}...")
             try:
-                unv_data = fetch_chap(book_chi, chap, "unv", strong=1)
+                unv_data = fetch_chap_cached(book_chi, chap, "unv", strong=1)
                 secs = sorted(unv_data.keys())
             except Exception as e:
                 print(f"  Error fetching chapter {chap}: {e}")
@@ -662,9 +693,9 @@ def main():
                 chap_failed += 1
                 total_failed += 1
 
-            # Rate limiting between API calls
+            # Brief pause between API calls (server courtesy)
             if not args.dry_run and i < len(secs) - 1:
-                time.sleep(0.5)
+                time.sleep(0.1)
 
         if len(chapters) > 1 or len(secs) > 1:
             print(f"\n  Chapter {chap}: {chap_processed} processed, "

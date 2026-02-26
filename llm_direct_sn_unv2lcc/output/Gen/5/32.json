@@ -1,0 +1,17 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 5,
+  "sec": 32,
+  "lcc_sn": "挪亞<WH05146>享壽<WAH01961><WTH8799>{<WH01121>}五<WH02568>百<WH03967>歲<WH08141>；挪亞<WH05146>生了<WH03205><WTH8686>{<WAH0853>}閃<WH08035>、{<WAH0853>}含<WH02526>、{<WAH0853>}雅弗<WH03315>。",
+  "lcc_original": "挪亞享壽五百歲；挪亞生了閃、含、雅弗。",
+  "unv_sn_reference": "{<WAH01961>}{<WTH8799>}挪亞<WH05146>{<WH01121>}五<WH02568>百<WH03967>歲<WH08141>{<WH05146>}生了<WH03205><WTH8686>{<WAH0853>}閃<WH08035>、{<WAH0853>}含<WH02526>、{<WAH0853>}雅弗<WH03315>。",
+  "confidence": 0.93,
+  "notes": [
+    "H1961 (היה, 'was/became') and its morphology WTH8799 were both implicit in UNV ({<WAH01961>}{<WTH8799>}); LCC explicitly uses 享壽 ('enjoyed a lifespan of') to express this verb concept, so braces dropped and both tags attached after 享壽.",
+    "H1121 (בֶּן, Hebrew age-construction 'son of X years') remains implicit in LCC — 享壽五百歲 is a fluid Chinese expression with no discrete word corresponding to בֶּן.",
+    "Second occurrence of נֹחַ (H5146) is elided/implicit in UNV ({<WH05146>}) but LCC restores it explicitly (挪亞生了…); braces dropped and tag attached to LCC's second 挪亞."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T21:08:09.528395+00:00"
+}

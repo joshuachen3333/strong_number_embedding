@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 6,
+  "sec": 21,
+  "lcc_sn": "你<WAH0859>呢、你要拿<WH03947><WTH8798>{<WAH09001>}所<WAH0834>喫<WH0398><WTH8735>的各樣<WAH04480><WAH03605>食品<WH03978>，積聚起來<WH0622><WTH8804>{<WAH0413>}，這就要做<WAH01961><WTH8804>你<WAH09001>和牠們<WAH09001>的食物<WAH09001><WH0402>。』",
+  "lcc_original": "你呢、你要拿所喫的各樣食品，積聚起來，這就要做你和牠們的食物。』",
+  "unv_sn_reference": "你<WAH0859>要拿<WH03947><WTH8798>{<WAH09001>}各樣<WAH04480><WAH03605>食物<WH03978>{<WAH0834>}{<WH0398>}{<WTH8735>}積蓄起來<WH0622><WTH8804>{<WAH0413>}，好作<WAH01961><WTH8804>你<WAH09001>和牠們<WAH09001>的食物<WAH09001><WH0402>。」",
+  "confidence": 0.93,
+  "notes": [
+    "LCC's emphatic 你呢、你... renders Hebrew אַתָּה; WAH0859 tags the first 你 (the emphatic subject), the second 你 is Chinese-style repetition and left unannotated",
+    "LCC 所喫的 explicitly renders the three UNV implicit tags {<WAH0834>}{<WH0398>}{<WTH8735>}; braces dropped per Rule 3 since 所 (relativizer = אֲשֶׁר) and 喫 (= יֵאָכֵל) are both explicit in LCC",
+    "LCC's connective 這 in 這就要做 has no direct Hebrew counterpart and is left unannotated",
+    "食物 (UNV) → 食品 (LCC) synonym substitution; WH03978 placed on 食品"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T21:53:44.791609+00:00"
+}

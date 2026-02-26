@@ -1,0 +1,20 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 3,
+  "sec": 18,
+  "lcc_sn": "土地必給你<WAH09001>長出<WH06779><WTH8686>荆棘<WH06975>和蒺藜<WH01863>來；你也必喫<WH0398><WTH8804>{<WAH0853>}田間<WH07704>的菜蔬<WH06212>；",
+  "lcc_original": "土地必給你長出荆棘和蒺藜來；你也必喫田間的菜蔬；",
+  "unv_sn_reference": "地必給你<WAH09001>長出<WH06779><WTH8686>荊棘<WH06975>和蒺藜<WH01863>來；你也要吃<WH0398><WTH8804>{<WAH0853>}田間<WH07704>的菜蔬<WH06212>。",
+  "confidence": 0.97,
+  "notes": [
+    "UNV 地 → LCC 土地 (both = ground/earth); neither has an explicit SN tag on the subject noun itself in UNV, so none added in LCC",
+    "Prefix marker <WAH09001> placed before 長出 in LCC mirroring its pre-verb position in UNV, with <WH06779><WTH8686> following after 長出",
+    "LCC uses 喫 (archaic form) vs UNV 吃 for 'eat'; <WH0398><WTH8804> attaches to 喫 normally",
+    "LCC 荆棘 vs UNV 荊棘 — variant character forms for the same word (thorns); <WH06975> attaches straightforwardly",
+    "{<WAH0853>} kept as implicit braces since LCC also has no explicit direct-object marker word",
+    "LCC terminal punctuation ；preserved (not changed to 。as in UNV)"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-24T23:00:44.228158+00:00"
+}

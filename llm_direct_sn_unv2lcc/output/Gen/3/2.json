@@ -1,0 +1,17 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 3,
+  "sec": 2,
+  "lcc_sn": "女人<WH0802>對<WAH0413>蛇<WH05175>說<WH0559><WTH8799>：『園中<WH01588>樹上<WH06086>的果子<WAH04480><WH06529>、我們都可以喫<WH0398><WTH8799>；",
+  "lcc_original": "女人對蛇說：『園中樹上的果子、我們都可以喫；",
+  "unv_sn_reference": "女人<WH0802>對<WAH0413>蛇<WH05175>說<WH0559><WTH8799>：「園中<WH01588>樹上<WH06086>的果子<WAH04480><WH06529>，我們可以吃<WH0398><WTH8799>，",
+  "confidence": 0.97,
+  "notes": [
+    "LCC uses archaic 喫 vs UNV 吃 — same semantic referent, SN attaches to 喫",
+    "LCC adds 都 (adverb 'all/even') with no Hebrew equivalent — left unannotated",
+    "LCC punctuation preserved exactly (、and ；instead of UNV ，)"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T19:07:23.590386+00:00"
+}

@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 3,
+  "sec": 10,
+  "lcc_sn": "他說<WH0559><WTH8799>：『我聽見<WH08085><WTH8804>{<WAH0853>}你的聲音<WH06963>在園中<WAH09002><WH01588>，我就害怕<WH03372><WTH8799>，因爲<WAH03588>我<WH0595>赤身裸體<WH05903>；我便藏了<WH02244><WTH8735>起來。』",
+  "lcc_original": "他說：『我聽見你的聲音在園中，我就害怕，因爲我赤身裸體；我便藏了起來。』",
+  "unv_sn_reference": "他說<WH0559><WTH8799>：「我在園中<WAH09002><WH01588>聽見<WH08085><WTH8804>{<WAH0853>}你的聲音<WH06963>，我就害怕<WH03372><WTH8799>；因為<WAH03588>我<WH0595>赤身露體<WH05903>，我便藏了<WH02244><WTH8735>。」",
+  "confidence": 0.92,
+  "notes": [
+    "LCC reorders 'in the garden' clause: UNV has 我在園中聽見你的聲音 (I in-garden heard your-voice), LCC has 我聽見你的聲音在園中 (I heard your-voice in-garden); SNs follow LCC word order, so <WAH09002><WH01588> attach after 園中 rather than before 聽見",
+    "LCC 裸體 vs UNV 露體 — synonymous terms for nakedness, both map to WH05903",
+    "LCC adds 起來 (resultative directional complement) after 藏了 with no Hebrew equivalent; left unannotated per Rule 5",
+    "{<WAH0853>} retained as implicit — direct object marker אֵת has no LCC equivalent word"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T19:43:36.892928+00:00"
+}

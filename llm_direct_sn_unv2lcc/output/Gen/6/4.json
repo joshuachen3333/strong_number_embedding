@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 6,
+  "sec": 4,
+  "lcc_sn": "當那些<WAH01992>日子<WAH09002><WH03117>，以及<WAH01571>以後<WH0310>的日子{<WH03651>}{<WH0834>}，地上<WAH09002><WH0776>有<WAH01961><WTH8804>巨人<WH05303>；神<WH0430>子【1】們<WH01121>進去<WH0935><WTH8799>找<WAH0413>人類<WH0120>的女子們<WH01323>，生<WH03205><WTH8804>了兒子{<WAH09001>}：那<WAH0834>就是<WH01992>上古<WAH04480><WH05769>英武<WH01368>有名的<WH08034>人<WH0582>。",
+  "lcc_original": "當那些日子，以及以後的日子，地上有巨人；神子【1】們進去找人類的女子們，生了兒子：那就是上古英武有名的人。",
+  "unv_sn_reference": "那<WAH01992>時候<WAH09002><WH03117>有<WAH01961><WTH8804>偉人<WH05303>在地上<WAH09002><WH0776>，{<WAH01571>}後來<WH0310>{<WH03651>}{<WH0834>}　神<WH0430>的兒子們<WH01121>和<WAH0413>人<WH0120>的女子們<WH01323>交合<WH0935><WTH8799>生<WH03205><WTH8804>子{<WAH09001>}；那<WAH0834>就是<WH01992>上古<WAH04480><WH05769>英武<WH01368>有名的<WH08034>人<WH0582>。",
+  "confidence": 0.82,
+  "notes": [
+    "LCC restructures the temporal clause: UNV splits into '那時候…後來…' (two separate time markers), while LCC merges both into one phrase '當那些日子，以及以後的日子'. WAH01992 (הָהֵם those) is placed on 那些, and WAH09002+WH03117 (בַּיָּמִים in-the-days) on 日子.",
+    "The second 日子 in '以後的日子' is LCC's own clarifying addition (no Hebrew lexeme); left unannotated.",
+    "{<WH03651>} (כֵן) and {<WH0834>} (אֲשֶׁר) remain implicit; placed at the close of the temporal clause before the semicolon, matching their function as connectors between the time-setting and the main clause.",
+    "LCC '找' (to seek/find) carries WAH0413 (ו+אֶל = 'and toward'): UNV uses the conjunction-preposition 和 for this tag, while LCC rephrases the directional sense as a verb of seeking. Tag is retained on 找 as the closest correspondent.",
+    "Chinese aspect particle 了 in '生了兒子' has no Hebrew equivalent; left unannotated per Rule 5."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T21:15:31.376566+00:00"
+}

@@ -1,0 +1,17 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 7,
+  "sec": 8,
+  "lcc_sn": "潔淨的<WH02889>畜類<WAH04480><WH0929>、和{<WAH0834>}不<WAH0369>潔淨的<WH02889>畜類<WAH04480><WH0929>、飛鳥<WAH04480><WH05775>和爬<WH07430><WTH8802>在<WAH05921>地上<WH0127>的{<WAH0834>}各樣<WAH03605>昆蟲，",
+  "lcc_original": "潔淨的畜類、和不潔淨的畜類、飛鳥和爬在地上的各樣昆蟲，",
+  "unv_sn_reference": "潔淨的<WH02889>畜類<WAH04480><WH0929>和{<WAH0834>}不<WAH0369>潔淨的<WH02889>畜類<WAH04480><WH0929>，飛鳥<WAH04480><WH05775>並地上<WAH05921><WH0127>一切的<WAH03605>{<WAH0834>}昆蟲<WH07430><WTH8802>，",
+  "confidence": 0.87,
+  "notes": [
+    "LCC splits UNV's single word 昆蟲 into verbal 爬 + nominal 昆蟲. The Hebrew for this clause is וְכֹל אֲשֶׁר-רֹמֵשׂ עַל-הָאֲדָמָה ('all that creep upon the ground') — there is no separate noun for 'insects'; H7430 is purely the Qal participle verb. WH07430+WTH8802 are therefore assigned to 爬 (the verbal/participial form), leaving 昆蟲 unannotated as a Chinese gloss with no direct Hebrew lexeme.",
+    "LCC restructures the final clause as 爬在地上的各樣昆蟲 (relative clause before noun) vs. UNV's 地上一切的昆蟲 (place-phrase before noun). WAH05921 maps to 在 (= עַל, upon) and WH0127 maps to 地上 (= הָאֲדָמָה, ground).",
+    "Both {<WAH0834>} occurrences remain implicit: (1) in 和{<WAH0834>}不潔淨的 the relative function is absorbed into the adjective structure; (2) in 的{<WAH0834>}各樣 the 的 particle carries the relative link but is a structural particle rather than an explicit lexical word, so braces are retained per Rule 4."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T22:07:18.800584+00:00"
+}

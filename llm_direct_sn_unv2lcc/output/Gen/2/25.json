@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 2,
+  "sec": 25,
+  "lcc_sn": "{<WAH01961>}{<WTH8799>}那人<WH0120>和妻子<WH0802>都<WH08147>赤身裸體<WH06174>，也彼此不<WAH03808>覺得羞恥<WH0954><WTH8709>。",
+  "lcc_original": "那人和妻子都赤身裸體，也彼此不覺得羞恥。",
+  "unv_sn_reference": "當時{<WAH01961>}{<WTH8799>}夫<WH0120>妻<WH0802>二人<WH08147>赤身露體<WH06174>，並不<WAH03808>羞恥<WH0954><WTH8709>。",
+  "confidence": 0.88,
+  "notes": [
+    "H01961 (הָיוּ, 'were') remains implicit {<WAH01961>}{<WTH8799>} — LCC has no explicit copula verb, sentence is verbless in surface structure",
+    "H08147 (שְׁנֵיהֶם, 'both of them/the two') mapped to 都 — LCC uses 那人和妻子都 where 都 carries the distributive/both sense, though not the numeral",
+    "LCC's 覺得 ('feel/sense') is a Chinese complement verb added for naturalness with no direct Hebrew counterpart — left unannotated",
+    "LCC's 也彼此 ('also each other') is an interpretive expansion of the negation; 不 receives H03808 as the direct correspondent of לֹא",
+    "H0954 (בּוֹשׁ, 'ashamed') and WTH8709 both attach to 羞恥 as the lexical head; 覺得 is the semantically light complement"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T19:31:51.782805+00:00"
+}

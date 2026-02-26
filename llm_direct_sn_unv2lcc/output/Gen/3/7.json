@@ -1,0 +1,20 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 3,
+  "sec": 7,
+  "lcc_sn": "二人<WH08147>的眼睛<WH05869>就開朗了<WH06491><WTH8735>，纔知道<WH03045><WTH8799>{<WAH03588>}自己是<WH01992>赤身裸體<WH05903>，便縫了<WH08609><WTH8799>無花果樹<WH08384>的葉子<WH05929>，爲自己<WAH09001>作<WH06213><WTH8799>圍裙<WH02290>。",
+  "lcc_original": "二人的眼睛就開朗了，纔知道自己是赤身裸體，便縫了無花果樹的葉子，爲自己作圍裙。",
+  "unv_sn_reference": "他們二人<WH08147>的眼睛<WH05869>就明亮了<WH06491><WTH8735>，才知道<WH03045><WTH8799>{<WAH03588>}自己是<WH01992>赤身露體<WH05903>，便拿無花果樹<WH08384>的葉子<WH05929>為自己<WAH09001>編<WH08609><WTH8799>做<WH06213><WTH8799>裙子<WH02290>。",
+  "confidence": 0.93,
+  "notes": [
+    "LCC drops UNV's 他們 (implicit subject pronoun); WH08147 (שְׁנֵיהֶם, both-of-them) attaches to 二人 alone.",
+    "LCC 開朗 (became bright/enlightened) is a rephrasing of UNV 明亮 but maps to the same WH06491 (פָּקַח, to open).",
+    "UNV 拿 has no SN and is absent from LCC; LCC 縫了 directly renders WH08609 (תָּפַר, to sew) with aspect particle 了 treated as one unit, following the UNV pattern of 明亮了<SN>.",
+    "LCC 裸體 (bare body) substitutes UNV 露體 but both render WH05903 (עֵירֹם, naked).",
+    "{<WAH03588>} retained as implicit — no explicit כִּי in LCC either.",
+    "LCC comma after 葉子 preserved exactly; 便 and 了 left unannotated (no Hebrew equivalents)."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T19:36:21.000185+00:00"
+}

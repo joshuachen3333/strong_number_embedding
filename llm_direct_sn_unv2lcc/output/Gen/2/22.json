@@ -1,0 +1,20 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 2,
+  "sec": 22,
+  "lcc_sn": "於是永恆主<WH03068>上帝<WH0430>用<WAH04480>那人<WH0120>身上取下來<WH03947><WTH8804>的<WAH0834>{<WAH0853>}肋骨<WH06763>建造<WH01129><WTH8799>一個女人<WAH09001><WH0802>，帶她<WH0935><WTH8686>到<WAH0413>那人<WH0120>跟前。",
+  "lcc_original": "於是永恆主上帝用那人身上取下來的肋骨建造一個女人，帶她到那人跟前。",
+  "unv_sn_reference": "耶和華<WH03068>　神<WH0430>就用<WAH04480>那人<WH0120>身上所<WAH0834>取的<WH03947><WTH8804>{<WAH0853>}肋骨<WH06763>造成<WH01129><WTH8799>一個女人<WAH09001><WH0802>，領她<WH0935><WTH8686>到<WAH0413>那人<WH0120>跟前。",
+  "confidence": 0.92,
+  "notes": [
+    "耶和華神 (two words) → 永恆主上帝 (two words): 永恆主 carries WH03068 (YHWH), 上帝 carries WH0430 (Elohim); LCC systematically uses 上帝 where UNV uses 神",
+    "WAH0834 (relative particle אשר, on UNV 所) mapped to LCC 的, which serves the same post-verbal relativizer function in the 取下來的 construction",
+    "{<WAH0853>} retained as implicit: LCC has no explicit direct-object marker word, placed before 肋骨 to match its Hebrew position (את before the noun)",
+    "造成 → 建造 (synonym, same WH01129+WTH8799)",
+    "領她 → 帶她 (both mean 'bring/lead', same WH0935+WTH8686)",
+    "於是 left unannotated — Chinese discourse connective with no Hebrew lexical equivalent"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T19:26:59.579833+00:00"
+}

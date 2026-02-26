@@ -1,0 +1,22 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 3,
+  "sec": 1,
+  "lcc_sn": "但是永恆主<WH03068>上帝<WH0430>所<WAH0834>造的<WH06213><WTH8804>、田野<WH07704>一切的<WAH04480><WAH03605>活物<WH02416>惟有<WH01961><WTH8804>蛇<WH05175>最狡猾<WH06175>。蛇對<WAH0413>女人<WH0802>說<WH0559><WTH8799>：『園中<WH01588>各樣<WAH04480><WAH03605>樹<WH06086>的果子、上帝<WH0430>眞地<WH0637><WAH03588>說過<WH0559><WTH8804>你們都不可<WAH03808>喫<WH0398><WTH8799>麼？』",
+  "lcc_original": "但是永恆主上帝所造的、田野一切的活物惟有蛇最狡猾。蛇對女人說：『園中各樣樹的果子、上帝眞地說過你們都不可喫麼？』",
+  "unv_sn_reference": "耶和華<WH03068>　神<WH0430>所<WAH0834>造的<WH06213><WTH8804>，惟有<WH01961><WTH8804>蛇<WH05175>比田野<WH07704>一切的<WAH04480><WAH03605>活物<WH02416>更狡猾<WH06175>。蛇對<WAH0413>女人<WH0802>說<WH0559><WTH8799>：「　神<WH0430>豈是<WH0637>真<WAH03588>說<WH0559><WTH8804>不許<WAH03808>你們吃<WH0398><WTH8799>園中<WH01588>所有<WAH04480><WAH03605>樹上<WH06086>的果子嗎？」",
+  "confidence": 0.83,
+  "notes": [
+    "LCC '永恆主' (Eternal Lord) renders UNV '耶和華' (YHWH/H3068); '上帝' renders UNV '神' (Elohim/H430) — LCC uses these consistently throughout",
+    "First sentence word order differs: LCC topicalizes '田野一切的活物' before '惟有蛇', while UNV places them after. SNs distributed to matching words regardless of reordering",
+    "LCC '眞地' (truly) condenses UNV '豈是(H637)真(H3588)' — both H637 (אַף, indeed/also) and H3588 (כִּי, that/for) are attached to '眞地' as a combined emphasis unit",
+    "LCC '各樣' (every kind) corresponds semantically to UNV '所有' (H4480+H3605 = מִכֹּל, from all); the WAH-prefixed pair is retained",
+    "LCC '說過' (has said) corresponds to UNV '說' with morph 8804 (qal perfect); the '過' is a Chinese perfective aspect particle with no separate SN",
+    "LCC opening '但是' (but/however) is a Chinese connective with no Hebrew SN equivalent — left unannotated",
+    "Second mention of '蛇' in second sentence is untagged, following UNV convention where H5175 is not re-applied to the subject in the continuation clause",
+    "LCC '喫' is an orthographic variant of UNV '吃' (both = eat, H398)"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T19:06:58.309995+00:00"
+}

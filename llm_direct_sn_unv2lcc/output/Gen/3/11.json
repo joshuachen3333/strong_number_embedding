@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 3,
+  "sec": 11,
+  "lcc_sn": "永恆主上帝說<WH0559><WTH8799>：『誰<WH04310>告訴<WH05046><WTH8689>{<WAH09001>}{<WAH03588>}你<WAH0859>你赤身裸體<WH05903>呢？{<WAH0834>}我吩咐你<WH06680><WTH8765>不可<WAH09001><WH01115>喫的<WH0398><WTH8800>{<WAH04480>}{<WAH04480>}樹<WH06086>上果子，莫非你喫了<WH0398><WTH8804>麼？』",
+  "lcc_original": "永恆主上帝說：『誰告訴你你赤身裸體呢？我吩咐你不可喫的樹上果子，莫非你喫了麼？』",
+  "unv_sn_reference": "耶和華說<WH0559><WTH8799>：「誰<WH04310>告訴<WH05046><WTH8689>{<WAH09001>}{<WAH03588>}你<WAH0859>赤身露體<WH05903>呢？莫非你吃了<WH0398><WTH8804>{<WAH0834>}我吩咐你<WH06680><WTH8765>不可<WAH09001><WH01115>吃的<WH0398><WTH8800>{<WAH04480>}那{<WAH04480>}樹<WH06086>上的果子嗎？」",
+  "confidence": 0.87,
+  "notes": [
+    "LCC restructures the second question: object clause (我吩咐你不可喫的樹上果子) is fronted before the main verb 喫了, matching Hebrew word order more closely than UNV; all SNs follow accordingly.",
+    "{<WAH0834>} placed as implicit tag before 我吩咐你 since it introduces the Hebrew relative clause אֲשֶׁר with no explicit Chinese word in LCC.",
+    "UNV {<WAH04480>}那{<WAH04480>}樹 → LCC omits demonstrative 那; both מִן implicit tags are merged together before 樹 since there is no intervening word to separate them.",
+    "LCC has a second 你 in 告訴你你赤身裸體 (making the subject of the naked-clause explicit); this pronoun (אָתָּה) has no corresponding SN tag in UNV and is left untagged.",
+    "No SN appears for 永恆主上帝 (Yahweh-Elohim) — consistent with UNV, which also has no tag for 耶和華 in this verse, only for the verb 說."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T19:46:15.344736+00:00"
+}

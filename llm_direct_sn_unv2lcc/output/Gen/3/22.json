@@ -1,0 +1,23 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 3,
+  "sec": 22,
+  "lcc_sn": "永恆主<WH03068>上帝<WH0430>說<WH0559><WTH8799>：『看哪<WH02005>，那人<WH0120>旣<WAH01961><WTH8804>像<WAH09003>我們中間的<WAH04480>一個<WH0259>、曉得<WAH09001><WH03045><WTH8800>分別善<WH02896>惡<WH07451>【1】；現在<WAH06258>恐怕<WAH06435>他伸出<WH07971><WTH8799>手<WH03027>來、也<WAH01571>摘取<WH03947><WTH8804>生命<WH02416>樹的果子<WAH04480><WH06086>喫<WH0398><WTH8804>，就永遠<WAH09001><WH05769>活着<WH02425><WTH8804>。』",
+  "lcc_original": "永恆主上帝說：『看哪，那人旣像我們中間的一個、曉得分別善惡【1】；現在恐怕他伸出手來、也摘取生命樹的果子喫，就永遠活着。』",
+  "unv_sn_reference": "耶和華<WH03068>　神<WH0430>說<WH0559><WTH8799>：「{<WH02005>}那人<WH0120>已經<WAH01961><WTH8804>與我們<WAH04480>相似<WAH09003><WH0259>，能知道<WAH09001><WH03045><WTH8800>善<WH02896>惡<WH07451>；現在<WAH06258>恐怕<WAH06435>他伸<WH07971><WTH8799>手<WH03027>又<WAH01571>摘<WH03947><WTH8804>生命<WH02416>樹的果子<WAH04480><WH06086>吃<WH0398><WTH8804>，就永遠<WAH09001><WH05769>活著<WH02425><WTH8804>。」",
+  "confidence": 0.87,
+  "notes": [
+    "耶和華<WH03068> → 永恆主<WH03068>: LCC renders Yahweh as 永恆主 (Eternal Lord); SN attaches to 主 as the lexical head.",
+    "神<WH0430> → 上帝<WH0430>: LCC's systematic 上帝 for Elohim; straightforward substitution.",
+    "{<WH02005>} → 看哪<WH02005>: LCC has an explicit word for הִנֵּה (behold), so braces dropped per Rule 3.",
+    "WAH09003 (כְּ prefix, 'like') attached to 像 and WAH04480 (מִמֶּנּוּ, 'from/of us') to 我們中間的: LCC rephrases כְּאַחַד מִמֶּנּוּ ('like one of us') as 像我們中間的一個 ('like one among us'); prefix and pronoun are distributed accordingly.",
+    "WAH01961<WTH8804> placed on 旣: LCC uses 旣 (since/already) as the functional equivalent of UNV 已經 for הָיָה (has become).",
+    "曉得<WAH09001><WH03045><WTH8800> + unannotated 分別: LCC adds 分別 (distinguish) as a Chinese elaboration not present in Hebrew לָדַעַת; left without SN per Rule 5.",
+    "他伸出<WH07971><WTH8799>手<WH03027>來: LCC's 伸出...來 is a directional complement construction; SN for שָׁלַח attaches after 伸出 (verbal head), 來 is a Chinese aspect particle left unannotated.",
+    "摘取<WH03947><WTH8804>: LCC's compound verb 摘取 (pluck-take) covers UNV's single 摘 (לָקַח); both SNs attach after the compound.",
+    "Footnote marker 【1】 preserved in situ after 惡, between SN tags, exactly as in LCC original."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-24T23:05:26.455350+00:00"
+}

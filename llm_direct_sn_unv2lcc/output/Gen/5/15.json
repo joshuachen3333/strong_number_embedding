@@ -1,0 +1,17 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 5,
+  "sec": 15,
+  "lcc_sn": "瑪勒列<WH04111>活到<WH02421><WTH8799>六十<WH08346><WH08141>五<WH02568>歲<WH08141>，生了<WH03205><WTH8686>{<WAH0853>}雅列<WH03382>。",
+  "lcc_original": "瑪勒列活到六十五歲，生了雅列。",
+  "unv_sn_reference": "瑪勒列<WH04111>活到<WH02421><WTH8799>六十<WH08346><WH08141>五<WH02568>歲<WH08141>，生了<WH03205><WTH8686>{<WAH0853>}雅列<WH03382>。",
+  "confidence": 0.98,
+  "notes": [
+    "LCC text is identical to UNV for this verse, so all alignments are direct 1:1 mappings.",
+    "WH08141 (שָׁנָה/שָׁנִים) appears twice because Hebrew expresses '65 years' as 'five year(s) and sixty year' — first instance attached to 六十, second to 歲.",
+    "{<WAH0853>} kept implicit: Hebrew direct object marker אֵת has no Chinese equivalent in LCC just as in UNV."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T20:45:27.484621+00:00"
+}

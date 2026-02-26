@@ -1,0 +1,22 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 1,
+  "sec": 29,
+  "lcc_sn": "上帝<WH0430>說<WH0559><WTH8799>：『看哪<WH02009>，我將<WAH0853>{<WAH0834>}全<WAH03605>地<WH0776>上<WAH05921><WH06440>結<WH02232><WTH8802>種子<WH02233>的各樣<WAH03605>菜蔬<WH06212>、和<WAH0853>各樣<WAH03605>的樹<WH06086>、樹上<WAH09002>有果實<WH06529>結<WH02232><WTH8802>種子<WH02233>的<WAH0834>、都賜<WH05414><WTH8804>給你們<WAH09001>做<WH01961><WTH8799>食物<WAH09001><WH0402>。",
+  "lcc_original": "上帝說：『看哪，我將全地上結種子的各樣菜蔬、和各樣的樹、樹上有果實結種子的、都賜給你們做食物。",
+  "unv_sn_reference": "　神<WH0430>說<WH0559><WTH8799>：「看哪<WH02009>，我將<WAH0853>{<WAH0834>}遍<WAH03605>地<WH0776>上<WAH05921><WH06440>一切<WAH03605>結<WH02232><WTH8802>種子<WH02233>的菜蔬<WH06212>和<WAH0853>一切<WAH03605>樹<WH06086>上<WAH09002>所<WAH0834>結<WH02232><WTH8802>有核<WH02233>的果子<WH06529>全賜<WH05414><WTH8804>給你們<WAH09001>作<WH01961><WTH8799>食物<WAH09001><WH0402>。",
+  "confidence": 0.87,
+  "notes": [
+    "神(UNV)→上帝(LCC): both = H0430 (Elohim); straightforward substitution",
+    "Word order of כָּל tokens differs: UNV puts 遍<WAH03605>地上 before 一切<WAH03605>菜蔬; LCC inverts to 全<WAH03605>地上…各樣<WAH03605>菜蔬 — SNs follow LCC word order",
+    "LCC restructures second object clause: 和各樣的樹、樹上有果實結種子的 vs. UNV 和一切樹上所結有核的果子; SNs distributed to nearest semantic equivalents",
+    "UNV所<WAH0834> (relative pronoun for אֲשֶׁר) mapped to LCC clause-final 的 (relative clause marker); slight uncertainty since 的 is multifunctional — main driver of confidence reduction",
+    "有核(UNV)→種子(LCC): both render Hebrew זָרַע (H02233); UNV 有核 = 'has kernel', LCC 種子 = 'seed', same referent",
+    "Second 樹 in 樹上 not annotated: following UNV precedent where עֵץ in פְרִי עֵץ was also not separately tagged",
+    "都(LCC) unannotated; corresponds stylistically to UNV全 in 全賜, but <WH05414><WTH8804> placed on main verb 賜 (נָתַתִּי)",
+    "{<WAH0834>} retained as implicit in same position as UNV (between accusative marker and first כָּל), matching FHL annotation convention"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T13:52:26.022738+00:00"
+}

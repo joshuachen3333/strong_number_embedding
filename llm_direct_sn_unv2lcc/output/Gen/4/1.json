@@ -1,0 +1,22 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 4,
+  "sec": 1,
+  "lcc_sn": "亞當<WH0120>和<WH0853>妻子<WH0802>夏娃<WH02332>同房<WH03045><WTH8804>，夏娃就懷孕<WH02029><WTH8799>，生了<WH03205><WTH8799>{<WH0853>}該隱<WH07014>，便說<WH0559><WTH8799>：『由於<WH0854>永恆主<WH03068>的庇佑【1】我得了<WH07069><WTH8804>一個男兒<WH0376>』；",
+  "lcc_original": "亞當和妻子夏娃同房，夏娃就懷孕，生了該隱，便說：『由於永恆主的庇佑【1】我得了一個男兒』；",
+  "unv_sn_reference": "有一日，那人<WH0120>和<WH0853>他妻子<WH0802>夏娃<WH02332>同房<WH03045><WTH8804>，夏娃就懷孕<WH02029><WTH8799>，生了<WH03205><WTH8799>{<WH0853>}該隱<WH07014>（就是得的意思），便說<WH0559><WTH8799>：「{<WH0854>}耶和華<WH03068>使我得了<WH07069><WTH8804>一個男子<WH0376>。」",
+  "confidence": 0.88,
+  "notes": [
+    "UNV opens with 有一日 (untagged) which has no equivalent in LCC — cleanly absent with no SN loss.",
+    "亞當 (LCC) replaces 那人 (UNV) for H0120; both refer to Adam, so the mapping is unambiguous.",
+    "UNV 和<WH0853> maps to LCC 和 directly — both serve as the surface rendering of the direct-object marker אֵת before 夏娃.",
+    "Second {H0853} (before 該隱) remains implicit in LCC as no explicit particle appears; braces preserved per Rule 4.",
+    "{H0854} is implicit in UNV but LCC renders the preposition אֵת explicitly as 由於; braces dropped per Rule 3 and tag attached to 由於.",
+    "LCC 的庇佑 (protection/blessing) is an interpretive expansion by Lü with no Hebrew lexeme; left unannotated.",
+    "【1】 is a footnote marker native to LCC; preserved in place between 庇佑 and 我.",
+    "LCC 男兒 (male child) corresponds to UNV 男子 for H0376 (אִישׁ); semantic equivalence clear."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-24T23:12:56.512897+00:00"
+}

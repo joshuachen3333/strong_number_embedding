@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 6,
+  "sec": 19,
+  "lcc_sn": "凡<WAH04480><WAH03605>有血肉的<WH01320>{<WAH04480>}{<WAH03605>}衆生<WH02416>，每樣{<WAH04480>}{<WAH03605>}兩個<WH08147>，你要帶進<WH0935><WTH8686>{<WAH0413>}樓船<WH08392>，好和<WAH0854>你一同保全性命<WAH09001><WH02421><WTH8687>：有<WAH01961><WTH8799>公<WH02145>有母<WH05347>。",
+  "lcc_original": "凡有血肉的衆生，每樣兩個，你要帶進樓船，好和你一同保全性命：有公有母。",
+  "unv_sn_reference": "凡<WAH04480><WAH03605>有血肉的<WH01320>{<WAH04480>}{<WAH03605>}活物<WH02416>，每樣{<WAH04480>}{<WAH03605>}兩個<WH08147>，{<WAH01961>}{<WTH8799>}一公<WH02145>一母<WH05347>，你要帶進<WH0935><WTH8686>{<WAH0413>}方舟<WH08392>，好在你<WAH0854>那裡保全生命<WAH09001><WH02421><WTH8687>。",
+  "confidence": 0.87,
+  "notes": [
+    "LCC repositions 公/母 to end (有公有母) vs. UNV mid-sentence (一公一母); SNs 02145 and 05347 moved to match LCC word order accordingly.",
+    "LCC uses explicit 有 in 有公有母 where UNV kept יִהְיוּ (01961) implicit {<WAH01961>}{<WTH8799>}; per rule 3, braces dropped and 01961+8799 attached to the first 有 as explicit copula. The second 有 is a Chinese rhetorical parallel with no separate Hebrew correspondent.",
+    "LCC 和 ('with') is the explicit rendering of אֵת (0854) where UNV used 在...那裡 with the SN trailing; 0854 attached directly to 和.",
+    "Second and third occurrences of min-kol (04480+03605) remain implicit in LCC as in UNV — no explicit Chinese word bridges them.",
+    "LCC 衆生 ('all living beings') maps directly to UNV 活物 (02416); LCC 樓船 maps to UNV 方舟 (08392) — both are clearly equivalent terms."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T21:50:21.908609+00:00"
+}

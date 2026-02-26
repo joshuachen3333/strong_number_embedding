@@ -1,0 +1,20 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 8,
+  "sec": 6,
+  "lcc_sn": "{<WAH01961>}{<WTH8799>}過了<WAH04480><WH07093>四十<WH0705>天<WH03117>，挪亞<WH05146>打開<WH06605><WTH8799>{<WAH0853>}他<WAH0834>所造<WH06213><WTH8804>的樓船<WH08392>的窗戶<WH02474>；",
+  "lcc_original": "過了四十天，挪亞打開他所造的樓船的窗戶；",
+  "unv_sn_reference": "{<WAH01961>}{<WTH8799>}過了<WAH04480><WH07093>四十<WH0705>天<WH03117>，挪亞<WH05146>開了<WH06605><WTH8799>{<WAH0853>}方舟<WH08392>的窗戶<WH02474>{<WAH0834>}{<WH06213>}{<WTH8804>}，",
+  "confidence": 0.92,
+  "notes": [
+    "LCC uses 打開 for פָּתַח (H6605) instead of UNV's 開了; H6605+WTH8799 attached after 打開",
+    "LCC uses 樓船 for תֵּבָה (H8392) instead of UNV's 方舟; H8392 attached to 樓船",
+    "UNV implicit {<WAH0834>}{<WH06213>}{<WTH8804>} are explicit in LCC as 他所造的: H0834 (אֲשֶׁר relative pronoun) attached to 他 as the relative clause introducer; H6213+WTH8804 (עָשָׂה 'made') attached to 造",
+    "H01961 (וַיְהִי) remains implicit — LCC begins with 過了 (covering מִקֵּץ) without rendering the existential/temporal frame verb",
+    "H0853 (אֵת direct object marker) remains implicit — no explicit Chinese word corresponds to it",
+    "The 的 after 所造 is a Chinese relativizing particle with no Hebrew correspondent; left unannotated"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T22:49:37.960619+00:00"
+}

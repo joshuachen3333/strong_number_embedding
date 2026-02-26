@@ -1,0 +1,20 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 4,
+  "sec": 22,
+  "lcc_sn": "洗拉<WH06741>{<WAH01931>}也<WAH01571>生了<WH03205><WTH8804>{<WAH0853>}土八該隱<WH08423>，就是打造<WH03913><WTH8803>各樣<WAH03605>銅<WH05178>鐵<WH01270>利器<WH02794>的；土八該隱<WH08423>的妹子<WH0269>是拿瑪<WH05279>。",
+  "lcc_original": "洗拉也生了土八該隱，就是打造各樣銅鐵利器的；土八該隱的妹子是拿瑪。",
+  "unv_sn_reference": "洗拉<WH06741>{<WAH01931>}又<WAH01571>生了<WH03205><WTH8804>{<WAH0853>}土八‧該隱<WH08423>；他是打造<WH03913><WTH8803>各樣<WAH03605>銅<WH05178>鐵<WH01270>利器<WH02794>的（或譯：是銅匠鐵匠的祖師）。土八‧該隱<WH08423>的妹子<WH0269>是拿瑪<WH05279>。",
+  "confidence": 0.95,
+  "notes": [
+    "UNV 又<WAH01571> → LCC 也: semantic equivalents (both mean 'also/moreover'); SN attached to 也",
+    "{<WAH01931>} kept implicit: LCC has no explicit pronoun for the implied subject (Zillah)",
+    "{<WAH0853>} kept implicit: direct object marker (את) is always implicit in Chinese",
+    "UNV '他是打造' → LCC '就是打造': 就是 is a resumptive copula with no Hebrew equivalent; SNs attach to 打造 only",
+    "UNV parenthetical (或譯：是銅匠鐵匠的祖師) absent from LCC — no SN impact",
+    "LCC writes 土八該隱 without UNV's middle dot (‧); LCC's orthography preserved"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T20:18:10.638436+00:00"
+}

@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 3,
+  "sec": 9,
+  "lcc_sn": "永恆主<WH03068>上帝<WH0430>呼喚<WH07121><WTH8799>{<WAH0413>}那人<WH0120>說<WH0559><WTH8799>{<WAH09001>}：『你在哪裏<WH0335>？』",
+  "lcc_original": "永恆主上帝呼喚那人說：『你在哪裏？』",
+  "unv_sn_reference": "耶和華<WH03068>　神<WH0430>呼喚<WH07121><WTH8799>{<WAH0413>}那人<WH0120>，對他<WAH09001>說<WH0559><WTH8799>：「你在哪裡<WH0335>？」",
+  "confidence": 0.92,
+  "notes": [
+    "耶和華(WH03068) → 永恆主: LCC's standard rendering of יהוה",
+    "神(WH0430) → 上帝: LCC's standard rendering of אֱלֹהִים (systematic difference from UNV)",
+    "{<WAH0413>} stays implicit: LCC likewise omits an explicit preposition before 那人, mirroring UNV's implicit marker for אֶל",
+    "UNV's 對他<WAH09001>說 → LCC's 說{<WAH09001>}: LCC omits explicit 'to him' (לוֹ), so WAH09001 kept implicit and placed after the verb 說 to preserve Hebrew clause order (וַיֹּאמֶר לוֹ)"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T19:42:54.122348+00:00"
+}

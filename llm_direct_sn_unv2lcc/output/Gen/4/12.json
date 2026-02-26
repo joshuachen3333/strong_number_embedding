@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 4,
+  "sec": 12,
+  "lcc_sn": "{<WH03588>}你種<WH05647><WTH8799>{<WAH0853>}地<WH0127>，地必不<WAH03808>再<WH03254><WTH8686>給<WH05414><WTH8800>你<WAH09001>效力<WH03581>：你必<WAH01961><WTH8799>流離<WH05128><WTH8801>飄蕩<WH05110><WTH8802>於地上<WAH09002><WH0776>。",
+  "lcc_original": "你種地，地必不再給你效力：你必流離飄蕩於地上。",
+  "unv_sn_reference": "{<WH03588>}你種<WH05647><WTH8799>{<WAH0853>}地<WH0127>，地不<WAH03808>再<WH03254><WTH8686>給<WH05414><WTH8800>你<WAH09001>效力<WH03581>；你必<WAH01961><WTH8799>流離<WH05128><WTH8801>飄蕩<WH05110><WTH8802>在地上<WAH09002><WH0776>。」",
+  "confidence": 0.93,
+  "notes": [
+    "LCC adds 必 in the first clause (地必不再) as a modal intensifier with no Hebrew equivalent — left unannotated",
+    "LCC uses 於 instead of UNV's 在 for the prepositional phrase; same SNs H9002+H776 applied to 於地上",
+    "{<WH03588>} (כִּי) and {<WAH0853>} (אֵת) remain implicit braces — LCC likewise has no explicit words for either",
+    "Second-clause 必 in LCC (你必流離) corresponds to תִּהְיֶה (H1961) exactly as in UNV, retaining <WAH01961><WTH8799>"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T20:08:32.733049+00:00"
+}

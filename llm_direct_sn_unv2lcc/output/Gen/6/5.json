@@ -1,0 +1,20 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 6,
+  "sec": 5,
+  "lcc_sn": "永恆主<WH03068>見<WH07200><WTH8799>{<WAH03588>}人類<WH0120>在地上<WAH09002><WH0776>壞透了<WH07451><WH07227>，人類{<WAH03605>}心思<WH04284><WH03820>終<WAH03605>日<WH03117>所計謀<WH03336>的、沒有別的<WH07535>、只是壞事<WH07451>；",
+  "lcc_original": "永恆主見人類在地上壞透了，人類心思終日所計謀的、沒有別的、只是壞事；",
+  "unv_sn_reference": "耶和華<WH03068>見<WH07200><WTH8799>{<WAH03588>}人<WH0120>在地上<WAH09002><WH0776>罪惡<WH07451>很大<WH07227>，終<WAH03605>日<WH03117>所思<WH03336>想的<WH04284><WH03820>盡<WAH03605>都<WH07535>是惡<WH07451>，",
+  "confidence": 0.82,
+  "notes": [
+    "壞透了 merges two Hebrew lexemes — 罪惡 (WH07451, רָעַת) and 很大 (WH07227, רַבָּה) — into one idiomatic phrase; both SNs attach to the whole unit",
+    "WAH03588 (כִּי, 'that') remains implicit {<WAH03588>} because LCC, like UNV, uses direct object construction without an explicit complementizer",
+    "WAH03605 for וְכָל ('and every', modifying יֵצֶר) has no explicit LCC correlate and is marked implicit; the second WAH03605 (כָּל before הַיּוֹם) attaches to 終",
+    "心思 covers WH04284 (מַחְשְׁבֹת, thoughts) and WH03820 (לִבּוֹ, heart); 所計謀 carries WH03336 (יֵצֶר, inclination/impulse)",
+    "Second 人類 is LCC's subject-repeat for literary clarity with no Hebrew counterpart at that position — left unannotated",
+    "沒有別的 renders WH07535 (רַק, only); 只是 is LCC elaboration without a separate Hebrew word; 壞事 carries the second WH07451 (רַע, evil)"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T21:18:51.194753+00:00"
+}

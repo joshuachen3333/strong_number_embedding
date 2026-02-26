@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 4,
+  "sec": 8,
+  "lcc_sn": "該隱<WH07014>對<WH0413>他的兄弟<WH0251>亞伯<WH01893>【3】說<WH0559><WTH8799>：『我們出去到田間吧。【3】{<WAH01961>}{<WTH8799>}二人正<WAH09002><WAH01961><WTH8800>在田間<WAH09002><WH07704>，該隱<WH07014>就起來<WH06965><WTH8799>打<WH0413>他的兄弟<WH0251>亞伯<WH01893>，把他殺了<WH02026><WTH8799>。",
+  "lcc_original": "該隱對他的兄弟亞伯【3】說：『我們出去到田間吧。【3】二人正在田間，該隱就起來打他的兄弟亞伯，把他殺了。",
+  "unv_sn_reference": "該隱<WH07014>與<WH0413>他兄弟<WH0251>亞伯<WH01893>說話<WH0559><WTH8799>；{<WAH01961>}{<WTH8799>}二人正<WAH09002><WAH01961><WTH8800>在田間<WAH09002><WH07704>。該隱<WH07014>起來<WH06965><WTH8799>打<WH0413>他兄弟<WH0251>亞伯<WH01893>，把他殺了<WH02026><WTH8799>。",
+  "confidence": 0.88,
+  "notes": [
+    "WH0413 (אֶל, preposition 'to/against') maps to 對 in the first clause and to 打 in the second, following UNV's mapping convention where 打 renders the directional-object marker of 'rose up against' (וַיָּקָם אֶל).",
+    "LCC includes the expanded quotation '我們出去到田間吧' reflecting the Samaritan/LXX reading absent from MT; UNV+SN has no SN tags for this content, so it is left unannotated.",
+    "{<WAH01961>}{<WTH8799>} (= וַיְהִי, narrative wayyiqtol of הָיָה) remains implicit — LCC conveys the clause transition through sentence structure rather than an explicit word, so no explicit host is available.",
+    "LCC 就 (Chinese connective aspect marker) is left unannotated; it has no Hebrew equivalent.",
+    "The 【3】 footnote markers are preserved exactly in their original positions."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T20:02:21.524317+00:00"
+}

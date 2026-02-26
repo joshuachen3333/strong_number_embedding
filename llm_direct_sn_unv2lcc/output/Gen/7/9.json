@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 7,
+  "sec": 9,
+  "lcc_sn": "都兩隻<WH08147>兩隻<WH08147>地來<WH0935><WTH8804>到<WAH0413>挪亞<WH05146>那裏，進<WAH0413>樓船<WH08392>；有公<WH02145>有母<WH05347>，照<WAH09003><WH0834>上帝【1】<WH0430>所吩咐<WH06680><WTH8765>{<WAH0853>}挪亞的<WH05146>。",
+  "lcc_original": "都兩隻兩隻地來到挪亞那裏，進樓船；有公有母，照上帝【1】所吩咐挪亞的。",
+  "unv_sn_reference": "都是一對<WH08147>一對地<WH08147>，有公<WH02145>有母<WH05347>，到<WAH0413>挪亞<WH05146>那裡進<WH0935><WTH8804>入<WAH0413>方舟<WH08392>，正如<WAH09003><WH0834>　神<WH0430>所吩咐<WH06680><WTH8765>{<WAH0853>}挪亞的<WH05146>。",
+  "confidence": 0.87,
+  "notes": [
+    "兩隻兩隻 (distributive reduplication) maps to שְׁנַיִם שְׁנַיִם (WH08147×2); each 兩隻 gets one tag to preserve the one-to-one distributive pairing.",
+    "Hebrew has one verb בָּאוּ (WH0935/8804) but LCC expands to two motion words 來…進. Following UNV's tagging logic where the verb attaches to the entry/motion word (UNV: 進<WH0935>), I attach WH0935+WTH8804 to 來 (the primary motion initiator) and the second WAH0413 (אֶל before תֵּבָה) to 進, mirroring UNV's 入<WAH0413> pattern.",
+    "照 covers both WAH09003 (כַּ prefix) and WH0834 (אֲשֶׁר), since LCC condenses כַּאֲשֶׁר into single character 照.",
+    "上帝【1】 is LCC's term for אֱלֹהִים (WH0430); the footnote marker 【1】 is preserved in place, SN appended after.",
+    "{<WAH0853>} retained as implicit: LCC omits the Hebrew direct object marker אֵת, so no explicit word to attach it to."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T22:09:36.950826+00:00"
+}

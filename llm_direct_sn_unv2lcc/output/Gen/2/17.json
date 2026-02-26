@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 2,
+  "sec": 17,
+  "lcc_sn": "只是那能使人分別善<WH02896>惡<WH07451>【6】的知識<WH01847>樹<WAH04480><WH06086>的果子，你卻不可<WAH03808>喫<WH0398><WTH8799>{<WAH04480>}；因爲<WAH03588>你喫<WH0398><WTH8800>{<WAH04480>}的日子<WAH09002><WH03117>、你一定<WH04191><WTH8800>死<WH04191><WTH8799>。』",
+  "lcc_original": "只是那能使人分別善惡【6】的知識樹的果子，你卻不可喫；因爲你喫的日子、你一定死。』",
+  "unv_sn_reference": "只是分別<WH01847>善<WH02896>惡<WH07451>樹<WAH04480><WH06086>上的果子，你不可<WAH03808>吃<WH0398><WTH8799>{<WAH04480>}，因為<WAH03588>你吃<WH0398><WTH8800>{<WAH04480>}的日子<WAH09002><WH03117>必定<WH04191><WTH8800>死<WH04191><WTH8799>！」",
+  "confidence": 0.9,
+  "notes": [
+    "H01847 (דַּעַת/knowledge) attached to 知識 rather than 分別: LCC expands the Hebrew construct עֵץ הַדַּעַת into '知識樹' plus an explanatory relative clause '能使人分別善惡'; 知識 is the direct rendering of H01847 while 分別 is part of the added gloss and receives no SN.",
+    "善 (H02896) and 惡 (H07451) appear before 知識 in LCC's paraphrase word order; SNs placed immediately after each word at their natural positions.",
+    "Both {<WAH04480>} implicit markers (מִמֶּנּוּ = from it) retained as implicit: LCC has no explicit pronoun or particle corresponding to either instance.",
+    "UNV 必定 → LCC 一定: H04191+WTH8800 (infinitive absolute מוֹת, the 'surely' intensifier) transferred to 一定; 死 retains H04191+WTH8799 (main verb תָּמוּת)."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T19:17:52.439490+00:00"
+}

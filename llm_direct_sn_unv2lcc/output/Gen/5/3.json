@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 5,
+  "sec": 3,
+  "lcc_sn": "亞當<WH0121>{<WH02421><WTH8799>}一百<WH03967>三十<WH07970>歲<WH08141>的時候，生了<WH03205><WTH8686>一個兒子，生來就有自己的樣式<WAH09002><WH01823>、自己的形像<WAH09003><WH06754>；亞當給他起<WH07121><WTH8799>{<WAH0853>}名<WH08034>叫塞特<WH08352>。",
+  "lcc_original": "亞當一百三十歲的時候，生了一個兒子，生來就有自己的樣式、自己的形像；亞當給他起名叫塞特。",
+  "unv_sn_reference": "亞當<WH0121>活到<WH02421><WTH8799>一百<WH03967>三十<WH07970>歲<WH08141>，生了<WH03205><WTH8686>一個兒子，形像<WAH09003><WH06754>樣式<WAH09002><WH01823>和自己相似，就給他起<WH07121><WTH8799>{<WAH0853>}名<WH08034>叫塞特<WH08352>。",
+  "confidence": 0.87,
+  "notes": [
+    "活到 (WH02421+WTH8799, 'lived') has no explicit lexical equivalent in LCC's age construction '一百三十歲的時候'; marked implicit with braces since the verb is structurally absent in LCC.",
+    "LCC reverses the Hebrew/UNV word order: 樣式 (WH01823, dəmût) precedes 形像 (WH06754, ṣelem) in LCC, whereas UNV has 形像 before 樣式. SNs attached to the corresponding words in LCC's order.",
+    "The second 亞當 in LCC's name-giving clause ('亞當給他起名叫塞特') is a Chinese explicit subject restatement; Hebrew implies the subject pronominally here, so left untagged.",
+    "生來就有自己的 is LCC's restructuring of the pronominal suffixes on 樣式/形像 plus UNV's explanatory '和自己相似'; left untagged as it has no direct SN correspondence.",
+    "叫 in '起名叫塞特' is a Chinese verb-complement introducing the name with no Hebrew lexeme; left untagged. WH08352 attaches to 塞特 (the proper name שֵׁת) only."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T20:31:51.326733+00:00"
+}

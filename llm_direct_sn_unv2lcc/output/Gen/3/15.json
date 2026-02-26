@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 3,
+  "sec": 15,
+  "lcc_sn": "我要使<WH07896><WTH8799>你<WAH0996>和女人<WH0802>之間<WAH0996>有仇恨<WH0342>，你的後裔<WH02233>和她的後裔<WH02233>之間<WAH0996><WAH0996>也必有仇恨；她<WAH01931>必重傷<WH07779><WTH8799>你的頭<WH07218>，你<WAH0859>必重傷<WH07779><WTH8799>她的腳跟<WH06119>。』",
+  "lcc_original": "我要使你和女人之間有仇恨，你的後裔和她的後裔之間也必有仇恨；她必重傷你的頭，你必重傷她的腳跟。』",
+  "unv_sn_reference": "我又要叫<WH07896><WTH8799>你<WAH0996>和女人<WH0802>彼此<WAH0996>為仇<WH0342>；你的後裔<WH02233>和{<WAH0996>}女人的後裔<WH02233>也彼此<WAH0996>為仇。女人的後裔要{<WAH01931>}傷<WH07779><WTH8799>你的頭<WH07218>；你要<WAH0859>傷<WH07779><WTH8799>他的腳跟<WH06119>。",
+  "confidence": 0.87,
+  "notes": [
+    "使<WH07896><WTH8799>: UNV renders שִׁית as 叫; LCC renders it as 使 — both are causative verbs, straightforward mapping.",
+    "Hebrew has four בֵּין constructs (בֵּינְךָ / וּבֵין הָאִשָּׁה / וּבֵין זַרְעֲךָ / וּבֵין זַרְעָהּ). LCC compresses each pair into a single 之間. First pair: <WAH0996> distributed to 你 (carrying the ךָ suffix of בֵּינְךָ, following UNV's placement) and 之間 (for the following וּבֵין). Second pair: both <WAH0996> stacked on 之間 because LCC uses one word where UNV had {<WAH0996>}…彼此<WAH0996>; the {<WAH0996>} braces are dropped per Rule 3 since 之間 is an explicit expression.",
+    "{<WAH01931>} in UNV is implicit (Hebrew pronoun הוּא, no explicit Chinese subject); LCC explicitly renders it as 她, so braces dropped per Rule 3: 她<WAH01931>.",
+    "LCC uses 重傷 (severely wound) where UNV uses plain 傷 for H7779 (שׁוּף, bruise/crush); SN and morphology tag attached to the whole compound 重傷 as a single semantic unit.",
+    "LCC has 她的腳跟 (her heel) vs UNV 他的腳跟 (his heel) — standard LCC translation choice for הוּא; H6119 (עָקֵב) attached to 腳跟 in both cases."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T19:54:20.803492+00:00"
+}

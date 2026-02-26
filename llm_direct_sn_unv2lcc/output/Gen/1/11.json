@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 1,
+  "sec": 11,
+  "lcc_sn": "上帝<WH0430>說<WH0559><WTH8799>：『地<WH0776>要發生<WH01876><WTH8686>青草<WH01877>、和結<WH02232><WTH8688>種子<WH02233>的菜蔬<WH06212>、跟結<WH06213><WTH8802>果子<WH06529>的樹<WH06529><WH06086>在<WAH05921>地<WH0776>上，各從其類<WAH09001><WH04327>，果子{<WH0834>}裏<WAH09002>有種子<WH02233>：』就這樣<WAH03651>成了<WAH01961><WTH8799>。",
+  "lcc_original": "上帝說：『地要發生青草、和結種子的菜蔬、跟結果子的樹在地上，各從其類，果子裏有種子：』就這樣成了。",
+  "unv_sn_reference": "　神<WH0430>說<WH0559><WTH8799>：「地<WH0776>要發生<WH01876><WTH8686>青草<WH01877>和結<WH02232><WTH8688>種子<WH02233>的菜蔬<WH06212>，並結<WH06213><WTH8802>果子<WH06529>的樹木<WH06529><WH06086>，各從其類<WAH09001><WH04327>，果子{<WH0834>}都包著核<WH02233>{<WAH09002>}。」{<WAH05921>}{<WH0776>}事就這樣<WAH03651>成了<WAH01961><WTH8799>。",
+  "confidence": 0.92,
+  "notes": [
+    "LCC explicitly renders '在地上' (on the earth) for UNV's implicit {<WAH05921>}{<WH0776>}; braces dropped per Rule 3",
+    "LCC '裏' (inside) explicitly renders UNV's implicit {<WAH09002>} (Heb. בוֹ 'in it'); braces dropped per Rule 3",
+    "LCC '有' (to have/exist) in '果子裏有種子' has no Hebrew equivalent; left unannotated per Rule 5",
+    "LCC uses '樹' vs UNV '樹木'; same SNs (H6529+H6086) transferred to the shorter form"
+  ],
+  "model": "opus",
+  "timestamp": "2026-02-24T18:40:36.299239+00:00"
+}

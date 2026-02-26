@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 5,
+  "sec": 13,
+  "lcc_sn": "該南<WH07018>生<WH03205><WTH8687>{<WAH0853>}瑪勒列<WH04111>之後<WH0310>，又活了<WH02421><WTH8799>八<WH08083>百<WH03967><WH08141>四十<WH0705>年<WH08141>，這期間還生<WH03205><WTH8686>兒<WH01121>養女<WH01323>。",
+  "lcc_original": "該南生瑪勒列之後，又活了八百四十年，這期間還生兒養女。",
+  "unv_sn_reference": "該南<WH07018>生<WH03205><WTH8687>{<WAH0853>}瑪勒列<WH04111>之後<WH0310>，又活了<WH02421><WTH8799>八<WH08083>百<WH03967><WH08141>四十<WH0705>年<WH08141>，並且生<WH03205><WTH8686>兒<WH01121>養女<WH01323>。",
+  "confidence": 0.93,
+  "notes": [
+    "UNV 並且生 → LCC 這期間還生: LCC expands the conjunction into a full temporal phrase (這期間還). Only 生 carries SNs; 這期間 and 還 are LCC elaboration with no Hebrew equivalents.",
+    "{<WAH0853>} kept implicit: LCC also has no explicit direct object marker word for Hebrew אֵת, so braces are preserved.",
+    "First <WH08141> (construct שָׁנָה in 八百_年 compound): kept floating between 百<WH03967> and 四十<WH0705> as in UNV, since LCC likewise has no explicit word for this construct instance. Second <WH08141> attaches to 年.",
+    "Both morphology codes (WTH8687 on first 生, WTH8686 on second 生) preserved attached to their respective verb occurrences — UNV distinguishes Hiphil perfect vs. Hiphil imperfect for the two begetting clauses."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T20:43:04.787180+00:00"
+}

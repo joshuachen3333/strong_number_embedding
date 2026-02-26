@@ -1,0 +1,20 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 2,
+  "sec": 9,
+  "lcc_sn": "永恆主<WH03068>上帝<WH0430>使<WH06779><WH00>各樣<WAH03605>的樹<WH06086>從<WH04480>土地裏<WH0127>長起來<WH06779><WTH8686>：看了<WAH09001><WH04758>可喜愛<WH02530><WTH8737>，做食品<WAH09001><WH03978>好<WH02896>喫。園子<WH01588>當中<WAH09002><WH08432>又有生命<WH02416>樹<WH06086>和知識<WH01847>樹<WH06086>，能使人分別善<WH02896>惡<WH07451>【6】。",
+  "lcc_original": "永恆主上帝使各樣的樹從土地裏長起來：看了可喜愛，做食品好喫。園子當中又有生命樹和知識樹，能使人分別善惡【6】。",
+  "unv_sn_reference": "耶和華<WH03068>　神<WH0430>使<WH06779><WH00>各樣<WAH03605>的樹<WH06086>從<WH04480>地裡<WH0127>長出來<WH06779><WTH8686>，可以悅人<WH02530><WTH8737>的眼目<WAH09001><WH04758>，其上的果子好<WH02896>作食物<WAH09001><WH03978>。園子<WH01588>當中<WAH09002><WH08432>又有生命<WH02416>樹<WH06086>和分別<WH01847>善<WH02896>惡<WH07451>的樹<WH06086>。",
+  "confidence": 0.87,
+  "notes": [
+    "永恆主 is LCC's rendering of יהוה (WH03068); 上帝 is LCC's rendering of אֱלֹהִים (WH0430) vs UNV 耶和華/神",
+    "使…長起來 is the Hiphil of צָמַח: 使 receives WH06779+WH00 (causative + null particle) and 長起來 receives WH06779+WTH8686 (verb + Hiphil morphology), mirroring UNV's split-causative tagging",
+    "LCC restructures 可以悅人的眼目 (נֶחְמָד לְמַרְאֶה) into 看了可喜愛: 看了 maps to לְמַרְאֶה (WAH09001+WH04758), 可喜愛 maps to נֶחְמָד Niphal ptcp (WH02530+WTH8737)",
+    "LCC omits 其上的果子 (no SN in UNV either); 做食品好喫 maps טוֹב לְמַאֲכָל: 做食品 = לְמַאֲכָל (WAH09001+WH03978), 好 = טוֹב (WH02896); 喫 is unannotated (LCC addition)",
+    "LCC adds the explanatory relative clause 能使人分別 for the tree of knowledge; 分別 in this clause is left untagged as LCC's expansion; 知識 receives WH01847 (דַּעַת)",
+    "WH02896 (טוֹב) correctly appears twice: 好 in the food clause and 善 in the good-evil pair"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T19:08:44.319091+00:00"
+}

@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 5,
+  "sec": 2,
+  "lcc_sn": "上帝創造<WH01254><WTH8804>他們、有男<WH02145>有女<WH05347>。當他們被創造<WH01254><WTH8736>的日子<WAH09002><WH03117>，上帝賜福<WH01288><WTH8762>與他們<WAH0853>，給他們起名<WH08034>叫<WH07121><WTH8799>{<WAH0853>}「人<WH0120>」【1】。",
+  "lcc_original": "上帝創造他們、有男有女。當他們被創造的日子，上帝賜福與他們，給他們起名叫「人」【1】。",
+  "unv_sn_reference": "並且造<WH01254><WTH8804>男<WH02145>造女<WH05347>。在他們被造<WH01254><WTH8736>的日子<WAH09002><WH03117>，　神賜福<WH01288><WTH8762>給他們<WAH0853>，稱<WH07121><WTH8799>{<WAH0853>}他們{<WH08034>}為「人<WH0120>」。）",
+  "confidence": 0.92,
+  "notes": [
+    "UNV 造 → LCC 創造 for bara H01254; SNs attached to 創造 and 被創造 respectively for both occurrences",
+    "UNV has {<WH08034>} implicit (no explicit 名 in 稱他們為) but LCC has explicit 名 in 起名 — braces dropped per rule 3: 起名<WH08034>",
+    "起名叫 split between two Hebrew roots: 起名<WH08034> for shem, 叫<WH07121><WTH8799> for qara",
+    "WAH0853 appears twice: explicitly on 與他們<WAH0853> (blessing them) matching UNV 給他們<WAH0853>; implicitly {<WAH0853>} placed after 叫 (the accusative marker on שְׁמָם has no explicit Chinese equivalent in LCC's 起名叫 construction)",
+    "LCC 上帝 substitutes for UNV 神 (Elohim); neither is SN-tagged in source UNV so none added"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T20:30:02.535311+00:00"
+}

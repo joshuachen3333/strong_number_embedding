@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 2,
+  "sec": 12,
+  "lcc_sn": "那<WH01931>地<WH0776>的金子<WH02091>很好<WH02896>：那裏<WAH08033>有紅玉<WH0916>和水蒼玉<WH07718><WH068>【7】。",
+  "lcc_original": "那地的金子很好：那裏有紅玉和水蒼玉【7】。",
+  "unv_sn_reference": "並且那<WH01931>地<WH0776>的金子<WH02091>是好的<WH02896>；在那裡<WAH08033>又有珍珠<WH0916>和紅瑪瑙<WH07718><WH068>。",
+  "confidence": 0.87,
+  "notes": [
+    "並且 (UNV opening conjunction) is absent in LCC; it carried no SN in UNV so no loss.",
+    "LCC 很好 (predicate adjective) maps to UNV 是好的 for WH02896 (טוֹב, good) — straightforward.",
+    "Gem alignment by word order: LCC 紅玉 ← UNV 珍珠 (WH0916, בְּדֹלַח bdellium); LCC 水蒼玉 ← UNV 紅瑪瑙 (WH07718 שֹׁהַם + WH068 אֶבֶן). Both versions diverge in gem identification but the positional order is preserved, so the mapping is reliable.",
+    "Footnote marker 【7】 kept after the SN tags on 水蒼玉, preserving its original attachment to that word."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T19:11:20.872864+00:00"
+}

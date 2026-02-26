@@ -1,0 +1,15 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 7,
+  "sec": 18,
+  "lcc_sn": "水勢<WH04325>浩大<WH01396><WTH8799>，在<WAH05921>地上<WH0776>大大地<WH03966>往上長<WH07235><WTH8799>，樓船<WH08392>在<WAH05921>水<WH04325>面上<WH06440>漂來漂去<WH03212><WTH8799>。",
+  "lcc_original": "水勢浩大，在地上大大地往上長，樓船在水面上漂來漂去。",
+  "unv_sn_reference": "水勢<WH04325>浩大<WH01396><WTH8799>，在<WAH05921>地上<WH0776>大大地<WH03966>往上長<WH07235><WTH8799>，方舟<WH08392>在<WAH05921>水<WH04325>面上<WH06440>漂來漂去<WH03212><WTH8799>。",
+  "confidence": 0.97,
+  "notes": [
+    "方舟 (UNV) → 樓船 (LCC): both render תֵּבָה (H08392, ark/chest); SN attaches to 樓船 without ambiguity. All other lexical choices and word order are identical between UNV and LCC."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T22:29:00.107618+00:00"
+}

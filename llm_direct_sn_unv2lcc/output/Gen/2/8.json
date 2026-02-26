@@ -1,0 +1,22 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 2,
+  "sec": 8,
+  "lcc_sn": "永恆主<WH03068>上帝<WH0430>在東方<WAH04480><WH06924>栽種了<WH05193><WTH8799>一個園子<WH01588>在伊甸<WAH09002><WH05731>，將<WH0853>所<WH0834>塑造<WH03335><WTH8804>的人<WH0120>放<WH07760><WTH8799>在那裏<WH08033>。",
+  "lcc_original": "永恆主上帝在東方栽種了一個園子在伊甸，將所塑造的人放在那裏。",
+  "unv_sn_reference": "耶和華<WH03068>　神<WH0430>在東方的<WAH04480><WH06924>伊甸<WAH09002><WH05731>立了<WH05193><WTH8799>一個園子<WH01588>，把<WH0853>所<WH0834>造<WH03335><WTH8804>的人<WH0120>安置<WH07760><WTH8799>在那裡<WH08033>。",
+  "confidence": 0.92,
+  "notes": [
+    "永恆主 ← 耶和華<WH03068>: LCC renders יְהוָה as 永恆主 rather than 耶和華; SN attached to end of 永恆主",
+    "上帝 ← 神<WH0430>: LCC renders אֱלֹהִים as 上帝 rather than 神; straightforward substitution",
+    "Clause order differs: UNV places 在東方的伊甸 before 立了; LCC places 在東方 before the verb and 在伊甸 after 一個園子, matching the Hebrew גַּן בְּעֵדֶן מִקֶּדֶם more literally — SNs follow each phrase to their new positions",
+    "在伊甸<WAH09002><WH05731>: the 在 in LCC expresses the בְּ prefix (WAH09002); tags placed after 伊甸 per insertion-after-word convention",
+    "栽種了 ← 立了<WH05193><WTH8799>: both render נָטַע (Qal impf.); aspect particle 了 within 栽種了 left unannotated",
+    "塑造 ← 造<WH03335><WTH8804>: LCC uses 塑造 for יָצַר; tags attached after 塑造",
+    "放 ← 安置<WH07760><WTH8799>: LCC uses 放 for שִׂים",
+    "將 ← 把<WH0853>: both render the direct-object marker אֵת"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T19:05:59.865100+00:00"
+}

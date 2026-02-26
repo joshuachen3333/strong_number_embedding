@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 2,
+  "sec": 6,
+  "lcc_sn": "不過有泉源<WH0108>【3】從<WH04480>地<WH0776>裏上來<WH05927><WTH8799>，灌溉<WH08248><WTH8689>【4】{<WAH0853>}{<WAH03605>}地<WH0127>面<WH06440>。",
+  "lcc_original": "不過有泉源【3】從地裏上來，灌溉【4】地面。",
+  "unv_sn_reference": "但有霧氣<WH0108>從<WH04480>地<WH0776>上騰<WH05927><WTH8799>，滋潤<WH08248><WTH8689>{<WAH0853>}遍<WAH03605>{<WH06440>}地<WH0127>。",
+  "confidence": 0.83,
+  "notes": [
+    "H108 (אֵד): UNV renders as 霧氣 (mist/vapor), LCC renders as 泉源 (spring/fountain) — known exegetical difference for this word (stream vs. mist); both translate H108",
+    "H6440 (פָּנִים, face/surface): implicit in UNV as {<WH06440>} but LCC has explicit 面 in 地面; braces dropped per Rule 3 and attached to 面",
+    "H3605 (כֹּל, all): UNV expresses as 遍, but LCC has no explicit 'all/entire' equivalent in 地面; kept as implicit {<WAH03605>}",
+    "H853 (אֵת, direct object marker): untranslatable particle, no LCC word; kept implicit {<WAH0853>}"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T14:10:24.785515+00:00"
+}

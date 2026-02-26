@@ -1,0 +1,16 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 1,
+  "sec": 23,
+  "lcc_sn": "有<WAH01961><WTH8799>晚上<WH06153>有<WAH01961><WTH8799>早晨<WH01242>，是第五<WH02549>日<WH03117>。",
+  "lcc_original": "有晚上有早晨，是第五日。",
+  "unv_sn_reference": "有<WAH01961><WTH8799>晚上<WH06153>，有<WAH01961><WTH8799>早晨<WH01242>，是第五<WH02549>日<WH03117>。",
+  "confidence": 0.99,
+  "notes": [
+    "LCC omits the comma after 晚上 (UNV: 有…晚上，有…早晨) — punctuation preserved as-is per rules; word-level alignment is direct and unambiguous throughout.",
+    "是 carries no SN tag in UNV and is left unannotated in LCC (Chinese copula with no independent Hebrew lexeme)."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-24T18:56:56.340084+00:00"
+}

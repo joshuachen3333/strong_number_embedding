@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 7,
+  "sec": 21,
+  "lcc_sn": "凡<WAH03605>有血肉<WH01320>、而在<WAH05921>地上<WH0776>行動的<WH07430><WTH8802>，飛鳥<WAH09002><WH05775>、牲口<WAH09002><WH0929>、走獸<WAH09002><WH02416>、和<WAH09002>在<WAH05921>地上<WH0776>滋生<WH08317><WTH8802>的各樣<WAH03605>昆蟲<WH08318>、以及所有的<WAH03605>人<WH0120>、都溺死<WH01478><WTH8799>；",
+  "lcc_original": "凡有血肉、而在地上行動的，飛鳥、牲口、走獸、和在地上滋生的各樣昆蟲、以及所有的人、都溺死；",
+  "unv_sn_reference": "凡<WAH03605>在<WAH05921>地上<WH0776>有血肉的<WH01320>動物<WH07430><WTH8802>，就是飛鳥<WAH09002><WH05775>、牲畜<WAH09002><WH0929>、走獸<WAH09002><WH02416>，和{<WAH09002>}{<WAH03605>}爬<WH08317><WTH8802>在<WAH05921>地上的<WH0776>昆蟲<WH08318>，以及所有的<WAH03605>人<WH0120>，都死了<WH01478><WTH8799>。",
+  "confidence": 0.88,
+  "notes": [
+    "LCC reverses UNV word order in opening clause: UNV '在地上有血肉的動物' → LCC '有血肉、而在地上行動的'; SNs follow LCC word order: 有血肉<WH01320> then 在<WAH05921>地上<WH0776>行動的<WH07430>.",
+    "UNV implicit {<WAH09002>} (waw conjunction before 爬) is realized explicitly as LCC 和; braces dropped → 和<WAH09002>.",
+    "UNV implicit {<WAH03605>} (כֹּל before שֶׁרֶץ) is realized explicitly as LCC 各樣; braces dropped → 各樣<WAH03605>.",
+    "LCC 滋生 (H8317, 'swarm/teem') = UNV 爬 — same Hebrew root, different Chinese rendering; morphology <WTH8802> attached to 滋生.",
+    "LCC 牲口 = UNV 牲畜 (both H929 בְּהֵמָה); LCC 溺死 renders H1478 גָּוַע with drowning-specific nuance not present in UNV 死了 — SN still attaches directly."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T22:33:20.295384+00:00"
+}

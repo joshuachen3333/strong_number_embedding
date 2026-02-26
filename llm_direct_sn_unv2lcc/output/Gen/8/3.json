@@ -1,0 +1,17 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 8,
+  "sec": 3,
+  "lcc_sn": "水<WH04325>從<WAH04480><WAH05921>地上<WH0776>不斷地<WH01980><WTH8800><WH07725><WTH8800>退去<WH07725><WTH8799>；過了<WAH04480><WH07097>一百<WH03967>五十<WH02572>天<WH03117>，水<WH04325>就消減<WH02637><WTH8799>。",
+  "lcc_original": "水從地上不斷地退去；過了一百五十天，水就消減。",
+  "unv_sn_reference": "水<WH04325>從<WAH04480><WAH05921>地上<WH0776>漸<WH01980><WTH8800><WH07725><WTH8800>退<WH07725><WTH8799>。過了<WAH04480><WH07097>一百<WH03967>五十<WH02572>天<WH03117>，水<WH04325>就漸消<WH02637><WTH8799>。",
+  "confidence": 0.91,
+  "notes": [
+    "Hebrew inf-abs idiom הלוך ושוב (halak+shuv = 'going and returning', expressing continuous action) is rendered in UNV as 漸 with both inf-abs tags <WH01980><WTH8800><WH07725><WTH8800>; in LCC this idiom becomes the adverb 不斷地 ('unceasingly'), so both inf-abs tags attach there, while the main verb tag <WH07725><WTH8799> attaches to 退去.",
+    "UNV 漸消 → LCC 消減 (both gloss H02637 חָסֵר 'to decrease/abate'); tag attaches to 消減, leaving 就 unannotated as a Chinese connective particle.",
+    "LCC uses semicolon ；between the two clauses where UNV uses 。— LCC punctuation preserved exactly."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T22:44:54.638785+00:00"
+}

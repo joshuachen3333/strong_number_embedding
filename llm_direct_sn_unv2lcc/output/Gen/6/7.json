@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 6,
+  "sec": 7,
+  "lcc_sn": "永恆主<WH03068>說<WH0559><WTH8799>：『我要將<WAH0853>我所<WAH0834>創造<WH01254><WTH8804>的人類<WH0120>、都從<WAH04480><WAH05921>地上<WH06440><WH0127>擦滅<WH04229><WTH8799>：無論人類<WAH04480><WH0120>獸類<WH05704><WH0929>或<WAH05704>爬行動物<WH07431>，以及<WAH05704>空中的<WH08064>飛鳥<WH05775>，都要擦滅，因爲<WAH03588>我後悔<WH05162><WTH8738>{<WAH03588>}造了他們<WH06213><WTH8804>。』",
+  "lcc_original": "永恆主說：『我要將我所創造的人類、都從地上擦滅：無論人類獸類或爬行動物，以及空中的飛鳥，都要擦滅，因爲我後悔造了他們。』",
+  "unv_sn_reference": "耶和華<WH03068>說<WH0559><WTH8799>：「我要將<WAH0853>所<WAH0834>造的<WH01254><WTH8804>人<WAH04480><WH0120>和<WH05704>走獸<WH0929>，並<WAH05704>昆蟲<WH07431>，以及<WAH05704>空中的<WH08064>飛鳥<WH05775>，都從<WAH04480><WAH05921>地上<WH06440><WH0127>除滅<WH04229><WTH8799>{<WH0120>}，因為<WAH03588>我造他們<WH06213><WTH8804>{<WAH03588>}後悔了<WH05162><WTH8738>。」",
+  "confidence": 0.82,
+  "notes": [
+    "LCC uses 人類 twice (main clause + enumeration) where UNV has a single 人 carrying all SNs for both Hebrew occurrences (הָאָדָם and מֵהָאָדָם). Split: first 人類 receives <WH0120> for the main-clause object; second 人類 receives <WAH04480><WH0120> for the enumeration head מֵהָאָדָם. The UNV implicit {<WH0120>} after 除滅 is resolved to the explicit first 人類 per Rule 3 (LCC has an explicit word).",
+    "LCC restructures the three-term enumeration as 無論人類獸類或爬行動物 rather than UNV's 人…走獸…昆蟲. No explicit conjunction precedes 獸類, so <WH05704> (עַד 'to/until') is folded onto 獸類 itself. 或 parallels UNV's 並 and receives <WAH05704> for the second עַד.",
+    "LCC repeats 擦滅 at the close of the enumeration (都要擦滅) as a stylistic device with no Hebrew counterpart; left unannotated.",
+    "LCC's reason clause 因爲我後悔造了他們 follows Hebrew word order (נִחַמְתִּי then עֲשִׂיתִם), the inverse of UNV's 我造他們後悔了. The implicit {<WAH03588>} for the second כִּי ('that') is placed between 後悔 and 造了他們 where the subordinating conjunction would naturally sit.",
+    "LCC inserts an explicit 我 in 我所創造 (absent in UNV's 所造的); left unannotated as a Chinese syntactic addition."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T21:23:36.769492+00:00"
+}

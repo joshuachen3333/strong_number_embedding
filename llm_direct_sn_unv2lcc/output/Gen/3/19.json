@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 3,
+  "sec": 19,
+  "lcc_sn": "你必汗流<WAH09002><WH02188>滿面<WH0639>、纔得喫食<WH0398><WTH8799><WH03899>，直到<WH05704>你歸了<WH07725><WTH8800>{<WAH0413>}土<WH0127>，因爲<WAH03588>你是由<WAH04480>土取出來的<WH03947><WTH8795>：你<WH0859>本是<WAH03588>塵土<WH06083>，仍要歸<WH07725><WTH8799>於<WAH0413>塵土<WH06083>。』",
+  "lcc_original": "你必汗流滿面、纔得喫食，直到你歸了土，因爲你是由土取出來的：你本是塵土，仍要歸於塵土。』",
+  "unv_sn_reference": "你必汗流<WAH09002><WH02188>滿面<WH0639>才得糊口<WH0398><WTH8799><WH03899>，直到<WH05704>你歸了<WH07725><WTH8800>{<WAH0413>}土<WH0127>，因為<WAH03588>你是從<WAH04480>土而出的<WH03947><WTH8795>。你<WH0859>本是<WAH03588>塵土<WH06083>，仍要歸<WH07725><WTH8799>於<WAH0413>塵土<WH06083>。",
+  "confidence": 0.95,
+  "notes": [
+    "糊口 (UNV) → 喫食 (LCC): both express eating bread/food; all three SNs (WH0398 אָכַל eat + WTH8799 morphology + WH03899 לֶחֶם bread) appended after 喫食",
+    "從<WAH04480> (UNV) → 由<WAH04480> (LCC): equivalent prepositions meaning 'from'; WAH04480 attaches to 由",
+    "而出的<WH03947><WTH8795> (UNV) → 取出來的<WH03947><WTH8795> (LCC): LCC renders לָקַח more explicitly as 取出來, SNs appended at end of phrase",
+    "{<WAH0413>} kept implicit before first 土: LCC '歸了土' has no explicit preposition word, same structural gap as UNV",
+    "UNV clause boundary 。 becomes ： in LCC before the second 你 clause — punctuation preserved as-is per rules"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-24T23:02:13.860701+00:00"
+}

@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 6,
+  "sec": 20,
+  "lcc_sn": "飛鳥<WAH04480><WH05775>各從其類<WAH09001><WH04327>，牲畜<WAH04480><WH0929>各從其類<WAH09001><WH04327>，地上<WH0127>一切<WAH03605>爬行動物<WAH04480><WH07431>、各從其類<WAH09001><WH04327>，每樣<WAH04480><WAH03605>兩個<WH08147>：都要來<WH0935><WTH8799>找你<WAH0413>保全性命<WAH09001><WH02421><WTH8687>。",
+  "lcc_original": "飛鳥各從其類，牲畜各從其類，地上一切爬行動物、各從其類，每樣兩個：都要來找你保全性命。",
+  "unv_sn_reference": "飛鳥<WAH04480><WH05775>各從其類<WAH09001><WH04327>，牲畜<WAH04480><WH0929>各從其類<WAH09001><WH04327>，地上的<WH0127>昆蟲<WAH04480><WAH03605><WH07431>各從其類<WAH09001><WH04327>，每樣<WAH04480><WAH03605>兩個<WH08147>，要到<WH0935><WTH8799>你那裡<WAH0413>，好保全生命<WAH09001><WH02421><WTH8687>。",
+  "confidence": 0.88,
+  "notes": [
+    "UNV 昆蟲<WAH04480><WAH03605><WH07431> is split across LCC structure: 一切<WAH03605> receives כֹּל since LCC renders it explicitly as a separate word, while 爬行動物<WAH04480><WH07431> carries the remaining prefix + head-noun tags.",
+    "UNV 要到<WH0935><WTH8799>你那裡<WAH0413> mapped to LCC 來<WH0935><WTH8799>找你<WAH0413>; 找 has no independent SN and functions as a directional complement to 來; WAH0413 (אֶל) attaches to 找你 as the closest equivalent of 'to you'.",
+    "LCC 都 is a cohesive/universal particle with no direct Hebrew counterpart and is left unannotated.",
+    "LCC 性命 vs UNV 生命 are near-synonyms; both map cleanly to <WH02421><WTH8687> (חיה, Hiphil infinitive)."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T21:51:41.155261+00:00"
+}

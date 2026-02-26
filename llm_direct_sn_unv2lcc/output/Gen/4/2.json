@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 4,
+  "sec": 2,
+  "lcc_sn": "她又<WH03254><WTH8686>生了<WAH09001><WH03205><WTH8800>{<WAH0853>}該隱的兄弟<WH0251>{<WAH0853>}亞伯<WH01893>。亞伯<WH01893>是<WAH01961><WTH8799>牧<WH07462><WTH8802>羊<WH06629>的，該隱<WH07014>是<WAH01961><WTH8804>種<WH05647><WTH8802>地<WH0127>的。",
+  "lcc_original": "她又生了該隱的兄弟亞伯。亞伯是牧羊的，該隱是種地的。",
+  "unv_sn_reference": "又<WH03254><WTH8686>生了<WAH09001><WH03205><WTH8800>{<WAH0853>}該隱的兄弟<WH0251>{<WAH0853>}亞伯<WH01893>。亞伯<WH01893>是<WAH01961><WTH8799>牧<WH07462><WTH8802>羊<WH06629>的；該隱<WH07014>是<WAH01961><WTH8804>種<WH05647><WTH8802>地<WH0127>的。",
+  "confidence": 0.97,
+  "notes": [
+    "LCC adds the explicit subject pronoun 她 (she/Eve) at the start of the verse — no corresponding SN exists for it in UNV (Hebrew pro-drop), left unannotated.",
+    "The two {<WAH0853>} implicit direct object markers (Hebrew את) are retained as implicit since LCC likewise has no explicit Chinese word for them.",
+    "LCC uses a comma (，) after 牧羊的 where UNV uses a semicolon (；) — punctuation preserved exactly as in LCC original.",
+    "All other lexical items align directly: 又/生了/兄弟/亞伯/是/牧/羊/該隱/是/種/地 map one-to-one with UNV."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-24T23:13:32.474505+00:00"
+}

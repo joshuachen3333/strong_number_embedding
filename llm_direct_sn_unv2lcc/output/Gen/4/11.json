@@ -1,0 +1,20 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 4,
+  "sec": 11,
+  "lcc_sn": "地{<WAH0834>}開了<WH06475><WTH8804>{<WAH0853>}口<WH06310>，從你手裏<WAH04480><WH03027>收取<WAH09001><WH03947><WTH8800>了你兄弟<WH0251>{<WAH0853>}的血<WH01818>了；如今<WAH06258>你<WAH0859>，你是受咒詛<WH0779><WTH8803>、須離開<WAH04480>這地<WH0127>的。",
+  "lcc_original": "地開了口，從你手裏收取了你兄弟的血了；如今你，你是受咒詛、須離開這地的。",
+  "unv_sn_reference": "地{<WAH0834>}開了<WH06475><WTH8804>{<WAH0853>}口<WH06310>，從你手裡<WAH04480><WH03027>接受<WAH09001><WH03947><WTH8800>你兄弟<WH0251>{<WAH0853>}的血<WH01818>。現在<WAH06258>你必<WAH0859>從<WAH04480>這地<WH0127>受咒詛<WH0779><WTH8803>。",
+  "confidence": 0.87,
+  "notes": [
+    "Initial 地 left untagged: UNV assigns H127 only to 這地 at clause end; followed same convention in LCC",
+    "LCC 須離開 (must leave) is an interpretive rendering of H4480 (מִן, from) expressing directional separation — tagged accordingly before 這地<WH0127>",
+    "Emphatic doublet 你，你是: H859 (אַתָּה) attached to first 你 only; copula 是 has no Hebrew equivalent",
+    "Aspect particles 了×2, attributive 的, and punctuation 、；have no Hebrew equivalents — left unannotated",
+    "Both {<WAH0834>} and {<WAH0853>} implicit markers preserved: LCC has no explicit words for אֲשֶׁר or אֵת either",
+    "LCC 收取 (receive/take) clearly corresponds to UNV 接受 / H3947 (לָקַח); tags placed after content word before particle 了"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T20:07:02.028644+00:00"
+}

@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 2,
+  "sec": 15,
+  "lcc_sn": "永恆主<WH03068>上帝<WH0430>將<WH03947><WTH8799>{<WAH0853>}那人<WH0120>安置<WH05117><WTH8686>在伊甸<WH05731>園<WAH09002><WH01588>裏，去<WAH09001>耕種<WH05647><WTH8800>，去<WAH09001>看守<WH08104><WTH8800>。",
+  "lcc_original": "永恆主上帝將那人安置在伊甸園裏，去耕種，去看守。",
+  "unv_sn_reference": "耶和華<WH03068>　神<WH0430>將<WH03947><WTH8799>{<WAH0853>}那人<WH0120>安置<WH05117><WTH8686>在伊甸<WH05731>園<WAH09002><WH01588>，使他修理<WAH09001><WH05647><WTH8800>，看守<WAH09001><WH08104><WTH8800>。",
+  "confidence": 0.92,
+  "notes": [
+    "耶和華→永恆主 (LCC's rendering of יהוה/YHWH)",
+    "神→上帝 (LCC consistently uses 上帝 for אֱלֹהִים; UNV uses 神)",
+    "{<WAH0853>} kept with braces — LCC has no explicit word for the direct-object marker אֶת",
+    "使他修理→去耕種: LCC rephrases the ל+infinitive construct; WAH09001 (ל prefix) attached to 去 as the infinitive marker; WH05647+WTH8800 attached to 耕種",
+    "在…園裏: LCC adds 裏 for locative; SN tags applied to 伊甸 and 園 as in UNV, 裏 left unannotated"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T19:13:35.731819+00:00"
+}

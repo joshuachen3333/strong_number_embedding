@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 1,
+  "sec": 18,
+  "lcc_sn": "來管<WAH09001><WH04910><WTH8800>晝<WAH09002><WH03117>夜<WAH09002><WH03915>，分別<WAH09001><WH0914><WTH8687>{<WAH0996>}光<WH0216>{<WAH0996>}暗<WH02822>：上帝<WH0430>看<WH07200><WTH8799>這<WAH03588>很好<WH02896>。",
+  "lcc_original": "來管晝夜，分別光暗：上帝看這很好。",
+  "unv_sn_reference": "管理<WAH09001><WH04910><WTH8800>晝<WAH09002><WH03117>夜<WAH09002><WH03915>，分別<WAH09001><WH0914><WTH8687>{<WAH0996>}明<WH0216>{<WAH0996>}暗<WH02822>。　神<WH0430>看著<WH07200><WTH8799>{<WAH03588>}是好的<WH02896>。",
+  "confidence": 0.92,
+  "notes": [
+    "來 left unannotated — Chinese purposive particle with no independent Hebrew equivalent; lamed prefix (09001) attached to 管 as part of the verb unit",
+    "UNV 明 (bright) → LCC 光 (light): different Chinese words, same Hebrew referent H0216 (אוֹר)",
+    "UNV 神 → LCC 上帝: systematic terminological difference for H0430 (אֱלֹהִים)",
+    "UNV implicit {<WAH03588>} (כִּי/that) → LCC has explicit 這 (this/that), so braces dropped per Rule 3",
+    "很 left unannotated — Chinese degree adverb with no Hebrew counterpart; H2896 (טוֹב) attached to 好 only"
+  ],
+  "model": "opus",
+  "timestamp": "2026-02-24T18:48:00.828541+00:00"
+}

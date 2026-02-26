@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 7,
+  "sec": 7,
+  "lcc_sn": "挪亞<WH05146>就進<WH0935><WTH8799><WAH0413>樓船<WH08392>，也帶<WAH0854>他的兒子<WH01121>、妻子<WH0802>、和兒媳婦<WH01121><WH0802>、一同進去，要躱避<WAH04480><WH06440>洪流<WH03999>的水<WH04325>。",
+  "lcc_original": "挪亞就進樓船，也帶他的兒子、妻子、和兒媳婦、一同進去，要躱避洪流的水。",
+  "unv_sn_reference": "挪亞<WH05146>就同<WAH0854>他的妻<WH0802>和兒子<WH01121>兒婦<WH01121><WH0802>都進<WH0935><WTH8799>入<WAH0413>方舟<WH08392>，躲避<WAH04480><WH06440>洪水<WH04325><WH03999>。",
+  "confidence": 0.82,
+  "notes": [
+    "WAH0413 (אֶל, into) absorbed onto 進 — LCC has no separate directional particle before 樓船; 進 in LCC already carries the full 'enter into' sense",
+    "WAH0854 (אִתּוֹ, with him) attached to 帶 as the primary expression of the comitative; 一同進去 is LCC's stylistic expansion clause with no direct Hebrew counterpart and receives no additional SN",
+    "洪流<WH03999>的水<WH04325> reverses UNV tag order to match LCC's genitive structure: 洪流 = flood/mabbul (H3999), 水 = waters (H4325)",
+    "兒子<WH01121>、妻子<WH0802> word order is reversed from UNV (妻 before 兒子) but SNs follow LCC's own word order"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T22:04:18.692831+00:00"
+}

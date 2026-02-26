@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 1,
+  "sec": 27,
+  "lcc_sn": "上帝<WH0430>就按自己的形像<WAH09002><WH06754>創造<WH01254><WTH8799>{<WAH0853>}人<WH0120>：按上帝<WH0430>的形像<WAH09002><WH06754>創造<WH01254><WTH8804>他<WAH0853>：創造<WH01254><WTH8804>他們<WAH0853>有男<WH02145>有女<WH05347>。",
+  "lcc_original": "上帝就按自己的形像創造人：按上帝的形像創造他：創造他們有男有女。",
+  "unv_sn_reference": "　神<WH0430>就照著自己的形像<WAH09002><WH06754>造<WH01254><WTH8799>{<WAH0853>}人<WH0120>，乃是照著他<WH0430>的形像<WAH09002><WH06754>造<WH01254><WTH8804>{<WAH0853>}男<WH02145>造<WH01254><WTH8804>{<WAH0853>}女<WH05347>。",
+  "confidence": 0.92,
+  "notes": [
+    "UNV '他<WH0430>' in clause 2 refers to God (אֱלֹהִים) — LCC makes this explicit as '上帝<WH0430>'",
+    "UNV clause 2 ends with implicit '{<WAH0853>}' (Hebrew אֹתוֹ, 'him') — LCC makes the pronoun explicit as '他'; braces dropped per rule 3, giving '他<WAH0853>'",
+    "UNV clause 3 doubles '造{<WAH0853>}男...造{<WAH0853>}女' as a paraphrase; LCC consolidates into a single '創造他們有男有女' matching the Hebrew בָּרָא אֹתָם more closely — used one '創造<WH01254><WTH8804>' and resolved both implicit object markers into '他們<WAH0853>'",
+    "LCC's '有' (×2) is a Chinese existential construction with no Hebrew equivalent (זָכָר וּנְקֵבָה are simply juxtaposed in Hebrew) — left unannotated",
+    "Clause 1 '{<WAH0853>}' kept implicit: Hebrew אֶת is the object marker before הָאָדָם with no Chinese equivalent in either UNV or LCC"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T13:44:53.358190+00:00"
+}

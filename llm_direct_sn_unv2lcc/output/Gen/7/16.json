@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 7,
+  "sec": 16,
+  "lcc_sn": "那些進去<WH0935><WTH8802>的、是凡<WAH04480><WAH03605>有血肉<WH01320>、有公<WH02145>有母<WH05347>進去<WH0935><WTH8804>的，正如<WAH09003><WAH0834>上帝<WH0430>所吩咐<WH06680><WTH8765>挪亞{<WAH0853>}的。永恆主<WH03068>就把他們關在<WH05462>船裏頭<WAH01157>。",
+  "lcc_original": "那些進去的、是凡有血肉、有公有母進去的，正如上帝所吩咐挪亞的。永恆主就把他們關在船裏頭。",
+  "unv_sn_reference": "凡<WAH04480><WAH03605>有血肉<WH01320>進入<WH0935><WTH8802>方舟的，都是{<WH0935>}{<WTH8804>}有公<WH02145>有母<WH05347>，正如<WAH09003><WAH0834>　神<WH0430>所吩咐<WH06680><WTH8765>挪亞{<WAH0853>}的。耶和華<WH03068>就把他關在<WH05462>方舟裡頭<WAH01157>。",
+  "confidence": 0.88,
+  "notes": [
+    "LCC restructures the opening clause: UNV leads with 凡<WAH04480><WAH03605>有血肉進入方舟的 (all flesh that entered the ark), while LCC opens with 那些進去的、是凡有血肉 (those who entered, being all flesh). SNs are distributed accordingly: <WH0935><WTH8802> goes on the first 進去 (那些進去的), and <WAH04480><WAH03605> goes on 凡 embedded in 是凡.",
+    "UNV's implicit {<WH0935>}{<WTH8804>} (implicit second occurrence of 'entered') is made explicit in LCC as the second 進去 (有公有母進去的). Per Rule 3, braces dropped and SN attached directly: 進去<WH0935><WTH8804>.",
+    "{<WAH0853>} (Hebrew direct object marker אֵת) kept in braces: LCC also has no explicit Chinese word for the accusative particle, so the implicit marker notation is preserved on 挪亞.",
+    "LCC uses 上帝 (vs UNV 神) for H0430, 永恆主 (vs UNV 耶和華) for H03068, and 船 (vs UNV 方舟) — SNs assigned to corresponding LCC terms without issue.",
+    "<WAH01157> (H01157 בַּעַד, 'within/behind') attaches to 裏頭 in LCC matching UNV's 裡頭<WAH01157> pattern; 船 is left unannotated as it is the LCC rendering of 方舟 which carried no SN in UNV."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T22:26:26.739679+00:00"
+}

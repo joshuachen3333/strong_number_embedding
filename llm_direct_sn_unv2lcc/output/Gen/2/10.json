@@ -1,0 +1,18 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 2,
+  "sec": 10,
+  "lcc_sn": "有河<WH05104>從伊甸<WAH04480><WH05731>流出來<WH03318><WTH8802>、灌漑<WAH09001><WH08248><WTH8687>{<WAH0853>}那園子<WH01588>，從那裏<WAH04480><WAH08033>分支<WH06504><WTH8735>、成了<WAH01961><WTH8804>四<WAH09001><WH0702>道<WH07218>。",
+  "lcc_original": "有河從伊甸流出來、灌漑那園子，從那裏分支、成了四道。",
+  "unv_sn_reference": "有河<WH05104>從伊甸<WAH04480><WH05731>流出來<WH03318><WTH8802>，滋潤<WAH09001><WH08248><WTH8687>{<WAH0853>}那園子<WH01588>，從那裡<WAH04480><WAH08033>分<WH06504><WTH8735>為<WAH01961><WTH8804>四<WAH09001><WH0702>道<WH07218>：",
+  "confidence": 0.93,
+  "notes": [
+    "UNV 滋潤 → LCC 灌漑: both translate H08248 (שׁקה, to water/irrigate); all three tags (<WAH09001><WH08248><WTH8687>) transferred to 灌漑",
+    "LCC 分支 covers UNV 分 (H06504=פָּרַד, to divide/separate); 支 is LCC's added nuance for 'branching' — no separate SN, treated as one translation unit",
+    "UNV 為 → LCC 成了: both translate H01961 (הָיָה, to become); Chinese aspect particle 了 left unannotated per rule 5",
+    "{<WAH0853>} (implicit direct object marker) retained as braces since LCC has no explicit equivalent word"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T19:09:46.550183+00:00"
+}

@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 7,
+  "sec": 4,
+  "lcc_sn": "因爲<WAH03588>再過<WH05750>七<WH07651>天<WAH09001><WH03117>，我要<WAH0595>下雨<WH04305><WTH8688>在<WAH05921>地上<WH0776>，四十<WH0705>晝<WH03117>又四十<WH0705>夜<WH03915>，將<WAH0853>我所<WAH0834>造的<WH06213><WTH8804>衆生<WH03605><WH03351>都從<WAH04480><WH05921>地<WH0127>上<WH06440>擦滅<WH04229><WTH8804>。』",
+  "lcc_original": "因爲再過七天，我要下雨在地上，四十晝又四十夜，將我所造的衆生都從地上擦滅。』",
+  "unv_sn_reference": "因為<WAH03588>再過<WH05750>七<WH07651>天<WAH09001><WH03117>，我要<WAH0595>降雨<WH04305><WTH8688>在<WAH05921>地上<WH0776>四十<WH0705>晝<WH03117>{<WH0705>}夜<WH03915>，把<WAH0853>我所<WAH0834>造的<WH06213><WTH8804>各種<WH03605>活物<WH03351>都從<WAH04480><WH05921>地<WH0127>上<WH06440>除滅<WH04229><WTH8804>。」",
+  "confidence": 0.93,
+  "notes": [
+    "LCC 下雨 corresponds to UNV 降雨 (WH04305 = מָטָר, rain); same verb, different compound in Chinese.",
+    "UNV has implicit {<WH0705>} for the second '四十' (forty) before 夜, because UNV writes '四十晝夜' without repeating 四十. LCC explicitly writes '四十晝又四十夜', so Rule 3 applies: drop braces and attach <WH0705> to the explicit 四十 before 夜.",
+    "LCC 衆生 ('all living beings') covers both UNV 各種<WH03605> (כֹּל = all) and 活物<WH03351> (יְקוּם = living substance); both SNs co-attached to 衆生.",
+    "LCC 將 corresponds to UNV 把 — both serve as object-marker particles translating אֵת (WAH0853).",
+    "LCC 擦滅 corresponds to UNV 除滅 (WH04229 = מָחָה, to wipe/blot out); WTH8804 (Qal perfect) attaches to 擦滅 as in UNV."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T22:00:38.065558+00:00"
+}

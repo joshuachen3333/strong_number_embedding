@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 6,
+  "sec": 2,
+  "lcc_sn": "神<WH0430>子<WH01121>【1】們看見<WH07200><WTH8799>{<WAH0853>}人類<WH0120>的女子<WH01323>{<WAH03588>}{<WH02007>}俊美<WH02896>，就隨意{<WAH04480>}{<WAH03605>}{<WAH0834>}揀選<WH0977><WTH8804>娶<WH03947><WTH8799>{<WAH09001>}爲妻子<WH0802>。",
+  "lcc_original": "神子【1】們看見人類的女子俊美，就隨意揀選娶爲妻子。",
+  "unv_sn_reference": "　神<WH0430>的兒子們<WH01121>看見<WH07200><WTH8799>{<WAH0853>}人<WH0120>的女子<WH01323>{<WAH03588>}{<WH02007>}美貌<WH02896>，就隨意{<WAH04480>}{<WAH03605>}{<WAH0834>}挑選<WH0977><WTH8804>，娶來<WH03947><WTH8799>{<WAH09001>}為妻<WH0802>。",
+  "confidence": 0.9,
+  "notes": [
+    "UNV '神...的兒子們' spans two morphemes with a possessive 的; LCC writes as compound '神子' — split as 神<WH0430>子<WH01121> to preserve one-to-one SN alignment",
+    "LCC '人類' expands UNV's bare '人' (WH0120) — WH0120 attached to '人類' as a single phrase representing the same Hebrew אָדָם",
+    "LCC '俊美' corresponds to UNV '美貌' (WH02896 טֹבֹת — good/fair)",
+    "LCC '爲妻子' — '子' is a common Classical Chinese post-noun suffix; WH0802 (אִשָּׁה, wife) attached to '妻子' as the complete phrase",
+    "Implicit markers {<WAH03588>}{<WH02007>} (כִּי הֵנָּה) remain implicit — LCC absorbs the copular clause into the bare adjective '俊美' with no explicit pronoun or conjunction"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T21:11:10.044291+00:00"
+}

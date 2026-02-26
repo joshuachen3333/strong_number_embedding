@@ -1,0 +1,19 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 1,
+  "sec": 22,
+  "lcc_sn": "上帝<WH0430>就給它們{<WAH0853>}祝福<WH01288><WTH8762>說<WAH09001><WH0559><WTH8800>：『要繁殖<WH06509><WTH8798>增多<WH07235><WTH8798>，充滿<WH04390><WTH8798>{<WAH0853>}海中<WAH09002><WH03220>的水<WH04325>；飛鳥<WH05775>也要增多<WH07235><WTH8799>在地上<WAH09002><WH0776>。』",
+  "lcc_original": "上帝就給它們祝福說：『要繁殖增多，充滿海中的水；飛鳥也要增多在地上。』",
+  "unv_sn_reference": "　神<WH0430>就賜福<WH01288><WTH8762>給這一切{<WAH0853>}，說<WAH09001><WH0559><WTH8800>：「滋生<WH06509><WTH8798>繁多<WH07235><WTH8798>，充滿<WH04390><WTH8798>{<WAH0853>}海中<WAH09002><WH03220>的水<WH04325>；雀鳥<WH05775>也要多生<WH07235><WTH8799>在地上<WAH09002><WH0776>。」",
+  "confidence": 0.93,
+  "notes": [
+    "神(UNV)→上帝(LCC): systematic UNV/LCC difference for H430 (אֱלֹהִים)",
+    "就賜福給(UNV)→就給祝福(LCC): LCC reorders the verbal construction; H1288+TH8762 attach to 祝福 which carries the bless semantics",
+    "{<WAH0853>}(accusative marker H853) kept implicit after 它們: 它們 translates the pronoun 'them' (=UNV 這一切) but H853 itself is a grammatical direct-object particle with no explicit LCC word",
+    "滋生(UNV)→繁殖(LCC) for H6509 (פָּרָה, be fruitful); 繁多/多生(UNV)→增多(LCC) for H7235 (רָבָה, multiply) — both are synonym substitutions with clear one-to-one correspondence",
+    "雀鳥(UNV)→飛鳥(LCC) for H5775 (עוֹף, flying creature/bird): different Chinese synonyms, same referent"
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-24T18:56:28.427749+00:00"
+}

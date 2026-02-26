@@ -1,0 +1,17 @@
+{
+  "book": "Gen",
+  "book_chi": "創",
+  "chap": 7,
+  "sec": 20,
+  "lcc_sn": "水勢<WH04325>比山漲高<WH01396><WTH8804><WAH04480><WAH09001><WH04605>二十二尺半<WH02568><WH06240><WH0520>，山嶺<WH02022>都被淹沒了<WH03680><WTH8792>。",
+  "lcc_original": "水勢比山漲高二十二尺半，山嶺都被淹沒了。",
+  "unv_sn_reference": "水勢<WH01396><WTH8804><WH04325>比山高過<WAH04480><WAH09001><WH04605>十五<WH02568><WH06240>肘<WH0520>，山嶺<WH02022>都淹沒了<WH03680><WTH8792>。",
+  "confidence": 0.82,
+  "notes": [
+    "UNV clusters verb (WH01396+WTH8804) and noun (WH04325) together on 水勢; LCC grammatically separates them so WH04325 attaches to 水勢 (noun) and WH01396+WTH8804 attach to 漲高 (verb).",
+    "מִלְמַעְלָה (WAH04480+WAH09001+WH04605 = upward/above) is embedded in the 比山漲高 phrase; all three attached to 漲高 as the verb phrase captures the upward direction.",
+    "LCC converts 十五肘 (15 cubits, WH02568+WH06240+WH0520) to 二十二尺半 (22.5 chi); per rule 6 all three SNs attach to the equivalent converted phrase as a unit."
+  ],
+  "model": "sonnet",
+  "timestamp": "2026-02-25T22:31:26.163892+00:00"
+}
