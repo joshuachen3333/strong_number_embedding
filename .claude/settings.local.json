@@ -43,7 +43,11 @@
       "Bash(npm update:*)",
       "Bash(wc:*)",
       "Bash(done)",
-      "mcp__chrome-devtools__fill"
+      "mcp__chrome-devtools__fill",
+      "mcp__chrome-devtools__select_page",
+      "Bash(kill 88578:*)",
+      "mcp__chrome-devtools__get_console_message",
+      "mcp__chrome-devtools__list_network_requests"
     ],
     "deny": []
   }

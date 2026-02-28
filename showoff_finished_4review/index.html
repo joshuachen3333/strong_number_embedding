@@ -22,6 +22,51 @@ header h1 { font-size: 1.3em; font-weight: 600; }
 }
 #lang-select option { color: #333; background: #fff; }
 
+/* Auth controls in header */
+#auth-area { display: flex; align-items: center; gap: 8px; }
+#auth-btn {
+  background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 4px; padding: 4px 10px; font-size: 0.82em; cursor: pointer;
+}
+#auth-btn:hover { background: rgba(255,255,255,0.3); }
+#reviewer-badge {
+  font-size: 0.82em; background: rgba(76,175,80,0.3); border-radius: 4px;
+  padding: 3px 8px; display: none;
+}
+#logout-btn {
+  background: none; border: none; color: rgba(255,255,255,0.7); font-size: 0.78em;
+  cursor: pointer; text-decoration: underline;
+}
+
+/* Auth modal */
+.modal-overlay {
+  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: #fff; border-radius: 8px; padding: 28px; max-width: 400px; width: 90%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.modal h2 { font-size: 1.1em; margin-bottom: 16px; color: #1a237e; }
+.modal label { display: block; font-size: 0.85em; color: #555; margin-bottom: 4px; }
+.modal input {
+  width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px;
+  font-size: 0.95em; margin-bottom: 12px;
+}
+.modal button {
+  padding: 8px 18px; border: none; border-radius: 4px; cursor: pointer;
+  font-size: 0.9em; font-weight: 600;
+}
+.modal .btn-primary { background: #1a237e; color: #fff; }
+.modal .btn-primary:hover { background: #283593; }
+.modal .btn-primary:disabled { background: #9e9e9e; cursor: not-allowed; }
+.modal .btn-cancel { background: #eee; color: #555; margin-left: 8px; }
+.modal .auth-msg { font-size: 0.85em; margin-top: 8px; padding: 6px; border-radius: 4px; }
+.modal .auth-msg.info { background: #e3f2fd; color: #1565c0; }
+.modal .auth-msg.error { background: #ffcdd2; color: #c62828; }
+.modal .auth-msg.success { background: #c8e6c9; color: #2e7d32; }
+
 .controls {
   background: #fff; padding: 10px 24px; border-bottom: 1px solid #ddd;
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
@@ -33,7 +78,7 @@ header h1 { font-size: 1.3em; font-weight: 600; }
 }
 
 .panels {
-  display: flex; height: calc(100vh - 160px); gap: 0;
+  display: flex; height: calc(100vh - 200px); gap: 0;
 }
 .panel {
   flex: 1; display: flex; flex-direction: column; border-right: 1px solid #ddd;
@@ -79,16 +124,6 @@ header h1 { font-size: 1.3em; font-weight: 600; }
 .confidence.medium { background: #fff9c4; color: #f57f17; }
 .confidence.low { background: #ffcdd2; color: #c62828; }
 
-.notes-panel {
-  background: #fafafa; border-top: 1px solid #ddd; padding: 10px 24px;
-  font-size: 0.85em; max-height: 140px; overflow-y: auto; flex-shrink: 0;
-}
-.notes-panel summary {
-  cursor: pointer; font-weight: 600; color: #555; user-select: none;
-}
-.notes-panel .note { margin: 4px 0; padding: 3px 0; color: #666; border-bottom: 1px solid #eee; }
-.notes-panel .note:last-child { border-bottom: none; }
-
 .model-tag {
   font-size: 0.7em; padding: 1px 5px; border-radius: 4px;
   background: #e3f2fd; color: #1565c0; margin-left: 4px; vertical-align: middle;
@@ -102,14 +137,102 @@ header h1 { font-size: 1.3em; font-weight: 600; }
   display: block; font-size: 0.82em; color: #888; margin-top: 2px;
   font-style: italic;
 }
+
+/* Review badge on verses */
+.review-badge {
+  display: inline-block; font-size: 0.68em; padding: 1px 5px;
+  border-radius: 8px; margin-left: 4px; font-weight: 600;
+  vertical-align: middle; background: #e3f2fd; color: #1565c0;
+}
+.review-badge.has-approval { background: #c8e6c9; color: #2e7d32; }
+.review-badge.has-needs-work { background: #ffcdd2; color: #c62828; }
+
+/* Notes + reviews bottom panel */
+.notes-panel {
+  background: #fafafa; border-top: 1px solid #ddd; padding: 10px 24px;
+  font-size: 0.85em; max-height: 40vh; overflow-y: auto; flex-shrink: 0;
+}
+.notes-panel summary {
+  cursor: pointer; font-weight: 600; color: #555; user-select: none;
+}
+.notes-panel .note { margin: 4px 0; padding: 3px 0; color: #666; border-bottom: 1px solid #eee; }
+.notes-panel .note:last-child { border-bottom: none; }
+
+/* Reviews section inside notes panel */
+.reviews-section { margin-top: 10px; padding-top: 8px; border-top: 1px solid #ddd; }
+.reviews-section h4 { font-size: 0.92em; color: #1565c0; margin: 0 0 6px; }
+
+.review-entry {
+  margin: 5px 0; padding: 6px 8px; background: #f8f9fa;
+  border-radius: 4px; border-left: 3px solid #90a4ae;
+}
+.review-entry.type-approval { border-left-color: #4caf50; }
+.review-entry.type-needs_work { border-left-color: #f44336; }
+.review-entry.type-suggestion { border-left-color: #ff9800; }
+.review-entry.type-comment { border-left-color: #2196f3; }
+
+.review-meta { font-size: 0.8em; color: #888; margin-bottom: 2px; }
+.review-type-badge {
+  display: inline-block; font-size: 0.75em; padding: 0 4px;
+  border-radius: 3px; font-weight: 600; margin-right: 4px;
+}
+.review-type-badge.approval { background: #c8e6c9; color: #2e7d32; }
+.review-type-badge.needs_work { background: #ffcdd2; color: #c62828; }
+.review-type-badge.suggestion { background: #fff3e0; color: #e65100; }
+.review-type-badge.comment { background: #e3f2fd; color: #1565c0; }
+
+.review-text { font-size: 0.88em; color: #444; margin-top: 2px; }
+.review-entry.own { cursor: pointer; }
+.review-entry.own:hover { background: #e8eaf6; }
+.review-entry.editing { outline: 2px solid #1a237e; background: #e8eaf6; }
+.review-actions { float: right; }
+.review-actions button {
+  background: none; border: none; cursor: pointer; font-size: 0.78em;
+  color: #999; padding: 0 3px;
+}
+.review-actions button:hover { color: #c62828; }
+.review-bar .cancel-btn {
+  padding: 5px 10px; background: #eee; color: #555; border: none;
+  border-radius: 4px; cursor: pointer; font-size: 0.85em;
+}
+
+/* Review form bar — below controls, only when authenticated */
+.review-bar {
+  background: #e8eaf6; padding: 8px 24px; border-bottom: 1px solid #c5cae9;
+  display: none; flex-wrap: wrap; gap: 8px; align-items: center;
+}
+.review-bar.active { display: flex; }
+.review-bar label { font-size: 0.82em; color: #333; display: flex; align-items: center; gap: 4px; }
+.review-bar select, .review-bar textarea {
+  padding: 4px 6px; border: 1px solid #bbb; border-radius: 3px; font-size: 0.85em;
+}
+.review-bar textarea { min-height: 32px; resize: vertical; flex: 1; min-width: 200px; }
+.review-bar .verse-ref {
+  font-weight: 600; color: #1a237e; font-size: 0.85em; min-width: 80px;
+}
+.review-bar button {
+  padding: 5px 14px; background: #1a237e; color: #fff; border: none;
+  border-radius: 4px; cursor: pointer; font-size: 0.85em; font-weight: 600;
+}
+.review-bar button:hover { background: #283593; }
+.review-bar button:disabled { background: #9e9e9e; cursor: not-allowed; }
+#review-type option[value="comment"]    { background: #e3f2fd; color: #1565c0; }
+#review-type option[value="suggestion"] { background: #fff3e0; color: #e65100; }
+#review-type option[value="approval"]   { background: #c8e6c9; color: #2e7d32; }
+#review-type option[value="needs_work"] { background: #ffcdd2; color: #c62828; }
 </style>
 </head>
 <body>
 
 <header>
   <h1 id="title"></h1>
-  <div style="display:flex;align-items:center;gap:12px">
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
     <div id="stats"></div>
+    <div id="auth-area">
+      <span id="reviewer-badge"></span>
+      <button id="auth-btn" onclick="showAuthModal()"></button>
+      <button id="logout-btn" onclick="logout()" style="display:none"></button>
+    </div>
     <select id="lang-select">
       <option value="zh-Hant">正體中文</option>
       <option value="en">English</option>
@@ -118,9 +241,49 @@ header h1 { font-size: 1.3em; font-weight: 600; }
   </div>
 </header>
 
+<!-- Auth Modal -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal">
+    <h2 id="auth-modal-title"></h2>
+    <!-- Step 1: Email + Name -->
+    <div id="auth-step-email">
+      <label id="auth-label-name"></label>
+      <input type="text" id="auth-name" maxlength="50">
+      <label id="auth-label-email"></label>
+      <input type="email" id="auth-email">
+      <button class="btn-primary" id="auth-request-btn" onclick="requestAccess()"></button>
+      <button class="btn-cancel" onclick="hideAuthModal()"></button>
+    </div>
+    <!-- Step 2: OTP -->
+    <div id="auth-step-otp" style="display:none">
+      <label id="auth-label-otp"></label>
+      <input type="text" id="auth-otp" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
+      <button class="btn-primary" id="auth-verify-btn" onclick="verifyOTP()"></button>
+      <button class="btn-cancel" onclick="hideAuthModal()"></button>
+    </div>
+    <div id="auth-msg" class="auth-msg" style="display:none"></div>
+  </div>
+</div>
+
 <div class="controls">
   <label><span data-i18n="book"></span> <select id="book-select"><option>Loading...</option></select></label>
   <label><span data-i18n="chapter"></span> <select id="chap-select"><option>—</option></select></label>
+</div>
+
+<div class="review-bar" id="review-bar">
+  <span class="verse-ref" id="review-verse-ref">—</span>
+  <label>
+    <span data-i18n="reviewType"></span>
+    <select id="review-type">
+      <option value="comment"></option>
+      <option value="suggestion"></option>
+      <option value="approval"></option>
+      <option value="needs_work"></option>
+    </select>
+  </label>
+  <textarea id="review-text" maxlength="2000" rows="1" placeholder=""></textarea>
+  <button id="review-submit-btn" onclick="submitReview()"></button>
+  <button class="cancel-btn" id="review-cancel-btn" onclick="cancelEditReview()" style="display:none"></button>
 </div>
 
 <div class="panels">
@@ -141,6 +304,10 @@ header h1 { font-size: 1.3em; font-weight: 600; }
 <details class="notes-panel" id="notes-panel">
   <summary id="notes-summary"></summary>
   <div id="notes-content"></div>
+  <div class="reviews-section" id="reviews-section">
+    <h4 id="reviews-header"></h4>
+    <div id="reviews-list"></div>
+  </div>
 </details>
 
 <script>
@@ -149,6 +316,13 @@ const BOOKS_URL = '../shared/data/books.json';
 
 // ngrok free tier intercepts fetch() with an interstitial page unless this header is set
 const FETCH_OPTS = { headers: { 'ngrok-skip-browser-warning': '1' } };
+
+function authFetchOpts(extra = {}) {
+  const h = { 'ngrok-skip-browser-warning': '1' };
+  if (sessionToken) h['Authorization'] = `Bearer ${sessionToken}`;
+  if (extra.contentType) h['Content-Type'] = extra.contentType;
+  return { headers: h };
+}
 
 // ── i18n ─────────────────────────────────────────────────────────────────
 
@@ -161,7 +335,7 @@ const I18N = {
     rightHeader: '呂振中譯本 + Strong\'s Numbers（AI 產出）',
     emptyState: '請選擇書卷與章數',
     loading: '載入中…',
-    notesSummary: 'AI 註記 — 點擊經節查看推理過程',
+    notesSummary: 'AI 註記與審閱 — 點擊經節查看',
     noVerse: '尚未選擇經節',
     noNotes: '此節無註記',
     stats: (books, verses, high, low) =>
@@ -171,6 +345,41 @@ const I18N = {
     chapHeadingLeft: (label, ch) => `${label} ${ch} — 和合本+SN`,
     chapHeadingRight: (label, ch) => `${label} ${ch} — 呂振中+SN`,
     errorLoad: '載入失敗',
+    // Auth
+    enterReviewMode: '進入審閱模式',
+    authTitle: '審閱者驗證',
+    labelName: '姓名',
+    labelEmail: 'Email',
+    requestAccess: '取得驗證碼',
+    labelOTP: '驗證碼（6 碼）',
+    verify: '驗證',
+    cancel: '取消',
+    otpSent: '驗證碼已寄出，請查收 Email',
+    pendingApproval: '已送出申請，管理員核准後將自動寄出驗證碼',
+    invalidOTP: '驗證碼錯誤或已過期',
+    authSuccess: '驗證成功！',
+    logout: '登出',
+    // Reviews
+    reviewsHeader: '審閱意見',
+    reviewType: '類型',
+    reviewText: '內容',
+    submit: '送出',
+    typeComment: '意見',
+    typeSuggestion: '建議修改',
+    typeApproval: '通過',
+    typeNeedsWork: '需更正',
+    tipComment: '一般性回饋或討論，不涉及具體修改',
+    tipSuggestion: '建議某個 Strong\'s Number 應替換或調整',
+    tipApproval: '此節 AI 轉移結果正確，無需修改',
+    tipNeedsWork: '此節有錯誤，需要更正（請在內容中說明）',
+    noReviews: '此節尚無審閱',
+    reviewCount: (n) => `${n} 則審閱`,
+    reviewPlaceholder: '點擊經節後輸入審閱意見…',
+    update: '更新',
+    cancelEdit: '取消',
+    deleteReview: '刪除',
+    confirmDelete: '確定刪除此審閱？',
+    editHint: '點擊自己的審閱可編輯',
   },
   'en': {
     title: 'LCC + Strong\'s Numbers — AI Transfer Review',
@@ -180,7 +389,7 @@ const I18N = {
     rightHeader: 'LCC + Strong\'s Numbers (AI Output)',
     emptyState: 'Select a book and chapter',
     loading: 'Loading...',
-    notesSummary: 'AI Notes — click a verse to see reasoning',
+    notesSummary: 'AI Notes & Reviews — click a verse',
     noVerse: 'No verse selected',
     noNotes: 'No notes for this verse',
     stats: (books, verses, high, low) =>
@@ -190,6 +399,39 @@ const I18N = {
     chapHeadingLeft: (label, ch) => `${label} ${ch} &mdash; UNV+SN`,
     chapHeadingRight: (label, ch) => `${label} ${ch} &mdash; LCC+SN`,
     errorLoad: 'Error loading',
+    enterReviewMode: 'Enter Review Mode',
+    authTitle: 'Reviewer Authentication',
+    labelName: 'Name',
+    labelEmail: 'Email',
+    requestAccess: 'Get OTP Code',
+    labelOTP: 'Verification Code (6 digits)',
+    verify: 'Verify',
+    cancel: 'Cancel',
+    otpSent: 'OTP sent to your email',
+    pendingApproval: 'Access request sent. You will receive an OTP once approved.',
+    invalidOTP: 'Invalid or expired OTP',
+    authSuccess: 'Authenticated!',
+    logout: 'Logout',
+    reviewsHeader: 'Reviews',
+    reviewType: 'Type',
+    reviewText: 'Content',
+    submit: 'Submit',
+    typeComment: 'Comment',
+    typeSuggestion: 'Suggestion',
+    typeApproval: 'Approved',
+    typeNeedsWork: 'Needs Correction',
+    tipComment: 'General feedback or discussion, no specific change proposed',
+    tipSuggestion: 'Suggest a specific Strong\'s Number should be replaced or adjusted',
+    tipApproval: 'This verse\'s AI transfer is correct, no changes needed',
+    tipNeedsWork: 'This verse has errors that need correction (please explain in the text)',
+    noReviews: 'No reviews for this verse',
+    reviewCount: (n) => `${n} reviews`,
+    reviewPlaceholder: 'Click a verse, then type your review...',
+    update: 'Update',
+    cancelEdit: 'Cancel',
+    deleteReview: 'Delete',
+    confirmDelete: 'Delete this review?',
+    editHint: 'Click your own review to edit',
   },
   'zh-Hans': {
     title: '吕振中译本 + Strong\'s Numbers — AI 转移成果审阅',
@@ -199,7 +441,7 @@ const I18N = {
     rightHeader: '吕振中译本 + Strong\'s Numbers（AI 产出）',
     emptyState: '请选择书卷与章数',
     loading: '加载中…',
-    notesSummary: 'AI 注记 — 点击经节查看推理过程',
+    notesSummary: 'AI 注记与审阅 — 点击经节查看',
     noVerse: '尚未选择经节',
     noNotes: '此节无注记',
     stats: (books, verses, high, low) =>
@@ -209,6 +451,39 @@ const I18N = {
     chapHeadingLeft: (label, ch) => `${label} ${ch} — 和合本+SN`,
     chapHeadingRight: (label, ch) => `${label} ${ch} — 吕振中+SN`,
     errorLoad: '加载失败',
+    enterReviewMode: '进入审阅模式',
+    authTitle: '审阅者验证',
+    labelName: '姓名',
+    labelEmail: 'Email',
+    requestAccess: '取得验证码',
+    labelOTP: '验证码（6 码）',
+    verify: '验证',
+    cancel: '取消',
+    otpSent: '验证码已寄出，请查收 Email',
+    pendingApproval: '已送出申请，管理员核准后将自动寄出验证码',
+    invalidOTP: '验证码错误或已过期',
+    authSuccess: '验证成功！',
+    logout: '登出',
+    reviewsHeader: '审阅意见',
+    reviewType: '类型',
+    reviewText: '内容',
+    submit: '送出',
+    typeComment: '意见',
+    typeSuggestion: '建议修改',
+    typeApproval: '通过',
+    typeNeedsWork: '需更正',
+    tipComment: '一般性回馈或讨论，不涉及具体修改',
+    tipSuggestion: '建议某个 Strong\'s Number 应替换或调整',
+    tipApproval: '此节 AI 转移结果正确，无需修改',
+    tipNeedsWork: '此节有错误，需要更正（请在内容中说明）',
+    noReviews: '此节尚无审阅',
+    reviewCount: (n) => `${n} 则审阅`,
+    reviewPlaceholder: '点击经节后输入审阅意见…',
+    update: '更新',
+    cancelEdit: '取消',
+    deleteReview: '删除',
+    confirmDelete: '确定删除此审阅？',
+    editHint: '点击自己的审阅可编辑',
   }
 };
 
@@ -218,14 +493,20 @@ function t(key) { return I18N[lang][key]; }
 // ── State ────────────────────────────────────────────────────────────────
 
 let manifest = null;
-let bundle = null;   // bundled verse data
+let bundle = null;
 let booksData = [];
-let bookMap = {};    // eng -> {chi, chiLong, engLong}
-let verseCache = {}; // "Book/Chap" -> [verseData, ...]
-let currentData = null;  // current chapter verse data (for re-render)
+let bookMap = {};
+let currentData = null;
 let currentBook = null;
 let currentChap = null;
 let selectedVerseSec = null;
+
+// Auth state
+let sessionToken = localStorage.getItem('showoff_session_token') || null;
+let currentReviewer = null; // {email, name}
+let reviewCache = {};       // "Book/Chap" -> [review, ...]
+let pendingAuthEmail = null;
+let editingReviewId = null;  // review ID being edited
 
 const bookSelect = document.getElementById('book-select');
 const chapSelect = document.getElementById('chap-select');
@@ -259,6 +540,12 @@ async function init() {
     leftContent.innerHTML = `<div class="empty-state">${t('errorLoad')}<br><code>cd llm_direct_sn_unv2lcc && python generate_manifest.py</code></div>`;
     rightContent.innerHTML = leftContent.innerHTML;
   }
+
+  // Check existing session
+  if (sessionToken) {
+    await checkAuthStatus();
+  }
+  updateAuthUI();
 }
 
 function onLangChange() {
@@ -266,20 +553,18 @@ function onLangChange() {
   localStorage.setItem('showoff_lang', lang);
   document.documentElement.lang = lang === 'zh-Hans' ? 'zh-Hans' : lang === 'zh-Hant' ? 'zh-Hant' : 'en';
   applyI18n();
-  // Re-populate dropdowns with new language
   if (manifest) {
     const savedBook = bookSelect.value;
     const savedChap = chapSelect.value;
     populateBookSelect(savedBook);
-    // Restore chapter selection
     if (savedChap && chapSelect.querySelector(`option[value="${savedChap}"]`)) {
       chapSelect.value = savedChap;
     }
     showStats();
   }
-  // Re-render current verses if loaded
   if (currentData) {
     renderVerses(currentData, currentBook, currentChap);
+    if (currentBook && currentChap) updateVerseBadges();
   }
 }
 
@@ -288,25 +573,69 @@ function applyI18n() {
   document.getElementById('left-header').textContent = t('leftHeader');
   document.getElementById('right-header').textContent = t('rightHeader');
   document.getElementById('notes-summary').textContent = t('notesSummary');
+  document.getElementById('reviews-header').textContent = t('reviewsHeader');
+  document.getElementById('review-submit-btn').textContent = t('submit');
+  document.getElementById('auth-btn').textContent = t('enterReviewMode');
+  document.getElementById('logout-btn').textContent = t('logout');
+  document.getElementById('auth-modal-title').textContent = t('authTitle');
+  document.getElementById('auth-label-name').textContent = t('labelName');
+  document.getElementById('auth-label-email').textContent = t('labelEmail');
+  document.getElementById('auth-request-btn').textContent = t('requestAccess');
+  document.getElementById('auth-label-otp').textContent = t('labelOTP');
+  document.getElementById('auth-verify-btn').textContent = t('verify');
+  // Cancel buttons
+  document.querySelectorAll('.btn-cancel').forEach(b => b.textContent = t('cancel'));
+  // data-i18n elements
   document.querySelectorAll('[data-i18n]').forEach(el => {
     el.textContent = t(el.dataset.i18n);
   });
-  // Reset notes if no verse selected
+  // Review bar type options + tooltips + placeholder
+  const typeSelect = document.getElementById('review-type');
+  if (typeSelect) {
+    const opts = [
+      { text: t('typeComment'),    tip: t('tipComment') },
+      { text: t('typeSuggestion'), tip: t('tipSuggestion') },
+      { text: t('typeApproval'),   tip: t('tipApproval') },
+      { text: t('typeNeedsWork'),  tip: t('tipNeedsWork') },
+    ];
+    for (let i = 0; i < opts.length; i++) {
+      typeSelect.options[i].textContent = opts[i].text;
+      typeSelect.options[i].title = opts[i].tip;
+    }
+    updateTypeSelectColor(typeSelect);
+  }
+  const reviewTextarea = document.getElementById('review-text');
+  if (reviewTextarea) reviewTextarea.placeholder = t('reviewPlaceholder');
   if (!selectedVerseSec) {
     notesContent.innerHTML = `<em>${t('noVerse')}</em>`;
+    document.getElementById('reviews-list').innerHTML = '';
   }
-  // Update empty states if panels are in empty state
   leftContent.querySelectorAll('.empty-state').forEach(el => {
-    if (el.textContent.trim() && !el.querySelector('code')) {
-      el.textContent = t('emptyState');
-    }
+    if (el.textContent.trim() && !el.querySelector('code')) el.textContent = t('emptyState');
   });
   rightContent.querySelectorAll('.empty-state').forEach(el => {
-    if (el.textContent.trim() && !el.querySelector('code')) {
-      el.textContent = t('emptyState');
-    }
+    if (el.textContent.trim() && !el.querySelector('code')) el.textContent = t('emptyState');
   });
 }
+
+const TYPE_COLORS = {
+  comment:    { bg: '#e3f2fd', fg: '#1565c0' },
+  suggestion: { bg: '#fff3e0', fg: '#e65100' },
+  approval:   { bg: '#c8e6c9', fg: '#2e7d32' },
+  needs_work: { bg: '#ffcdd2', fg: '#c62828' },
+};
+
+function updateTypeSelectColor(sel) {
+  const c = TYPE_COLORS[sel.value] || TYPE_COLORS.comment;
+  sel.style.background = c.bg;
+  sel.style.color = c.fg;
+  sel.style.fontWeight = '600';
+}
+
+// Attach color-change listener once
+document.getElementById('review-type')?.addEventListener('change', function() {
+  updateTypeSelectColor(this);
+});
 
 function showStats() {
   let totalVerses = 0, totalLow = 0, totalBooks = Object.keys(manifest.books).length;
@@ -317,6 +646,373 @@ function showStats() {
     }
   }
   statsEl.textContent = t('stats')(totalBooks, totalVerses, totalVerses - totalLow, totalLow);
+}
+
+// ── Auth ─────────────────────────────────────────────────────────────────
+
+function updateAuthUI() {
+  const btn = document.getElementById('auth-btn');
+  const badge = document.getElementById('reviewer-badge');
+  const logoutBtn = document.getElementById('logout-btn');
+  const reviewBar = document.getElementById('review-bar');
+
+  if (currentReviewer) {
+    btn.style.display = 'none';
+    badge.style.display = 'inline-block';
+    badge.textContent = currentReviewer.name;
+    logoutBtn.style.display = 'inline';
+    reviewBar.classList.add('active');
+  } else {
+    btn.style.display = 'inline-block';
+    badge.style.display = 'none';
+    logoutBtn.style.display = 'none';
+    reviewBar.classList.remove('active');
+  }
+}
+
+async function checkAuthStatus() {
+  try {
+    const resp = await fetch('/api/auth/status', authFetchOpts());
+    if (!resp.ok) { clearSession(); return; }
+    const data = await resp.json();
+    if (data.authenticated) {
+      currentReviewer = data.reviewer;
+    } else {
+      clearSession();
+    }
+  } catch {
+    // Server might not be running the review server — silently ignore
+    clearSession();
+  }
+}
+
+function clearSession() {
+  sessionToken = null;
+  currentReviewer = null;
+  localStorage.removeItem('showoff_session_token');
+}
+
+function logout() {
+  // Soft logout: clear in-memory state but keep token in localStorage for auto-login within 7 days
+  sessionToken = null;
+  currentReviewer = null;
+  updateAuthUI();
+}
+
+async function showAuthModal() {
+  // Try auto-login with stored token first
+  const savedToken = localStorage.getItem('showoff_session_token');
+  if (savedToken) {
+    sessionToken = savedToken;
+    await checkAuthStatus();
+    if (currentReviewer) {
+      updateAuthUI();
+      return; // Auto-login succeeded, no modal needed
+    }
+    // Token expired or invalid — remove it and show modal
+    localStorage.removeItem('showoff_session_token');
+  }
+
+  document.getElementById('auth-modal').classList.add('active');
+  document.getElementById('auth-step-email').style.display = 'block';
+  document.getElementById('auth-step-otp').style.display = 'none';
+  document.getElementById('auth-msg').style.display = 'none';
+  // Restore saved name/email
+  const savedName = localStorage.getItem('showoff_auth_name');
+  const savedEmail = localStorage.getItem('showoff_auth_email');
+  if (savedName) document.getElementById('auth-name').value = savedName;
+  if (savedEmail) document.getElementById('auth-email').value = savedEmail;
+}
+
+function hideAuthModal() {
+  document.getElementById('auth-modal').classList.remove('active');
+}
+
+function showAuthMsg(text, cls) {
+  const el = document.getElementById('auth-msg');
+  el.textContent = text;
+  el.className = `auth-msg ${cls}`;
+  el.style.display = 'block';
+}
+
+async function requestAccess() {
+  const name = document.getElementById('auth-name').value.trim();
+  const email = document.getElementById('auth-email').value.trim();
+  if (!name || !email) return;
+
+  localStorage.setItem('showoff_auth_name', name);
+  localStorage.setItem('showoff_auth_email', email);
+  pendingAuthEmail = email;
+
+  const btn = document.getElementById('auth-request-btn');
+  btn.disabled = true;
+
+  try {
+    const resp = await fetch('/api/auth/request-access', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1' },
+      body: JSON.stringify({ email, name }),
+    });
+    const data = await resp.json();
+
+    if (data.status === 'otp_sent') {
+      showAuthMsg(t('otpSent'), 'success');
+      document.getElementById('auth-step-email').style.display = 'none';
+      document.getElementById('auth-step-otp').style.display = 'block';
+      document.getElementById('auth-otp').focus();
+    } else if (data.status === 'pending_approval') {
+      showAuthMsg(t('pendingApproval'), 'info');
+    } else {
+      showAuthMsg(data.error || 'Error', 'error');
+    }
+  } catch (e) {
+    showAuthMsg('Network error: ' + e.message, 'error');
+  }
+  btn.disabled = false;
+}
+
+async function verifyOTP() {
+  const otp = document.getElementById('auth-otp').value.trim();
+  if (!otp || !pendingAuthEmail) return;
+
+  const btn = document.getElementById('auth-verify-btn');
+  btn.disabled = true;
+
+  try {
+    const resp = await fetch('/api/auth/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1' },
+      body: JSON.stringify({ email: pendingAuthEmail, otp }),
+    });
+    const data = await resp.json();
+
+    if (data.token) {
+      sessionToken = data.token;
+      currentReviewer = data.reviewer;
+      localStorage.setItem('showoff_session_token', sessionToken);
+      showAuthMsg(t('authSuccess'), 'success');
+      setTimeout(() => {
+        hideAuthModal();
+        updateAuthUI();
+      }, 800);
+    } else {
+      showAuthMsg(t('invalidOTP'), 'error');
+    }
+  } catch (e) {
+    showAuthMsg('Network error: ' + e.message, 'error');
+  }
+  btn.disabled = false;
+}
+
+// ── Reviews API ─────────────────────────────────────────────────────────
+
+async function fetchReviews(book, chap) {
+  const cacheKey = `${book}/${chap}`;
+  try {
+    const resp = await fetch(`/api/reviews?book=${book}&chap=${chap}`, FETCH_OPTS);
+    if (resp.ok) {
+      const data = await resp.json();
+      reviewCache[cacheKey] = data.reviews || [];
+    } else {
+      reviewCache[cacheKey] = [];
+    }
+  } catch {
+    if (!reviewCache[cacheKey]) reviewCache[cacheKey] = [];
+  }
+  return reviewCache[cacheKey];
+}
+
+function getVerseReviews(book, chap, sec) {
+  return (reviewCache[`${book}/${chap}`] || []).filter(r => r.sec === sec);
+}
+
+function getChapterReviewCounts(book, chap) {
+  const all = reviewCache[`${book}/${chap}`] || [];
+  const counts = {};
+  for (const r of all) {
+    if (!counts[r.sec]) counts[r.sec] = { total: 0, hasApproval: false, hasNeedsWork: false };
+    counts[r.sec].total++;
+    if (r.type === 'approval') counts[r.sec].hasApproval = true;
+    if (r.type === 'needs_work') counts[r.sec].hasNeedsWork = true;
+  }
+  return counts;
+}
+
+function updateVerseBadges() {
+  const counts = getChapterReviewCounts(currentBook, parseInt(currentChap));
+  document.querySelectorAll('#right-content .verse[data-sec]').forEach(el => {
+    el.querySelectorAll('.review-badge').forEach(b => b.remove());
+    const sec = parseInt(el.dataset.sec);
+    const info = counts[sec];
+    if (info && info.total > 0) {
+      const badge = document.createElement('span');
+      let cls = 'review-badge';
+      if (info.hasApproval) cls += ' has-approval';
+      else if (info.hasNeedsWork) cls += ' has-needs-work';
+      badge.className = cls;
+      const icon = info.hasApproval ? '\u2713' : info.hasNeedsWork ? '\u2717' : '\uD83D\uDCAC';
+      badge.textContent = `${icon}${info.total}`;
+      badge.title = t('reviewCount')(info.total);
+      const confEl = el.querySelector('.confidence');
+      if (confEl) confEl.after(badge);
+    }
+  });
+}
+
+function showVerseReviews(book, chap, sec) {
+  const reviews = getVerseReviews(book, chap, sec);
+  const listEl = document.getElementById('reviews-list');
+  const typeKeys = {
+    comment: 'typeComment', suggestion: 'typeSuggestion',
+    approval: 'typeApproval', needs_work: 'typeNeedsWork'
+  };
+
+  if (reviews.length === 0) {
+    listEl.innerHTML = `<em>${t('noReviews')}</em>`;
+  } else {
+    const myEmail = currentReviewer?.email;
+    listEl.innerHTML = reviews.map(r => {
+      const typeKey = typeKeys[r.type] || 'typeComment';
+      const ts = new Date(r.timestamp).toLocaleString();
+      const isOwn = myEmail && r.reviewer_email === myEmail;
+      const ownCls = isOwn ? ' own' : '';
+      const editCls = editingReviewId === r.id ? ' editing' : '';
+      const actions = isOwn ? `<span class="review-actions">
+        <button onclick="event.stopPropagation();deleteReview('${r.id}')" title="${t('deleteReview')}">✕</button>
+      </span>` : '';
+      return `<div class="review-entry type-${r.type}${ownCls}${editCls}" data-rid="${r.id}"
+        ${isOwn ? `onclick="loadReviewForEdit('${r.id}')" title="${t('editHint')}"` : ''}>
+        <div class="review-meta">
+          ${actions}
+          <span class="review-type-badge ${r.type}">${t(typeKey)}</span>
+          <strong>${escHtml(r.reviewer_name)}</strong> &mdash; ${ts}
+        </div>
+        ${r.text ? `<div class="review-text">${escHtml(r.text)}</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+}
+
+async function submitReview() {
+  if (!currentReviewer || !selectedVerseSec) return;
+
+  const btn = document.getElementById('review-submit-btn');
+  btn.disabled = true;
+
+  // If editing, delete old review first
+  if (editingReviewId) {
+    try {
+      await fetch(`/api/reviews?id=${editingReviewId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${sessionToken}`, 'ngrok-skip-browser-warning': '1' },
+      });
+      // Remove from cache
+      const cacheKey = `${currentBook}/${currentChap}`;
+      if (reviewCache[cacheKey]) {
+        reviewCache[cacheKey] = reviewCache[cacheKey].filter(r => r.id !== editingReviewId);
+      }
+    } catch (e) {
+      console.error('Delete old review error:', e);
+    }
+  }
+
+  const body = {
+    book: currentBook,
+    chap: parseInt(currentChap),
+    sec: selectedVerseSec,
+    type: document.getElementById('review-type').value,
+    text: document.getElementById('review-text').value.trim(),
+  };
+
+  try {
+    const resp = await fetch('/api/reviews', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionToken}`,
+        'ngrok-skip-browser-warning': '1',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (resp.ok) {
+      const newReview = await resp.json();
+      const cacheKey = `${currentBook}/${currentChap}`;
+      if (!reviewCache[cacheKey]) reviewCache[cacheKey] = [];
+      reviewCache[cacheKey].push(newReview);
+      showVerseReviews(currentBook, parseInt(currentChap), selectedVerseSec);
+      updateVerseBadges();
+      cancelEditReview();
+    } else {
+      const err = await resp.json();
+      if (err.error === 'Authentication required') {
+        clearSession();
+        updateAuthUI();
+      }
+    }
+  } catch (e) {
+    console.error('Review submit error:', e);
+  }
+  btn.disabled = false;
+}
+
+function loadReviewForEdit(reviewId) {
+  if (!currentReviewer) return;
+  const cacheKey = `${currentBook}/${currentChap}`;
+  const review = (reviewCache[cacheKey] || []).find(r => r.id === reviewId);
+  if (!review || review.reviewer_email !== currentReviewer.email) return;
+
+  editingReviewId = reviewId;
+
+  // Populate review bar
+  const typeSelect = document.getElementById('review-type');
+  typeSelect.value = review.type;
+  updateTypeSelectColor(typeSelect);
+  document.getElementById('review-text').value = review.text || '';
+
+  // Switch button labels
+  document.getElementById('review-submit-btn').textContent = t('update');
+  document.getElementById('review-cancel-btn').style.display = 'inline-block';
+  document.getElementById('review-cancel-btn').textContent = t('cancelEdit');
+
+  // Highlight the entry being edited
+  showVerseReviews(currentBook, parseInt(currentChap), selectedVerseSec);
+}
+
+function cancelEditReview() {
+  editingReviewId = null;
+  document.getElementById('review-text').value = '';
+  document.getElementById('review-type').value = 'comment';
+  updateTypeSelectColor(document.getElementById('review-type'));
+  document.getElementById('review-submit-btn').textContent = t('submit');
+  document.getElementById('review-cancel-btn').style.display = 'none';
+
+  // Remove editing highlight
+  if (selectedVerseSec) {
+    showVerseReviews(currentBook, parseInt(currentChap), selectedVerseSec);
+  }
+}
+
+async function deleteReview(reviewId) {
+  if (!confirm(t('confirmDelete'))) return;
+
+  try {
+    const resp = await fetch(`/api/reviews?id=${reviewId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${sessionToken}`, 'ngrok-skip-browser-warning': '1' },
+    });
+    if (resp.ok) {
+      const cacheKey = `${currentBook}/${currentChap}`;
+      if (reviewCache[cacheKey]) {
+        reviewCache[cacheKey] = reviewCache[cacheKey].filter(r => r.id !== reviewId);
+      }
+      if (editingReviewId === reviewId) cancelEditReview();
+      showVerseReviews(currentBook, parseInt(currentChap), selectedVerseSec);
+      updateVerseBadges();
+    }
+  } catch (e) {
+    console.error('Delete review error:', e);
+  }
 }
 
 // ── Dropdowns ────────────────────────────────────────────────────────────
@@ -333,7 +1029,6 @@ function populateBookSelect(restoreValue) {
   if (restoreValue && bookSelect.querySelector(`option[value="${restoreValue}"]`)) {
     bookSelect.value = restoreValue;
   }
-  // Only attach listeners once
   if (!bookSelect._listenersAttached) {
     bookSelect.addEventListener('change', onBookChange);
     chapSelect.addEventListener('change', onChapChange);
@@ -359,7 +1054,7 @@ function onBookChange() {
   if (chapters.length > 0) onChapChange();
 }
 
-function onChapChange() {
+async function onChapChange() {
   const book = bookSelect.value;
   const chap = chapSelect.value;
   if (!book || !chap) return;
@@ -371,6 +1066,10 @@ function onChapChange() {
   const data = bundle.verses[cacheKey] || [];
   currentData = data;
   renderVerses(data, book, chap);
+
+  // Fetch reviews for this chapter
+  await fetchReviews(book, parseInt(chap));
+  updateVerseBadges();
 }
 
 // ── Render ────────────────────────────────────────────────────────────────
@@ -431,6 +1130,8 @@ function renderVerses(data, book, chap) {
 
   selectedVerseSec = null;
   notesContent.innerHTML = `<em>${t('noVerse')}</em>`;
+  document.getElementById('reviews-list').innerHTML = '';
+  document.getElementById('review-verse-ref').textContent = '\u2014';
 }
 
 function escHtml(s) {
@@ -467,7 +1168,7 @@ function clearStickyHighlights() {
   });
 }
 
-// ── Verse Click → Notes ──────────────────────────────────────────────────
+// ── Verse Click → Notes + Reviews ───────────────────────────────────────
 
 function attachVerseClickHandlers(data) {
   const dataMap = {};
@@ -485,6 +1186,12 @@ function attachVerseClickHandlers(data) {
       clearStickyHighlights();
       selectedVerseSec = sec;
 
+      // Update review bar verse reference
+      const info = bookMap[currentBook];
+      const label = info ? (lang.startsWith('zh') ? info.chiLong : info.engLong) || info.eng : currentBook;
+      document.getElementById('review-verse-ref').textContent = `${label} ${currentChap}:${sec}`;
+
+      // AI notes
       if (v.notes && v.notes.length > 0) {
         notesContent.innerHTML = v.notes.map(n =>
           `<div class="note">${escHtml(n)}</div>`
@@ -492,6 +1199,10 @@ function attachVerseClickHandlers(data) {
       } else {
         notesContent.innerHTML = `<em>${t('noNotes')}</em>`;
       }
+
+      // Reviews
+      showVerseReviews(currentBook, parseInt(currentChap), sec);
+
       document.getElementById('notes-panel').open = true;
     });
   });
