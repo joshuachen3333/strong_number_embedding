@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LCC + Strong's Numbers — AI Review</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f5f5; color: #333; }
+
+header {
+  background: linear-gradient(135deg, #1a237e, #283593);
+  color: #fff; padding: 16px 24px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+}
+header h1 { font-size: 1.3em; font-weight: 600; }
+#stats { font-size: 0.85em; opacity: 0.85; }
+
+#lang-select {
+  background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 4px; padding: 3px 6px; font-size: 0.85em; cursor: pointer;
+}
+#lang-select option { color: #333; background: #fff; }
+
+.controls {
+  background: #fff; padding: 10px 24px; border-bottom: 1px solid #ddd;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.controls label { font-size: 0.85em; color: #555; }
+.controls select {
+  padding: 5px 8px; border: 1px solid #bbb; border-radius: 4px;
+  font-size: 0.95em; min-width: 120px;
+}
+
+.panels {
+  display: flex; height: calc(100vh - 160px); gap: 0;
+}
+.panel {
+  flex: 1; display: flex; flex-direction: column; border-right: 1px solid #ddd;
+  min-width: 0;
+}
+.panel:last-child { border-right: none; }
+.panel-header {
+  padding: 8px 16px; font-weight: 600; font-size: 0.95em;
+  border-bottom: 1px solid #e0e0e0; flex-shrink: 0;
+}
+.panel-header.left { background: #e8eaf6; color: #1a237e; }
+.panel-header.right { background: #e0f2f1; color: #00695c; }
+
+.panel-content {
+  flex: 1; overflow-y: auto; padding: 12px 16px; background: #fff;
+}
+
+.verse {
+  margin: 0 0 8px; padding: 6px 8px; border-radius: 4px;
+  line-height: 1.7; font-size: 1.05em; cursor: pointer;
+  transition: background 0.15s;
+}
+.verse:hover { background: #f5f5f5; }
+.verse.selected { background: #fff9c4; }
+
+.verse-num {
+  font-weight: 700; color: #1565c0; margin-right: 4px;
+  font-size: 0.85em; vertical-align: super;
+}
+
+.sn {
+  color: #2e7d32; font-size: 0.78em; cursor: pointer;
+  padding: 0 1px; border-radius: 2px; transition: background 0.15s;
+}
+.sn:hover { text-decoration: underline; }
+.sn.highlight { background: #ffeb3b; color: #333; font-weight: 600; }
+
+.confidence {
+  display: inline-block; font-size: 0.7em; padding: 1px 5px;
+  border-radius: 8px; margin-left: 6px; font-weight: 600; vertical-align: middle;
+}
+.confidence.high { background: #c8e6c9; color: #2e7d32; }
+.confidence.medium { background: #fff9c4; color: #f57f17; }
+.confidence.low { background: #ffcdd2; color: #c62828; }
+
+.notes-panel {
+  background: #fafafa; border-top: 1px solid #ddd; padding: 10px 24px;
+  font-size: 0.85em; max-height: 140px; overflow-y: auto; flex-shrink: 0;
+}
+.notes-panel summary {
+  cursor: pointer; font-weight: 600; color: #555; user-select: none;
+}
+.notes-panel .note { margin: 4px 0; padding: 3px 0; color: #666; border-bottom: 1px solid #eee; }
+.notes-panel .note:last-child { border-bottom: none; }
+
+.model-tag {
+  font-size: 0.7em; padding: 1px 5px; border-radius: 4px;
+  background: #e3f2fd; color: #1565c0; margin-left: 4px; vertical-align: middle;
+}
+
+.empty-state {
+  text-align: center; padding: 60px 20px; color: #999; font-size: 1.1em;
+}
+
+.lcc-original {
+  display: block; font-size: 0.82em; color: #888; margin-top: 2px;
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1 id="title"></h1>
+  <div style="display:flex;align-items:center;gap:12px">
+    <div id="stats"></div>
+    <select id="lang-select">
+      <option value="zh-Hant">正體中文</option>
+      <option value="en">English</option>
+      <option value="zh-Hans">简体中文</option>
+    </select>
+  </div>
+</header>
+
+<div class="controls">
+  <label><span data-i18n="book"></span> <select id="book-select"><option>Loading...</option></select></label>
+  <label><span data-i18n="chapter"></span> <select id="chap-select"><option>—</option></select></label>
+</div>
+
+<div class="panels">
+  <div class="panel">
+    <div class="panel-header left" id="left-header"></div>
+    <div class="panel-content" id="left-content">
+      <div class="empty-state">Select a book and chapter</div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-header right" id="right-header"></div>
+    <div class="panel-content" id="right-content">
+      <div class="empty-state">Select a book and chapter</div>
+    </div>
+  </div>
+</div>
+
+<details class="notes-panel" id="notes-panel">
+  <summary id="notes-summary"></summary>
+  <div id="notes-content"></div>
+</details>
+
+<script>
+const OUTPUT_BASE = '../llm_direct_sn_unv2lcc/output';
+const BOOKS_URL = '../shared/data/books.json';
+
+// ── i18n ─────────────────────────────────────────────────────────────────
+
+const I18N = {
+  'zh-Hant': {
+    title: '呂振中譯本 + Strong\'s Numbers — AI 轉移成果審閱',
+    book: '書卷',
+    chapter: '章',
+    leftHeader: '和合本 + Strong\'s Numbers（參照）',
+    rightHeader: '呂振中譯本 + Strong\'s Numbers（AI 產出）',
+    emptyState: '請選擇書卷與章數',
+    loading: '載入中…',
+    notesSummary: 'AI 註記 — 點擊經節查看推理過程',
+    noVerse: '尚未選擇經節',
+    noNotes: '此節無註記',
+    stats: (books, verses, high, low) =>
+      `${books} 卷 | ${verses} 節 | ${high} 高信心 | ${low} 待審閱`,
+    chapLabel: (ch, count) => `第 ${ch} 章（${count} 節）`,
+    bookName: (b) => `${b.chiLong}（${b.engLong}）`,
+    chapHeadingLeft: (label, ch) => `${label} ${ch} — 和合本+SN`,
+    chapHeadingRight: (label, ch) => `${label} ${ch} — 呂振中+SN`,
+    errorLoad: '載入失敗',
+  },
+  'en': {
+    title: 'LCC + Strong\'s Numbers — AI Transfer Review',
+    book: 'Book',
+    chapter: 'Chapter',
+    leftHeader: 'UNV + Strong\'s Numbers (Reference)',
+    rightHeader: 'LCC + Strong\'s Numbers (AI Output)',
+    emptyState: 'Select a book and chapter',
+    loading: 'Loading...',
+    notesSummary: 'AI Notes — click a verse to see reasoning',
+    noVerse: 'No verse selected',
+    noNotes: 'No notes for this verse',
+    stats: (books, verses, high, low) =>
+      `${books} books | ${verses} verses | ${high} high-confidence | ${low} needs review`,
+    chapLabel: (ch, count) => `Chapter ${ch} (${count} verses)`,
+    bookName: (b) => `${b.engLong} (${b.chiLong})`,
+    chapHeadingLeft: (label, ch) => `${label} ${ch} &mdash; UNV+SN`,
+    chapHeadingRight: (label, ch) => `${label} ${ch} &mdash; LCC+SN`,
+    errorLoad: 'Error loading',
+  },
+  'zh-Hans': {
+    title: '吕振中译本 + Strong\'s Numbers — AI 转移成果审阅',
+    book: '书卷',
+    chapter: '章',
+    leftHeader: '和合本 + Strong\'s Numbers（参照）',
+    rightHeader: '吕振中译本 + Strong\'s Numbers（AI 产出）',
+    emptyState: '请选择书卷与章数',
+    loading: '加载中…',
+    notesSummary: 'AI 注记 — 点击经节查看推理过程',
+    noVerse: '尚未选择经节',
+    noNotes: '此节无注记',
+    stats: (books, verses, high, low) =>
+      `${books} 卷 | ${verses} 节 | ${high} 高信心 | ${low} 待审阅`,
+    chapLabel: (ch, count) => `第 ${ch} 章（${count} 节）`,
+    bookName: (b) => `${b.chiLong}（${b.engLong}）`,
+    chapHeadingLeft: (label, ch) => `${label} ${ch} — 和合本+SN`,
+    chapHeadingRight: (label, ch) => `${label} ${ch} — 吕振中+SN`,
+    errorLoad: '加载失败',
+  }
+};
+
+let lang = localStorage.getItem('showoff_lang') || 'zh-Hant';
+function t(key) { return I18N[lang][key]; }
+
+// ── State ────────────────────────────────────────────────────────────────
+
+let manifest = null;
+let booksData = [];
+let bookMap = {};    // eng -> {chi, chiLong, engLong}
+let verseCache = {}; // "Book/Chap" -> [verseData, ...]
+let currentData = null;  // current chapter verse data (for re-render)
+let currentBook = null;
+let currentChap = null;
+let selectedVerseSec = null;
+
+const bookSelect = document.getElementById('book-select');
+const chapSelect = document.getElementById('chap-select');
+const leftContent = document.getElementById('left-content');
+const rightContent = document.getElementById('right-content');
+const notesContent = document.getElementById('notes-content');
+const statsEl = document.getElementById('stats');
+const langSelect = document.getElementById('lang-select');
+
+// ── Startup ──────────────────────────────────────────────────────────────
+
+async function init() {
+  langSelect.value = lang;
+  langSelect.addEventListener('change', onLangChange);
+
+  try {
+    const [manifestResp, booksResp] = await Promise.all([
+      fetch(`${OUTPUT_BASE}/manifest.json`),
+      fetch(BOOKS_URL)
+    ]);
+    manifest = await manifestResp.json();
+    booksData = await booksResp.json();
+    booksData.forEach(b => { bookMap[b.eng] = b; });
+
+    applyI18n();
+    populateBookSelect();
+    showStats();
+  } catch (e) {
+    applyI18n();
+    leftContent.innerHTML = `<div class="empty-state">${t('errorLoad')}<br><code>cd llm_direct_sn_unv2lcc && python generate_manifest.py</code></div>`;
+    rightContent.innerHTML = leftContent.innerHTML;
+  }
+}
+
+function onLangChange() {
+  lang = langSelect.value;
+  localStorage.setItem('showoff_lang', lang);
+  document.documentElement.lang = lang === 'zh-Hans' ? 'zh-Hans' : lang === 'zh-Hant' ? 'zh-Hant' : 'en';
+  applyI18n();
+  // Re-populate dropdowns with new language
+  if (manifest) {
+    const savedBook = bookSelect.value;
+    const savedChap = chapSelect.value;
+    populateBookSelect(savedBook);
+    // Restore chapter selection
+    if (savedChap && chapSelect.querySelector(`option[value="${savedChap}"]`)) {
+      chapSelect.value = savedChap;
+    }
+    showStats();
+  }
+  // Re-render current verses if loaded
+  if (currentData) {
+    renderVerses(currentData, currentBook, currentChap);
+  }
+}
+
+function applyI18n() {
+  document.getElementById('title').textContent = t('title');
+  document.getElementById('left-header').textContent = t('leftHeader');
+  document.getElementById('right-header').textContent = t('rightHeader');
+  document.getElementById('notes-summary').textContent = t('notesSummary');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  // Reset notes if no verse selected
+  if (!selectedVerseSec) {
+    notesContent.innerHTML = `<em>${t('noVerse')}</em>`;
+  }
+  // Update empty states if panels are in empty state
+  leftContent.querySelectorAll('.empty-state').forEach(el => {
+    if (el.textContent.trim() && !el.querySelector('code')) {
+      el.textContent = t('emptyState');
+    }
+  });
+  rightContent.querySelectorAll('.empty-state').forEach(el => {
+    if (el.textContent.trim() && !el.querySelector('code')) {
+      el.textContent = t('emptyState');
+    }
+  });
+}
+
+function showStats() {
+  let totalVerses = 0, totalLow = 0, totalBooks = Object.keys(manifest.books).length;
+  for (const book of Object.values(manifest.books)) {
+    for (const ch of Object.values(book.chapters)) {
+      totalVerses += ch.verses.length;
+      totalLow += (ch.low_confidence || []).length;
+    }
+  }
+  statsEl.textContent = t('stats')(totalBooks, totalVerses, totalVerses - totalLow, totalLow);
+}
+
+// ── Dropdowns ────────────────────────────────────────────────────────────
+
+function populateBookSelect(restoreValue) {
+  bookSelect.innerHTML = '';
+  for (const b of booksData) {
+    if (!manifest.books[b.eng]) continue;
+    const opt = document.createElement('option');
+    opt.value = b.eng;
+    opt.textContent = t('bookName')(b);
+    bookSelect.appendChild(opt);
+  }
+  if (restoreValue && bookSelect.querySelector(`option[value="${restoreValue}"]`)) {
+    bookSelect.value = restoreValue;
+  }
+  // Only attach listeners once
+  if (!bookSelect._listenersAttached) {
+    bookSelect.addEventListener('change', onBookChange);
+    chapSelect.addEventListener('change', onChapChange);
+    bookSelect._listenersAttached = true;
+  }
+  if (bookSelect.options.length > 0) onBookChange();
+}
+
+function onBookChange() {
+  const book = bookSelect.value;
+  const bookData = manifest.books[book];
+  if (!bookData) return;
+
+  chapSelect.innerHTML = '';
+  const chapters = Object.keys(bookData.chapters).map(Number).sort((a, b) => a - b);
+  for (const ch of chapters) {
+    const opt = document.createElement('option');
+    opt.value = ch;
+    const count = bookData.chapters[String(ch)].verses.length;
+    opt.textContent = t('chapLabel')(ch, count);
+    chapSelect.appendChild(opt);
+  }
+  if (chapters.length > 0) onChapChange();
+}
+
+async function onChapChange() {
+  const book = bookSelect.value;
+  const chap = chapSelect.value;
+  if (!book || !chap) return;
+
+  currentBook = book;
+  currentChap = chap;
+
+  const cacheKey = `${book}/${chap}`;
+  if (verseCache[cacheKey]) {
+    currentData = verseCache[cacheKey];
+    renderVerses(currentData, book, chap);
+    return;
+  }
+
+  leftContent.innerHTML = `<div class="empty-state">${t('loading')}</div>`;
+  rightContent.innerHTML = `<div class="empty-state">${t('loading')}</div>`;
+
+  const chapData = manifest.books[book]?.chapters[String(chap)];
+  if (!chapData) return;
+
+  const verses = chapData.verses;
+
+  try {
+    const fetches = verses.map(v =>
+      fetch(`${OUTPUT_BASE}/${book}/${chap}/${v}.json`)
+        .then(r => r.ok ? r.json() : null)
+        .catch(() => null)
+    );
+    const results = await Promise.all(fetches);
+    const data = results.filter(Boolean);
+    verseCache[cacheKey] = data;
+    currentData = data;
+    renderVerses(data, book, chap);
+  } catch (e) {
+    leftContent.innerHTML = `<div class="empty-state">${t('errorLoad')}: ${e.message}</div>`;
+  }
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+
+function parseSN(text) {
+  if (!text) return '';
+  let r = text;
+  r = r.replace(/\{<W[A-Z]*([HG])(\d+)>\}/g, (_, l, n) => snSpan(l, n));
+  r = r.replace(/<W[A-Z]*([HG])(\d+)>/g, (_, l, n) => snSpan(l, n));
+  r = r.replace(/\{([HG])(\d+)\}/g, (_, l, n) => snSpan(l, n));
+  r = r.replace(/\(([HG])(\d+)\)/g, (_, l, n) => snSpan(l, n));
+  return r;
+}
+
+function snSpan(lang, num) {
+  const id = `${lang}${num}`;
+  return `<span class="sn" data-strong="${id}" title="Strong's ${id}">&lt;${id}&gt;</span>`;
+}
+
+function confidenceClass(c) {
+  if (c >= 0.85) return 'high';
+  if (c >= 0.70) return 'medium';
+  return 'low';
+}
+
+function renderVerses(data, book, chap) {
+  const info = bookMap[book];
+  const bookLabel = info ? t('bookName')(info) : book;
+
+  let leftHtml = `<h3 style="margin:0 0 10px;font-size:1em;color:#1a237e">${t('chapHeadingLeft')(bookLabel, chap)}</h3>`;
+  let rightHtml = `<h3 style="margin:0 0 10px;font-size:1em;color:#00695c">${t('chapHeadingRight')(bookLabel, chap)}</h3>`;
+
+  for (const v of data) {
+    const sec = v.sec;
+    const cls = confidenceClass(v.confidence);
+    const pct = (v.confidence * 100).toFixed(0);
+    const modelTag = v.model ? `<span class="model-tag">${v.model}</span>` : '';
+
+    leftHtml += `<p class="verse" data-sec="${sec}">`;
+    leftHtml += `<span class="verse-num">${sec}</span> `;
+    leftHtml += parseSN(v.unv_sn_reference);
+    leftHtml += `</p>`;
+
+    rightHtml += `<p class="verse" data-sec="${sec}">`;
+    rightHtml += `<span class="verse-num">${sec}</span> `;
+    rightHtml += parseSN(v.lcc_sn);
+    rightHtml += `<span class="confidence ${cls}">${pct}%</span>${modelTag}`;
+    rightHtml += `<span class="lcc-original">${escHtml(v.lcc_original || '')}</span>`;
+    rightHtml += `</p>`;
+  }
+
+  leftContent.innerHTML = leftHtml;
+  rightContent.innerHTML = rightHtml;
+
+  attachSNHandlers();
+  attachVerseClickHandlers(data);
+  attachScrollSync();
+
+  selectedVerseSec = null;
+  notesContent.innerHTML = `<em>${t('noVerse')}</em>`;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── SN Highlighting ──────────────────────────────────────────────────────
+
+function attachSNHandlers() {
+  document.querySelectorAll('.sn').forEach(el => {
+    el.addEventListener('mouseenter', () => highlightSN(el.dataset.strong, true));
+    el.addEventListener('mouseleave', () => highlightSN(el.dataset.strong, false));
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const on = !el.classList.contains('highlight-sticky');
+      clearStickyHighlights();
+      if (on) {
+        document.querySelectorAll(`.sn[data-strong="${el.dataset.strong}"]`)
+          .forEach(s => { s.classList.add('highlight', 'highlight-sticky'); });
+      }
+    });
+  });
+}
+
+function highlightSN(strong, on) {
+  if (document.querySelector('.sn.highlight-sticky')) return;
+  document.querySelectorAll(`.sn[data-strong="${strong}"]`)
+    .forEach(s => s.classList.toggle('highlight', on));
+}
+
+function clearStickyHighlights() {
+  document.querySelectorAll('.sn.highlight-sticky').forEach(s => {
+    s.classList.remove('highlight', 'highlight-sticky');
+  });
+}
+
+// ── Verse Click → Notes ──────────────────────────────────────────────────
+
+function attachVerseClickHandlers(data) {
+  const dataMap = {};
+  data.forEach(v => { dataMap[v.sec] = v; });
+
+  document.querySelectorAll('.verse[data-sec]').forEach(el => {
+    el.addEventListener('click', () => {
+      const sec = parseInt(el.dataset.sec);
+      const v = dataMap[sec];
+      if (!v) return;
+
+      document.querySelectorAll('.verse.selected').forEach(s => s.classList.remove('selected'));
+      document.querySelectorAll(`.verse[data-sec="${sec}"]`).forEach(s => s.classList.add('selected'));
+
+      clearStickyHighlights();
+      selectedVerseSec = sec;
+
+      if (v.notes && v.notes.length > 0) {
+        notesContent.innerHTML = v.notes.map(n =>
+          `<div class="note">${escHtml(n)}</div>`
+        ).join('');
+      } else {
+        notesContent.innerHTML = `<em>${t('noNotes')}</em>`;
+      }
+      document.getElementById('notes-panel').open = true;
+    });
+  });
+}
+
+// ── Scroll Sync ──────────────────────────────────────────────────────────
+
+function attachScrollSync() {
+  let syncing = false;
+  function syncScroll(source, target) {
+    if (syncing) return;
+    syncing = true;
+    const ratio = source.scrollTop / (source.scrollHeight - source.clientHeight || 1);
+    target.scrollTop = ratio * (target.scrollHeight - target.clientHeight || 1);
+    syncing = false;
+  }
+  leftContent.addEventListener('scroll', () => syncScroll(leftContent, rightContent));
+  rightContent.addEventListener('scroll', () => syncScroll(rightContent, leftContent));
+}
+
+// ── Go ───────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

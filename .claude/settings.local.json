@@ -40,7 +40,10 @@
       "Bash(find:*)",
       "Bash(unset CLAUDECODE && echo \"List 5 colors\" | claude -p --output-format stream-json --json-schema '{\"type\":\"object\",\"properties\":{\"colors\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}},\"required\":[\"colors\"]}' 2>/dev/null)",
       "Bash(claude:*)",
-      "Bash(npm update:*)"
+      "Bash(npm update:*)",
+      "Bash(wc:*)",
+      "Bash(done)",
+      "mcp__chrome-devtools__fill"
     ],
     "deny": []
   }
