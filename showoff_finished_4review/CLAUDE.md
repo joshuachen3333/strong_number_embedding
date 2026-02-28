@@ -19,9 +19,25 @@ open http://localhost:8989/showoff_finished_4review/
 
 No build step, no npm, no dependencies. Just a Python HTTP server for fetch API CORS.
 
+### Remote sharing via ngrok
+
+```bash
+ngrok http 8989
+# Share the https://xxx.ngrok-free.dev/showoff_finished_4review/ URL
+```
+
+**ngrok free-tier gotcha**: The free tier injects an interstitial "Visit Site" warning page for every HTTP request. Clicking through it in the browser only covers the initial page load — JavaScript `fetch()` calls for `data_bundle.json` and `books.json` also get intercepted and receive HTML instead of JSON, causing `載入失敗`. The fix is the `ngrok-skip-browser-warning: 1` header on all fetch requests (already applied in `FETCH_OPTS`).
+
 ## Data Source
 
-Reads JSON files from `../llm_direct_sn_unv2lcc/output/{Book}/{Chap}/{verse}.json`. Each JSON contains:
+All verse data is pre-bundled in `data_bundle.json` (1.5 MB) so the viewer works without access to `../llm_direct_sn_unv2lcc/output/`. To regenerate the bundle after output files change, run:
+
+```bash
+cd llm_direct_sn_unv2lcc && python generate_manifest.py && cd ..
+# Then re-run the bundling script (see init() in index.html)
+```
+
+Each verse JSON contains:
 
 | Field | Purpose |
 |-------|---------|
@@ -32,7 +48,7 @@ Reads JSON files from `../llm_direct_sn_unv2lcc/output/{Book}/{Chap}/{verse}.jso
 | `notes` | Array of AI reasoning strings |
 | `model` | LLM model used (`sonnet` or `opus`) |
 
-Manifest at `../llm_direct_sn_unv2lcc/output/manifest.json` indexes available books/chapters/verses and low-confidence flags (threshold: 0.85).
+The manifest (embedded in `data_bundle.json`) indexes available books/chapters/verses and low-confidence flags (threshold: 0.85).
 
 ## Architecture — Single File `index.html`
 
@@ -77,7 +93,7 @@ Three languages: 正體中文 (default), English, 简体中文. Controlled by `I
 | `applyI18n()` | Update all static i18n elements (title, headers, notes summary, `data-i18n` spans) |
 | `populateBookSelect(restoreValue?)` | Fill book dropdown from manifest, optionally restore selection |
 | `onBookChange()` | Fill chapter dropdown for selected book |
-| `onChapChange()` | Fetch all verse JSONs in parallel (`Promise.all`), cache, render |
+| `onChapChange()` | Read verses from bundle, render |
 | `parseSN(text)` | Regex pipeline converting 4 SN formats to `<span class="sn">` elements |
 | `snSpan(lang, num)` | Build a single SN span with `data-strong` attribute |
 | `renderVerses(data, book, chap)` | Build HTML for both panels from verse data array |
@@ -122,5 +138,6 @@ Two modes:
 | File | Purpose |
 |------|---------|
 | `index.html` | Single-file viewer (HTML + CSS + JS) |
+| `data_bundle.json` | Pre-bundled manifest + all verse data (1.5 MB) |
 | `start.sh` | Convenience launcher (`python3 -m http.server 8989` from repo root) |
 | `CLAUDE.md` | This file |
