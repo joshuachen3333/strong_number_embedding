@@ -147,6 +147,9 @@ header h1 { font-size: 1.3em; font-weight: 600; }
 const BUNDLE_URL = 'data_bundle.json';
 const BOOKS_URL = '../shared/data/books.json';
 
+// ngrok free tier intercepts fetch() with an interstitial page unless this header is set
+const FETCH_OPTS = { headers: { 'ngrok-skip-browser-warning': '1' } };
+
 // ── i18n ─────────────────────────────────────────────────────────────────
 
 const I18N = {
@@ -240,8 +243,8 @@ async function init() {
 
   try {
     const [bundleResp, booksResp] = await Promise.all([
-      fetch(BUNDLE_URL),
-      fetch(BOOKS_URL)
+      fetch(BUNDLE_URL, FETCH_OPTS),
+      fetch(BOOKS_URL, FETCH_OPTS)
     ]);
     bundle = await bundleResp.json();
     manifest = bundle.manifest;
