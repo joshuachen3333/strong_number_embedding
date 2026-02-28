@@ -144,7 +144,7 @@ header h1 { font-size: 1.3em; font-weight: 600; }
 </details>
 
 <script>
-const OUTPUT_BASE = '../llm_direct_sn_unv2lcc/output';
+const BUNDLE_URL = 'data_bundle.json';
 const BOOKS_URL = '../shared/data/books.json';
 
 // ── i18n ─────────────────────────────────────────────────────────────────
@@ -215,6 +215,7 @@ function t(key) { return I18N[lang][key]; }
 // ── State ────────────────────────────────────────────────────────────────
 
 let manifest = null;
+let bundle = null;   // bundled verse data
 let booksData = [];
 let bookMap = {};    // eng -> {chi, chiLong, engLong}
 let verseCache = {}; // "Book/Chap" -> [verseData, ...]
@@ -238,11 +239,12 @@ async function init() {
   langSelect.addEventListener('change', onLangChange);
 
   try {
-    const [manifestResp, booksResp] = await Promise.all([
-      fetch(`${OUTPUT_BASE}/manifest.json`),
+    const [bundleResp, booksResp] = await Promise.all([
+      fetch(BUNDLE_URL),
       fetch(BOOKS_URL)
     ]);
-    manifest = await manifestResp.json();
+    bundle = await bundleResp.json();
+    manifest = bundle.manifest;
     booksData = await booksResp.json();
     booksData.forEach(b => { bookMap[b.eng] = b; });
 
@@ -354,7 +356,7 @@ function onBookChange() {
   if (chapters.length > 0) onChapChange();
 }
 
-async function onChapChange() {
+function onChapChange() {
   const book = bookSelect.value;
   const chap = chapSelect.value;
   if (!book || !chap) return;
@@ -363,34 +365,9 @@ async function onChapChange() {
   currentChap = chap;
 
   const cacheKey = `${book}/${chap}`;
-  if (verseCache[cacheKey]) {
-    currentData = verseCache[cacheKey];
-    renderVerses(currentData, book, chap);
-    return;
-  }
-
-  leftContent.innerHTML = `<div class="empty-state">${t('loading')}</div>`;
-  rightContent.innerHTML = `<div class="empty-state">${t('loading')}</div>`;
-
-  const chapData = manifest.books[book]?.chapters[String(chap)];
-  if (!chapData) return;
-
-  const verses = chapData.verses;
-
-  try {
-    const fetches = verses.map(v =>
-      fetch(`${OUTPUT_BASE}/${book}/${chap}/${v}.json`)
-        .then(r => r.ok ? r.json() : null)
-        .catch(() => null)
-    );
-    const results = await Promise.all(fetches);
-    const data = results.filter(Boolean);
-    verseCache[cacheKey] = data;
-    currentData = data;
-    renderVerses(data, book, chap);
-  } catch (e) {
-    leftContent.innerHTML = `<div class="empty-state">${t('errorLoad')}: ${e.message}</div>`;
-  }
+  const data = bundle.verses[cacheKey] || [];
+  currentData = data;
+  renderVerses(data, book, chap);
 }
 
 // ── Render ────────────────────────────────────────────────────────────────
