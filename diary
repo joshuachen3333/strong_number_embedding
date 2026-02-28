@@ -1,0 +1,25 @@
+20251101		RefTerm,origText to produce outputText where RefTerm is part of outputText
+20251102		每一節 帶 SN 的unv, 先拆解出詞組序列 (規格 1.4) 
+20251103		specification 1.5
+20251106		we created our first batch sop (3 .md files, what are they) and a python code
+			Gen 1:16 造了, shall we group all 3 <06213>(8799){<0853>}, or just 2 <06213>(8799)
+  Reason to group them (Semantic Cohesion):
+
+   * You are correct that in the final Chinese translation, "造了" represents the action. The Hebrew וַיַּעַשׂ (<06213>) is the verb "he made," and the following אֶת ({<0853>}) is a direct object
+     marker that is grammatically linked to the verb but often not translated. Grouping them would create a single unit that more closely matches the final translated meaning.
+
+  Reason NOT to group them (Strict Adherence to `SPECIFICATION_v1.5.md`):
+
+   * Core Word Rule: The specification (SPECIFICATION_v1.5.md, rule 3.3.2) states that a new group should be created for each "core word." Both <06213> (an explicit core word) and {<0853>}
+     (an implicit core word) fall into this category. Therefore, according to the current rules, they must start their own separate groups.
+   * No Verb-Object Marker Grouping Rule: The specification defines rules for attaching prefixes (900x codes) and morphology codes, but it does not have a rule for grouping a verb with a
+     following object marker like <0853>.
+   * Data Source (`qp.php`): The qp.php data source provides separate entries for <06213> ("做" - to do/make) and <0853> ("不必翻譯" - no translation needed). Combining them would require
+     creating a new meaning ("造了") that isn't explicitly present for either individual number in the source data.
+
+20251107		batch_headless_cli_{gemini.claude,codex} done; specification1.6 done; codex batch is doing wrong output format.
+			currently we are all using rule based parsing, next an hybrid AI in the loop is planned:
+ai_resolver.py config_ai.yaml __pycache__ run_parser_hybrid.py HYBRID_PARSER_IMPLEMENTATION_SUMMARY.md QUICK_START_HYBRID_PARSER.md
+
+
+

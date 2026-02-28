@@ -1,0 +1,768 @@
+Identifying compound prepositions with מִן (04480)...
+================================================================================
+Found 924 verses with <04480> issues
+
+Sampling 150 verses...
+
+Progress: 0/150
+Progress: 20/150
+Progress: 40/150
+Progress: 60/150
+Progress: 80/150
+Progress: 100/150
+Progress: 120/150
+Progress: 140/150
+
+================================================================================
+COMPOUND PREPOSITIONS WITH מִן (04480)
+
+Format: <04480> + <XXXX> = Hebrew compound
+
+--------------------------------------------------------------------------------
+
+<04480> + <02351>: 11 occurrences
+  Hebrew: מִחוּץ
+  Structure: 介系詞 מִן + 名詞，陽性單數
+  Meaning: 街上、外頭
+  Example: Lev 14:41
+
+  Hebrew: מִחוּץ
+  Structure: 介系詞 מִן + 名詞，陽性單數
+  Meaning: 街上、外頭
+  Example: Num 19:3
+
+
+<04480> + <01121>: 10 occurrences
+  Hebrew: מִבֶּן
+  Structure: 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 兒子、孫子、後裔、成員
+  Example: Num 1:32
+
+  Hebrew: מִבֶּן
+  Structure: 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 兒子、孫子、後裔、成員
+  Example: Num 3:28
+
+
+<04480> + <03605>: 10 occurrences
+  Hebrew: מִכָּל
+  Structure: 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 全部、整個、各
+  Example: Gen 8:17
+
+  Hebrew: מִכֹּל
+  Structure: 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 所有、全部、整個、各
+  Example: Lev 18:26
+
+
+<04480> + <05921>: 10 occurrences
+  Hebrew: מֵעַל
+  Structure: 介系詞 מִן + 介系詞 עַל
+  Meaning: 在…上面、在旁邊、關於、敵對、攻擊
+  Example: Num 12:10
+
+  Hebrew: מֵעָלֶיךָ
+  Structure: 介系詞 מִן + 介系詞 עַל + 2 單陽詞尾
+  Meaning: 在…上面、在旁邊、關於、敵對、攻擊
+  Example: Exod 18:22
+
+
+<04480> + <00776>: 7 occurrences
+  Hebrew: מֵאֶרֶץ
+  Structure: 介系詞 מִן + 名詞，單陰附屬形
+  Meaning: 地、邦國、疆界
+  Example: Exod 12:17
+
+  Hebrew: מֵאֶרֶץ
+  Structure: 介系詞 מִן + 名詞，單陰附屬形
+  Meaning: 地、邦國、疆界
+  Example: Exod 32:23
+
+
+<04480> + <00854>: 6 occurrences
+  Hebrew: מֵאֵת
+  Structure: 介系詞 מִן + 介系詞 אֵת
+  Meaning: 與、跟、靠近
+  Example: Gen 49:30
+
+  Hebrew: מֵאֵת
+  Structure: 介系詞 מִן + 介系詞
+  Meaning: 與、跟、靠近
+  Example: Exod 10:11
+
+
+<04480> + <04714>: 6 occurrences
+  Hebrew: מִמִּצְרָיִם
+  Structure: מִמִּצְרַיִם 的停頓型，介系詞 מִן + 專有名詞，地名、國名
+  Meaning: 埃及、埃及人
+  Example: Exod 34:18
+
+  Hebrew: מִמִּצְרַיִם
+  Structure: 介系詞 מִן + 專有名詞，地名、國名
+  Meaning: 埃及、埃及人
+  Example: Exod 17:3
+
+
+<04480> + <01004>: 5 occurrences
+  Hebrew: מִבַּיִת
+  Structure: 介系詞 מִן + 名詞，陽性單數
+  Meaning: 房屋、家、殿、神廟、倉庫
+  Example: Lev 14:41
+
+  Hebrew: וּמִבֵּית
+  Structure: 連接詞 וְ + 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 房屋、家、殿、神廟、倉庫
+  Example: Gen 24:40
+
+
+<04480> + <03027>: 4 occurrences
+  Hebrew: מִיָּדָם
+  Structure: 介系詞 מִן + 名詞，單陰 + 3 複陽詞尾
+  Meaning: 手、邊、力量、權勢
+  Example: Gen 37:22
+
+  Hebrew: מִיַּד
+  Structure: 介系詞 מִן + 名詞，單陰附屬形
+  Meaning: 手、邊、力量、權勢
+  Example: Gen 39:1
+
+
+<04480> + <05973>: 4 occurrences
+  Hebrew: מֵעִם
+  Structure: 介系詞 מִן + 介系詞 עִם
+  Meaning: 跟、與、和、靠近
+  Example: Gen 24:27
+
+  Hebrew: מֵעִמָּךְ
+  Structure: מֵעִמְּךָ 的停頓型，介系詞 מִן + 介系詞 עִם + 2 單陽詞尾
+  Meaning: 跟、與、和、靠近
+  Example: Lev 25:41
+
+
+<04480> + <03942>: 3 occurrences
+  Hebrew: מִלְּפָנָי
+  Structure: מִלְּפָנַי 的停頓型，介系詞 מִן + 介系詞 לִפְנֵי + 1 單詞尾
+  Meaning: 在…之前
+  Example: Gen 23:4
+
+  Hebrew: מִלִּפְנֵי
+  Structure: 介系詞 מִן + 介系詞
+  Meaning: 在…之前
+  Example: Lev 16:12
+
+
+<04480> + <04940>: 3 occurrences
+  Hebrew: מִמִּשְׁפַּחְתִּי
+  Structure: 介系詞 מִן + 名詞，單陰 + 1 單詞尾
+  Meaning: 家族、家庭
+  Example: Gen 24:40
+
+  Hebrew: מִשְׁפַּחְתִּי
+  Structure: 介系詞 מִן + 名詞，單陰 + 1 單詞尾
+  Meaning: 家族、家庭
+  Example: Gen 24:41
+
+
+<04480> + <06440>: 3 occurrences
+  Hebrew: מִפְּנֵי
+  Structure: 介系詞 מִן + 名詞，複陽附屬形
+  Meaning: 面、臉面、先前、在…之前(加介系詞)
+  Example: Gen 36:7
+
+  Hebrew: מִפְּנֵי
+  Structure: 介系詞 מִן + 名詞，複陽附屬形
+  Meaning: 面、臉面、先前、在…之前(加介系詞)
+  Example: Exod 8:24
+
+
+<04480> + <08033>: 3 occurrences
+  Hebrew: מִשָּׁם
+  Structure: 介系詞 מִן + 副詞
+  Meaning: 那裡
+  Example: Gen 20:1
+
+  Hebrew: מִשָּׁם
+  Structure: 介系詞 מִן + 副詞
+  Meaning: 那裡
+  Example: Gen 11:8
+
+
+<04480> + <04057>: 3 occurrences
+  Hebrew: מִמִּדְבַּר
+  Structure: 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 曠野
+  Example: Exod 17:1
+
+  Hebrew: מִמִּדְבַּר
+  Structure: 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 曠野
+  Example: Num 13:21
+
+
+<04480> + <08432>: 3 occurrences
+  Hebrew: מִתּוֹךְ
+  Structure: 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 在中間
+  Example: Exod 28:1
+
+  Hebrew: מִתּוֹךְ
+  Structure: 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 在中間
+  Example: Num 16:33
+
+
+<04480> + <00801>: 3 occurrences
+  Hebrew: מֵאִשֵּׁי
+  Structure: 介系詞 מִן + 名詞，複陽附屬形
+  Meaning: 火祭
+  Example: Lev 7:35
+
+  Hebrew: מֵאִשֵּׁי
+  Structure: 介系詞 מִן + 名詞，複陽附屬形
+  Meaning: 火祭
+  Example: Lev 10:12
+
+
+<04480> + <06654>: 3 occurrences
+  Hebrew: מִצִּדֶּיהָ
+  Structure: 介系詞 מִן + 名詞，複陽 + 3 單陰詞尾
+  Meaning: 旁邊
+  Example: Exod 37:18
+
+  Hebrew: מִצִּדָּהּ
+  Structure: 介系詞 מִן + 名詞，單陽 + 3 單陰詞尾
+  Meaning: 旁邊
+  Example: Exod 37:18
+
+
+<04480> + <00905>: 3 occurrences
+  Hebrew: מִלְּבַד
+  Structure: 介系詞 מִן + 介系詞 לְ + 名詞，陽性單數
+  Meaning: 分開、門閂、片段、延伸物
+  Example: Num 5:8
+
+  Hebrew: מִלְּבַד
+  Structure: 介系詞 מִן + 介系詞 לְ + 名詞，陽性單數
+  Meaning: 分開、門閂、片段、延伸物
+  Example: Num 29:16
+
+
+<04480> + <07486>: 2 occurrences
+  Hebrew: מֵרַעְמְסֵס
+  Structure: 介系詞 מִן + 專有名詞，地名
+  Meaning: 蘭塞
+  Example: Exod 12:37
+
+  Hebrew: מֵרַעְמְסֵס
+  Structure: 介系詞 מִן + 專有名詞，地名
+  Meaning: 蘭塞
+  Example: Num 33:5
+
+
+<04480> + <02205>: 2 occurrences
+  Hebrew: מִזִּקְנֵי
+  Structure: 介系詞 מִן + 形容詞，複陽附屬形
+  Meaning: 年老的
+  Example: Exod 17:5
+
+  Hebrew: מִזִּקְנֵי
+  Structure: 介系詞 מִן + 形容詞，複陽附屬形
+  Meaning: 年老的
+  Example: Exod 24:9
+
+
+<04480> + <01323>: 2 occurrences
+  Hebrew: מִבְּנוֹת
+  Structure: 介系詞 מִן + 名詞，複陰附屬形
+  Meaning: 女兒、女子、孫女、成員、鄉鎮
+  Example: Exod 6:25
+
+  Hebrew: מִבְּנוֹת
+  Structure: 介系詞 מִן + 名詞，複陰附屬形
+  Meaning: 女兒、女子、孫女、成員、鄉鎮
+  Example: Gen 28:6
+
+
+<04480> + <04605>: 2 occurrences
+  Hebrew: מִמַּעַל
+  Structure: 介系詞 מִן + 介系詞(實名詞)
+  Meaning: 上面
+  Example: Gen 22:9
+
+  Hebrew: מִלְמָעְלָה
+  Structure: מִלְמַעְלָה 的停頓型，介系詞 מִן + 介系詞 לְ + 副詞 + 指示方向的詞尾 ָה
+  Meaning: 上面
+  Example: Exod 26:14
+
+
+<04480> + <00423>: 2 occurrences
+  Hebrew: מֵאָלָתִי
+  Structure: 介系詞 מִן + 名詞，單陰 + 1 單詞尾
+  Meaning: 詛咒、發誓
+  Example: Gen 24:41
+
+  Hebrew: מֵאָלָתִי
+  Structure: 介系詞 מִן + 名詞，單陰 + 1 單詞尾
+  Meaning: 詛咒、發誓
+  Example: Gen 24:41
+
+
+<04480> + <02735>: 2 occurrences
+  Hebrew: מֵחֹר
+  Structure: 介系詞 מִן + 專有名詞，地名
+  Meaning: 曷‧哈及甲
+  Example: Num 33:33
+
+  Hebrew: הַגִּדְגָּד
+  Structure: 介系詞 מִן + 專有名詞，地名
+  Meaning: 曷‧哈及甲
+  Example: Num 33:33
+
+
+<04480> + <06529>: 2 occurrences
+  Hebrew: מִפְּרִי
+  Structure: 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 果實、子孫
+  Example: Lev 27:30
+
+  Hebrew: מִפְּרִי
+  Structure: 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 果實
+  Example: Gen 3:2
+
+
+<04480> + <02077>: 2 occurrences
+  Hebrew: מִזִּבְחוֹ
+  Structure: 介系詞 מִן + 名詞，單陽 + 3 單陽詞尾
+  Meaning: 祭、獻祭
+  Example: Exod 34:15
+
+  Hebrew: מִזִּבְחֵי
+  Structure: 介系詞 מִן + 名詞，複陽附屬形
+  Meaning: 祭、獻祭
+  Example: Lev 7:32
+
+
+<04480> + <07130>: 2 occurrences
+  Hebrew: מִקִּרְבּוֹ
+  Structure: 介系詞 מִן + 名詞，單陽 + 3 單陽詞尾
+  Meaning: 裡面、在…中間、內部、內臟、心腸
+  Example: Num 14:13
+
+  Hebrew: מִקֶּרֶב
+  Structure: 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 裡面、在…中間、內部、內臟、心腸
+  Example: Exod 31:14
+
+
+<04480> + <05045>: 2 occurrences
+  Hebrew: מִנֶּגֶב
+  Structure: 介系詞 מִן + 名詞，陽性單數
+  Meaning: 1. 南地、南方；2. 專有名詞：尼格夫
+  Example: Num 34:4
+
+  Hebrew: מִנֶּגֶב
+  Structure: 介系詞 מִן + 名詞，陽性單數
+  Meaning: 1. 南地、南方；2. 專有名詞：尼格夫
+  Example: Num 34:4
+
+
+<04480> + <04283>: 2 occurrences
+  Hebrew: מִמָּחֳרָת
+  Structure: 介系詞 מִן + 名詞，陰性單數
+  Meaning: 翌日
+  Example: Exod 9:6
+
+  Hebrew: מִמָּחֳרַת
+  Structure: 介系詞 מִן + 名詞，單陰附屬形
+  Meaning: 翌日
+  Example: Lev 23:16
+
+
+<04480> + <00120>: 2 occurrences
+  Hebrew: מֵאָדָם
+  Structure: 介系詞 מִן + 名詞，陽性單數
+  Meaning: 人
+  Example: Num 3:13
+
+  Hebrew: מֵאָדָם
+  Structure: 介系詞 מִן + 名詞，陽性單數
+  Meaning: 人
+  Example: Gen 6:7
+
+
+<04480> + <04294>: 2 occurrences
+  Hebrew: מִמַּטּוֹת
+  Structure: 介系詞 מִן + 冠詞 הַ + 名詞，陽性複數
+  Meaning: 杖、支派、分支
+  Example: Num 36:8
+
+  Hebrew: מִמַּטֶּה
+  Structure: 介系詞 מִן + 名詞，陽性單數
+  Meaning: 杖、支派、分支
+  Example: Num 34:18
+
+
+<04480> + <06213>: 2 occurrences
+  Hebrew: מֵעֲשֹׂת
+  Structure: 介系詞 מִן + 動詞，Qal 不定詞附屬形
+  Meaning: 做
+  Example: Gen 18:25
+
+  Hebrew: מֵעֲשֹׂת
+  Structure: 介系詞 מִן + 動詞，Qal 不定詞附屬形
+  Meaning: 做
+  Example: Lev 9:22
+
+
+<04480> + <05676>: 2 occurrences
+  Hebrew: מֵעֵבֶר
+  Structure: 介系詞 מִן + 名詞，陽性單數
+  Meaning: …外、對面、旁邊
+  Example: Num 32:19
+
+  Hebrew: מֵעֵבֶר
+  Structure: 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: …外、對面、旁邊
+  Example: Num 32:19
+
+
+<04480> + <07428>: 2 occurrences
+  Hebrew: מֵרִמֹּן
+  Structure: 介系詞 מִן + 專有名詞，地名
+  Meaning: 臨門‧帕烈
+  Example: Num 33:20
+
+  Hebrew: פָּרֶץ
+  Structure: 介系詞 מִן + 專有名詞，地名。פָּרֶץ 是 פֶּרֶץ 的停頓型。
+  Meaning: 臨門‧帕烈
+  Example: Num 33:20
+
+
+<04480> + <05971>: 2 occurrences
+  Hebrew: מֵעַמֶּיהָ
+  Structure: 介系詞 מִן + 名詞，複陽 + 3 單陰詞尾
+  Meaning: 百姓、人民、軍兵、國家
+  Example: Lev 23:29
+
+  Hebrew: מֵעַמֶּיהָ
+  Structure: 介系詞 מִן + 名詞，複陽 + 3 單陰詞尾
+  Meaning: 百姓、人民、軍兵、國家
+  Example: Num 9:13
+
+
+<04480> + <05523>: 1 occurrences
+  Hebrew: מִסֻּכֹּת
+  Structure: 介系詞 מִן + 專有名詞，地名
+  Meaning: 疏割
+  Example: Num 33:6
+
+<04480> + <02945>: 1 occurrences
+  Hebrew: מִטָּף
+  Structure: 介系詞 מִן + 名詞，陽性單數
+  Meaning: 幼兒、老弱婦孺
+  Example: Exod 12:37
+
+<04480> + <05800>: 1 occurrences
+  Hebrew: מֵעֲזֹב
+  Structure: 介系詞 מִן + 動詞，Qal 不定詞附屬形
+  Meaning: 離棄
+  Example: Exod 23:5
+
+<04480> + <03381>: 1 occurrences
+  Hebrew: מֵרְדָה
+  Structure: 介系詞 מִן + 動詞，Qal 不定詞附屬形 + 指示方向的詞尾 ָה
+  Meaning: 降臨、下去、墜落
+  Example: Gen 46:3
+
+<04480> + <07230>: 1 occurrences
+  Hebrew: מֵרֹב
+  Structure: 介系詞 מִן + 名詞，陽性單數
+  Meaning: 多
+  Example: Gen 32:12
+
+<04480> + <03427>: 1 occurrences
+  Hebrew: מִשֶּׁבֶת
+  Structure: 介系詞 מִן + 動詞，Qal 不定詞附屬形
+  Meaning: 居住、坐、停留
+  Example: Gen 36:7
+
+<04480> + <02023>: 1 occurrences
+  Hebrew: מֵהֹר
+  Structure: 介系詞 מִן + 專有名詞，地名
+  Meaning: 何珥
+  Example: Num 34:8
+
+<04480> + <07344>: 1 occurrences
+  Hebrew: מֵרְחֹבוֹת
+  Structure: 介系詞 מִן + 專有名詞，地名，長寫法
+  Meaning: 利河伯人
+  Example: Gen 36:37
+
+<04480> + <03820>: 1 occurrences
+  Hebrew: מִלִּבִּי
+  Structure: 介系詞 מִן + 名詞，單陽 + 1 單詞尾
+  Meaning: 心
+  Example: Num 24:13
+
+<04480> + <01818>: 1 occurrences
+  Hebrew: מִדַּם
+  Structure: 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 血
+  Example: Lev 4:34
+
+<04480> + <00996>: 1 occurrences
+  Hebrew: מִבֵּין
+  Structure: 介系詞 מִן + 介系詞，附屬形
+  Meaning: 在…之間
+  Example: Exod 25:22
+
+<04480> + <02233>: 1 occurrences
+  Hebrew: מִזֶּרַע
+  Structure: 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 種子、後裔、子孫
+  Example: Lev 27:30
+
+<04480> + <02145>: 1 occurrences
+  Hebrew: מִזָּכָר
+  Structure: 介系詞 מִן + 名詞，陽性單數
+  Meaning: 男人、男的
+  Example: Num 5:3
+
+<04480> + <04295>: 1 occurrences
+  Hebrew: מִלְּמָטָּה
+  Structure: מִלְּמַטָּה 的停頓型，介系詞 מִן + 介系詞 לְ + 副詞
+  Meaning: 在下面
+  Example: Exod 27:5
+
+<04480> + <04639>: 1 occurrences
+  Hebrew: מִמַּעֲשָׂיו
+  Structure: 介系詞 מִן + 名詞，複陽 + 3 單陽詞尾
+  Meaning: 行為、工作
+  Example: Exod 5:4
+
+<04480> + <06485>: 1 occurrences
+  Hebrew: מִפְּקוּדֵי
+  Structure: 介系詞 מִן + 動詞，Qal 被動分詞，複陽附屬形
+  Meaning: 訪問、眷顧、懲罰、派定、計算、缺少
+  Example: Num 26:64
+
+<04480> + <06607>: 1 occurrences
+  Hebrew: מִפֶּתַח
+  Structure: 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 通道、入口
+  Example: Gen 18:2
+
+<04480> + <03068>: 1 occurrences
+  Hebrew: מֵיְהוָה
+  Structure: 這是馬所拉學者把讀型 מֵאֲדֹנָי 的母音標入寫型的子音 מיהוה 所產出的混合字型。按寫型，它是介系詞 מִן + 專有名詞，上帝的名字。上帝名字真正的發音已失傳，學界認為最有可能是 יַהְוֶה (Yahweh 雅威)
+  Meaning: 雅威，尊稱「上主」
+  Example: Gen 18:14
+
+<04480> + <07350>: 1 occurrences
+  Hebrew: מֵרָחֹק
+  Structure: 介系詞 מִן + 形容詞，陽性單數
+  Meaning: 遠方的
+  Example: Gen 22:4
+
+<04480> + <05775>: 1 occurrences
+  Hebrew: מֵעוֹף
+  Structure: 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 鳥
+  Example: Gen 7:3
+
+<04480> + <01755>: 1 occurrences
+  Hebrew: מִדֹּר
+  Structure: 介系詞 מִן + 名詞，陽性單數
+  Meaning: 年代、世代、後代、居所
+  Example: Exod 17:16
+
+<04480> + <05159>: 1 occurrences
+  Hebrew: מִנַּחֲלַת
+  Structure: 介系詞 מִן + 名詞，單陰附屬形
+  Meaning: 產業
+  Example: Num 36:3
+
+<04480> + <01486>: 1 occurrences
+  Hebrew: וּמִגֹּרַל
+  Structure: 連接詞 וְ + 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 份、籤
+  Example: Num 36:3
+
+<04480> + <04957>: 1 occurrences
+  Hebrew: מִמַּשְׂרֵקָה
+  Structure: 介系詞 מִן + 專有名詞，地名
+  Meaning: 瑪士利加
+  Example: Gen 36:36
+
+<04480> + <04399>: 1 occurrences
+  Hebrew: מִמְּלַאכְתּוֹ
+  Structure: 介系詞 מִן + 名詞，單陰 + 3 單陽詞尾
+  Meaning: 工作、財產
+  Example: Exod 36:4
+
+<04480> + <04325>: 1 occurrences
+  Hebrew: מִמֵּי
+  Structure: 介系詞 מִן +名詞，複陽附屬形
+  Meaning: 水
+  Example: Gen 9:11
+
+<04480> + <05647>: 1 occurrences
+  Hebrew: מֵעָבְדֵנוּ
+  Structure: 介系詞 מִן + 動詞，Qal 不定詞附屬形 + 1 複詞尾
+  Meaning: 工作、耕作、敬拜、事奉、服事
+  Example: Exod 14:5
+
+<04480> + <04735>: 1 occurrences
+  Hebrew: וּמִמִּקְנֵה
+  Structure: 連接詞 וְ + 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 牲畜
+  Example: Exod 9:6
+
+<04480> + <04989>: 1 occurrences
+  Hebrew: מִמִּתְקָה
+  Structure: 介系詞 מִן + 專有名詞，地名
+  Meaning: 密加
+  Example: Num 33:29
+
+<04480> + <04975>: 1 occurrences
+  Hebrew: מִמָּתְנַיִם
+  Structure: 介系詞 מִן + 名詞，陽性雙數
+  Meaning: 腰、腹股之間的部份
+  Example: Exod 28:42
+
+<04480> + <04136>: 1 occurrences
+  Hebrew: מִמּוּל
+  Structure: 介系詞 מִן +  介系詞 מּוּל
+  Meaning: 從前面
+  Example: Lev 5:8
+
+<04480> + <03196>: 1 occurrences
+  Hebrew: מִיָּיִן
+  Structure: מִיַּיִן 的停頓型，介系詞 מִן + 名詞，陽性單數
+  Meaning: 酒
+  Example: Gen 49:12
+
+<04480> + <02461>: 1 occurrences
+  Hebrew: מֵחָלָב
+  Structure: 介系詞 מִן + 名詞，陽性單數
+  Meaning: 奶
+  Example: Gen 49:12
+
+<04480> + <06718>: 1 occurrences
+  Hebrew: מִצֵּידוֹ
+  Structure: 介系詞 מִן + 名詞，單陽 + 3 單陽詞尾
+  Meaning: 打獵、獵物
+  Example: Gen 27:30
+
+<04480> + <05038>: 1 occurrences
+  Hebrew: מִנִּבְלָתָהּ
+  Structure: 介系詞 מִן + 名詞，單陰 + 3 單陰詞尾
+  Meaning: 屍體
+  Example: Lev 11:40
+
+<04480> + <01062>: 1 occurrences
+  Hebrew: מִבְּכֹרוֹת
+  Structure: 介系詞 מִן + 名詞，複陰附屬形
+  Meaning: 頭生的
+  Example: Gen 4:4
+
+<04480> + <02459>: 1 occurrences
+  Hebrew: וּמֵחֶלְבֵהֶן
+  Structure: 連接詞 וְ + 介系詞 מִן + 名詞，複陽 + 3 複陰詞尾
+  Meaning: 脂肪、最好的部分
+  Example: Gen 4:4
+
+<04480> + <00430>: 1 occurrences
+  Hebrew: מֵּאֱלֹהֶיךָ
+  Structure: 介系詞 מִן + 名詞，複陽 + 2 單陽詞尾
+  Meaning: 上帝、神、神明
+  Example: Lev 19:32
+
+<04480> + <06758>: 1 occurrences
+  Hebrew: מִצַּלְמֹנָה
+  Structure: 介系詞 מִן + 專有名詞，地名
+  Meaning: 撒摩拿
+  Example: Num 33:42
+
+<04480> + <07097>: 1 occurrences
+  Hebrew: מִקְצֵה
+  Structure: 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 結尾、極處
+  Example: Gen 8:3
+
+<04480> + <01769>: 1 occurrences
+  Hebrew: מִדִּיבֹן
+  Structure: 介系詞 מִן + 專有名詞，地名
+  Meaning: 底本
+  Example: Num 33:46
+
+<04480> + <08034>: 1 occurrences
+  Hebrew: מִשְּׁמֹתָם
+  Structure: 介系詞 מִן + 名詞，複陽 + 3 複陽詞尾
+  Meaning: 名、名字
+  Example: Exod 28:10
+
+<04480> + <04726>: 1 occurrences
+  Hebrew: מִמְּקֹר
+  Structure: 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 泉源
+  Example: Lev 12:7
+
+<04480> + <05650>: 1 occurrences
+  Hebrew: מֵעֲבָדֶיךָ
+  Structure: 介系詞 מִן + 名詞，複陽 + 2 單陽詞尾
+  Meaning: 僕人、奴隸
+  Example: Gen 44:9
+
+<04480> + <00085>: 1 occurrences
+  Hebrew: מֵאַבְרָהָם
+  Structure: 介系詞 מִן + 專有名詞，人名
+  Meaning: 亞伯拉罕
+  Example: Gen 18:17
+
+<04480> + <07093>: 1 occurrences
+  Hebrew: מִקֵּץ
+  Structure: 介系詞 מִן + 名詞，單陽附屬形
+  Meaning: 結尾、尾端
+  Example: Gen 41:1
+
+<04480> + <02088>: 1 occurrences
+  Hebrew: מִזֶּה
+  Structure: 介系詞 מִן + 指示代名詞，陽性單數
+  Meaning: 這個
+  Example: Exod 13:3
+
+<04480> + <00853>: 1 occurrences
+  Hebrew: מֵאֵת
+  Structure: 介系詞 מִן + 受詞記號
+  Meaning: 不必翻譯
+  Example: Num 3:49
+
+<04480> + <00362>: 1 occurrences
+  Hebrew: מֵאֵילִם
+  Structure: 介系詞 מִן + 專有名詞，地名
+  Meaning: 以琳
+  Example: Num 33:10
+
+<04480> + <00227>: 1 occurrences
+  Hebrew: מֵאָז
+  Structure: 介系詞 מִן + 副詞
+  Meaning: 那時、那麼
+  Example: Exod 9:24
+
+<04480> + <08141>: 1 occurrences
+  Hebrew: מִשְּׁנַת
+  Structure: 介系詞 מִן + 名詞，單陰附屬形
+  Meaning: 年、歲
+  Example: Lev 25:50
+
+================================================================================
+SUMMARY
+
+Total unique Strong's numbers combined with מִן: 87
+Total compound prepositions found: 185
+
+True compound prepositions (containing '介系詞 מִן + 介系詞'): 87
+Strong's numbers: ['00085', '00120', '00227', '00362', '00423', '00430', '00776', '00801', '00853', '00854', '00905', '00996', '01004', '01062', '01121', '01323', '01486', '01755', '01769', '01818', '02023', '02077', '02088', '02145', '02205', '02233', '02351', '02459', '02461', '02735', '02945', '03027', '03068', '03196', '03381', '03427', '03605', '03820', '03942', '04057', '04136', '04283', '04294', '04295', '04325', '04399', '04605', '04639', '04714', '04726', '04735', '04940', '04957', '04975', '04989', '05038', '05045', '05159', '05523', '05647', '05650', '05676', '05775', '05800', '05921', '05971', '05973', '06213', '06440', '06485', '06529', '06607', '06654', '06718', '06758', '07093', '07097', '07130', '07230', '07344', '07350', '07428', '07486', '08033', '08034', '08141', '08432']

@@ -17,3 +17,7 @@ Thumbs.db
 
 # LLM-direct SN transfer output (large, machine-generated)
 llm_direct_sn_unv2lcc/output/
+
+# Large binary database files
+original_text_preparation/source_sqlite/*.db
+original_text_preparation/source_sqlite/*.zip

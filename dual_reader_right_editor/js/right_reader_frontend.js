@@ -570,32 +570,61 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function parseStrongsNumbers(text) {
         let result = text;
-        
-        // Format 1: {<WH1234>} or {<WG5678>}
-        result = result.replace(/\{<W([HG])(\d+)>\}/g, (match, lang, number) => {
+
+        // Helper to build a Strong's span
+        function snSpan(lang, number) {
             const strongsId = `${lang}${number}`;
             return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">&lt;${strongsId}&gt;</span>`;
-        });
+        }
+
+        // Format 1: {<WH1234>} or {<WG5678>} — also handles extended prefixes like {<WAH09002>}
+        result = result.replace(/\{<W[A-Z]*([HG])(\d+)>\}/g, (match, lang, number) => snSpan(lang, number));
 
         // Format 2: {H1234} or {G5678}
-        result = result.replace(/\{([HG])(\d+)\}/g, (match, lang, number) => {
-            const strongsId = `${lang}${number}`;
-            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">&lt;${strongsId}&gt;</span>`;
-        });
+        result = result.replace(/\{([HG])(\d+)\}/g, (match, lang, number) => snSpan(lang, number));
 
-        // Format 3: <WH1234> or <WG5678>
-        result = result.replace(/<W([HG])(\d+)>/g, (match, lang, number) => {
-            const strongsId = `${lang}${number}`;
-            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">&lt;${strongsId}&gt;</span>`;
-        });
+        // Format 3: <WH1234> or <WG5678> — also handles <WAH09002>, <WTH8804>, etc.
+        result = result.replace(/<W[A-Z]*([HG])(\d+)>/g, (match, lang, number) => snSpan(lang, number));
 
         // Format 4: (H1234) or (G5678)
-        result = result.replace(/\(([HG])(\d+)\)/g, (match, lang, number) => {
-            const strongsId = `${lang}${number}`;
-            return `<span class="strongs-number" data-strong="${strongsId}" title="Strong's ${strongsId}">&lt;${strongsId}&gt;</span>`;
-        });
-        
+        result = result.replace(/\(([HG])(\d+)\)/g, (match, lang, number) => snSpan(lang, number));
+
         return result;
+    }
+
+    /**
+     * If version is LCC and Strong's is enabled, try fetching AI-inserted SN data
+     * and replacing verse texts with the SN-annotated versions.
+     * @param {object} data - Chapter data with data.verses array
+     * @param {string} bookChinese - Chinese book abbreviation (e.g. "創")
+     * @param {number|string} chapter - Chapter number
+     * @param {string} version - Version code (e.g. "lcc")
+     * @param {boolean} showStrongs - Whether Strong's toggle is checked
+     */
+    async function applyLccSnIfAvailable(data, bookChinese, chapter, version, showStrongs) {
+        if (version !== 'lcc' || !showStrongs) return;
+        try {
+            const lccSnUrl = `/api/lcc-sn?chineses=${encodeURIComponent(bookChinese)}&chapter=${chapter}`;
+            const lccSnResp = await fetch(lccSnUrl);
+            if (lccSnResp.ok) {
+                const lccSnData = await lccSnResp.json();
+                if (lccSnData.verses && lccSnData.count > 0) {
+                    let replaced = 0;
+                    data.verses.forEach(v => {
+                        const snEntry = lccSnData.verses[String(v.verse)];
+                        if (snEntry && snEntry.lcc_sn) {
+                            v.text = snEntry.lcc_sn;
+                            v.aiSN = true;
+                            v.confidence = snEntry.confidence;
+                            replaced++;
+                        }
+                    });
+                    logStatus(`LCC+SN: ${replaced}/${data.verses.length} verses with AI Strong's Numbers`);
+                }
+            }
+        } catch (e) {
+            console.log('RightReader: LCC+SN endpoint not available, using plain LCC');
+        }
     }
 
     /**
@@ -678,6 +707,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log(`RightReader: Loaded ${data.verses.length} verses from FHL API`);
             logStatus(`✅ Loaded ${data.verses.length} verses successfully`);
+
+            // If LCC with Strong's enabled, try loading AI-inserted SN data
+            await applyLccSnIfAvailable(data, book, chapter, version, strong === '1');
 
             renderChapter(data);
             
@@ -765,6 +797,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log(`SecondReader: Loaded ${data.verses.length} verses from FHL API`);
             logStatus(`✅ Loaded ${data.verses.length} verses successfully`);
+
+            // If LCC with Strong's enabled, try loading AI-inserted SN data
+            await applyLccSnIfAvailable(data, currentBookChinese, currentChapter, selectedVersion, showStrongs);
+
             renderChapter(data);
         } catch (error) {
             console.error('SecondReader: Error loading/displaying chapter content:', error);
@@ -801,7 +837,9 @@ document.addEventListener('DOMContentLoaded', () => {
         htmlContent += `</h3>`;
 
         data.verses.forEach(verse => {
-            htmlContent += `<p class="verse" data-verse="${verse.verse}">`;
+            const aiClass = verse.aiSN ? ' ai-sn' : '';
+            const aiTitle = verse.aiSN ? ` title="AI SN (confidence: ${(verse.confidence * 100).toFixed(0)}%)"` : '';
+            htmlContent += `<p class="verse${aiClass}" data-verse="${verse.verse}"${aiTitle}>`;
             htmlContent += `<span class="verse-number">${verse.verse}</span> `;
 
             // Clean and parse verse text
@@ -811,11 +849,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.strong) {
                 verseText = parseStrongsNumbers(verseText);
             } else {
-                // Remove Strong's number tags if toggle is off (all formats including FHL format)
-                verseText = verseText.replace(/<W[HG]\d+>/g, '');       // <WH123> - FHL format
-                verseText = verseText.replace(/<[HG]\d+>/g, '');        // <H123> - Alternative format
-                verseText = verseText.replace(/\{<W[HG]\d+>\}/g, '');   // {<WH123>} - Wrapped format
-                verseText = verseText.replace(/\{[HG]\d+\}/g, '');      // {H123} - Simple format
+                // Remove Strong's number tags if toggle is off (all formats including extended prefixes)
+                verseText = verseText.replace(/<W[A-Z]*[HG]\d+>/g, '');       // <WH123>, <WAH09002>, <WTH8804>
+                verseText = verseText.replace(/<[HG]\d+>/g, '');              // <H123> - Alternative format
+                verseText = verseText.replace(/\{<W[A-Z]*[HG]\d+>\}/g, '');   // {<WH123>}, {<WAH09002>}
+                verseText = verseText.replace(/\{[HG]\d+\}/g, '');            // {H123} - Simple format
             }
             htmlContent += verseText;
             htmlContent += `</p>`;

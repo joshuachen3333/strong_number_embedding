@@ -89,6 +89,12 @@ h1 {
     text-decoration: underline;
 }
 
+/* AI-inserted Strong's Numbers indicator */
+.verse.ai-sn {
+    border-left: 3px solid #17a2b8;
+    padding-left: 6px;
+}
+
 /* Verse highlighting for synchronization */
 .verse-highlighted {
     background-color: #fff3cd;

@@ -1,0 +1,46 @@
+# AI Resolution Configuration for UNV+SN Hybrid Parser
+
+# AI Mode
+# - "disabled": Only Stage 1, no AI resolution
+# - "conservative": AI suggests, human always reviews low confidence
+# - "aggressive": AI auto-applies high-confidence decisions
+ai_mode: conservative
+
+# Model Selection
+# - "claude-sonnet-4-5-20250929": Best accuracy, higher cost (default)
+# - "claude-sonnet-3-5-20240620": Good balance
+# - "claude-haiku-3-5-20241022": Fast, lower cost (for POS inference only)
+ai_model: claude-sonnet-4-5-20250929
+
+# Certainty Thresholds
+certainty_threshold: 0.8          # Stage 1 must be ≥0.8 to skip AI
+ai_auto_accept_threshold: 0.85    # AI must be ≥0.85 to auto-accept
+
+# Resolution Types to Enable
+enable_brace_prep_resolution: true
+enable_pos_inference: true
+enable_construct_state_detection: false  # v1.2-B optional feature
+enable_data_mismatch_resolution: true
+
+# API Settings
+api_timeout_seconds: 30
+max_retries: 3
+cache_ai_responses: true  # Cache identical prompts for 15 min
+
+# Human Review
+human_review_queue_dir: human_review_queue
+notify_on_review_needed: false  # Future: email/webhook notification
+
+# Confidence Calibration
+enable_confidence_calibration: true
+calibration_history_file: ai_confidence_history.json
+
+# Logging
+log_ai_decisions: true
+ai_log_file: logs/ai_decisions.log
+
+# Output Directories
+output_dir: output
+uncertain_suffix: _uncertain
+ai_resolved_suffix: _ai_resolved
+review_suffix: _review

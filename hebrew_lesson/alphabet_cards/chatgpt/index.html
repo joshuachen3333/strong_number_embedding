@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hebrew Print Stroke Demo — Full Alef-Bet (No Niqqud)</title>
+  <style>
+    :root{
+      --bg:#0b0c10;
+      --panel:#12131a;
+      --text:#e8e8ee;
+      --muted:#a8a8b6;
+      --line:rgba(255,255,255,.12);
+      --ghost:rgba(255,255,255,.18);
+      --ink:rgba(255,255,255,.92);
+      --pen:rgba(255,255,255,.95);
+      --penGlow:rgba(255,255,255,.35);
+      --grid:rgba(255,255,255,.06);
+    }
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:radial-gradient(1200px 800px at 20% 10%, #14162a, var(--bg));
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+      display:grid;
+      place-items:center;
+    }
+    .app{
+      width:min(1100px, 96vw);
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:14px;
+      padding:14px;
+    }
+    .card{
+      background:color-mix(in oklab, var(--panel), #000 10%);
+      border:1px solid var(--line);
+      border-radius:16px;
+      box-shadow:0 10px 35px rgba(0,0,0,.35);
+      overflow:hidden;
+    }
+    .controls{padding:14px}
+    .controls h1{font-size:16px;margin:0 0 6px 0;letter-spacing:.2px}
+    .controls p{margin:0 0 12px 0;color:var(--muted);font-size:12.5px;line-height:1.45}
+    label{display:block;font-size:12px;color:var(--muted);margin:12px 0 6px}
+    select,input[type="range"],button{
+      width:100%;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      color:var(--text);
+      padding:10px 12px;
+      font-size:14px;
+      outline:none;
+    }
+    select{cursor:pointer}
+    .row{display:flex;gap:10px}
+    .row>*{flex:1}
+    button{
+      cursor:pointer;
+      background:rgba(255,255,255,.08);
+      transition:transform .06s ease, background .2s ease;
+    }
+    button:hover{background:rgba(255,255,255,.12)}
+    button:active{transform:translateY(1px)}
+    .toggles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .toggle{
+      display:flex;align-items:center;gap:8px;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:rgba(255,255,255,.04);
+      user-select:none;
+      cursor:pointer;
+      font-size:13px;
+      color:var(--muted);
+    }
+    .toggle input{width:auto}
+    .stage{
+      display:grid;
+      place-items:center;
+      padding:14px;
+      min-height:560px;
+      position:relative;
+      background:
+        linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 24px 24px,
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 24px 24px,
+        radial-gradient(800px 400px at 50% 0%, rgba(255,255,255,.06), transparent 60%);
+    }
+    .svgWrap{width:min(560px, 92%);aspect-ratio:1/1;position:relative}
+    svg{width:100%;height:100%;display:block}
+    .guide line{
+      stroke:var(--ghost);
+      stroke-width:2;
+      stroke-dasharray:6 6;
+    }
+    .outline path{
+      stroke:var(--ghost);
+      stroke-width:18;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+      fill:none;
+    }
+    .stroke path{
+      stroke:var(--ink);
+      stroke-width:18;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+      fill:none;
+      filter:drop-shadow(0 2px 2px rgba(0,0,0,.25));
+    }
+    .penDot{
+      fill:var(--pen);
+      filter:drop-shadow(0 0 10px var(--penGlow));
+    }
+    .strokeNum{
+      font-size:14px;
+      fill:rgba(255,255,255,.75);
+      paint-order:stroke;
+      stroke:rgba(0,0,0,.35);
+      stroke-width:4px;
+    }
+    .glyphTag{
+      font-size:18px;
+      fill:rgba(255,255,255,.85);
+      paint-order:stroke;
+      stroke:rgba(0,0,0,.35);
+      stroke-width:5px;
+    }
+    details{
+      margin-top:12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+      background:rgba(255,255,255,.03);
+      color:var(--muted);
+      font-size:12.5px;
+    }
+    details summary{cursor:pointer;color:rgba(255,255,255,.75)}
+    .refImg{
+      width:100%;
+      margin-top:10px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      display:block;
+    }
+    .note{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.4;
+    }
+    code.kbd{
+      padding:2px 6px;border-radius:8px;background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      font-size:11.5px;color:rgba(255,255,255,.85);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="card controls">
+      <h1>Hebrew print（印刷體）筆順 demo</h1>
+      <p>
+        這個 demo 會依序畫出每個字母的 strokes，並讓「筆尖點」沿著 path 移動。<br/>
+        <b>不含 niqqud</b>，包含常見變體（dagesh、shin/sin dot、final forms）。
+      </p>
+
+      <label for="letter">Letter / Variant</label>
+      <select id="letter"></select>
+
+      <div class="row">
+        <div>
+          <label for="speed">Speed</label>
+          <input id="speed" type="range" min="0.35" max="2.2" step="0.05" value="1.0" />
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button id="play">Replay</button>
+        </div>
+      </div>
+
+      <div class="toggles">
+        <label class="toggle"><input id="showGuide" type="checkbox" checked /> Guide lines</label>
+        <label class="toggle"><input id="showNums" type="checkbox" checked /> Stroke numbers</label>
+      </div>
+
+      <details>
+        <summary>顯示參考筆順圖（同資料夾的 chart.jpg）</summary>
+        <img class="refImg" alt="reference chart" src="chart.jpg" />
+        <div class="note">
+          把 <code class="kbd">index.html</code> 和 <code class="kbd">chart.jpg</code> 放同一個資料夾即可。
+        </div>
+      </details>
+
+      <div class="note">
+        直接雙擊開啟 <code class="kbd">index.html</code>。若圖看不到，請確認檔名就是 <b>chart.jpg</b>（大小寫一致）。
+      </div>
+    </div>
+
+    <div class="card stage">
+      <div class="svgWrap">
+        <svg viewBox="0 0 200 200" aria-label="stroke demo">
+          <g class="guide" id="guide">
+            <line x1="18" y1="44" x2="182" y2="44"></line>
+            <line x1="18" y1="107" x2="182" y2="107"></line>
+            <line x1="18" y1="170" x2="182" y2="170"></line>
+          </g>
+
+          <g class="outline" id="outline"></g>
+          <g class="stroke" id="strokes"></g>
+          <g id="nums"></g>
+
+          <text id="glyphTag" class="glyphTag" x="18" y="26"></text>
+          <circle id="pen" class="penDot" r="6" cx="0" cy="0" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Helper: dot as a stroke (so pen tip can animate it too).
+    function circlePath(cx, cy, r){
+      const x1 = cx + r, x2 = cx - r;
+      return `M ${x1} ${cy} A ${r} ${r} 0 1 0 ${x2} ${cy} A ${r} ${r} 0 1 0 ${x1} ${cy}`;
+    }
+
+    /**
+     * IMPORTANT:
+     * - This file encodes stroke order & direction as explicit SVG paths.
+     * - Geometry is demo-grade approximation; order/direction is the focus.
+     */
+    const letters = {
+      // 22 letters + final forms + common dot variants
+      alef: { name:"Alef", glyph:"א", strokes:[
+        { d:"M 145 60 L 110 90" },        // 1
+        { d:"M 70 60 L 150 150" },        // 2
+        { d:"M 85 95 L 60 150" }          // 3
+      ]},
+
+      bet_dagesh: { name:"Bet (with dagesh)", glyph:"בּ", strokes:[
+        { d:"M 70 60 L 150 60 L 150 150" },  // 1
+        { d:"M 70 150 L 155 150" },          // 2
+        { d: circlePath(112, 108, 6) }       // 3
+      ]},
+      vet: { name:"Vet (no dagesh)", glyph:"ב", strokes:[
+        { d:"M 70 60 L 150 60 L 150 150" },
+        { d:"M 70 150 L 155 150" }
+      ]},
+
+      gimel: { name:"Gimel", glyph:"ג", strokes:[
+        { d:"M 85 60 L 150 60 L 150 145" },  // 1
+        { d:"M 150 110 L 95 150" }           // 2
+      ]},
+
+      dalet: { name:"Dalet", glyph:"ד", strokes:[
+        { d:"M 70 60 L 150 60" },            // 1
+        { d:"M 150 60 L 150 150" }           // 2
+      ]},
+
+      he: { name:"He", glyph:"ה", strokes:[
+        { d:"M 70 60 L 150 60 L 150 150" },  // 1
+        { d:"M 70 60 L 70 115" }             // 2
+      ]},
+
+      vav: { name:"Vav", glyph:"ו", strokes:[
+        { d:"M 142 60 Q 128 52 122 64 L 122 150" } // 1
+      ]},
+
+      zayin: { name:"Zayin", glyph:"ז", strokes:[
+        { d:"M 80 60 L 150 60" },                 // 1
+        { d:"M 150 60 L 150 120 L 120 150" }      // 2
+      ]},
+
+      het: { name:"Het", glyph:"ח", strokes:[
+        { d:"M 70 60 L 150 60 L 150 150" },       // 1
+        { d:"M 70 60 L 70 150" }                  // 2
+      ]},
+
+      tet: { name:"Tet", glyph:"ט", strokes:[
+        { d:"M 85 60 L 140 60 L 140 120" },       // 1
+        { d:"M 85 60 C 60 95 60 140 95 155 C 130 170 155 140 140 105 C 130 80 105 80 95 98" } // 2
+      ]},
+
+      yod: { name:"Yud", glyph:"י", strokes:[
+        { d:"M 140 70 Q 122 58 120 78 Q 118 100 102 104" } // 1
+      ]},
+
+      kaf_dagesh: { name:"Kaf (with dagesh)", glyph:"כּ", strokes:[
+        { d:"M 80 60 L 150 60 L 150 120" },       // 1
+        { d:"M 150 120 C 150 165 80 165 80 120" },// 2
+        { d: circlePath(120, 108, 6) }            // 3
+      ]},
+      chaf: { name:"Chaf (no dagesh)", glyph:"כ", strokes:[
+        { d:"M 80 60 L 150 60 L 150 120" },
+        { d:"M 150 120 C 150 165 80 165 80 120" }
+      ]},
+      final_chaf: { name:"Final Chaf", glyph:"ך", strokes:[
+        { d:"M 80 60 L 150 60" },                 // 1
+        { d:"M 150 60 L 150 175" }                // 2
+      ]},
+
+      lamed: { name:"Lamed", glyph:"ל", strokes:[
+        { d:"M 120 30 L 120 60" },                // 1
+        { d:"M 120 60 L 95 60" },                 // 2
+        { d:"M 95 60 L 95 135 C 95 155 112 165 128 165 C 150 165 158 148 152 120" } // 3
+      ]},
+
+      mem: { name:"Mem", glyph:"מ", strokes:[
+        { d:"M 80 60 L 110 95" },                 // 1
+        { d:"M 110 60 L 150 60 L 150 150 L 80 150 L 80 95" } // 2
+      ]},
+      final_mem: { name:"Final Mem", glyph:"ם", strokes:[
+        { d:"M 80 60 L 150 60 L 150 150" },       // 1
+        { d:"M 150 150 L 80 150" },               // 2
+        { d:"M 80 150 L 80 60" }                  // 3
+      ]},
+
+      nun: { name:"Nun", glyph:"נ", strokes:[
+        { d:"M 90 60 L 150 60 L 150 145" },       // 1
+        { d:"M 150 145 L 100 145" }               // 2
+      ]},
+      final_nun: { name:"Final Nun", glyph:"ן", strokes:[
+        { d:"M 130 60 L 130 175" }                // 1
+      ]},
+
+      samekh: { name:"Samekh", glyph:"ס", strokes:[
+        { d:"M 80 60 L 150 60" },                 // 1
+        { d:"M 150 60 C 158 105 145 150 115 155 C 85 160 68 120 80 60" } // 2
+      ]},
+
+      ayin: { name:"Ayin", glyph:"ע", strokes:[
+        { d:"M 135 60 L 120 145" },               // 1
+        { d:"M 90 60 L 110 145 L 75 155" }        // 2
+      ]},
+
+      pe_dagesh: { name:"Pe (with dagesh)", glyph:"פּ", strokes:[
+        { d:"M 80 60 L 150 60 L 150 150" },       // 1
+        { d:"M 150 150 L 80 150" },               // 2
+        { d: `M 80 105 L 120 105 L 120 90 ${circlePath(112,112,6)}` } // 3
+      ]},
+      fe: { name:"Fe (no dagesh)", glyph:"פ", strokes:[
+        { d:"M 80 60 L 150 60 L 150 150" },       // 1
+        { d:"M 150 150 L 80 150" },               // 2
+        { d:"M 80 105 L 120 105 L 120 90" }       // 3
+      ]},
+      final_fe: { name:"Final Fe", glyph:"ף", strokes:[
+        { d:"M 80 60 L 150 60 L 150 175" },       // 1
+        { d:"M 80 60 L 80 95 L 120 95" }          // 2
+      ]},
+
+      tsadi: { name:"Tsadi", glyph:"צ", strokes:[
+        { d:"M 90 65 L 90 150" },                 // 1
+        { d:"M 140 65 L 110 120 L 125 150" },     // 2
+        { d:"M 145 150 L 70 150" }                // 3
+      ]},
+      final_tsadi: { name:"Final Tsadi", glyph:"ץ", strokes:[
+        { d:"M 100 60 L 100 175" },               // 1
+        { d:"M 140 75 L 110 125" }                // 2
+      ]},
+
+      qof: { name:"Qof", glyph:"ק", strokes:[
+        { d:"M 80 60 L 150 60" },                 // 1
+        { d:"M 150 60 L 150 100 C 150 145 115 150 110 150" }, // 2
+        { d:"M 95 75 L 95 175" }                  // 3
+      ]},
+
+      resh: { name:"Resh", glyph:"ר", strokes:[
+        { d:"M 80 60 L 150 60 L 150 150" }        // 1
+      ]},
+
+      shin: { name:"Shin (dot right)", glyph:"שׁ", strokes:[
+        { d:"M 150 60 L 150 150 L 80 150" },      // 1
+        { d:"M 120 60 L 105 150 L 80 60 L 80 150" }, // 2
+        { d: circlePath(138, 52, 4) }             // 3
+      ]},
+      sin: { name:"Sin (dot left)", glyph:"שׂ", strokes:[
+        { d:"M 150 60 L 150 150 L 80 150" },
+        { d:"M 120 60 L 105 150 L 80 60 L 80 150" },
+        { d: circlePath(96, 52, 4) }
+      ]},
+
+      tav_dagesh: { name:"Tav (with dagesh)", glyph:"תּ", strokes:[
+        { d:"M 80 60 L 150 60 L 150 150" },       // 1
+        { d:"M 80 60 L 80 150" },                 // 2
+        { d: circlePath(116, 110, 6) }            // 3
+      ]},
+      tav: { name:"Tav (no dagesh)", glyph:"ת", strokes:[
+        { d:"M 80 60 L 150 60 L 150 150" },
+        { d:"M 80 60 L 80 150" }
+      ]}
+    };
+
+    const ORDER = [
+      "alef",
+      "bet_dagesh","vet",
+      "gimel","dalet","he",
+      "vav","zayin","het","tet","yod",
+      "kaf_dagesh","chaf","final_chaf",
+      "lamed",
+      "mem","final_mem",
+      "nun","final_nun",
+      "samekh",
+      "ayin",
+      "pe_dagesh","fe","final_fe",
+      "tsadi","final_tsadi",
+      "qof","resh",
+      "shin","sin",
+      "tav_dagesh","tav"
+    ];
+
+    const strokesG = document.getElementById("strokes");
+    const outlineG = document.getElementById("outline");
+    const numsG = document.getElementById("nums");
+    const pen = document.getElementById("pen");
+    const guide = document.getElementById("guide");
+    const glyphTag = document.getElementById("glyphTag");
+
+    const letterSel = document.getElementById("letter");
+    const speedSlider = document.getElementById("speed");
+    const playBtn = document.getElementById("play");
+    const showGuide = document.getElementById("showGuide");
+    const showNums = document.getElementById("showNums");
+
+    for (const key of ORDER){
+      const spec = letters[key];
+      const opt = document.createElement("option");
+      opt.value = key;
+      opt.textContent = `${spec.name} (${spec.glyph})`;
+      letterSel.appendChild(opt);
+    }
+
+    let raf = null;
+    let state = null;
+
+    function clearNode(node){ while(node.firstChild) node.removeChild(node.firstChild); }
+    function makePath(d){
+      const p = document.createElementNS("http://www.w3.org/2000/svg","path");
+      p.setAttribute("d", d);
+      return p;
+    }
+    function makeText(n, x, y){
+      const t = document.createElementNS("http://www.w3.org/2000/svg","text");
+      t.setAttribute("class","strokeNum");
+      t.setAttribute("x", x);
+      t.setAttribute("y", y);
+      t.textContent = String(n);
+      return t;
+    }
+
+    function build(letterKey){
+      const spec = letters[letterKey];
+      clearNode(outlineG);
+      clearNode(strokesG);
+      clearNode(numsG);
+
+      glyphTag.textContent = spec.glyph;
+
+      // Outline
+      for (const s of spec.strokes) outlineG.appendChild(makePath(s.d));
+
+      // Strokes
+      const strokeEls = spec.strokes.map(s=>{
+        const p = makePath(s.d);
+        strokesG.appendChild(p);
+        return p;
+      });
+
+      // Dash setup
+      const lengths = strokeEls.map(p => p.getTotalLength());
+      strokeEls.forEach((p,i)=>{
+        const L = lengths[i];
+        p.style.strokeDasharray = `${L} ${L}`;
+        p.style.strokeDashoffset = String(L);
+      });
+
+      // Auto stroke numbers (placed near first 18% of each stroke)
+      strokeEls.forEach((p,i)=>{
+        const L = lengths[i];
+        const t = Math.min(Math.max(10, L*0.18), L);
+        const pt = p.getPointAtLength(t);
+        numsG.appendChild(makeText(i+1, pt.x + 6, pt.y - 6));
+      });
+
+      // Pen to first stroke start
+      const p0 = strokeEls[0].getPointAtLength(0);
+      pen.setAttribute("cx", p0.x);
+      pen.setAttribute("cy", p0.y);
+
+      return { strokeEls, lengths, spec };
+    }
+
+    function stop(){
+      if (raf) cancelAnimationFrame(raf);
+      raf = null;
+      state = null;
+    }
+
+    function start(letterKey){
+      stop();
+      const built = build(letterKey);
+
+      const speedFactor = () => Number(speedSlider.value);
+      const pxPerSecondBase = 230;
+
+      state = {
+        ...built,
+        i: 0,
+        drawn: 0,
+        lastTs: null,
+        pauseUntil: 0
+      };
+
+      raf = requestAnimationFrame(tick);
+
+      function tick(ts){
+        if (!state) return;
+
+        if (state.lastTs === null) state.lastTs = ts;
+        const dt = (ts - state.lastTs) / 1000;
+        state.lastTs = ts;
+
+        if (state.pauseUntil && ts < state.pauseUntil){
+          raf = requestAnimationFrame(tick);
+          return;
+        }
+
+        const { strokeEls, lengths } = state;
+        const i = state.i;
+
+        if (i >= strokeEls.length){
+          // hold pen at end
+          const lastPath = strokeEls[strokeEls.length - 1];
+          const L = lengths[lengths.length - 1];
+          const pt = lastPath.getPointAtLength(L);
+          pen.setAttribute("cx", pt.x);
+          pen.setAttribute("cy", pt.y);
+          raf = requestAnimationFrame(tick);
+          return;
+        }
+
+        const path = strokeEls[i];
+        const L = lengths[i];
+
+        state.drawn = Math.min(L, state.drawn + (pxPerSecondBase * speedFactor()) * dt);
+        path.style.strokeDashoffset = String(L - state.drawn);
+
+        const pt = path.getPointAtLength(state.drawn);
+        pen.setAttribute("cx", pt.x);
+        pen.setAttribute("cy", pt.y);
+
+        if (state.drawn >= L){
+          state.i += 1;
+          state.drawn = 0;
+
+          if (state.i < strokeEls.length){
+            const nextPath = strokeEls[state.i];
+            const np = nextPath.getPointAtLength(0);
+            pen.setAttribute("cx", np.x);
+            pen.setAttribute("cy", np.y);
+            state.pauseUntil = ts + 220; // pen-lift pause
+          }
+        }
+
+        raf = requestAnimationFrame(tick);
+      }
+    }
+
+    playBtn.addEventListener("click", () => start(letterSel.value));
+    letterSel.addEventListener("change", () => start(letterSel.value));
+
+    showGuide.addEventListener("change", () => {
+      guide.style.display = showGuide.checked ? "block" : "none";
+    });
+    showNums.addEventListener("change", () => {
+      numsG.style.display = showNums.checked ? "block" : "none";
+    });
+
+    start(letterSel.value || ORDER[0]);
+  </script>
+</body>
+</html>
+

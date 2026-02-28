@@ -1,0 +1,4 @@
+Starting batch parse of Genesis (all 50 chapters)...
+Start time: Mon Dec  8 03:42:16 CST 2025
+./batch_parse_genesis_all_50.sh: line 11: declare: -A: invalid option
+declare: usage: declare [-afFirtx] [-p] [name[=value] ...]

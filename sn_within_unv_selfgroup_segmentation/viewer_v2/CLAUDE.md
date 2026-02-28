@@ -72,13 +72,13 @@ Quick reference of all functions by file. Use this to find existing solutions be
 | Function | Purpose |
 |----------|---------|
 | `loadManifest()` | Load `manifest.json` with caching |
-| `loadParsedVerse(book, chapter, verse)` | Load parsed output file (or `_uncertain` variant) |
-| `fetchChapterFromAPI(book, chapter)` | Fetch UNV chapter from FHL API |
-| `fetchKJVChapterFromAPI(book, chapter)` | Fetch KJV chapter from FHL API |
-| `fetchLCCChapterFromAPI(book, chapter)` | Fetch LCC (呂振中) chapter from FHL API |
+| `loadParsedVerse(book, chap, sec)` | Load parsed output file (or `_uncertain` variant) |
+| `fetchChapterFromAPI(book, chap)` | Fetch UNV chapter from FHL API |
+| `fetchKJVChapterFromAPI(book, chap)` | Fetch KJV chapter from FHL API |
+| `fetchLCCChapterFromAPI(book, chap)` | Fetch LCC (呂振中) chapter from FHL API |
 | `parseSections(content)` | Split parsed output into `{parsed, raw, notes, specRefs}` |
 | `getChapters(book)` | Get available chapters for a book |
-| `getVerseInfo(book, chapter)` | Get verse list for a chapter |
+| `getVerseInfo(book, chap)` | Get verse list for a chapter |
 
 ### navigation.js — Keyboard & URL Navigation
 | Function | Purpose |

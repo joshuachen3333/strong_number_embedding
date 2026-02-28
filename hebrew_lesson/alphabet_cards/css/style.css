@@ -1,0 +1,706 @@
+/* Hebrew Alphabet Cards - Stylesheet */
+
+:root {
+    --primary-color: #1a237e;
+    --secondary-color: #3949ab;
+    --accent-color: #ff5722;
+    --bg-color: #fafafa;
+    --card-bg: #ffffff;
+    --text-color: #212121;
+    --text-light: #757575;
+    --border-color: #e0e0e0;
+    --final-color: #2e7d32;
+    --vowel-color: #7b1fa2;
+    --highlight-letter: #d32f2f;
+    --shadow: 0 2px 8px rgba(0,0,0,0.1);
+    --shadow-hover: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+/* Page Structure */
+.page {
+    display: none;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+.page.active {
+    display: block;
+}
+
+/* Overview Page */
+#overview-page {
+    max-width: 1000px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+#overview-page h1 {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+    font-family: "SBL Hebrew", "Ezra SIL", serif;
+}
+
+#overview-page .subtitle {
+    font-size: 1.2rem;
+    color: var(--text-light);
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+#overview-page .hint {
+    color: var(--text-light);
+    margin-bottom: 2rem;
+}
+
+/* Letter Grid */
+.letter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 15px;
+    margin-bottom: 2rem;
+}
+
+.grid-item {
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 15px 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.grid-item:hover {
+    border-color: var(--secondary-color);
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-2px);
+}
+
+.grid-item .letter {
+    font-size: 2.5rem;
+    font-family: "SBL Hebrew", "Ezra SIL", serif;
+    color: var(--primary-color);
+    line-height: 1.2;
+}
+
+.grid-item .name {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-top: 5px;
+}
+
+.grid-item .badges {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: flex;
+    gap: 3px;
+}
+
+/* Badges */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: white;
+}
+
+.badge-f {
+    background: var(--final-color);
+}
+
+.badge-v {
+    background: var(--vowel-color);
+}
+
+/* Legend */
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Card Page */
+#card-page {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Navigation */
+.card-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+    background: var(--secondary-color);
+    color: white;
+    border-color: var(--secondary-color);
+}
+
+.nav-btn .arrow {
+    font-weight: bold;
+}
+
+.nav-center {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.position-indicator {
+    font-size: 1rem;
+    color: var(--text-light);
+    min-width: 60px;
+    text-align: center;
+}
+
+/* Card Container */
+.card-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+@media (max-width: 800px) {
+    .card-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Main Card */
+.card-main {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: var(--shadow);
+}
+
+.letter-display {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.big-letter {
+    font-size: 8rem;
+    font-family: "SBL Hebrew", "Ezra SIL", serif;
+    color: var(--primary-color);
+    line-height: 1;
+    margin-bottom: 10px;
+    transition: all 0.3s ease, transform 0.3s ease;
+}
+
+.big-letter.changing {
+    transform: scale(0.9);
+    opacity: 0.5;
+}
+
+.big-letter.final-form {
+    color: var(--final-color);
+}
+
+.big-letter.vowel-form {
+    color: var(--vowel-color);
+}
+
+.letter-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.letter-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.romanization-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    user-select: none;
+    padding: 2px 8px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    transition: all 0.2s ease;
+}
+
+.romanization-checkbox:hover {
+    background: #e0e0e0;
+}
+
+.romanization-checkbox input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--secondary-color);
+    cursor: pointer;
+}
+
+.romanization-text {
+    color: var(--text-light);
+}
+
+.romanization-checkbox input:checked + .romanization-text {
+    color: var(--secondary-color);
+}
+
+.letter-sound {
+    font-size: 1rem;
+    color: var(--text-light);
+    margin-top: 5px;
+}
+
+/* Form Indicators */
+.form-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.form-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.form-btn:hover {
+    border-color: var(--secondary-color);
+}
+
+.form-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(26, 35, 126, 0.3);
+}
+
+.form-btn.active .badge {
+    background: white;
+    color: var(--primary-color);
+}
+
+/* Toggle ON state for F/V buttons */
+.form-btn.toggle-on {
+    background: var(--final-color);
+    color: white;
+    border-color: var(--final-color);
+    box-shadow: 0 2px 8px rgba(46, 125, 50, 0.4);
+}
+
+.form-btn.toggle-on.vowel-btn {
+    background: var(--vowel-color);
+    border-color: var(--vowel-color);
+    box-shadow: 0 2px 8px rgba(123, 31, 162, 0.4);
+}
+
+.form-btn.toggle-on .badge {
+    background: white;
+}
+
+.form-btn.toggle-on .badge-f {
+    color: var(--final-color);
+}
+
+.form-btn.toggle-on .badge-v {
+    color: var(--vowel-color);
+}
+
+/* Pulse animation for active toggle */
+@keyframes pulse-green {
+    0%, 100% { box-shadow: 0 2px 8px rgba(46, 125, 50, 0.4); }
+    50% { box-shadow: 0 4px 16px rgba(46, 125, 50, 0.6); }
+}
+
+@keyframes pulse-purple {
+    0%, 100% { box-shadow: 0 2px 8px rgba(123, 31, 162, 0.4); }
+    50% { box-shadow: 0 4px 16px rgba(123, 31, 162, 0.6); }
+}
+
+.form-btn.toggle-on:not(.vowel-btn) {
+    animation: pulse-green 2s ease-in-out infinite;
+}
+
+.form-btn.toggle-on.vowel-btn {
+    animation: pulse-purple 2s ease-in-out infinite;
+}
+
+.form-btn.hidden {
+    display: none;
+}
+
+/* Controls */
+.controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.control-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    background: var(--secondary-color);
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.control-btn:hover {
+    background: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+.control-btn .icon {
+    font-size: 1.2rem;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle-switch input {
+    display: none;
+}
+
+.toggle-slider {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: #ccc;
+    border-radius: 24px;
+    transition: background 0.3s ease;
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: var(--secondary-color);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(20px);
+}
+
+.toggle-label {
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+/* Stroke Animation Area */
+.stroke-area {
+    background: #f5f5f5;
+    border-radius: 12px;
+    padding: 20px;
+    display: none;
+}
+
+.stroke-area.active {
+    display: block;
+}
+
+.stroke-svg {
+    width: 100%;
+    max-width: 200px;
+    height: 200px;
+    margin: 0 auto;
+    display: block;
+}
+
+.stroke-path {
+    fill: none;
+    stroke: var(--primary-color);
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.stroke-path-guide {
+    fill: none;
+    stroke: #e0e0e0;
+    stroke-width: 10;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.stroke-dot {
+    fill: var(--accent-color);
+}
+
+.stroke-number {
+    font-size: 14px;
+    font-weight: bold;
+    fill: var(--accent-color);
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.stroke-label {
+    font-size: 10px;
+    fill: var(--text-light);
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Examples */
+.card-examples {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: var(--shadow);
+}
+
+.card-examples h3 {
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.card-examples h3.final-header {
+    color: var(--final-color);
+    border-bottom-color: var(--final-color);
+}
+
+.card-examples h3.vowel-header {
+    color: var(--vowel-color);
+    border-bottom-color: var(--vowel-color);
+}
+
+.example-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.example-item {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 4px solid var(--secondary-color);
+}
+
+.example-word {
+    font-size: 1.8rem;
+    font-family: "SBL Hebrew", "Ezra SIL", serif;
+    margin-bottom: 8px;
+    direction: rtl;
+}
+
+.example-word .target-letter {
+    color: var(--highlight-letter);
+    font-weight: bold;
+}
+
+.example-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+.example-meta .strong-num {
+    background: var(--primary-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.85rem;
+}
+
+.example-meta .transliteration {
+    font-style: italic;
+}
+
+.example-translations {
+    margin-top: 5px;
+    font-size: 0.95rem;
+}
+
+.example-translations .zh {
+    color: var(--text-color);
+}
+
+.example-translations .en {
+    color: var(--text-light);
+}
+
+.example-note {
+    margin-top: 6px;
+    padding: 4px 8px;
+    background: #e8f5e9;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: #2e7d32;
+    font-style: italic;
+}
+
+/* Print Page */
+.print-page {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: white;
+}
+
+.print-page.active {
+    display: flex;
+}
+
+.print-letter {
+    font-size: 40vmin;
+    font-family: "SBL Hebrew", "Ezra SIL", serif;
+    color: var(--primary-color);
+    line-height: 1;
+}
+
+.print-name {
+    font-size: 3rem;
+    color: var(--text-color);
+    margin-top: 20px;
+}
+
+.print-hint {
+    position: fixed;
+    bottom: 20px;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+/* Keyboard Hints */
+.keyboard-hints {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 10px;
+    background: rgba(255,255,255,0.95);
+    border-top: 1px solid var(--border-color);
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.keyboard-hints span {
+    padding: 4px 8px;
+    background: #f0f0f0;
+    border-radius: 4px;
+}
+
+/* Print Styles */
+@media print {
+    .card-nav,
+    .keyboard-hints,
+    .print-hint,
+    .controls {
+        display: none !important;
+    }
+
+    .print-page {
+        display: flex !important;
+    }
+
+    .print-letter {
+        font-size: 50vmin;
+    }
+}
+
+/* Animation */
+@keyframes strokeDraw {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.stroke-animated {
+    animation: strokeDraw 1s ease forwards;
+}

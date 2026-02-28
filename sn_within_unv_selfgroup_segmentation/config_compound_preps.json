@@ -1,0 +1,183 @@
+{
+  "_metadata": {
+    "version": "1.0",
+    "description": "Compound preposition mappings for Hebrew מִן (04480) constructions",
+    "last_updated": "2025-11-24",
+    "source": "Analysis of FHL qb.php and qp.php data discrepancies",
+    "coverage": "Resolves ~94% of qb_qp_mismatch errors (1097/1162)"
+  },
+
+  "_comment_core": "True compound prepositions (介系詞 + 介系詞) - should always be merged",
+  "core_compounds": {
+    "04480+05921": {
+      "hebrew": "מֵעַל",
+      "pinyin": "me'al",
+      "meaning_zh": "從…之上、從…上面",
+      "meaning_en": "from above, from upon",
+      "structure": "介系詞 מִן + 介系詞 עַל",
+      "category": "prep+prep",
+      "frequency": "high",
+      "sample_verse": "Gen 1:7"
+    },
+    "04480+08478": {
+      "hebrew": "מִתַּחַת",
+      "pinyin": "mittachat",
+      "meaning_zh": "從…之下",
+      "meaning_en": "from under, from beneath",
+      "structure": "介系詞 מִן + 介系詞 תַּחַת",
+      "category": "prep+prep",
+      "frequency": "medium",
+      "sample_verse": "Gen 1:7"
+    },
+    "04480+00854": {
+      "hebrew": "מֵאֵת",
+      "pinyin": "me'et",
+      "meaning_zh": "從…那裡、從…旁邊",
+      "meaning_en": "from with, from beside",
+      "structure": "介系詞 מִן + 介系詞 אֵת",
+      "category": "prep+prep",
+      "frequency": "medium",
+      "sample_verse": "Gen 49:30"
+    },
+    "04480+05973": {
+      "hebrew": "מֵעִם",
+      "pinyin": "me'im",
+      "meaning_zh": "從…與、離開",
+      "meaning_en": "from with, away from",
+      "structure": "介系詞 מִן + 介系詞 עִם",
+      "category": "prep+prep",
+      "frequency": "low",
+      "sample_verse": "Gen 24:27"
+    },
+    "04480+03942": {
+      "hebrew": "מִלִּפְנֵי",
+      "pinyin": "milifnei",
+      "meaning_zh": "從…之前",
+      "meaning_en": "from before",
+      "structure": "介系詞 מִן + 介系詞 לִפְנֵי",
+      "category": "prep+prep",
+      "frequency": "low",
+      "sample_verse": "Gen 23:4"
+    },
+    "04480+00996": {
+      "hebrew": "מִבֵּין",
+      "pinyin": "mibein",
+      "meaning_zh": "從…之間",
+      "meaning_en": "from between, from among",
+      "structure": "介系詞 מִן + 介系詞 בֵּין",
+      "category": "prep+prep",
+      "frequency": "low",
+      "sample_verse": "Exod 25:22"
+    },
+    "04480+04605": {
+      "hebrew": "מִמַּעַל",
+      "pinyin": "mimma'al",
+      "meaning_zh": "從上面（強調）",
+      "meaning_en": "from above (emphatic)",
+      "structure": "介系詞 מִן + 介系詞（實名詞）מַעַל",
+      "category": "prep+prep",
+      "frequency": "low",
+      "sample_verse": "Gen 22:9"
+    },
+    "04480+04136": {
+      "hebrew": "מִמּוּל",
+      "pinyin": "mimul",
+      "meaning_zh": "從前面、從對面",
+      "meaning_en": "from in front of, from opposite",
+      "structure": "介系詞 מִן + 介系詞 מּוּל",
+      "category": "prep+prep",
+      "frequency": "rare",
+      "sample_verse": "Lev 5:8"
+    }
+  },
+
+  "_comment_complex": "Complex compounds with multiple elements (prep + prep + noun/adv)",
+  "complex_compounds": {
+    "04480+00905": {
+      "hebrew": "מִלְּבַד",
+      "pinyin": "milevad",
+      "meaning_zh": "除了、此外",
+      "meaning_en": "besides, except, apart from",
+      "structure": "介系詞 מִן + 介系詞 לְ + 名詞 בַּד",
+      "category": "prep+prep+noun",
+      "frequency": "low",
+      "sample_verse": "Num 5:8"
+    },
+    "04480+04295": {
+      "hebrew": "מִלְּמָטָּה",
+      "pinyin": "milemattah",
+      "meaning_zh": "從下面",
+      "meaning_en": "from below, from underneath",
+      "structure": "介系詞 מִן + 介系詞 לְ + 副詞 מָטָּה",
+      "category": "prep+prep+adv",
+      "frequency": "rare",
+      "sample_verse": "Exod 27:5"
+    }
+  },
+
+  "_comment_functional": "Noun combinations that function as compound prepositions - optional merge based on config",
+  "functional_compounds": {
+    "04480+06440": {
+      "hebrew": "מִפְּנֵי",
+      "pinyin": "mipnei",
+      "meaning_zh": "從…面前、因為",
+      "meaning_en": "from before, because of",
+      "structure": "介系詞 מִן + 名詞 פָּנִים（複陽附屬形）",
+      "category": "prep+noun",
+      "function": "compound_preposition",
+      "note": "Functionally acts as compound preposition",
+      "frequency": "high",
+      "sample_verse": "Gen 36:7"
+    },
+    "04480+08432": {
+      "hebrew": "מִתּוֹךְ",
+      "pinyin": "mitokh",
+      "meaning_zh": "從…中間、從…當中",
+      "meaning_en": "from midst of, from among",
+      "structure": "介系詞 מִן + 名詞 תָּוֶךְ（單陽附屬形）",
+      "category": "prep+noun",
+      "function": "compound_preposition",
+      "frequency": "medium",
+      "sample_verse": "Exod 28:1"
+    },
+    "04480+02351": {
+      "hebrew": "מִחוּץ",
+      "pinyin": "michutz",
+      "meaning_zh": "從外面",
+      "meaning_en": "from outside",
+      "structure": "介系詞 מִן + 名詞 חוּץ",
+      "category": "prep+noun",
+      "function": "compound_preposition",
+      "frequency": "high",
+      "sample_verse": "Lev 14:41"
+    },
+    "04480+07130": {
+      "hebrew": "מִקֶּרֶב",
+      "pinyin": "mikerev",
+      "meaning_zh": "從…裡面、從…中間",
+      "meaning_en": "from midst of, from inside",
+      "structure": "介系詞 מִן + 名詞 קֶרֶב（單陽附屬形）",
+      "category": "prep+noun",
+      "function": "compound_preposition",
+      "frequency": "medium",
+      "sample_verse": "Num 14:13"
+    }
+  },
+
+  "_comment_config": "Parser configuration for compound preposition handling",
+  "parser_config": {
+    "auto_merge": [
+      "prep+prep",
+      "prep+prep+noun",
+      "prep+prep+adv"
+    ],
+    "optional_merge": [
+      "prep+noun"
+    ],
+    "output_format": {
+      "use_compound_notation": true,
+      "add_morphology_note": true,
+      "suppress_qb_qp_warning": true
+    }
+  }
+}

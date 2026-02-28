@@ -5,11 +5,11 @@
 
 const LeftPanel = (() => {
   let currentBook = null;
-  let currentChapter = null;
-  let currentVerse = null;
-  let chapterVerses = {};      // UNV verse data
-  let kjvChapterVerses = {};   // KJV verse data
-  let lccChapterVerses = {};   // LCC verse data
+  let currentChap = null;
+  let currentSec = null;
+  let chapSecs = {};           // UNV sec data
+  let kjvChapSecs = {};        // KJV sec data
+  let lccChapSecs = {};        // LCC sec data
   let clickHandlerAttached = false;
   let currentColorMap = {};
   let currentGroups = [];
@@ -104,7 +104,7 @@ const LeftPanel = (() => {
         toggleKJV.classList.toggle('active', kjvActive);
         updateVersionVisibility();
         // Load KJV data if activating and we have a current chapter
-        if (kjvActive && currentBook && currentChapter) {
+        if (kjvActive && currentBook && currentChap) {
           loadKJVData();
         }
         console.log(`[LeftPanel] KJV toggle: ${kjvActive ? 'ON' : 'OFF'}`);
@@ -117,7 +117,7 @@ const LeftPanel = (() => {
         toggleLCC.classList.toggle('active', lccActive);
         updateVersionVisibility();
         // Load LCC data if activating and we have a current chapter
-        if (lccActive && currentBook && currentChapter) {
+        if (lccActive && currentBook && currentChap) {
           loadLCCData();
         }
         console.log(`[LeftPanel] LCC toggle: ${lccActive ? 'ON' : 'OFF'}`);
@@ -201,24 +201,24 @@ const LeftPanel = (() => {
    * Load KJV data for current chapter
    */
   async function loadKJVData() {
-    if (!currentBook || !currentChapter) return;
+    if (!currentBook || !currentChap) return;
 
-    console.log(`[LeftPanel] Loading KJV data for ${currentBook} ${currentChapter}`);
+    console.log(`[LeftPanel] Loading KJV data for ${currentBook} ${currentChap}`);
 
     try {
-      const kjvData = await DataLoader.fetchKJVChapterFromAPI(currentBook, currentChapter);
-      kjvChapterVerses = {};
+      const kjvData = await DataLoader.fetchKJVChapterFromAPI(currentBook, currentChap);
+      kjvChapSecs = {};
 
-      kjvData.forEach(verseObj => {
-        const verseNum = verseObj.sec;
-        kjvChapterVerses[verseNum] = {
-          text: verseObj.bible_text || '',
+      kjvData.forEach(secObj => {
+        const secNum = secObj.sec;
+        kjvChapSecs[secNum] = {
+          text: secObj.bible_text || '',
           isUncertain: false
         };
       });
 
       renderKJVContent();
-      console.log(`[LeftPanel] KJV data loaded: ${Object.keys(kjvChapterVerses).length} verses`);
+      console.log(`[LeftPanel] KJV data loaded: ${Object.keys(kjvChapSecs).length} secs`);
     } catch (error) {
       console.error('[LeftPanel] Error loading KJV data:', error);
     }
@@ -228,23 +228,23 @@ const LeftPanel = (() => {
    * Load LCC data for current chapter
    */
   async function loadLCCData() {
-    if (!currentBook || !currentChapter) return;
+    if (!currentBook || !currentChap) return;
 
-    console.log(`[LeftPanel] Loading LCC data for ${currentBook} ${currentChapter}`);
+    console.log(`[LeftPanel] Loading LCC data for ${currentBook} ${currentChap}`);
 
     try {
-      const lccData = await DataLoader.fetchLCCChapterFromAPI(currentBook, currentChapter);
-      lccChapterVerses = {};
+      const lccData = await DataLoader.fetchLCCChapterFromAPI(currentBook, currentChap);
+      lccChapSecs = {};
 
-      lccData.forEach(verseObj => {
-        const verseNum = verseObj.sec;
-        lccChapterVerses[verseNum] = {
-          text: verseObj.bible_text || ''
+      lccData.forEach(secObj => {
+        const secNum = secObj.sec;
+        lccChapSecs[secNum] = {
+          text: secObj.bible_text || ''
         };
       });
 
       renderLCCContent();
-      console.log(`[LeftPanel] LCC data loaded: ${Object.keys(lccChapterVerses).length} verses`);
+      console.log(`[LeftPanel] LCC data loaded: ${Object.keys(lccChapSecs).length} secs`);
     } catch (error) {
       console.error('[LeftPanel] Error loading LCC data:', error);
     }
@@ -257,8 +257,8 @@ const LeftPanel = (() => {
   function handleChapterLoaded(data) {
     const { book, chapter, verseData } = data;
     currentBook = book;
-    currentChapter = chapter;
-    chapterVerses = verseData;
+    currentChap = chapter;
+    chapSecs = verseData;
 
     renderUNVContent();
 
@@ -274,62 +274,62 @@ const LeftPanel = (() => {
   }
 
   /**
-   * Render UNV chapter verses
+   * Render UNV chapter secs
    */
   function renderUNVContent() {
     if (!unvContent) return;
 
-    if (Object.keys(chapterVerses).length === 0) {
+    if (Object.keys(chapSecs).length === 0) {
       unvContent.innerHTML = '<div class="loading-message">無法載入章節資料</div>';
       return;
     }
 
     let html = '';
-    const verseNumbers = Object.keys(chapterVerses).map(Number).sort((a, b) => a - b);
+    const secNumbers = Object.keys(chapSecs).map(Number).sort((a, b) => a - b);
 
-    verseNumbers.forEach(verseNum => {
-      const data = chapterVerses[verseNum];
+    secNumbers.forEach(secNum => {
+      const data = chapSecs[secNum];
       const uncertainClass = data.isUncertain ? 'uncertain' : '';
 
       html += `
-        <div class="verse ${uncertainClass}" data-verse="${verseNum}" data-version="unv">
-          <span class="verse-num">${verseNum}</span>
+        <div class="verse ${uncertainClass}" data-verse="${secNum}" data-version="unv">
+          <span class="verse-num">${secNum}</span>
           <span class="verse-text">${escapeHtml(data.text)}</span>
         </div>
       `;
     });
 
     unvContent.innerHTML = html;
-    console.log(`[LeftPanel] Rendered ${verseNumbers.length} UNV verses`);
+    console.log(`[LeftPanel] Rendered ${secNumbers.length} UNV secs`);
   }
 
   /**
-   * Render KJV chapter verses
+   * Render KJV chapter secs
    */
   function renderKJVContent() {
     if (!kjvContent) return;
 
-    if (Object.keys(kjvChapterVerses).length === 0) {
+    if (Object.keys(kjvChapSecs).length === 0) {
       kjvContent.innerHTML = '<div class="loading-message">Loading KJV...</div>';
       return;
     }
 
     let html = '';
-    const verseNumbers = Object.keys(kjvChapterVerses).map(Number).sort((a, b) => a - b);
+    const secNumbers = Object.keys(kjvChapSecs).map(Number).sort((a, b) => a - b);
 
-    verseNumbers.forEach(verseNum => {
-      const data = kjvChapterVerses[verseNum];
+    secNumbers.forEach(secNum => {
+      const data = kjvChapSecs[secNum];
 
       html += `
-        <div class="verse" data-verse="${verseNum}" data-version="kjv">
-          <span class="verse-num">${verseNum}</span>
+        <div class="verse" data-verse="${secNum}" data-version="kjv">
+          <span class="verse-num">${secNum}</span>
           <span class="verse-text">${escapeHtml(data.text)}</span>
         </div>
       `;
     });
 
     kjvContent.innerHTML = html;
-    console.log(`[LeftPanel] Rendered ${verseNumbers.length} KJV verses`);
+    console.log(`[LeftPanel] Rendered ${secNumbers.length} KJV secs`);
 
     // Apply colors if we have a color map
     if (Object.keys(currentColorMap).length > 0) {
@@ -338,32 +338,32 @@ const LeftPanel = (() => {
   }
 
   /**
-   * Render LCC chapter verses
+   * Render LCC chapter secs
    */
   function renderLCCContent() {
     if (!lccContent) return;
 
-    if (Object.keys(lccChapterVerses).length === 0) {
+    if (Object.keys(lccChapSecs).length === 0) {
       lccContent.innerHTML = '<div class="loading-message">Loading LCC (呂振中譯本)...</div>';
       return;
     }
 
     let html = '';
-    const verseNumbers = Object.keys(lccChapterVerses).map(Number).sort((a, b) => a - b);
+    const secNumbers = Object.keys(lccChapSecs).map(Number).sort((a, b) => a - b);
 
-    verseNumbers.forEach(verseNum => {
-      const data = lccChapterVerses[verseNum];
+    secNumbers.forEach(secNum => {
+      const data = lccChapSecs[secNum];
 
       html += `
-        <div class="verse" data-verse="${verseNum}" data-version="lcc">
-          <span class="verse-num">${verseNum}</span>
+        <div class="verse" data-verse="${secNum}" data-version="lcc">
+          <span class="verse-num">${secNum}</span>
           <span class="verse-text">${escapeHtml(data.text)}</span>
         </div>
       `;
     });
 
     lccContent.innerHTML = html;
-    console.log(`[LeftPanel] Rendered ${verseNumbers.length} LCC verses`);
+    console.log(`[LeftPanel] Rendered ${secNumbers.length} LCC secs`);
 
     // Apply colors if we have a color map
     if (Object.keys(currentColorMap).length > 0) {
@@ -390,21 +390,21 @@ const LeftPanel = (() => {
       return;
     }
 
-    const verse = parseInt(verseEl.dataset.verse);
+    const sec = parseInt(verseEl.dataset.verse);
 
-    // If clicking SN on same verse, don't re-select (preserves highlighting)
-    if (snTag && verse === currentVerse) {
-      console.log(`[LeftPanel] SN click on same verse ${verse}, skipping re-select`);
+    // If clicking SN on same sec, don't re-select (preserves highlighting)
+    if (snTag && sec === currentSec) {
+      console.log(`[LeftPanel] SN click on same sec ${sec}, skipping re-select`);
       return;
     }
 
-    console.log(`[LeftPanel] Verse ${verse} clicked (${version})${snTag ? ' (SN tag)' : ''}`);
+    console.log(`[LeftPanel] Sec ${sec} clicked (${version})${snTag ? ' (SN tag)' : ''}`);
 
     // Publish verse select event
     Mediator.publish(Mediator.EVENT_TYPES.VERSE_SELECT, {
       book: currentBook,
-      chapter: currentChapter,
-      verse: verse
+      chapter: currentChap,
+      verse: sec
     });
   }
 
@@ -416,8 +416,8 @@ const LeftPanel = (() => {
     const { verse } = data;
 
     // Only clear SN highlighting when switching to a DIFFERENT verse
-    const switchingVerses = verse !== currentVerse;
-    currentVerse = verse;
+    const switchingVerses = verse !== currentSec;
+    currentSec = verse;
 
     if (switchingVerses) {
       clearHighlighting();
@@ -456,7 +456,7 @@ const LeftPanel = (() => {
 
     // Update verse reference display
     if (leftVerseRef) {
-      leftVerseRef.textContent = `${currentBook} ${currentChapter}:${verse}`;
+      leftVerseRef.textContent = `${currentBook} ${currentChap}:${verse}`;
       leftVerseRef.style.display = 'block';
     }
   }
@@ -476,12 +476,12 @@ const LeftPanel = (() => {
     applyColorsToUNV();
 
     // Apply colors to KJV content if active
-    if (kjvActive && Object.keys(kjvChapterVerses).length > 0) {
+    if (kjvActive && Object.keys(kjvChapSecs).length > 0) {
       applyColorsToKJV();
     }
 
     // Apply colors to LCC content if active
-    if (lccActive && Object.keys(lccChapterVerses).length > 0) {
+    if (lccActive && Object.keys(lccChapSecs).length > 0) {
       applyColorsToLCC();
     }
   }
@@ -493,20 +493,20 @@ const LeftPanel = (() => {
     if (!unvContent) return;
 
     unvContent.querySelectorAll('.verse').forEach(verseEl => {
-      const verseNum = parseInt(verseEl.dataset.verse);
-      const verseData = chapterVerses[verseNum];
-      if (!verseData) return;
+      const secNum = parseInt(verseEl.dataset.verse);
+      const secData = chapSecs[secNum];
+      if (!secData) return;
 
       const textEl = verseEl.querySelector('.verse-text');
       if (!textEl) return;
 
       // Apply colors to raw text
-      const useGroups = (verseNum === currentVerse) ? currentGroups : undefined;
-      const coloredHtml = ColorMapper.applyColorsToRawText(verseData.text, currentColorMap, useGroups);
+      const useGroups = (secNum === currentSec) ? currentGroups : undefined;
+      const coloredHtml = ColorMapper.applyColorsToRawText(secData.text, currentColorMap, useGroups);
       textEl.innerHTML = coloredHtml;
 
       // Add SN click handlers
-      addSNClickHandlers(textEl, verseNum, 'unv');
+      addSNClickHandlers(textEl, secNum, 'unv');
     });
   }
 
@@ -517,20 +517,20 @@ const LeftPanel = (() => {
     if (!kjvContent) return;
 
     kjvContent.querySelectorAll('.verse').forEach(verseEl => {
-      const verseNum = parseInt(verseEl.dataset.verse);
-      const verseData = kjvChapterVerses[verseNum];
-      if (!verseData) return;
+      const secNum = parseInt(verseEl.dataset.verse);
+      const secData = kjvChapSecs[secNum];
+      if (!secData) return;
 
       const textEl = verseEl.querySelector('.verse-text');
       if (!textEl) return;
 
       // Apply colors to raw text (use groups for selected verse, same as UNV)
-      const useGroups = (verseNum === currentVerse) ? currentGroups : undefined;
-      const coloredHtml = ColorMapper.applyColorsToRawText(verseData.text, currentColorMap, useGroups);
+      const useGroups = (secNum === currentSec) ? currentGroups : undefined;
+      const coloredHtml = ColorMapper.applyColorsToRawText(secData.text, currentColorMap, useGroups);
       textEl.innerHTML = coloredHtml;
 
       // Add SN click handlers
-      addSNClickHandlers(textEl, verseNum, 'kjv');
+      addSNClickHandlers(textEl, secNum, 'kjv');
     });
   }
 
@@ -541,16 +541,16 @@ const LeftPanel = (() => {
     if (!lccContent) return;
 
     lccContent.querySelectorAll('.verse').forEach(verseEl => {
-      const verseNum = parseInt(verseEl.dataset.verse);
-      const lccData = lccChapterVerses[verseNum];
+      const secNum = parseInt(verseEl.dataset.verse);
+      const lccData = lccChapSecs[secNum];
       if (!lccData) return;
 
       const textEl = verseEl.querySelector('.verse-text');
       if (!textEl) return;
 
       // Only color the selected verse (need UNV raw text + groups)
-      if (verseNum === currentVerse && currentGroups.length > 0) {
-        const unvData = chapterVerses[verseNum];
+      if (secNum === currentSec && currentGroups.length > 0) {
+        const unvData = chapSecs[secNum];
         const unvRawText = unvData ? unvData.text : null;
         const coloredHtml = ColorMapper.applyColorsToPlainText(lccData.text, unvRawText, currentGroups);
         textEl.innerHTML = coloredHtml;
@@ -563,10 +563,10 @@ const LeftPanel = (() => {
   /**
    * Add SN click handlers to a text element
    * @param {Element} textEl - The text element containing SN tags
-   * @param {number} verseNum - Verse number
+   * @param {number} secNum - Sec number
    * @param {string} version - 'unv' or 'kjv'
    */
-  function addSNClickHandlers(textEl, verseNum, version) {
+  function addSNClickHandlers(textEl, secNum, version) {
     textEl.querySelectorAll('.sn-tag').forEach(tag => {
       tag.addEventListener('click', (e) => {
         const snCode = extractSNCode(tag.textContent);
@@ -578,7 +578,7 @@ const LeftPanel = (() => {
             element: tag,
             snCode: snCode,
             groupSNs: groupSNs,
-            verse: verseNum,
+            verse: secNum,
             version: version,
             snDictEnabled: version === 'unv' ? unvSNDict : kjvSNDict
           });
@@ -604,8 +604,8 @@ const LeftPanel = (() => {
   function getCurrentPosition() {
     return {
       book: currentBook,
-      chapter: currentChapter,
-      verse: currentVerse
+      chapter: currentChap,
+      verse: currentSec
     };
   }
 
@@ -614,7 +614,7 @@ const LeftPanel = (() => {
    * @returns {number[]}
    */
   function getVerseNumbers() {
-    return Object.keys(chapterVerses).map(Number).sort((a, b) => a - b);
+    return Object.keys(chapSecs).map(Number).sort((a, b) => a - b);
   }
 
   /**
@@ -788,11 +788,11 @@ const LeftPanel = (() => {
       lccContent.innerHTML = '<div class="loading-message">Loading LCC (呂振中譯本)...</div>';
     }
     currentBook = null;
-    currentChapter = null;
-    currentVerse = null;
-    chapterVerses = {};
-    kjvChapterVerses = {};
-    lccChapterVerses = {};
+    currentChap = null;
+    currentSec = null;
+    chapSecs = {};
+    kjvChapSecs = {};
+    lccChapSecs = {};
     currentColorMap = {};
     currentGroups = [];
     if (leftVerseRef) {

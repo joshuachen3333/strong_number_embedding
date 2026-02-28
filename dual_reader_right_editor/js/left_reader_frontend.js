@@ -213,15 +213,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (rightContentArea) {
                     // Try to find the topmost verse in right reader
-                    const verses = rightContentArea.querySelectorAll('.verse[data-verse]');
-                    if (verses.length > 0) {
+                    const verseEls = rightContentArea.querySelectorAll('.verse[data-verse]');
+                    if (verseEls.length > 0) {
                         const containerRect = rightContentArea.getBoundingClientRect();
                         const containerTop = containerRect.top;
 
-                        for (const verse of verses) {
-                            const verseRect = verse.getBoundingClientRect();
+                        for (const verseEl of verseEls) {
+                            const verseRect = verseEl.getBoundingClientRect();
                             if (verseRect.top >= containerTop) {
-                                rightVerse = parseInt(verse.getAttribute('data-verse')) || 1;
+                                rightVerse = parseInt(verseEl.getAttribute('data-verse')) || 1;
                                 break;
                             }
                         }
@@ -275,15 +275,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (rightContentArea) {
                         // Try to find the topmost verse in right reader
-                        const verses = rightContentArea.querySelectorAll('.verse[data-verse]');
-                        if (verses.length > 0) {
+                        const verseEls = rightContentArea.querySelectorAll('.verse[data-verse]');
+                        if (verseEls.length > 0) {
                             const containerRect = rightContentArea.getBoundingClientRect();
                             const containerTop = containerRect.top;
 
-                            for (const verse of verses) {
-                                const verseRect = verse.getBoundingClientRect();
+                            for (const verseEl of verseEls) {
+                                const verseRect = verseEl.getBoundingClientRect();
                                 if (verseRect.top >= containerTop) {
-                                    rightVerse = parseInt(verse.getAttribute('data-verse')) || 1;
+                                    rightVerse = parseInt(verseEl.getAttribute('data-verse')) || 1;
                                     break;
                                 }
                             }
@@ -348,14 +348,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentDisplayedBook !== currentBook || currentDisplayedChapter !== chapter) {
             // Need to load different chapter
             logStatus(`📨 Following right reader: ${currentBook} ${chapter}`);
-            
+
             // Update our controls to match
             const bookOption = Array.from(bookSelect.options).find(opt => opt.textContent === currentBook);
             if (bookOption) {
                 bookSelect.value = bookOption.value;
             }
             chapterInput.value = chapter;
-            
+
             // Load the content with our current settings
             loadChapterContent().then(() => {
                 // After loading, scroll to the specific verse
@@ -462,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const chapter = chapterInput.value;
         const version = versionSelect.value; // Read from the select dropdown
         const strong = strongToggle.checked ? "1" : "0"; // Use checkbox state
-        
+
         console.log('LeftReader: Values:', { book, chapter, version, strong });
 
         // Log the API URL being used
@@ -486,7 +486,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Use the mediator to fetch chapter data from bible.fhl.net
             const apiResponse = await MockMediator.fetchChapter(book, parseInt(chapter), version, parseInt(strong));
-            
+
             if (apiResponse.status === 'error') {
                 throw new Error(apiResponse.message);
             }
@@ -494,14 +494,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // Transform the response to match the expected format for rendering
             const selectedVersionOption = versionSelect.options[versionSelect.selectedIndex];
             const versionDisplayText = selectedVersionOption ? selectedVersionOption.text : version.toUpperCase();
-            
+
             const data = {
                 book: bookSelect.options[bookSelect.selectedIndex].text,
                 chapter: parseInt(chapter),
                 version: versionDisplayText,
                 strong: strong === "1",
                 verses: apiResponse.data.verses.map(verse => ({
-                    verse: verse.verse_num,
+                    verse_num: verse.verse_num,
                     text: cleanVerseText(verse.text, versionDisplayText),
                     strongs: [] // Strong's numbers will be embedded in the text from FHL
                 }))
@@ -512,7 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
             renderChapter(data);
-            
+
             // Publish an event that the left reader's content has changed (only if this is the main reader)
             if (MockMediator.getMainReader() === 'left') {
                 console.log('LeftReader: Publishing leftReaderChapterChanged event');
@@ -557,8 +557,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // data.version already contains the display text from mockData
         let htmlContent = `<h3>${data.book} ${data.chapter} (${data.version})</h3>`;
         data.verses.forEach(verse => {
-            htmlContent += `<p class="verse" data-verse="${verse.verse}" data-book="${bookSelect.value}" data-chapter="${data.chapter}">`;
-            htmlContent += `<span class="verse-number">${verse.verse}</span> `;
+            htmlContent += `<p class="verse" data-verse="${verse.verse_num}" data-book="${bookSelect.value}" data-chapter="${data.chapter}">`;
+            htmlContent += `<span class="verse-number">${verse.verse_num}</span> `;
 
             // Parse Strong's numbers from the text (embedded as {<WH1234>} or {<WG5678>})
             let verseText = verse.text;
@@ -596,7 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleScroll() {
         // Only sync position if this reader is main (both follow checkboxes unchecked)
         if (followScrollToggle.checked || followSelectionToggle.checked) return;
-        
+
         // Debounce scroll events
         clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(() => {
@@ -612,31 +612,31 @@ document.addEventListener('DOMContentLoaded', () => {
      * @returns {object|null} Object with book, chapter, verse properties
      */
     function getTopmostVerseReference() {
-        const verses = contentArea.querySelectorAll('.verse[data-verse]');
+        const verseEls = contentArea.querySelectorAll('.verse[data-verse]');
         const containerRect = contentArea.getBoundingClientRect();
         const containerTop = containerRect.top;
 
-        for (const verse of verses) {
-            const verseRect = verse.getBoundingClientRect();
+        for (const verseEl of verseEls) {
+            const verseRect = verseEl.getBoundingClientRect();
             if (verseRect.top >= containerTop && verseRect.top <= containerTop + 100) {
                 return {
-                    book: verse.getAttribute('data-book'),
-                    chapter: parseInt(verse.getAttribute('data-chapter')),
-                    verse: parseInt(verse.getAttribute('data-verse'))
+                    book: verseEl.getAttribute('data-book'),
+                    chapter: parseInt(verseEl.getAttribute('data-chapter')),
+                    verse: parseInt(verseEl.getAttribute('data-verse'))
                 };
             }
         }
-        
+
         // If no verse is in the top area, return the first visible verse
-        if (verses.length > 0) {
-            const firstVerse = verses[0];
+        if (verseEls.length > 0) {
+            const firstVerse = verseEls[0];
             return {
                 book: firstVerse.getAttribute('data-book'),
                 chapter: parseInt(firstVerse.getAttribute('data-chapter')),
                 verse: parseInt(firstVerse.getAttribute('data-verse'))
             };
         }
-        
+
         return null;
     }
 
@@ -658,8 +658,10 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Handle verse click for group-based coloring.
      * Active when Strong's is ON and version is UNV or KJV.
-     * Gracefully does nothing if VerseColoring is unavailable (no server).
+     * Shows instructional help when server is unavailable.
      */
+    let coloringHelpShown = false;
+
     function handleVerseClickForColoring(event) {
         if (!strongToggle.checked) return;
         const version = versionSelect.value;
@@ -673,13 +675,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const verseEl = event.target.closest('.verse[data-verse]');
         if (!verseEl) return;
 
-        VerseColoring.colorVerse(verseEl).then(success => {
-            if (success) {
+        VerseColoring.colorVerse(verseEl).then(result => {
+            if (result.success) {
                 logStatus(`🎨 Group coloring: verse ${verseEl.dataset.verse}`);
                 // Re-attach SN click handlers for the newly colored elements
                 attachStrongsEventListenersForVerse(verseEl);
+            } else if (result.error) {
+                showColoringHelp(result.error, verseEl.dataset.book);
             }
         });
+    }
+
+    function showColoringHelp(errorType, chineses) {
+        const bookCode = VerseColoring.getParserCode(chineses) || chineses;
+
+        if (errorType === 'no-server') {
+            if (!coloringHelpShown) {
+                coloringHelpShown = true;
+                logStatus(`⚠️ Group coloring needs the dev server. Two options:`);
+                logStatus(`  1️⃣  python start_server.py  (on-demand parsing)`);
+                logStatus(`  2️⃣  cd sn_within_unv_selfgroup_segmentation && ./batch_parse_book.sh ${bookCode}  (pre-generate, then start server)`);
+            } else {
+                logStatus(`⚠️ Server not running — see earlier instructions`);
+            }
+        } else if (errorType === 'not-found') {
+            logStatus(`⚠️ No parsed data for this verse. Try: cd sn_within_unv_selfgroup_segmentation && ./batch_parse_book.sh ${bookCode}`);
+        }
     }
 
     // Attach verse click handler via event delegation

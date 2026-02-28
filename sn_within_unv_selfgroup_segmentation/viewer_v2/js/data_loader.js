@@ -9,8 +9,8 @@ const DataLoader = (() => {
   // In-memory cache
   const cache = {
     manifest: null,
-    parsedVerses: {},      // "Book/Chapter/Verse" -> content
-    apiChapters: {},       // "Book/Chapter" -> verse array
+    parsedVerses: {},        // "Book/Chapter/Verse" -> content
+    apiChapters: {},          // "Book/Chapter" -> verse array
     sections: {}           // "Book/Chapter/Verse" -> {parsed, raw, notes}
   };
 
@@ -79,31 +79,31 @@ const DataLoader = (() => {
    */
   function getChapters(book) {
     if (!hasBookData(book)) return [];
-    const chapters = manifest.books[book].chapters;
-    return Object.keys(chapters).map(Number).sort((a, b) => a - b);
+    const chaps = manifest.books[book].chapters;
+    return Object.keys(chaps).map(Number).sort((a, b) => a - b);
   }
 
   /**
    * Get verse info for a chapter
    * @param {string} book
-   * @param {number} chapter
+   * @param {number} chap
    * @returns {Object} {verses: [], uncertain: []}
    */
-  function getVerseInfo(book, chapter) {
+  function getVerseInfo(book, chap) {
     if (!hasBookData(book)) return { verses: [], uncertain: [] };
-    const chapterData = manifest.books[book].chapters[chapter];
+    const chapterData = manifest.books[book].chapters[chap];
     return chapterData || { verses: [], uncertain: [] };
   }
 
   /**
    * Load parsed verse with caching
    * @param {string} book
-   * @param {number} chapter
+   * @param {number} chap
    * @param {number} verse
    * @returns {Promise<Object>} {content, isUncertain, exists}
    */
-  async function loadParsedVerse(book, chapter, verse) {
-    const cacheKey = `${book}/${chapter}/${verse}`;
+  async function loadParsedVerse(book, chap, sec) {
+    const cacheKey = `${book}/${chap}/${sec}`;
 
     // Check cache
     if (cache.parsedVerses[cacheKey]) {
@@ -111,11 +111,11 @@ const DataLoader = (() => {
       return cache.parsedVerses[cacheKey];
     }
 
-    Mediator.publish(Mediator.EVENT_TYPES.LOADING_START, { context: 'verse', book, chapter, verse });
+    Mediator.publish(Mediator.EVENT_TYPES.LOADING_START, { context: 'verse', book, chap, sec });
 
     try {
       // Try regular file
-      const regularPath = `../output/${book}/${chapter}/${verse}`;
+      const regularPath = `../output/${book}/${chap}/${sec}`;
       const regularContent = await tryFetchLocal(regularPath);
 
       if (regularContent) {
@@ -126,7 +126,7 @@ const DataLoader = (() => {
       }
 
       // Try uncertain file
-      const uncertainPath = `../output/${book}/${chapter}/${verse}_uncertain`;
+      const uncertainPath = `../output/${book}/${chap}/${sec}_uncertain`;
       const uncertainContent = await tryFetchLocal(uncertainPath);
 
       if (uncertainContent) {
@@ -171,11 +171,11 @@ const DataLoader = (() => {
   /**
    * Fetch chapter from FHL API with caching
    * @param {string} book
-   * @param {number} chapter
+   * @param {number} chap
    * @returns {Promise<Array>}
    */
-  async function fetchChapterFromAPI(book, chapter) {
-    const cacheKey = `${book}/${chapter}`;
+  async function fetchChapterFromAPI(book, chap) {
+    const cacheKey = `${book}/${chap}`;
 
     // Check cache
     if (cache.apiChapters[cacheKey]) {
@@ -189,7 +189,7 @@ const DataLoader = (() => {
         throw new Error(`Unknown book: ${book}`);
       }
 
-      const url = `${FHL_API_BASE}?version=unv&chineses=${encodeURIComponent(bookData.chi)}&chap=${chapter}&strong=1`;
+      const url = `${FHL_API_BASE}?version=unv&chineses=${encodeURIComponent(bookData.chi)}&chap=${chap}&strong=1`;
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -217,11 +217,11 @@ const DataLoader = (() => {
   /**
    * Fetch KJV chapter from FHL API with caching
    * @param {string} book - English book abbreviation (e.g., "Gen")
-   * @param {number} chapter
+   * @param {number} chap
    * @returns {Promise<Array>}
    */
-  async function fetchKJVChapterFromAPI(book, chapter) {
-    const cacheKey = `kjv/${book}/${chapter}`;
+  async function fetchKJVChapterFromAPI(book, chap) {
+    const cacheKey = `kjv/${book}/${chap}`;
 
     // Check cache
     if (cache.apiChapters[cacheKey]) {
@@ -235,7 +235,7 @@ const DataLoader = (() => {
         throw new Error(`Unknown book: ${book}`);
       }
 
-      const url = `${FHL_API_BASE}?version=kjv&chineses=${encodeURIComponent(bookData.chi)}&chap=${chapter}&strong=1`;
+      const url = `${FHL_API_BASE}?version=kjv&chineses=${encodeURIComponent(bookData.chi)}&chap=${chap}&strong=1`;
       console.log(`[DataLoader] Fetching KJV: ${url}`);
       const response = await fetch(url);
 
@@ -265,11 +265,11 @@ const DataLoader = (() => {
   /**
    * Fetch LCC chapter from FHL API with caching
    * @param {string} book - English book abbreviation (e.g., "Gen")
-   * @param {number} chapter
+   * @param {number} chap
    * @returns {Promise<Array>}
    */
-  async function fetchLCCChapterFromAPI(book, chapter) {
-    const cacheKey = `lcc/${book}/${chapter}`;
+  async function fetchLCCChapterFromAPI(book, chap) {
+    const cacheKey = `lcc/${book}/${chap}`;
 
     // Check cache
     if (cache.apiChapters[cacheKey]) {
@@ -283,7 +283,7 @@ const DataLoader = (() => {
         throw new Error(`Unknown book: ${book}`);
       }
 
-      const url = `${FHL_API_BASE}?version=lcc&chineses=${encodeURIComponent(bookData.chi)}&chap=${chapter}`;
+      const url = `${FHL_API_BASE}?version=lcc&chineses=${encodeURIComponent(bookData.chi)}&chap=${chap}`;
       console.log(`[DataLoader] Fetching LCC: ${url}`);
       const response = await fetch(url);
 
@@ -313,21 +313,21 @@ const DataLoader = (() => {
   /**
    * Load chapter data (combo of local + API)
    * @param {string} book
-   * @param {number} chapter
+   * @param {number} chap
    * @returns {Promise<Object>} Map of verse -> {text, parsed, isUncertain}
    */
-  async function loadChapter(book, chapter) {
+  async function loadChapter(book, chap) {
     const verseData = {};
 
-    Mediator.publish(Mediator.EVENT_TYPES.LOADING_START, { context: 'chapter', book, chapter });
+    Mediator.publish(Mediator.EVENT_TYPES.LOADING_START, { context: 'chapter', book, chap });
 
     // Get verse info from manifest
-    const verseInfo = getVerseInfo(book, chapter);
+    const verseInfo = getVerseInfo(book, chap);
 
     // Load local parsed files
     if (verseInfo.verses.length > 0) {
       for (const v of verseInfo.verses) {
-        const parsed = await loadParsedVerse(book, chapter, v);
+        const parsed = await loadParsedVerse(book, chap, v);
         if (parsed.exists) {
           const sections = parseSections(parsed.content);
           verseData[v] = {
@@ -341,7 +341,7 @@ const DataLoader = (() => {
 
     // Fetch from API to fill gaps
     try {
-      const apiData = await fetchChapterFromAPI(book, chapter);
+      const apiData = await fetchChapterFromAPI(book, chap);
       apiData.forEach(verseObj => {
         const verseNum = verseObj.sec;
         if (!verseData[verseNum]) {

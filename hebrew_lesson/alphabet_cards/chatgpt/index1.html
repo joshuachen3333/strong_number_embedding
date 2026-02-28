@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hebrew Print (Block) Stroke Demo — Aleph / Bet</title>
+  <style>
+    :root {
+      --bg: #0b0c10;
+      --panel: #12131a;
+      --text: #e8e8ee;
+      --muted: #a8a8b6;
+      --line: rgba(255,255,255,.12);
+      --ghost: rgba(255,255,255,.18);
+      --ink: rgba(255,255,255,.92);
+      --pen: rgba(255,255,255,.95);
+      --penGlow: rgba(255,255,255,.35);
+      --grid: rgba(255,255,255,.06);
+    }
+
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: radial-gradient(1200px 800px at 20% 10%, #14162a, var(--bg));
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      display: grid;
+      place-items: center;
+    }
+
+    .app {
+      width: min(920px, 96vw);
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 14px;
+      padding: 14px;
+    }
+
+    .card {
+      background: color-mix(in oklab, var(--panel), #000 10%);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 10px 35px rgba(0,0,0,.35);
+      overflow: hidden;
+    }
+
+    .controls { padding: 14px; }
+    .controls h1 {
+      font-size: 16px;
+      margin: 0 0 6px 0;
+      letter-spacing: .2px;
+    }
+    .controls p {
+      margin: 0 0 14px 0;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.45;
+    }
+
+    label { display:block; font-size: 12px; color: var(--muted); margin: 12px 0 6px; }
+    select, input[type="range"], button {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+    }
+    select { cursor:pointer; }
+
+    .row { display:flex; gap:10px; }
+    .row > * { flex: 1; }
+
+    button {
+      cursor: pointer;
+      background: rgba(255,255,255,.08);
+      transition: transform .06s ease, background .2s ease;
+    }
+    button:active { transform: translateY(1px); }
+    button:hover { background: rgba(255,255,255,.12); }
+
+    .toggles { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    .toggle {
+      display:flex; align-items:center; gap:8px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,255,255,.04);
+      user-select:none;
+      cursor:pointer;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .toggle input { width:auto; }
+
+    .stage {
+      display:grid;
+      place-items:center;
+      padding: 14px;
+      min-height: 520px;
+      position: relative;
+      background:
+        linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 24px 24px,
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 24px 24px,
+        radial-gradient(800px 400px at 50% 0%, rgba(255,255,255,.06), transparent 60%);
+    }
+
+    .svgWrap {
+      width: min(520px, 90%);
+      aspect-ratio: 1/1;
+      position: relative;
+    }
+
+    svg { width: 100%; height: 100%; display:block; }
+
+    .guide line, .guide path {
+      stroke: var(--ghost);
+      stroke-width: 2;
+      stroke-dasharray: 6 6;
+      fill: none;
+    }
+
+    .outline path {
+      stroke: var(--ghost);
+      stroke-width: 18;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    .stroke path {
+      stroke: var(--ink);
+      stroke-width: 18;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      filter: drop-shadow(0 2px 2px rgba(0,0,0,.25));
+    }
+
+    .penDot {
+      fill: var(--pen);
+      filter: drop-shadow(0 0 10px var(--penGlow));
+    }
+
+    .strokeNum {
+      font-size: 14px;
+      fill: rgba(255,255,255,.7);
+      paint-order: stroke;
+      stroke: rgba(0,0,0,.35);
+      stroke-width: 4px;
+    }
+
+    .footer {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    code.kbd {
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--line);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11.5px;
+      color: rgba(255,255,255,.85);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="card controls">
+      <h1>Hebrew print (block) stroke demo</h1>
+      <p>
+        A tiny, dependency‑free demo that animates stroke order and a moving pen point.
+        Includes <b>Aleph (א)</b> and <b>Bet (ב)</b> in <b>print/block handwriting</b>.
+      </p>
+
+      <label for="letter">Letter</label>
+      <select id="letter">
+        <option value="alef">Aleph (א)</option>
+        <option value="bet">Bet (ב)</option>
+        <option value="bet_dagesh">Bet with dagesh (בּ)</option>
+      </select>
+
+      <div class="row">
+        <div>
+          <label for="speed">Speed</label>
+          <input id="speed" type="range" min="0.35" max="2.2" step="0.05" value="1.0" />
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button id="play">Replay</button>
+        </div>
+      </div>
+
+      <div class="toggles">
+        <label class="toggle"><input id="showGuide" type="checkbox" checked /> Show guide lines</label>
+        <label class="toggle"><input id="showNums" type="checkbox" checked /> Show stroke numbers</label>
+      </div>
+
+      <div class="footer">
+        Tips:
+        <ul>
+          <li>Open this file directly: <code class="kbd">double‑click index.html</code></li>
+          <li>To add more letters, copy the <code class="kbd">letters</code> entries in the script.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card stage">
+      <div class="svgWrap">
+        <svg id="svg" viewBox="0 0 200 200" aria-label="stroke demo">
+          <!-- optional baseline + cap-height guides -->
+          <g class="guide" id="guide">
+            <line x1="18" y1="44" x2="182" y2="44"></line>
+            <line x1="18" y1="170" x2="182" y2="170"></line>
+            <line x1="18" y1="107" x2="182" y2="107"></line>
+          </g>
+
+          <!-- faint full-letter outline -->
+          <g class="outline" id="outline"></g>
+
+          <!-- animated strokes -->
+          <g class="stroke" id="strokes"></g>
+
+          <!-- stroke numbers -->
+          <g id="nums"></g>
+
+          <!-- pen point -->
+          <circle id="pen" class="penDot" r="6" cx="0" cy="0" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * IMPORTANT NOTE ABOUT "CORRECTNESS"
+     * Stroke order varies between schools/books. This demo follows the
+     * block-letter stroke order shown in a common beginner chart
+     * (B'nai Mitzvah Academy "Handwritten Hebrew Alphabet Printed in Block Letters").
+     *
+     * - Bet: stroke 1 draws the top bar and right downstroke (one continuous "┐");
+     *        stroke 2 draws the bottom bar.
+     * - Aleph: stroke 1 is the long diagonal; stroke 2 is the right curved stroke;
+     *          stroke 3 is the left curved stroke.
+     */
+
+    const letters = {
+      // Aleph (א) — 3 strokes (diagonal, right stroke, left stroke)
+      alef: {
+        outline: [
+          // diagonal
+          "M 52 40 C 66 58 100 110 148 164",
+          // right stroke
+          "M 142 38 C 166 54 166 88 146 112",
+          // left stroke
+          "M 70 66 C 52 90 52 130 66 164"
+        ],
+        strokes: [
+          { d: "M 52 40 C 66 58 100 110 148 164", start: [52, 40] },     // 1
+          { d: "M 142 38 C 166 54 166 88 146 112", start: [142, 38] },  // 2
+          { d: "M 70 66 C 52 90 52 130 66 164", start: [70, 66] }       // 3
+        ],
+        nums: [
+          { n: 1, x: 58, y: 34 },
+          { n: 2, x: 154, y: 46 },
+          { n: 3, x: 54, y: 86 }
+        ],
+        extras: [] // e.g. dots
+      },
+
+      // Bet (ב) — 2 strokes (top+right, then bottom)
+      bet: {
+        outline: [
+          // top + right downstroke (rounded corner)
+          "M 54 52 L 142 52 C 150 52 152 56 152 64 L 152 150",
+          // bottom bar
+          "M 54 150 L 162 150"
+        ],
+        strokes: [
+          { d: "M 54 52 L 142 52 C 150 52 152 56 152 64 L 152 150", start: [54, 52] }, // 1
+          { d: "M 54 150 L 162 150", start: [54, 150] }                                  // 2
+        ],
+        nums: [
+          { n: 1, x: 100, y: 44 },
+          { n: 2, x: 110, y: 168 }
+        ],
+        extras: []
+      },
+
+      // Bet with dagesh dot (same strokes + dot)
+      bet_dagesh: {
+        outline: [
+          "M 54 52 L 142 52 C 150 52 152 56 152 64 L 152 150",
+          "M 54 150 L 162 150"
+        ],
+        strokes: [
+          { d: "M 54 52 L 142 52 C 150 52 152 56 152 64 L 152 150", start: [54, 52] },
+          { d: "M 54 150 L 162 150", start: [54, 150] }
+        ],
+        nums: [
+          { n: 1, x: 100, y: 44 },
+          { n: 2, x: 110, y: 168 }
+        ],
+        extras: [
+          { type: "circle", cx: 118, cy: 98, r: 6 }
+        ]
+      }
+    };
+
+    const svg = document.getElementById("svg");
+    const strokesG = document.getElementById("strokes");
+    const outlineG = document.getElementById("outline");
+    const numsG = document.getElementById("nums");
+    const pen = document.getElementById("pen");
+    const guide = document.getElementById("guide");
+
+    const letterSel = document.getElementById("letter");
+    const speedSlider = document.getElementById("speed");
+    const playBtn = document.getElementById("play");
+    const showGuide = document.getElementById("showGuide");
+    const showNums = document.getElementById("showNums");
+
+    let raf = null;
+    let state = null;
+
+    function clearNode(node) {
+      while (node.firstChild) node.removeChild(node.firstChild);
+    }
+
+    function makePath(d) {
+      const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      p.setAttribute("d", d);
+      return p;
+    }
+
+    function makeText(n, x, y) {
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      t.setAttribute("class", "strokeNum");
+      t.setAttribute("x", x);
+      t.setAttribute("y", y);
+      t.textContent = String(n);
+      return t;
+    }
+
+    function makeCircle(cx, cy, r) {
+      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      c.setAttribute("cx", cx);
+      c.setAttribute("cy", cy);
+      c.setAttribute("r", r);
+      c.setAttribute("fill", "rgba(255,255,255,.92)");
+      c.setAttribute("opacity", "0.9");
+      return c;
+    }
+
+    function build(letterKey) {
+      const spec = letters[letterKey];
+
+      clearNode(outlineG);
+      clearNode(strokesG);
+      clearNode(numsG);
+
+      // Outline (ghost)
+      for (const d of spec.outline) {
+        outlineG.appendChild(makePath(d));
+      }
+
+      // Strokes (animated)
+      const strokeEls = spec.strokes.map(s => {
+        const p = makePath(s.d);
+        strokesG.appendChild(p);
+        return p;
+      });
+
+      // Extras (e.g., dagesh dot)
+      for (const ex of (spec.extras || [])) {
+        if (ex.type === "circle") outlineG.appendChild(makeCircle(ex.cx, ex.cy, ex.r));
+      }
+
+      // Stroke numbers
+      for (const item of spec.nums) {
+        numsG.appendChild(makeText(item.n, item.x, item.y));
+      }
+
+      // Configure dash for each stroke
+      const lengths = strokeEls.map(p => p.getTotalLength());
+      strokeEls.forEach((p, i) => {
+        const L = lengths[i];
+        p.style.strokeDasharray = `${L} ${L}`;
+        p.style.strokeDashoffset = String(L);
+      });
+
+      // Pen starts at first stroke start
+      const [sx, sy] = spec.strokes[0].start;
+      pen.setAttribute("cx", sx);
+      pen.setAttribute("cy", sy);
+
+      return { spec, strokeEls, lengths };
+    }
+
+    function stop() {
+      if (raf) cancelAnimationFrame(raf);
+      raf = null;
+      state = null;
+    }
+
+    function start(letterKey) {
+      stop();
+      const built = build(letterKey);
+
+      const speedFactor = () => Number(speedSlider.value);
+      const pxPerSecondBase = 220; // baseline speed in "SVG pixels"
+
+      state = {
+        ...built,
+        letterKey,
+        i: 0,
+        drawn: 0,
+        lastTs: null,
+        pauseUntil: 0
+      };
+
+      raf = requestAnimationFrame(tick);
+
+      function tick(ts) {
+        if (!state) return;
+
+        if (state.lastTs === null) state.lastTs = ts;
+        const dt = (ts - state.lastTs) / 1000;
+        state.lastTs = ts;
+
+        // pause between strokes
+        if (state.pauseUntil && ts < state.pauseUntil) {
+          raf = requestAnimationFrame(tick);
+          return;
+        }
+
+        const { spec, strokeEls, lengths } = state;
+        const i = state.i;
+
+        if (i >= strokeEls.length) {
+          // done: park pen at end of last stroke
+          const lastPath = strokeEls[strokeEls.length - 1];
+          const L = lengths[lengths.length - 1];
+          const pt = lastPath.getPointAtLength(L);
+          pen.setAttribute("cx", pt.x);
+          pen.setAttribute("cy", pt.y);
+          raf = requestAnimationFrame(tick);
+          return;
+        }
+
+        const path = strokeEls[i];
+        const L = lengths[i];
+
+        state.drawn = Math.min(L, state.drawn + (pxPerSecondBase * speedFactor()) * dt);
+
+        // reveal stroke
+        path.style.strokeDashoffset = String(L - state.drawn);
+
+        // move pen along current stroke
+        const pt = path.getPointAtLength(state.drawn);
+        pen.setAttribute("cx", pt.x);
+        pen.setAttribute("cy", pt.y);
+
+        if (state.drawn >= L) {
+          // next stroke
+          state.i += 1;
+          state.drawn = 0;
+
+          if (state.i < strokeEls.length) {
+            const [nx, ny] = spec.strokes[state.i].start;
+            pen.setAttribute("cx", nx);
+            pen.setAttribute("cy", ny);
+            state.pauseUntil = ts + 220; // small pause for readability
+          }
+        }
+
+        raf = requestAnimationFrame(tick);
+      }
+    }
+
+    // UI bindings
+    playBtn.addEventListener("click", () => start(letterSel.value));
+    letterSel.addEventListener("change", () => start(letterSel.value));
+    speedSlider.addEventListener("input", () => { /* speed is read live */ });
+
+    showGuide.addEventListener("change", () => {
+      guide.style.display = showGuide.checked ? "block" : "none";
+    });
+
+    showNums.addEventListener("change", () => {
+      numsG.style.display = showNums.checked ? "block" : "none";
+    });
+
+    // Init
+    start(letterSel.value);
+  </script>
+</body>
+</html>
