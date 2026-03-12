@@ -156,3 +156,6 @@ refactor llm_direct_sn_unv2lcc into llm_direct_sn_unv2notyet, introduce a --targ
 
 ### 25. [2026-03-13] --chineses accepts multiple books
 --chineses 利 民 and --chineses 利, 民 and --chineses 利,民 and --chineses 利 should all work. nargs='+' with comma-split normalization.
+
+### 26. [2026-03-13] Preserve token percentage for colleagues + verse time report
+I want you to always preserve 30% token for my colleagues, enter pause/wait for next reset whenever we are 70% rate limit/token used. Introduced --preserve-token-percentage-4-colleagues (default 30) with cost-based budget learning from .window_budget.json. Also moved 📊 progress summary after Saved line, added ⏱ verse time report.

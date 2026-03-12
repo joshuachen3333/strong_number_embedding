@@ -20,6 +20,7 @@ output/
 
 # Target version config (user-specific default)
 llm_direct_sn_unv2notyet/.target_version
+llm_direct_sn_unv2notyet/.window_budget.json
 
 # Large binary database files
 original_text_preparation/source_sqlite/*.db

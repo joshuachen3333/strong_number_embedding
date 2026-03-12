@@ -250,6 +250,7 @@ def parse_stream_json(raw: str, sn_field: str = "lcc_sn") -> tuple:
 
     Returns (result_dict, rate_limit_info).
     rate_limit_info is the rate_limit_event.rate_limit_info dict, or None.
+    result_dict includes '_cost_usd' extracted from the result event.
 
     stream-json is newline-delimited JSON. Each line has a top-level "type" field.
     With --json-schema, the structured output appears in:
@@ -258,8 +259,9 @@ def parse_stream_json(raw: str, sn_field: str = "lcc_sn") -> tuple:
     """
     result = None
     rate_limit_info = None
+    cost_usd = 0.0
 
-    # First pass: collect structured result and rate_limit_info
+    # First pass: collect structured result, rate_limit_info, and cost
     for line in raw.strip().split('\n'):
         if not line.strip():
             continue
@@ -273,18 +275,20 @@ def parse_stream_json(raw: str, sn_field: str = "lcc_sn") -> tuple:
             rate_limit_info = obj.get("rate_limit_info")
 
         # Best: result event with structured_output
-        if obj.get("type") == "result" and result is None:
-            if "structured_output" in obj and obj["structured_output"]:
-                result = obj["structured_output"]
-            else:
-                result_text = obj.get("result", "")
-                if isinstance(result_text, dict):
-                    result = result_text
-                elif isinstance(result_text, str) and result_text.strip():
-                    try:
-                        result = json.loads(result_text)
-                    except json.JSONDecodeError:
-                        pass
+        if obj.get("type") == "result":
+            cost_usd = obj.get("total_cost_usd", 0)
+            if result is None:
+                if "structured_output" in obj and obj["structured_output"]:
+                    result = obj["structured_output"]
+                else:
+                    result_text = obj.get("result", "")
+                    if isinstance(result_text, dict):
+                        result = result_text
+                    elif isinstance(result_text, str) and result_text.strip():
+                        try:
+                            result = json.loads(result_text)
+                        except json.JSONDecodeError:
+                            pass
 
         # Also check: assistant tool_use with StructuredOutput
         if obj.get("type") == "assistant" and result is None:
@@ -296,6 +300,7 @@ def parse_stream_json(raw: str, sn_field: str = "lcc_sn") -> tuple:
                         result = inp
 
     if result is not None:
+        result["_cost_usd"] = cost_usd
         return result, rate_limit_info
 
     # Last resort: concatenate all text_delta content and try parsing
@@ -315,7 +320,9 @@ def parse_stream_json(raw: str, sn_field: str = "lcc_sn") -> tuple:
     if text_parts:
         full_text = ''.join(text_parts)
         try:
-            return json.loads(full_text), rate_limit_info
+            parsed = json.loads(full_text)
+            parsed["_cost_usd"] = cost_usd
+            return parsed, rate_limit_info
         except json.JSONDecodeError:
             pass
         # Regex fallback
@@ -330,7 +337,9 @@ def parse_stream_json(raw: str, sn_field: str = "lcc_sn") -> tuple:
                     depth -= 1
                 if depth == 0:
                     try:
-                        return json.loads(full_text[start:i + 1]), rate_limit_info
+                        parsed = json.loads(full_text[start:i + 1])
+                        parsed["_cost_usd"] = cost_usd
+                        return parsed, rate_limit_info
                     except json.JSONDecodeError:
                         break
 
@@ -338,8 +347,37 @@ def parse_stream_json(raw: str, sn_field: str = "lcc_sn") -> tuple:
         sn_field: "",
         "confidence": 0.0,
         "notes": [f"Failed to parse stream-json response: {raw[:300]}"],
-        "error": True
+        "error": True,
+        "_cost_usd": cost_usd
     }, rate_limit_info
+
+
+BUDGET_FILE = os.path.join(SCRIPT_DIR, ".window_budget.json")
+
+
+def load_window_budget(model: str) -> float:
+    """Load learned cost budget for model's rate-limit window. Returns 0 if unknown."""
+    try:
+        with open(BUDGET_FILE) as f:
+            data = json.load(f)
+        return data.get(model, {}).get("budget_cost", 0)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return 0
+
+
+def save_window_budget(model: str, budget_cost: float):
+    """Save learned cost budget for model."""
+    try:
+        with open(BUDGET_FILE) as f:
+            data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        data = {}
+    data[model] = {
+        "budget_cost": round(budget_cost, 4),
+        "updated": datetime.now().strftime("%Y-%m-%d %H:%M")
+    }
+    with open(BUDGET_FILE, 'w') as f:
+        json.dump(data, f, indent=2)
 
 
 def call_claude(model: str, unv_sn: str, target_text: str,
@@ -379,17 +417,6 @@ def call_claude(model: str, unv_sn: str, target_text: str,
         "--no-session-persistence",
         "--disallowed-tools", "Bash,Edit,Write,Read,Glob,Grep,Task",
     ]
-
-    # Show progress summary right before the blocking LLM call
-    if progress:
-        done, t0, paused_so_far = progress
-        wall = time.time() - t0
-        working = wall - paused_so_far
-        if done > 0:
-            rate = working / done / 60  # minutes per verse (working time only)
-            working_m = working / 60
-            print(f"\n  📊 {done} verses done, {working_m:.0f}min working, "
-                  f"{rate:.1f} min/verse", flush=True)
 
     if verbose:
         print(f"  [claude {model}] calling... (timeout 300s)", flush=True)
@@ -679,7 +706,21 @@ def process_sec(model: str, brand: str, target_version: str, book_chi: str,
         verse_time_str = f"{verse_secs / 60:.1f}min"
     else:
         verse_time_str = f"{verse_secs:.0f}s"
-    print(f"  Saved:  {file_path}  ({verse_time_str})")
+    print(f"  Saved:  {file_path}")
+    print(f"  ⏱ Verse time: {verse_time_str}")
+
+    # Show progress summary after saving
+    if progress:
+        done, t0, paused_so_far = progress
+        # +1 to include this verse we just processed
+        done_now = done + 1
+        wall = time.time() - t0
+        working = wall - (paused_acc[0] if paused_acc else paused_so_far)
+        if done_now > 0:
+            rate = working / done_now / 60  # minutes per verse (working time only)
+            working_m = working / 60
+            print(f"\n  📊 {done_now} verses done, {working_m:.0f}min working, "
+                  f"{rate:.1f} min/verse", flush=True)
 
     return result, rate_limit_info
 
@@ -764,6 +805,10 @@ def main():
                         help="Quit instead of pausing when work hours reached")
     parser.add_argument("--immediately-restrict-first-session", action="store_true",
                         help="Enforce pause window immediately (default: always run on first start)")
+    parser.add_argument("--preserve-token-percentage-4-colleagues", type=int,
+                        default=30, metavar="N",
+                        help="Preserve N%% of token budget for colleagues; "
+                             "pause at (100-N)%% usage (default: 30)")
     args = parser.parse_args()
 
     # Handle --set-target-version (persist and exit)
@@ -895,6 +940,13 @@ def main():
               if not args.quit_at_work_hours else
               f"Work hours: quit at {args.work_hours_start}")
 
+    preserve_pct = args.preserve_token_percentage_4_colleagues
+    window_budget = load_window_budget(args.model)
+    if preserve_pct > 0:
+        budget_str = f", learned budget: ${window_budget:.2f}" if window_budget > 0 else ", budget: learning..."
+        print(f"Preserve: {preserve_pct}% for colleagues "
+              f"(pause at {100 - preserve_pct}%{budget_str})")
+
     if not args.dry_run:
         if not shutil.which("claude"):
             print("Error: 'claude' CLI not found in PATH.", file=sys.stderr)
@@ -943,6 +995,9 @@ def main():
     enforce_work_hours = args.immediately_restrict_first_session
     chapter_stats = []  # [(book_eng, chap, first_sec, last_sec, processed, skipped, failed)]
     user_interrupted = False
+    # Token-budget tracking per rate-limit window
+    current_window_resets_at = 0
+    window_cost = 0.0
 
     # Flatten all books' chapters into one sequential list for the main loop
     _chap_jobs = []  # [(book_chi, book_eng, chap), ...]
@@ -1087,15 +1142,38 @@ def main():
                 chap_failed += 1
                 total_failed += 1
 
+            # Track cost per rate-limit window
+            verse_cost = result.get("_cost_usd", 0) if result else 0
+            if rate_limit_info:
+                resets_at = rate_limit_info.get("resetsAt", 0)
+                if resets_at != current_window_resets_at:
+                    # New window — reset cost tracker
+                    current_window_resets_at = resets_at
+                    window_cost = 0.0
+            window_cost += verse_cost
+
+            # Preserve-token check: pause at (100-N)% of learned budget
+            should_pause_preserve = False
+            if (preserve_pct > 0 and window_budget > 0
+                    and window_cost >= window_budget * (1 - preserve_pct / 100)):
+                should_pause_preserve = True
+
             # Proactive rate-limit detection from stream-json event
             if rate_limit_info and rate_limit_info.get("status") != "allowed":
                 resets_at = rate_limit_info.get("resetsAt", 0)
                 now_ts = time.time()
+                # Learn/update budget: API triggers at ~90%, so budget ≈ cost / 0.9
+                if window_cost > 0:
+                    estimated_budget = window_cost / 0.9
+                    save_window_budget(args.model, estimated_budget)
+                    window_budget = estimated_budget
+                    print(f"  📝 Learned window budget: ${estimated_budget:.2f} "
+                          f"(from ${window_cost:.2f} at API limit)", flush=True)
                 if resets_at > now_ts:
                     wait_secs = resets_at - now_ts
                     wait_min = wait_secs / 60
                     resume_str = datetime.fromtimestamp(resets_at).strftime("%H:%M")
-                    print(f"\n  ⏸ Rate limit approaching "
+                    print(f"\n  ⏸ Rate limit hit "
                           f"(status: {rate_limit_info.get('status')}). "
                           f"Waiting {wait_min:.0f} min until {resume_str}...",
                           flush=True)
@@ -1114,7 +1192,39 @@ def main():
                     total_paused += pause_duration
                     if deadline:
                         deadline += pause_duration
+                    window_cost = 0.0  # new window after wait
                     print(f"  ⏵ Resuming.", flush=True)
+
+            elif should_pause_preserve:
+                # Budget-based early pause to preserve tokens for colleagues
+                resets_at = current_window_resets_at
+                now_ts = time.time()
+                if resets_at > now_ts:
+                    wait_secs = resets_at - now_ts
+                    wait_min = wait_secs / 60
+                    resume_str = datetime.fromtimestamp(resets_at).strftime("%H:%M")
+                    print(f"\n  ⏸ {100 - preserve_pct}% budget used "
+                          f"(${window_cost:.2f}/${window_budget:.2f}). "
+                          f"Preserving {preserve_pct}% for colleagues. "
+                          f"Waiting {wait_min:.0f} min until {resume_str}...",
+                          flush=True)
+                    pause_start = time.time()
+                    try:
+                        time.sleep(wait_secs)
+                    except KeyboardInterrupt:
+                        pause_duration = time.time() - pause_start
+                        total_paused += pause_duration
+                        if deadline:
+                            deadline += pause_duration
+                        print(f"\n⏹ Cancelled during preserve-token wait.")
+                        limit_reached = True
+                        break
+                    pause_duration = time.time() - pause_start
+                    total_paused += pause_duration
+                    if deadline:
+                        deadline += pause_duration
+                    window_cost = 0.0  # new window after wait
+                    print(f"  ⏵ Resuming (new window).", flush=True)
 
             # --verse-count check
             if args.verse_count > 0 and total_processed >= args.verse_count:
