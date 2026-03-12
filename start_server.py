@@ -533,10 +533,11 @@ class BibleServerHandler(http.server.SimpleHTTPRequestHandler):
     # ── Review endpoints ─────────────────────────────────────────────────
 
     def _handle_get_reviews(self, query_string):
-        """GET /api/reviews?book=Gen&chap=1[&sec=1] — public, no auth needed."""
+        """GET /api/reviews?book=Gen&chap=1[&sec=1][&brand=claude] — public, no auth needed."""
         params = urllib.parse.parse_qs(query_string)
         book = params.get("book", [None])[0]
         chap_str = params.get("chap", [None])[0]
+        brand = params.get("brand", [None])[0]
 
         if not book or not chap_str:
             self._send_json(400, {"error": "Missing 'book' and 'chap' parameters"})
@@ -551,6 +552,11 @@ class BibleServerHandler(http.server.SimpleHTTPRequestHandler):
         data = _load_json(REVIEWS_FILE, {"reviews": []})
         filtered = [r for r in data.get("reviews", [])
                      if r["book"] == book and r["chap"] == chap]
+
+        # Filter by brand (reviews without brand field match "claude" for backward compat)
+        if brand:
+            filtered = [r for r in filtered
+                        if r.get("brand", "claude") == brand]
 
         sec_str = params.get("sec", [None])[0]
         if sec_str:
@@ -595,11 +601,13 @@ class BibleServerHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         text = str(body.get("text", "")).strip()[:2000]
+        brand = str(body.get("brand", "claude")).strip()
 
         ts_ms = int(time.time() * 1000)
         rand_hex = format(_rng.randint(0, 0xFFFF), '04x')
         review = {
             "id": f"r_{ts_ms}_{rand_hex}",
+            "brand": brand,
             "book": book, "chap": chap, "sec": sec,
             "reviewer_email": sess["email"],
             "reviewer_name": sess["name"],

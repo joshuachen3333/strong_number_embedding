@@ -6,15 +6,17 @@
 <title>LCC + Strong's Numbers — AI Review</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f5f5; color: #333; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f5f5; color: #333;
+  display: flex; flex-direction: column; }
 
 header {
   background: linear-gradient(135deg, #1a237e, #283593);
-  color: #fff; padding: 16px 24px;
-  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  color: #fff; padding: 6px 24px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px;
 }
-header h1 { font-size: 1.3em; font-weight: 600; }
-#stats { font-size: 0.85em; opacity: 0.85; }
+header h1 { font-size: 1.1em; font-weight: 600; }
+#stats { font-size: 0.8em; opacity: 0.85; }
 
 #lang-select {
   background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3);
@@ -68,8 +70,8 @@ header h1 { font-size: 1.3em; font-weight: 600; }
 .modal .auth-msg.success { background: #c8e6c9; color: #2e7d32; }
 
 .controls {
-  background: #fff; padding: 10px 24px; border-bottom: 1px solid #ddd;
-  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  background: #fff; padding: 4px 24px; border-bottom: 1px solid #ddd; flex-shrink: 0;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
 }
 .controls label { font-size: 0.85em; color: #555; }
 .controls select {
@@ -77,8 +79,25 @@ header h1 { font-size: 1.3em; font-weight: 600; }
   font-size: 0.95em; min-width: 120px;
 }
 
+/* Brand tabs */
+.brand-tabs { display: flex; gap: 4px; margin-right: 8px; }
+.brand-tab {
+  padding: 4px 12px; border: 1px solid #bbb; border-radius: 14px;
+  font-size: 0.82em; font-weight: 600; cursor: pointer;
+  background: #f5f5f5; color: #555; transition: all 0.15s;
+}
+.brand-tab:hover { background: #e0e0e0; }
+.brand-tab.active { color: #fff; border-color: transparent; }
+.brand-tab[data-brand="claude"].active { background: #7c4dff; }
+.brand-tab[data-brand="gemini"].active { background: #1a73e8; }
+.brand-tab[data-brand="codex"].active { background: #2e7d32; }
+
+/* Main content area: panels + handle + notes in a flex column */
+.main-area {
+  display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;
+}
 .panels {
-  display: flex; height: calc(100vh - 200px); gap: 0;
+  display: flex; flex: 1; gap: 0; min-height: 120px; overflow: hidden;
 }
 .panel {
   flex: 1; display: flex; flex-direction: column; border-right: 1px solid #ddd;
@@ -86,7 +105,7 @@ header h1 { font-size: 1.3em; font-weight: 600; }
 }
 .panel:last-child { border-right: none; }
 .panel-header {
-  padding: 8px 16px; font-weight: 600; font-size: 0.95em;
+  padding: 3px 16px; font-weight: 600; font-size: 0.85em;
   border-bottom: 1px solid #e0e0e0; flex-shrink: 0;
 }
 .panel-header.left { background: #e8eaf6; color: #1a237e; }
@@ -147,10 +166,25 @@ header h1 { font-size: 1.3em; font-weight: 600; }
 .review-badge.has-approval { background: #c8e6c9; color: #2e7d32; }
 .review-badge.has-needs-work { background: #ffcdd2; color: #c62828; }
 
+/* Resize handle between panels and notes */
+.resize-handle {
+  height: 14px; background: #1b5e20; cursor: ns-resize; flex-shrink: 0;
+  border-radius: 4px; margin: 1px auto;
+  width: 120px; user-select: none; touch-action: none;
+}
+.resize-handle::before {
+  content: '↕'; display: block; text-align: center; color: #fff;
+  font-size: 12px; font-weight: bold; line-height: 14px;
+  text-shadow: 0 0 2px rgba(0,0,0,0.4);
+  -webkit-text-stroke: 2px #fff;
+}
+.resize-handle:hover { background: #2e7d32; width: 180px; }
+.resize-handle:active { background: #2e7d32; width: 180px; }
+
 /* Notes + reviews bottom panel */
 .notes-panel {
   background: #fafafa; border-top: 1px solid #ddd; padding: 10px 24px;
-  font-size: 0.85em; max-height: 40vh; overflow-y: auto; flex-shrink: 0;
+  font-size: 0.85em; flex: 0 0 30vh; min-height: 60px; overflow-y: auto;
 }
 .notes-panel summary {
   cursor: pointer; font-weight: 600; color: #555; user-select: none;
@@ -198,8 +232,8 @@ header h1 { font-size: 1.3em; font-weight: 600; }
 
 /* Review form bar — below controls, only when authenticated */
 .review-bar {
-  background: #e8eaf6; padding: 8px 24px; border-bottom: 1px solid #c5cae9;
-  display: none; flex-wrap: wrap; gap: 8px; align-items: center;
+  background: #e8eaf6; padding: 4px 24px; border-bottom: 1px solid #c5cae9; flex-shrink: 0;
+  display: none; flex-wrap: wrap; gap: 6px; align-items: center;
 }
 .review-bar.active { display: flex; }
 .review-bar label { font-size: 0.82em; color: #333; display: flex; align-items: center; gap: 4px; }
@@ -261,11 +295,16 @@ header h1 { font-size: 1.3em; font-weight: 600; }
       <button class="btn-primary" id="auth-verify-btn" onclick="verifyOTP()"></button>
       <button class="btn-cancel" onclick="hideAuthModal()"></button>
     </div>
+    <!-- Step 3: Pending approval — close button -->
+    <div id="auth-pending-close" style="display:none;text-align:center;margin-top:12px">
+      <button class="btn-primary" onclick="hideAuthModal()" style="min-width:120px" data-i18n="closePending"></button>
+    </div>
     <div id="auth-msg" class="auth-msg" style="display:none"></div>
   </div>
 </div>
 
 <div class="controls">
+  <div class="brand-tabs" id="brand-tabs"></div>
   <label><span data-i18n="book"></span> <select id="book-select"><option>Loading...</option></select></label>
   <label><span data-i18n="chapter"></span> <select id="chap-select"><option>—</option></select></label>
 </div>
@@ -286,29 +325,33 @@ header h1 { font-size: 1.3em; font-weight: 600; }
   <button class="cancel-btn" id="review-cancel-btn" onclick="cancelEditReview()" style="display:none"></button>
 </div>
 
-<div class="panels">
-  <div class="panel">
-    <div class="panel-header left" id="left-header"></div>
-    <div class="panel-content" id="left-content">
-      <div class="empty-state">Select a book and chapter</div>
+<div class="main-area" id="main-area">
+  <div class="panels" id="panels">
+    <div class="panel">
+      <div class="panel-header left" id="left-header"></div>
+      <div class="panel-content" id="left-content">
+        <div class="empty-state">Select a book and chapter</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header right" id="right-header"></div>
+      <div class="panel-content" id="right-content">
+        <div class="empty-state">Select a book and chapter</div>
+      </div>
     </div>
   </div>
-  <div class="panel">
-    <div class="panel-header right" id="right-header"></div>
-    <div class="panel-content" id="right-content">
-      <div class="empty-state">Select a book and chapter</div>
-    </div>
-  </div>
-</div>
 
-<details class="notes-panel" id="notes-panel">
-  <summary id="notes-summary"></summary>
-  <div id="notes-content"></div>
-  <div class="reviews-section" id="reviews-section">
-    <h4 id="reviews-header"></h4>
-    <div id="reviews-list"></div>
-  </div>
-</details>
+  <div class="resize-handle" id="resize-handle"></div>
+
+  <details class="notes-panel" id="notes-panel">
+    <summary id="notes-summary"></summary>
+    <div id="notes-content"></div>
+    <div class="reviews-section" id="reviews-section">
+      <h4 id="reviews-header"></h4>
+      <div id="reviews-list"></div>
+    </div>
+  </details>
+</div>
 
 <script>
 const BUNDLE_URL = 'data_bundle.json';
@@ -355,7 +398,7 @@ const I18N = {
     verify: '驗證',
     cancel: '取消',
     otpSent: '驗證碼已寄出，請查收 Email',
-    pendingApproval: '已送出申請，管理員核准後將自動寄出驗證碼',
+    pendingApproval: '申請已送出！管理員若未能即時核准，請耐心等候。\n核准後系統會寄出驗證碼到您的 Email。\n您可以先關閉此視窗繼續瀏覽，\n之後再點「進入審閱模式」輸入驗證碼即可。',
     invalidOTP: '驗證碼錯誤或已過期',
     authSuccess: '驗證成功！',
     logout: '登出',
@@ -380,6 +423,7 @@ const I18N = {
     deleteReview: '刪除',
     confirmDelete: '確定刪除此審閱？',
     editHint: '點擊自己的審閱可編輯',
+    closePending: '我知道了，先關閉',
   },
   'en': {
     title: 'LCC + Strong\'s Numbers — AI Transfer Review',
@@ -408,7 +452,7 @@ const I18N = {
     verify: 'Verify',
     cancel: 'Cancel',
     otpSent: 'OTP sent to your email',
-    pendingApproval: 'Access request sent. You will receive an OTP once approved.',
+    pendingApproval: 'Request sent! The admin will review it (not instant).\nOnce approved, a verification code will be emailed to you.\nYou may close this dialog and continue browsing.\nLater, click "Enter Review Mode" to enter the code.',
     invalidOTP: 'Invalid or expired OTP',
     authSuccess: 'Authenticated!',
     logout: 'Logout',
@@ -432,6 +476,7 @@ const I18N = {
     deleteReview: 'Delete',
     confirmDelete: 'Delete this review?',
     editHint: 'Click your own review to edit',
+    closePending: 'OK, close for now',
   },
   'zh-Hans': {
     title: '吕振中译本 + Strong\'s Numbers — AI 转移成果审阅',
@@ -460,7 +505,7 @@ const I18N = {
     verify: '验证',
     cancel: '取消',
     otpSent: '验证码已寄出，请查收 Email',
-    pendingApproval: '已送出申请，管理员核准后将自动寄出验证码',
+    pendingApproval: '申请已送出！管理员若未能即时核准，请耐心等候。\n核准后系统会寄出验证码到您的 Email。\n您可以先关闭此窗口继续浏览，\n之后再点「进入审阅模式」输入验证码即可。',
     invalidOTP: '验证码错误或已过期',
     authSuccess: '验证成功！',
     logout: '登出',
@@ -484,6 +529,7 @@ const I18N = {
     deleteReview: '删除',
     confirmDelete: '确定删除此审阅？',
     editHint: '点击自己的审阅可编辑',
+    closePending: '我知道了，先关闭',
   }
 };
 
@@ -496,6 +542,7 @@ let manifest = null;
 let bundle = null;
 let booksData = [];
 let bookMap = {};
+let currentBrand = null;
 let currentData = null;
 let currentBook = null;
 let currentChap = null;
@@ -528,9 +575,20 @@ async function init() {
       fetch(BOOKS_URL, FETCH_OPTS)
     ]);
     bundle = await bundleResp.json();
-    manifest = bundle.manifest;
     booksData = await booksResp.json();
     booksData.forEach(b => { bookMap[b.eng] = b; });
+
+    // Brand-aware bundle: { brands: { claude: { manifest, verses }, ... } }
+    if (bundle.brands) {
+      const brands = Object.keys(bundle.brands);
+      currentBrand = brands.includes('claude') ? 'claude' : brands[0];
+      manifest = bundle.brands[currentBrand].manifest;
+      renderBrandTabs(brands);
+    } else {
+      // Legacy format fallback: { manifest, verses }
+      manifest = bundle.manifest;
+      currentBrand = 'claude';
+    }
 
     applyI18n();
     populateBookSelect();
@@ -648,6 +706,37 @@ function showStats() {
   statsEl.textContent = t('stats')(totalBooks, totalVerses, totalVerses - totalLow, totalLow);
 }
 
+function renderBrandTabs(brands) {
+  const container = document.getElementById('brand-tabs');
+  container.innerHTML = '';
+  if (brands.length <= 1) return; // no tabs needed for single brand
+  for (const brand of brands) {
+    const tab = document.createElement('span');
+    tab.className = 'brand-tab' + (brand === currentBrand ? ' active' : '');
+    tab.dataset.brand = brand;
+    tab.textContent = brand;
+    tab.addEventListener('click', () => onBrandChange(brand));
+    container.appendChild(tab);
+  }
+}
+
+function onBrandChange(brand) {
+  if (brand === currentBrand) return;
+  currentBrand = brand;
+  manifest = bundle.brands[brand].manifest;
+  // Update tab active state
+  document.querySelectorAll('.brand-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.brand === brand);
+  });
+  // Reset selection
+  selectedVerseSec = null;
+  reviewCache = {};
+  notesContent.innerHTML = `<em>${t('noVerse')}</em>`;
+  document.getElementById('reviews-list').innerHTML = '';
+  populateBookSelect();
+  showStats();
+}
+
 // ── Auth ─────────────────────────────────────────────────────────────────
 
 function updateAuthUI() {
@@ -713,13 +802,39 @@ async function showAuthModal() {
     localStorage.removeItem('showoff_session_token');
   }
 
+  const savedName = localStorage.getItem('showoff_auth_name');
+  const savedEmail = localStorage.getItem('showoff_auth_email');
+  const wasPending = localStorage.getItem('showoff_pending_approval');
+
+  // Only auto-retry if user previously got "pending_approval" and is waiting for admin
+  if (wasPending && savedName && savedEmail) {
+    try {
+      const resp = await fetch('/api/auth/request-access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1' },
+        body: JSON.stringify({ email: savedEmail, name: savedName }),
+      });
+      const data = await resp.json();
+      if (data.status === 'otp_sent') {
+        // Admin approved — jump straight to OTP step
+        localStorage.removeItem('showoff_pending_approval');
+        pendingAuthEmail = savedEmail;
+        document.getElementById('auth-modal').classList.add('active');
+        document.getElementById('auth-step-email').style.display = 'none';
+        document.getElementById('auth-step-otp').style.display = 'block';
+        document.getElementById('auth-pending-close').style.display = 'none';
+        showAuthMsg(t('otpSent'), 'success');
+        document.getElementById('auth-otp').focus();
+        return;
+      }
+    } catch {}
+  }
+
   document.getElementById('auth-modal').classList.add('active');
   document.getElementById('auth-step-email').style.display = 'block';
   document.getElementById('auth-step-otp').style.display = 'none';
+  document.getElementById('auth-pending-close').style.display = 'none';
   document.getElementById('auth-msg').style.display = 'none';
-  // Restore saved name/email
-  const savedName = localStorage.getItem('showoff_auth_name');
-  const savedEmail = localStorage.getItem('showoff_auth_email');
   if (savedName) document.getElementById('auth-name').value = savedName;
   if (savedEmail) document.getElementById('auth-email').value = savedEmail;
 }
@@ -730,7 +845,7 @@ function hideAuthModal() {
 
 function showAuthMsg(text, cls) {
   const el = document.getElementById('auth-msg');
-  el.textContent = text;
+  el.innerHTML = escHtml(text).replace(/\n/g, '<br>');
   el.className = `auth-msg ${cls}`;
   el.style.display = 'block';
 }
@@ -761,7 +876,12 @@ async function requestAccess() {
       document.getElementById('auth-step-otp').style.display = 'block';
       document.getElementById('auth-otp').focus();
     } else if (data.status === 'pending_approval') {
+      localStorage.setItem('showoff_pending_approval', '1');
       showAuthMsg(t('pendingApproval'), 'info');
+      // Hide form, show only the message + close button
+      document.getElementById('auth-step-email').style.display = 'none';
+      document.getElementById('auth-step-otp').style.display = 'none';
+      document.getElementById('auth-pending-close').style.display = 'block';
     } else {
       showAuthMsg(data.error || 'Error', 'error');
     }
@@ -790,6 +910,7 @@ async function verifyOTP() {
       sessionToken = data.token;
       currentReviewer = data.reviewer;
       localStorage.setItem('showoff_session_token', sessionToken);
+      localStorage.removeItem('showoff_pending_approval');
       showAuthMsg(t('authSuccess'), 'success');
       setTimeout(() => {
         hideAuthModal();
@@ -807,9 +928,10 @@ async function verifyOTP() {
 // ── Reviews API ─────────────────────────────────────────────────────────
 
 async function fetchReviews(book, chap) {
-  const cacheKey = `${book}/${chap}`;
+  const cacheKey = `${currentBrand}/${book}/${chap}`;
   try {
-    const resp = await fetch(`/api/reviews?book=${book}&chap=${chap}`, FETCH_OPTS);
+    const brandParam = currentBrand ? `&brand=${currentBrand}` : '';
+    const resp = await fetch(`/api/reviews?book=${book}&chap=${chap}${brandParam}`, FETCH_OPTS);
     if (resp.ok) {
       const data = await resp.json();
       reviewCache[cacheKey] = data.reviews || [];
@@ -823,11 +945,11 @@ async function fetchReviews(book, chap) {
 }
 
 function getVerseReviews(book, chap, sec) {
-  return (reviewCache[`${book}/${chap}`] || []).filter(r => r.sec === sec);
+  return (reviewCache[`${currentBrand}/${book}/${chap}`] || []).filter(r => r.sec === sec);
 }
 
 function getChapterReviewCounts(book, chap) {
-  const all = reviewCache[`${book}/${chap}`] || [];
+  const all = reviewCache[`${currentBrand}/${book}/${chap}`] || [];
   const counts = {};
   for (const r of all) {
     if (!counts[r.sec]) counts[r.sec] = { total: 0, hasApproval: false, hasNeedsWork: false };
@@ -907,7 +1029,7 @@ async function submitReview() {
         headers: { 'Authorization': `Bearer ${sessionToken}`, 'ngrok-skip-browser-warning': '1' },
       });
       // Remove from cache
-      const cacheKey = `${currentBook}/${currentChap}`;
+      const cacheKey = `${currentBrand}/${currentBook}/${currentChap}`;
       if (reviewCache[cacheKey]) {
         reviewCache[cacheKey] = reviewCache[cacheKey].filter(r => r.id !== editingReviewId);
       }
@@ -917,6 +1039,7 @@ async function submitReview() {
   }
 
   const body = {
+    brand: currentBrand,
     book: currentBook,
     chap: parseInt(currentChap),
     sec: selectedVerseSec,
@@ -937,7 +1060,7 @@ async function submitReview() {
 
     if (resp.ok) {
       const newReview = await resp.json();
-      const cacheKey = `${currentBook}/${currentChap}`;
+      const cacheKey = `${currentBrand}/${currentBook}/${currentChap}`;
       if (!reviewCache[cacheKey]) reviewCache[cacheKey] = [];
       reviewCache[cacheKey].push(newReview);
       showVerseReviews(currentBook, parseInt(currentChap), selectedVerseSec);
@@ -958,7 +1081,7 @@ async function submitReview() {
 
 function loadReviewForEdit(reviewId) {
   if (!currentReviewer) return;
-  const cacheKey = `${currentBook}/${currentChap}`;
+  const cacheKey = `${currentBrand}/${currentBook}/${currentChap}`;
   const review = (reviewCache[cacheKey] || []).find(r => r.id === reviewId);
   if (!review || review.reviewer_email !== currentReviewer.email) return;
 
@@ -1002,7 +1125,7 @@ async function deleteReview(reviewId) {
       headers: { 'Authorization': `Bearer ${sessionToken}`, 'ngrok-skip-browser-warning': '1' },
     });
     if (resp.ok) {
-      const cacheKey = `${currentBook}/${currentChap}`;
+      const cacheKey = `${currentBrand}/${currentBook}/${currentChap}`;
       if (reviewCache[cacheKey]) {
         reviewCache[cacheKey] = reviewCache[cacheKey].filter(r => r.id !== reviewId);
       }
@@ -1063,7 +1186,8 @@ async function onChapChange() {
   currentChap = chap;
 
   const cacheKey = `${book}/${chap}`;
-  const data = bundle.verses[cacheKey] || [];
+  const brandData = bundle.brands ? bundle.brands[currentBrand] : bundle;
+  const data = (brandData.verses || {})[cacheKey] || [];
   currentData = data;
   renderVerses(data, book, chap);
 
@@ -1222,6 +1346,70 @@ function attachScrollSync() {
   leftContent.addEventListener('scroll', () => syncScroll(leftContent, rightContent));
   rightContent.addEventListener('scroll', () => syncScroll(rightContent, leftContent));
 }
+
+// ── Resize Handle (panels ↔ notes) ──────────────────────────────────────
+
+(function initResizeHandle() {
+  const handle = document.getElementById('resize-handle');
+  const panels = document.getElementById('panels');
+  const notes  = document.getElementById('notes-panel');
+  if (!handle || !panels || !notes) return;
+
+  let dragging = false, startY = 0, startPanelsH = 0, startNotesH = 0;
+
+  handle.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    dragging = true;
+    startY = e.clientY;
+    startPanelsH = panels.getBoundingClientRect().height;
+    startNotesH  = notes.getBoundingClientRect().height;
+    document.body.style.cursor = 'ns-resize';
+    document.body.style.userSelect = 'none';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    e.preventDefault();
+    const dy = e.clientY - startY;
+    const newPanelsH = Math.max(120, startPanelsH + dy);
+    const newNotesH  = Math.max(60,  startNotesH  - dy);
+    panels.style.flex = 'none';
+    panels.style.height = newPanelsH + 'px';
+    notes.style.height  = newNotesH  + 'px';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+
+  // Touch support
+  handle.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    dragging = true;
+    startY = t.clientY;
+    startPanelsH = panels.getBoundingClientRect().height;
+    startNotesH  = notes.getBoundingClientRect().height;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!dragging) return;
+    const t = e.touches[0];
+    const dy = t.clientY - startY;
+    const newPanelsH = Math.max(120, startPanelsH + dy);
+    const newNotesH  = Math.max(60,  startNotesH  - dy);
+    panels.style.flex = 'none';
+    panels.style.height = newPanelsH + 'px';
+    notes.style.height  = newNotesH  + 'px';
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false;
+  });
+})();
 
 // ── Go ───────────────────────────────────────────────────────────────────
 init();

@@ -1,0 +1,147 @@
+# Prompt History
+# Milestone prompts that shaped llm_direct_sn_unv2lcc and showoff_finished_4review
+# Curated from sessions 24c1de9b → c9a1e641
+
+## ══ Session 24c1de9b — llm_direct_sn_unv2lcc inception & core features ══
+
+### 0. [2026-02-24 14:14] The paradigm shift — LLM-direct approach
+I want to try this, I know you are now opus 4.6
+請試試看跳脫我們現有的成果的框架
+能否直接做 LCC 插入 SN 的動作
+不要依賴我們過往的低階分析與 parsing, 直接調用大模型的語義能力和 opus 4.6 強大的能力？
+
+### 0a. [2026-02-24 14:47] Use CLI instead of API
+but I don't want to spend money on api token, could you run bash cli 'claude' for that?
+
+### 0b. [2026-02-24 18:06] Batch mode
+do we have a batch mode to run your script? is the lcc+sn (embedded) json file stored at output/ folder?
+
+### 0c. [2026-02-24 18:34] Show prompt during call (unless --quiet)
+including the prompt. unless I said --quite
+
+### 0d. [2026-02-24 18:50] Model default: sonnet, with --reprocess-low-confidence
+ok, make sonnet the default, and --reprocess-low-confidence (it's default is opus), or --model opus to use opus.
+
+### 0e. [2026-02-24 18:57] Rate-limit retry
+add a stay and pause when claude is running out of token, that the script should wait and try until the time limit has past. keep retrying for every 30 mins, printing something during the retry. it should automatically resume when the token is back to normal usage.
+
+### 0f. [2026-02-25 12:53] Work-hours pause
+give me a next feature that, for my local time after 6:50 AM, we stop the batch job (default) or --no-7:00AM-stop to disable, to honor my colleagues for token saving for them (7:00 is the working hours and I want to preserve tokens for them)
+
+### 0g. [2026-02-25 13:28] --immediately-restrict-first-session
+introduce a --immediately-restrict-first-session (otherwise, the default is to allow running, no matter it is in the evening, or even after work-hour-start), when --immediately-restrict-first-session is given (not default) we should immediately pause (if it is during the pause time window)
+
+### 0h. [2026-02-26 05:00] --verse-count
+give me a new feature --step (or your suggestion), that we only work for --step n (n verses) and quit.
+
+rename it with --verse-count instead of --limit (and do a number format check), default 10
+
+no, change it. with no --verse-count, it is unlimited. and with --verse-count but no number, it is 10 by default, and with --verse-count n , it is n verses.
+
+### 0i. [2026-02-26 08:54] --till with duration and clock time
+give me a new feature --till/--untill followed by 30 min or 45 minute or 50 minutes or 1 hr or 3 hrs or 2 hour or 3 hours and then quit.
+
+for --till, we also accept 17:50; 21:00;etc, but check that the time is in the future.
+
+### 0j. [2026-02-26 09:21] Session report formatting
+for the final report, don't need to print the skipped (previously done) part. Just print the works done at this session (before quit), also I need how long it takes per verse (m/v)
+
+### 0k. [2026-02-26 09:34] Token-out detection
+any good method to detect token out/session limit reached? instead of timing out.
+
+default time still 300s, only the 2nd retry to use 600s
+
+
+## ══ Session c9a1e641 — showoff viewer & llm_direct refinements ══
+
+## ── showoff_finished_4review/ ──
+
+### 1. [2026-02-28 12:34] Creation
+now I want to show off my boss and colleagues those output/* of llm_direct_sn_unv2lcc, give me a showoff_finished_4review/ with simplest left and right area, which left shows unv+sn and right shows lcc+sn of your hard work.
+
+### 2. [2026-02-28 13:21] i18n
+give me a Language (Traditional Chinese default, English, Simplified chinese) that switch interface languages.
+
+### 3. [2026-02-28 13:46] ngrok loading failure (colleague's phone)
+check this, it says 載入失敗
+
+### 4. [2026-02-28 14:16] Review system concept
+when someone (could be my colleague, or some other bible/原文 export) wants to join, comment or view my output/ what can we do? they might give better insertion opinion, or give some other comments.
+
+### 5. [2026-02-28 15:06] Auth debugging
+I apply for the 6 digit code with my email cschen@asiaa.sinica.edu.tw, but the admin (joysons3@gmail.com) doesn't get the approval email
+
+### 6. [2026-02-28 15:24] Review form placement
+這一個編輯區請放在 書卷 (chooser) 章 (chooser) 的下一行, 這樣比較明顯, 而且是 "進入審閱模式" 時才出現冒出來
+
+### 7. [2026-02-28 15:38] Review type coloring + renaming
+give colors to those which are commented: suggestion (建議修改)
+approved (通過) need work (待修改)
+
+coloring is good, just change 待修改 to 需更正 (correct the error), and add your detailed explanation as tooltip when about to choose one and hover on it.
+
+### 8. [2026-02-28 15:49] Review edit/delete
+審閱意見 done by me, when I click it (make it clickable), can I load it and change (resubmit) it? and can I delete it?
+
+### 9. [2026-02-28 16:05] Pending approval UX
+我刪除了 cschen@asiaa.sinica.edu.tw 讓他重新獲得批准
+我發現對於第一次申請我的批准的人
+其操作步驟並不順暢
+
+這時申請者該做什麼? 這個子視窗一直擋著
+
+管理員不會立即核准, 請改成
+管理員若未能即時核准
+
+### 10. [2026-02-28 16:23] Returning user auto-retry
+我剛剛按下 進入審閱模式 視窗沒有問我的電子郵件 直接問我 code? 說已經寄到我的 email 了 他怎麼知道我是誰, 誰要登入
+
+### 11. [2026-02-28 16:29] Compact vertical spacing
+these lines take too much vertical spaces (行距), I want to save vertical space so that more AI 註記與審閱 contents can be seen.
+
+### 12. [2026-02-28 16:33] Resizable panels/notes divider
+能否在經文展示區與 AI 註記與審閱區域中間加上類似 dual_reader_right_editor 底部的垂直空間調整的把手, 讓 vertical space be adjustable that users might want to see the low partion bigger vertically.
+
+### 13. [2026-02-28 16:43] Resize handle styling
+make the green thik line horizontally nararrower, 窄窄一點就好
+
+高度可以恢復剛剛那樣高, 重點是白色上下箭頭要明顯 寬度剛好
+
+白色箭頭中間那個垂直白線可以再粗兩倍
+
+
+## ── llm_direct_sn_unv2lcc/llm_direct_sn_unv2lcc.py (refinements) ──
+
+### 14. [2026-03-02 00:34] --start-at feature
+now, give me a new feature called --since/--start-at/--start-from, that will not really go running, but pause and wait there and start at --start-at, do not be confused with --till.
+--start-at accept the same time format (hh:mm or number, where number is how many hrs/mins).
+--start-at 3hrs --till 4hrs, will start 3hrs after, and running for 4hrs
+
+### 15. [2026-03-03 02:53] Progress display
+每一次呼叫 claude 時, 會耗時很久, 此時不妨顯示一行簡要進度 （已將處理了幾節, 耗時多久, 速率是每一節多少分鐘）
+
+### 16. [2026-03-03 02:55] Ctrl-C during work-hours pause → no summary report
+on working hour pausing, when I hit ctrl-c, I didn't get the summary report
+
+### 17. [2026-03-03 02:58] Deeper Ctrl-C fix
+deeper check if other situations paused need this ctrl-c summary report fix.
+
+### 18. [2026-03-03 14:23] Hide prompt by default (--verbose)
+now, hide the prompt (between ── /prompt ──) as default, unless I give -v (verbose)
+
+### 19. [2026-03-04 14:37] Working time accuracy
+can you confirm that this average min/v is real working time, not including paused/waiting time?
+
+### 20. [2026-03-07 03:26] Per-verse timing + more separator lines
+each verse, the last line is Saved: ... add a time spend: (on that only one verse)
+
+next verse's first line is ── Exod 13:21 (21/22) ── (for example) with 3 blank line for separator, make it 5 blank lines.
+
+
+## ══ Session — rate-limit deadline fix & multi-brand reorganization ══
+
+### 21. [2026-03-12] --till should not count rate-limit wait time
+--till (hh:mm or n hrs) sometimes encounters rate limit approaching. and when we wait for the reset, this waiting time should not be counted in of the operation time. for ex. if we wait extra 3 hrs for resetting token limit, we should run 3 more hours to sum up the original n hrs.
+
+### 22. [2026-03-12] Multi-brand output reorganization (claude/gemini/codex)
+I am going to expand the model to different brand (gemini, codex) and their different models (gemini3 pro, flash, gemini 2.5 pro, flash), and codex (5.4, 5.3 codex, 5.2 codex, 5.2), so our output/* must be re-organized to output/gemini output/codex output/claude, right? and the models will be more than just claude (4.6 opus, 4.6 sonnet). note that output/* changed to 3 brands, then our showoff_4review must follow that.

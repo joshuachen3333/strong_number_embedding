@@ -43,8 +43,8 @@ _DURATION_RE = re.compile(
 _CLOCK_RE = re.compile(r'^\s*(\d{1,2}):(\d{2})\s*$')
 
 
-def parse_till(s: str) -> float:
-    """Parse --till value to a deadline timestamp (seconds since epoch).
+def parse_time_spec(s: str, label: str = "--till") -> float:
+    """Parse a time specification to a timestamp (seconds since epoch).
 
     Accepts duration ('30min', '1.5hr') or clock time ('17:50', '21:00').
     Clock times must be in the future; if the time has passed today, it's rejected.
@@ -78,9 +78,13 @@ def parse_till(s: str) -> float:
             sys.exit(1)
         return time.time() + secs
 
-    print(f"Error: Invalid --till value '{s}'", file=sys.stderr)
+    print(f"Error: Invalid {label} value '{s}'", file=sys.stderr)
     print(f"Examples: 30min, 1.5hr, 2hours, 45m, 17:50, 21:00", file=sys.stderr)
     sys.exit(1)
+
+
+def parse_till(s: str) -> float:
+    return parse_time_spec(s, "--till")
 
 
 # ── FHL API ──────────────────────────────────────────────────────────────────
@@ -308,11 +312,15 @@ def parse_stream_json(raw: str) -> tuple:
 
 def call_claude(model: str, unv_sn: str, lcc: str,
                 book_chi: str, chap: int, sec: int,
-                verbose: bool = True) -> tuple:
+                verbose: bool = False,
+                progress: tuple = None,
+                paused_acc: list = None) -> tuple:
     """Call claude CLI to insert SNs into LCC.
 
     Returns (result_dict, rate_limit_info).
     rate_limit_info is the rate_limit_event dict from stream-json, or None.
+    progress: optional (total_processed, start_time) for progress display.
+    paused_acc: optional mutable [float] to accumulate pause/wait seconds.
     """
     claude_bin = shutil.which("claude")
     if not claude_bin:
@@ -333,6 +341,17 @@ def call_claude(model: str, unv_sn: str, lcc: str,
         "--no-session-persistence",
         "--disallowed-tools", "Bash,Edit,Write,Read,Glob,Grep,Task",
     ]
+
+    # Show progress summary right before the blocking LLM call
+    if progress:
+        done, t0, paused_so_far = progress
+        wall = time.time() - t0
+        working = wall - paused_so_far
+        if done > 0:
+            rate = working / done / 60  # minutes per verse (working time only)
+            working_m = working / 60
+            print(f"\n  📊 {done} verses done, {working_m:.0f}min working, "
+                  f"{rate:.1f} min/verse", flush=True)
 
     if verbose:
         print(f"  [claude {model}] calling... (timeout 300s)", flush=True)
@@ -409,7 +428,10 @@ def call_claude(model: str, unv_sn: str, lcc: str,
                     "error": True
                 }, None
 
+            _pause_start = time.time()
             time.sleep(RETRY_INTERVAL)
+            if paused_acc is not None:
+                paused_acc[0] += time.time() - _pause_start
             continue
 
         if result_proc.returncode == 0:
@@ -442,7 +464,10 @@ def call_claude(model: str, unv_sn: str, lcc: str,
                 "error": True
             }, None
 
+        _pause_start = time.time()
         time.sleep(RETRY_INTERVAL)
+        if paused_acc is not None:
+            paused_acc[0] += time.time() - _pause_start
 
     return parse_stream_json(result_proc.stdout)
 
@@ -451,12 +476,21 @@ def call_claude(model: str, unv_sn: str, lcc: str,
 
 OUTPUT_DIR = os.path.join(SCRIPT_DIR, "output")
 
+MODEL_BRAND_MAP = {
+    "sonnet": "claude", "opus": "claude", "haiku": "claude",
+    "gemini-3-pro": "gemini", "gemini-3-flash": "gemini",
+    "gemini-2.5-pro": "gemini", "gemini-2.5-flash": "gemini",
+    "codex-5.4": "codex", "codex-5.3": "codex", "codex-5.2": "codex",
+}
+
+KNOWN_BRANDS = sorted(set(MODEL_BRAND_MAP.values()))
+
 
 def save_result(result: dict, book_chi: str, book_eng: str,
-                chap: int, sec: int, model: str,
+                chap: int, sec: int, model: str, brand: str,
                 unv_sn: str, lcc: str) -> str:
-    """Save result to output/{Book}/{chap}/{sec}.json. Returns file path."""
-    sec_dir = os.path.join(OUTPUT_DIR, book_eng, str(chap))
+    """Save result to output/{brand}/{Book}/{chap}/{sec}.json. Returns file path."""
+    sec_dir = os.path.join(OUTPUT_DIR, brand, book_eng, str(chap))
     os.makedirs(sec_dir, exist_ok=True)
 
     output = {
@@ -469,6 +503,7 @@ def save_result(result: dict, book_chi: str, book_eng: str,
         "unv_sn_reference": unv_sn,
         "confidence": result.get("confidence", 0.0),
         "notes": result.get("notes", []),
+        "brand": brand,
         "model": model,
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
@@ -526,10 +561,17 @@ def verify_sn_coverage(unv_sn: str, lcc_sn: str) -> dict:
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 
-def process_sec(model: str, book_chi: str,
+def process_sec(model: str, brand: str, book_chi: str,
                 chap: int, sec: int, dry_run: bool = False,
-                verbose: bool = True) -> tuple:
-    """Process a single sec. Returns (result_dict, rate_limit_info)."""
+                verbose: bool = False,
+                progress: tuple = None,
+                paused_acc: list = None) -> tuple:
+    """Process a single sec. Returns (result_dict, rate_limit_info).
+
+    progress: optional (total_processed, start_time, total_paused) for display.
+    paused_acc: optional mutable [float] to accumulate pause/wait seconds.
+    """
+    verse_t0 = time.time()
     book_eng = CHI_TO_ENG.get(book_chi)
     if not book_eng:
         print(f"  ✗ Unknown book: {book_chi}", file=sys.stderr)
@@ -541,8 +583,8 @@ def process_sec(model: str, book_chi: str,
         print(f"  ✗ {e}", file=sys.stderr)
         return None, None
 
-    print(f"  UNV+SN: {unv_sn}")
-    print(f"  LCC:    {lcc}")
+    print(f"\n  UNV+SN: {unv_sn}")
+    print(f"\n  LCC:    {lcc}")
 
     if dry_run:
         print("  [dry-run] Skipping claude call")
@@ -550,10 +592,16 @@ def process_sec(model: str, book_chi: str,
 
     try:
         result, rate_limit_info = call_claude(model, unv_sn, lcc, book_chi,
-                                              chap, sec, verbose=verbose)
+                                              chap, sec, verbose=verbose,
+                                              progress=progress,
+                                              paused_acc=paused_acc)
     except Exception as e:
         print(f"  ✗ Error: {e}")
         return None, None
+
+    # Normalize notes to list (model may return a string despite schema)
+    if "notes" in result and isinstance(result["notes"], str):
+        result["notes"] = [result["notes"]] if result["notes"] else []
 
     # Verify SN coverage
     if result.get("lcc_sn"):
@@ -570,16 +618,21 @@ def process_sec(model: str, book_chi: str,
             print(f"  ⚠ SN mismatch: {verify['unv_count']} UNV → {verify['lcc_count']} LCC"
                   f" (missing: {verify['missing']}, extra: {verify['extra']})")
 
-    print(f"  LCC+SN: {result.get('lcc_sn', '(empty)')}")
-    print(f"  Conf:   {result.get('confidence', 0.0)}")
+    print(f"\n  LCC+SN: {result.get('lcc_sn', '(empty)')}")
+    print(f"\n  Conf:   {result.get('confidence', 0.0)}")
     if result.get("notes"):
         for note in result["notes"]:
             print(f"  Note:   {note}")
 
     # Save
     file_path = save_result(result, book_chi, book_eng, chap, sec,
-                            model, unv_sn, lcc)
-    print(f"  Saved:  {file_path}")
+                            model, brand, unv_sn, lcc)
+    verse_secs = time.time() - verse_t0
+    if verse_secs >= 60:
+        verse_time_str = f"{verse_secs / 60:.1f}min"
+    else:
+        verse_time_str = f"{verse_secs:.0f}s"
+    print(f"  Saved:  {file_path}  ({verse_time_str})")
 
     return result, rate_limit_info
 
@@ -628,7 +681,11 @@ def main():
     parser.add_argument("--sec", type=int, default=None,
                         help="Section/verse number (omit for whole chapter)")
     parser.add_argument("--model", default="sonnet",
-                        help="Claude model (default: sonnet; alternatives: opus, haiku)")
+                        help="LLM model (default: sonnet). Claude: sonnet, opus, haiku. "
+                             "Gemini: gemini-3-pro, gemini-3-flash, gemini-2.5-pro, gemini-2.5-flash. "
+                             "Codex: codex-5.4, codex-5.3, codex-5.2")
+    parser.add_argument("--brand", default=None, choices=KNOWN_BRANDS,
+                        help="Override brand (auto-derived from --model if omitted)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Fetch data but skip claude calls")
     parser.add_argument("--force", action="store_true",
@@ -637,10 +694,12 @@ def main():
                         help="Process at most N verses then quit (omit N for 10, omit flag for unlimited)")
     parser.add_argument("--till", "--until", dest="till", nargs='+', default=None,
                         help="Quit after duration or at clock time (e.g., 30min, '3 hrs', 2hours, 17:50, 21:00)")
+    parser.add_argument("--start-at", "--since", "--start-from", dest="start_at", nargs='+', default=None,
+                        help="Wait and start at clock time or after duration (e.g., 23:00, '3 hrs', 30min)")
     parser.add_argument("--reprocess-low-confidence", action="store_true",
                         help="Reprocess verses with confidence < 0.85 using opus (or --model)")
-    parser.add_argument("--quiet", action="store_true",
-                        help="Suppress prompt and claude command details")
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="Show full prompt and claude command details")
     parser.add_argument("--no-work-hours-stop", action="store_true",
                         help="Disable automatic pause before work hours")
     parser.add_argument("--work-hours-start", default="06:50",
@@ -675,6 +734,17 @@ def main():
     if args.reprocess_low_confidence and '--model' not in sys.argv:
         args.model = 'opus'
 
+    # Derive brand from model (or use explicit --brand override)
+    if args.brand:
+        brand = args.brand
+    elif args.model in MODEL_BRAND_MAP:
+        brand = MODEL_BRAND_MAP[args.model]
+    else:
+        print(f"Error: Unknown model '{args.model}'. Known models: "
+              f"{', '.join(sorted(MODEL_BRAND_MAP.keys()))}", file=sys.stderr)
+        print(f"Use --brand to specify brand explicitly.", file=sys.stderr)
+        sys.exit(1)
+
     book_chi = args.chineses
     book_eng = CHI_TO_ENG.get(book_chi)
     if not book_eng:
@@ -705,18 +775,43 @@ def main():
             sys.exit(1)
 
     print(f"═══ LLM-Direct SN Transfer: {book_eng} ({book_chi}) Chap {chap_label} ═══")
-    print(f"Model: {args.model}")
+    print(f"Brand: {brand}  Model: {args.model}")
     if args.reprocess_low_confidence:
         print(f"Mode: reprocess low confidence (<0.85)")
     elif not args.force:
         print(f"Skip existing: ON (use --force to reprocess)")
     print(f"Verse count: {args.verse_count if args.verse_count > 0 else 'unlimited'}")
+    # Parse --start-at (wait before starting)
+    start_at_ts = None
+    start_at_str = None
+    if args.start_at:
+        start_at_str = ' '.join(args.start_at)
+        start_at_ts = parse_time_spec(start_at_str, "--start-at")
+        start_at_fmt = datetime.fromtimestamp(start_at_ts).strftime("%H:%M")
+        print(f"Start at: {start_at_str} (begin at {start_at_fmt})")
+
     # Parse --till and compute deadline
+    # When used with --start-at, --till is relative to the start time, not now
     deadline = None
     till_str = None
     if args.till:
         till_str = ' '.join(args.till)
-        deadline = parse_till(till_str)
+        if start_at_ts:
+            # --till is a run duration when combined with --start-at
+            # Re-parse as duration from start_at_ts instead of from now
+            dm = _DURATION_RE.match(till_str)
+            cm = _CLOCK_RE.match(till_str)
+            if dm:
+                value = float(dm.group(1))
+                unit = dm.group(2).lower()
+                secs = value * 3600 if unit in ('h', 'hr', 'hrs', 'hour', 'hours') else value * 60
+                deadline = start_at_ts + secs
+            elif cm:
+                deadline = parse_till(till_str)
+            else:
+                deadline = parse_till(till_str)
+        else:
+            deadline = parse_till(till_str)
         quit_at = datetime.fromtimestamp(deadline).strftime("%H:%M")
         print(f"Till: {till_str} (quit at {quit_at})")
     if not args.no_work_hours_stop:
@@ -731,6 +826,26 @@ def main():
             print("Error: 'claude' CLI not found in PATH.", file=sys.stderr)
             sys.exit(1)
 
+    # --start-at: wait until the specified time
+    if start_at_ts:
+        wait_secs = start_at_ts - time.time()
+        if wait_secs > 0:
+            start_at_fmt = datetime.fromtimestamp(start_at_ts).strftime("%Y-%m-%d %H:%M")
+            wait_h = wait_secs / 3600
+            if wait_h >= 1:
+                print(f"\n⏸ Waiting {wait_h:.1f} hours until {start_at_fmt}...")
+            else:
+                print(f"\n⏸ Waiting {wait_secs / 60:.0f} minutes until {start_at_fmt}...")
+            try:
+                time.sleep(wait_secs)
+            except KeyboardInterrupt:
+                print("\n⏹ Cancelled during --start-at wait.")
+                print(f"\n═══ Session Report ═══")
+                print(f"No verses processed (cancelled before start).")
+                print(f"═══════════════════════")
+                sys.exit(0)
+            print(f"⏵ {datetime.now().strftime('%H:%M')} — starting now.", flush=True)
+
     # Work-hours pause window helper
     def in_pause_window(now):
         now_mins = now.hour * 60 + now.minute
@@ -744,6 +859,7 @@ def main():
 
     start_time = time.time()
     start_wall = datetime.now()
+    total_paused = 0.0  # seconds spent in pauses (work-hours, rate-limit)
     total_processed = 0
     total_skipped = 0
     total_failed = 0
@@ -752,6 +868,7 @@ def main():
     time_limit_reached = False
     enforce_work_hours = args.immediately_restrict_first_session
     chapter_stats = []  # [(book_eng, chap, first_sec, last_sec, processed, skipped, failed)]
+    user_interrupted = False
 
     for chap in chapters:
         if args.sec and len(chapters) == 1:
@@ -778,7 +895,7 @@ def main():
         chap_last_sec = None
 
         for i, s in enumerate(secs):
-            out_path = os.path.join(OUTPUT_DIR, book_eng, str(chap), f"{s}.json")
+            out_path = os.path.join(OUTPUT_DIR, brand, book_eng, str(chap), f"{s}.json")
 
             # Skip logic: --force skips nothing, --reprocess-low-confidence only reprocesses low conf
             if not args.force and os.path.isfile(out_path):
@@ -797,9 +914,9 @@ def main():
                                 print(f"  {chap}:{s} skipped (conf {conf:.2f})...", end="", flush=True)
                             continue
                         # Low confidence — will reprocess below
-                        print(f"\n  ── {book_eng} {chap}:{s} ({i+1}/{len(secs)}) ── [reprocess: conf {conf:.2f}]")
+                        print(f"\n\n\n\n\n  ── {book_eng} {chap}:{s} ({i+1}/{len(secs)}) ── [reprocess: conf {conf:.2f}]")
                     except (json.JSONDecodeError, IOError):
-                        print(f"\n  ── {book_eng} {chap}:{s} ({i+1}/{len(secs)}) ── [reprocess: unreadable]")
+                        print(f"\n\n\n\n\n  ── {book_eng} {chap}:{s} ({i+1}/{len(secs)}) ── [reprocess: unreadable]")
                 else:
                     chap_skipped += 1
                     total_skipped += 1
@@ -809,7 +926,7 @@ def main():
                         print(f"  {chap}:{s} skipped (exists)...", end="", flush=True)
                     continue
             else:
-                print(f"\n  ── {book_eng} {chap}:{s} ({i+1}/{len(secs)}) ──")
+                print(f"\n\n\n\n\n  ── {book_eng} {chap}:{s} ({i+1}/{len(secs)}) ──")
 
             # --till time limit check
             if deadline and time.time() >= deadline:
@@ -835,15 +952,38 @@ def main():
                         print(f"\n⏸ Work hours ({now.strftime('%H:%M')}). "
                               f"Pausing until {args.midnight_resume_at} "
                               f"({wait_hours:.1f}h)...", flush=True)
-                        time.sleep(wait_secs)
+                        pause_start = time.time()
+                        try:
+                            time.sleep(wait_secs)
+                        except KeyboardInterrupt:
+                            pause_duration = time.time() - pause_start
+                            total_paused += pause_duration
+                            if deadline:
+                                deadline += pause_duration
+                            print(f"\n⏹ Cancelled during work-hours pause.")
+                            work_hours_stop = True
+                            break
+                        pause_duration = time.time() - pause_start
+                        total_paused += pause_duration
+                        if deadline:
+                            deadline += pause_duration
                         print(f"⏵ {args.midnight_resume_at} reached, resuming.",
                               flush=True)
                 elif not currently_in_window:
                     enforce_work_hours = True
 
-            result, rate_limit_info = process_sec(
-                args.model, book_chi, chap, s,
-                dry_run=args.dry_run, verbose=not args.quiet)
+            try:
+                paused_acc = [total_paused]
+                result, rate_limit_info = process_sec(
+                    args.model, brand, book_chi, chap, s,
+                    dry_run=args.dry_run, verbose=args.verbose,
+                    progress=(total_processed, start_time, total_paused),
+                    paused_acc=paused_acc)
+                total_paused = paused_acc[0]
+            except KeyboardInterrupt:
+                print(f"\n⏹ Interrupted by user.")
+                user_interrupted = True
+                break
             if result and result.get("lcc_sn"):
                 chap_processed += 1
                 total_processed += 1
@@ -866,7 +1006,21 @@ def main():
                           f"(status: {rate_limit_info.get('status')}). "
                           f"Waiting {wait_min:.0f} min until {resume_str}...",
                           flush=True)
-                    time.sleep(wait_secs)
+                    pause_start = time.time()
+                    try:
+                        time.sleep(wait_secs)
+                    except KeyboardInterrupt:
+                        pause_duration = time.time() - pause_start
+                        total_paused += pause_duration
+                        if deadline:
+                            deadline += pause_duration
+                        print(f"\n⏹ Cancelled during rate-limit wait.")
+                        limit_reached = True
+                        break
+                    pause_duration = time.time() - pause_start
+                    total_paused += pause_duration
+                    if deadline:
+                        deadline += pause_duration
                     print(f"  ⏵ Resuming.", flush=True)
 
             # --verse-count check
@@ -877,7 +1031,12 @@ def main():
 
             # Brief pause between API calls (server courtesy)
             if not args.dry_run and i < len(secs) - 1:
-                time.sleep(0.1)
+                try:
+                    time.sleep(0.1)
+                except KeyboardInterrupt:
+                    print(f"\n⏹ Interrupted by user.")
+                    user_interrupted = True
+                    break
 
         # Record chapter stats (only if work was done)
         if chap_processed > 0 or chap_failed > 0:
@@ -890,25 +1049,33 @@ def main():
 
         if work_hours_stop or limit_reached or time_limit_reached:
             break
+        if user_interrupted:
+            break
 
     # ── Session Report ───────────────────────────────────────────────────────
     end_wall = datetime.now()
     elapsed = time.time() - start_time
-    elapsed_min = elapsed / 60
-    rate = f"~{elapsed_min / total_processed:.1f} min/verse" if total_processed > 0 else "n/a"
+    working = elapsed - total_paused
+    working_min = working / 60
+    rate = f"~{working_min / total_processed:.1f} min/verse" if total_processed > 0 else "n/a"
 
     stop_reason = ""
-    if work_hours_stop:
+    if user_interrupted:
+        stop_reason = " (interrupted by user)"
+    elif work_hours_stop:
         stop_reason = " (stopped for work hours)"
     elif limit_reached:
         stop_reason = " (verse count reached)"
     elif time_limit_reached:
         stop_reason = " (time limit reached)"
 
-    print(f"\n═══ Session Report ═══")
+    print(f"\n═══ Session Report ({brand}/{args.model}) ═══")
+    paused_str = ""
+    if total_paused >= 60:
+        paused_str = f", paused {total_paused / 60:.0f}min"
     print(f"Started: {start_wall.strftime('%H:%M')}  "
           f"Ended: {end_wall.strftime('%H:%M')}  "
-          f"({int(elapsed_min)}m {int(elapsed % 60)}s, {rate})")
+          f"(working {int(working_min)}m {int(working % 60)}s{paused_str}, {rate})")
     for (bk, ch, first, last, proc, fail) in chapter_stats:
         parts = []
         if proc > 0:
