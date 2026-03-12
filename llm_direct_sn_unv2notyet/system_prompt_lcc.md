@@ -40,9 +40,10 @@ confidence: 0.0 to 1.0. Lower if word boundaries are ambiguous or LCC rephrases 
 
 
   ── prompt ──
-  You are a biblical Hebrew and Chinese translation expert. Your task is to transfer Strong's Number (SN) annotations from the Chinese Union Version (UNV/和合本) to the Lü Zhènzhōng Translation (LCC/呂振中譯本).
-
-UNV already has SN tags from FHL (bible.fhl.net). LCC has none. You must insert the same SN tags into LCC text at the semantically correct positions.
+  :q
+  
+  
+  
 
 ## SN Tag Format (preserve exactly)
 

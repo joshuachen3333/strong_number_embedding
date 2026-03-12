@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-LLM-Direct Strong's Number Transfer: UNV → LCC
+LLM-Direct Strong's Number Transfer: UNV → Target Version
 
 Uses Claude CLI (claude -p) to transfer Strong's Number annotations
-from UNV (和合本, which has SN from FHL) to LCC (呂振中譯本, which has none).
+from UNV (和合本, which has SN from FHL) to a target Bible version (default: LCC).
 No API key needed — uses your Claude Code subscription.
 
 Usage:
-    python llm_direct_sn_unv2lcc.py --book 創 --chap 1 --sec 1
-    python llm_direct_sn_unv2lcc.py --book 創 --chap 1              # whole chapter
-    python llm_direct_sn_unv2lcc.py --book 創 --chap 1 --dry-run    # preview only
-    python llm_direct_sn_unv2lcc.py --book 創 --chap 1 --model opus # use opus
+    python llm_direct_sn_unv2notyet.py --book 創 --chap 1 --sec 1
+    python llm_direct_sn_unv2notyet.py --book 創 --chap 1 --target-version rcuv2010
+    python llm_direct_sn_unv2notyet.py --set-target-version rcuv2010   # persist default
+    python llm_direct_sn_unv2notyet.py --book 創 --chap 1 --dry-run
 """
 
 import argparse
@@ -127,93 +127,125 @@ def fetch_chap_cached(book_chi: str, chap: int, version: str, strong: int = 0) -
     return _chap_cache[key]
 
 
-def fetch_sec_pair(book_chi: str, chap: int, sec: int) -> tuple:
-    """Fetch both UNV+SN and LCC for a single sec. Returns (unv_sn, lcc)."""
+def fetch_sec_pair(book_chi: str, chap: int, sec: int,
+                   target_version: str = "lcc") -> tuple:
+    """Fetch both UNV+SN and target version for a single sec.
+    Returns (unv_sn, target_text)."""
     unv_chap = fetch_chap_cached(book_chi, chap, "unv", strong=1)
-    lcc_chap = fetch_chap_cached(book_chi, chap, "lcc", strong=0)
+    target_chap = fetch_chap_cached(book_chi, chap, target_version, strong=0)
 
     unv_sn = unv_chap.get(sec)
-    lcc = lcc_chap.get(sec)
+    target_text = target_chap.get(sec)
 
     if not unv_sn:
         raise ValueError(f"UNV {book_chi} {chap}:{sec} not found")
-    if not lcc:
-        raise ValueError(f"LCC {book_chi} {chap}:{sec} not found")
+    if not target_text:
+        raise ValueError(f"{target_version.upper()} {book_chi} {chap}:{sec} not found")
 
-    return unv_sn, lcc
+    return unv_sn, target_text
 
 
 # ── Prompt Construction ──────────────────────────────────────────────────────
 
-SYSTEM_PROMPT = """\
+# Target version config file (gitignored, persisted by --set-target-version)
+TARGET_VERSION_FILE = os.path.join(SCRIPT_DIR, ".target_version")
+DEFAULT_TARGET_VERSION = "lcc"
+
+
+def load_default_target_version() -> str:
+    """Load persisted target version from .target_version file."""
+    if os.path.isfile(TARGET_VERSION_FILE):
+        with open(TARGET_VERSION_FILE, "r") as f:
+            ver = f.read().strip()
+            if ver:
+                return ver
+    return DEFAULT_TARGET_VERSION
+
+
+def save_default_target_version(version: str):
+    """Persist target version to .target_version file."""
+    with open(TARGET_VERSION_FILE, "w") as f:
+        f.write(version + "\n")
+    print(f"Default target version set to: {version}")
+    print(f"Saved to: {TARGET_VERSION_FILE}")
+
+
+def load_system_prompt(target_version: str) -> str:
+    """Load system prompt for the target version.
+
+    Tries system_prompt_{version}.md first, falls back to system_prompt_lcc.md
+    with version name substituted.
+    """
+    prompt_file = os.path.join(SCRIPT_DIR, f"system_prompt_{target_version}.md")
+    if os.path.isfile(prompt_file):
+        with open(prompt_file, "r", encoding="utf-8") as f:
+            return f.read()
+
+    # Fallback: load LCC prompt and substitute version name
+    lcc_file = os.path.join(SCRIPT_DIR, "system_prompt_lcc.md")
+    if os.path.isfile(lcc_file):
+        with open(lcc_file, "r", encoding="utf-8") as f:
+            prompt = f.read()
+        prompt = prompt.replace("LCC", target_version.upper())
+        prompt = prompt.replace("lcc", target_version)
+        prompt = prompt.replace("呂振中譯本", f"({target_version.upper()} target version)")
+        prompt = prompt.replace("Lü Zhènzhōng Translation", f"{target_version.upper()} translation")
+        return prompt
+
+    # Hardcoded minimal fallback
+    return f"""\
 You are a biblical Hebrew and Chinese translation expert. Your task is to transfer \
 Strong's Number (SN) annotations from the Chinese Union Version (UNV/和合本) to the \
-Lü Zhènzhōng Translation (LCC/呂振中譯本).
+{target_version.upper()} translation.
 
-UNV already has SN tags from FHL (bible.fhl.net). LCC has none. You must insert the \
-same SN tags into LCC text at the semantically correct positions.
+UNV already has SN tags from FHL (bible.fhl.net). The target has none. You must insert \
+the same SN tags at the semantically correct positions.
 
-## SN Tag Format (preserve exactly)
-
-- `<WHdddd>` or `<WGdddd>` — Core Strong's number (H=Hebrew, G=Greek)
-- `<WAHdddd>` — Strong's with prefix marker
-- `<WTHdddd>` — Morphology code (8xxx series = verbal stems/tenses)
-- `{<WHdddd>}` — Implicit marker (Hebrew word with no explicit Chinese translation)
-
-## Rules
-
-1. For each SN in UNV, find the semantically corresponding word/phrase in LCC and \
-insert the SN tag immediately AFTER that word.
-2. Morphology codes (`<WTH8xxx>`) always attach to the verb they describe.
-3. If UNV has `{<...>}` (implicit) but LCC has an EXPLICIT word for it, drop the \
-braces and attach as normal: `word<WHdddd>`.
-4. If LCC has no explicit word for an implicit marker, keep the braces: `{<WHdddd>}`.
-5. Words in LCC with no Hebrew/Greek equivalent (e.g., Chinese aspect particle 了) \
-→ leave unannotated.
-6. If one LCC phrase covers multiple Hebrew words, attach all their SNs to that phrase.
-7. Preserve LCC's original text, punctuation, and word order exactly. Only INSERT tags.
-
-## Response Format
-
-Return ONLY a JSON object (no markdown fences):
-{
-  "lcc_sn": "the LCC text with SN tags inserted",
+Return ONLY a JSON object:
+{{
+  "{target_version}_sn": "the target text with SN tags inserted",
   "confidence": 0.95,
   "notes": ["brief note about any non-trivial alignment decisions"]
-}
-
-confidence: 0.0 to 1.0. Lower if word boundaries are ambiguous or LCC rephrases heavily."""
+}}"""
 
 
-def build_user_prompt(unv_sn: str, lcc: str, book_chi: str, chap: int, sec: int) -> str:
+def build_json_schema(target_version: str) -> str:
+    """Build JSON schema string with version-specific field name."""
+    sn_field = f"{target_version}_sn"
+    return json.dumps({
+        "type": "object",
+        "properties": {
+            sn_field: {"type": "string",
+                       "description": f"{target_version.upper()} text with SN tags inserted"},
+            "confidence": {"type": "number", "description": "Confidence score 0.0-1.0"},
+            "notes": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Notes about non-trivial alignment decisions"
+            }
+        },
+        "required": [sn_field, "confidence", "notes"]
+    })
+
+
+def build_user_prompt(unv_sn: str, target_text: str, target_version: str,
+                      book_chi: str, chap: int, sec: int) -> str:
     book_eng = CHI_TO_ENG.get(book_chi, book_chi)
+    ver = target_version.upper()
+    sn_field = f"{target_version}_sn"
     return f"""\
-Transfer Strong's Numbers from UNV to LCC for {book_eng} {chap}:{sec}.
+Transfer Strong's Numbers from UNV to {ver} for {book_eng} {chap}:{sec}.
 
 UNV+SN: {unv_sn}
-LCC:    {lcc}
+{ver}:    {target_text}
 
-Return the JSON with lcc_sn, confidence, and notes."""
+Return the JSON with {sn_field}, confidence, and notes."""
 
 
 # ── Claude CLI ───────────────────────────────────────────────────────────────
 
-JSON_SCHEMA = json.dumps({
-    "type": "object",
-    "properties": {
-        "lcc_sn": {"type": "string", "description": "LCC text with SN tags inserted"},
-        "confidence": {"type": "number", "description": "Confidence score 0.0-1.0"},
-        "notes": {
-            "type": "array",
-            "items": {"type": "string"},
-            "description": "Notes about non-trivial alignment decisions"
-        }
-    },
-    "required": ["lcc_sn", "confidence", "notes"]
-})
 
-
-def parse_stream_json(raw: str) -> tuple:
+def parse_stream_json(raw: str, sn_field: str = "lcc_sn") -> tuple:
     """Parse stream-json output from claude CLI.
 
     Returns (result_dict, rate_limit_info).
@@ -260,7 +292,7 @@ def parse_stream_json(raw: str) -> tuple:
                 if (block.get("type") == "tool_use"
                         and block.get("name") == "StructuredOutput"):
                     inp = block.get("input", {})
-                    if inp and "lcc_sn" in inp:
+                    if inp and sn_field in inp:
                         result = inp
 
     if result is not None:
@@ -287,7 +319,7 @@ def parse_stream_json(raw: str) -> tuple:
         except json.JSONDecodeError:
             pass
         # Regex fallback
-        match = re.search(r'\{[^{}]*"lcc_sn"\s*:', full_text, re.DOTALL)
+        match = re.search(r'\{[^{}]*"' + re.escape(sn_field) + r'"\s*:', full_text, re.DOTALL)
         if match:
             start = match.start()
             depth = 0
@@ -303,30 +335,36 @@ def parse_stream_json(raw: str) -> tuple:
                         break
 
     return {
-        "lcc_sn": "",
+        sn_field: "",
         "confidence": 0.0,
         "notes": [f"Failed to parse stream-json response: {raw[:300]}"],
         "error": True
     }, rate_limit_info
 
 
-def call_claude(model: str, unv_sn: str, lcc: str,
+def call_claude(model: str, unv_sn: str, target_text: str,
+                target_version: str,
                 book_chi: str, chap: int, sec: int,
                 verbose: bool = False,
                 progress: tuple = None,
                 paused_acc: list = None) -> tuple:
-    """Call claude CLI to insert SNs into LCC.
+    """Call claude CLI to insert SNs into target version text.
 
     Returns (result_dict, rate_limit_info).
     rate_limit_info is the rate_limit_event dict from stream-json, or None.
     progress: optional (total_processed, start_time) for progress display.
     paused_acc: optional mutable [float] to accumulate pause/wait seconds.
     """
+    sn_field = f"{target_version}_sn"
+
     claude_bin = shutil.which("claude")
     if not claude_bin:
         raise RuntimeError("'claude' CLI not found in PATH")
 
-    prompt = SYSTEM_PROMPT + "\n\n" + build_user_prompt(unv_sn, lcc, book_chi, chap, sec)
+    system_prompt = load_system_prompt(target_version)
+    json_schema = build_json_schema(target_version)
+    prompt = system_prompt + "\n\n" + build_user_prompt(
+        unv_sn, target_text, target_version, book_chi, chap, sec)
 
     if verbose:
         print(f"  ── prompt ──")
@@ -336,7 +374,7 @@ def call_claude(model: str, unv_sn: str, lcc: str,
     cmd = [
         claude_bin, "-p",
         "--output-format", "stream-json",
-        "--json-schema", JSON_SCHEMA,
+        "--json-schema", json_schema,
         "--model", model,
         "--no-session-persistence",
         "--disallowed-tools", "Bash,Edit,Write,Read,Glob,Grep,Task",
@@ -391,13 +429,13 @@ def call_claude(model: str, unv_sn: str, lcc: str,
                       f"generating ({len(event_lines)} events, "
                       f"{len(partial)} chars). Slow verse.", flush=True)
                 # Try to salvage partial output
-                result, rl_info = parse_stream_json(partial)
-                if result.get("lcc_sn"):
+                result, rl_info = parse_stream_json(partial, sn_field)
+                if result.get(sn_field):
                     print(f"  ✓ Salvaged partial result", flush=True)
                     return result, rl_info
                 # Can't salvage — skip this verse
                 return {
-                    "lcc_sn": "",
+                    sn_field: "",
                     "confidence": 0.0,
                     "notes": [f"Timeout ({timeout}s): verse too complex, "
                               f"model was generating ({len(event_lines)} events)"],
@@ -422,7 +460,7 @@ def call_claude(model: str, unv_sn: str, lcc: str,
 
             if attempt >= MAX_RETRIES:
                 return {
-                    "lcc_sn": "",
+                    sn_field: "",
                     "confidence": 0.0,
                     "notes": [f"Timeout: gave up after {MAX_RETRIES} retries"],
                     "error": True
@@ -443,7 +481,7 @@ def call_claude(model: str, unv_sn: str, lcc: str,
         if not is_rate_limit:
             # Non-rate-limit error — return immediately
             return {
-                "lcc_sn": "",
+                sn_field: "",
                 "confidence": 0.0,
                 "notes": [f"claude CLI error: {result_proc.stderr.strip()[:300]}"],
                 "error": True
@@ -458,7 +496,7 @@ def call_claude(model: str, unv_sn: str, lcc: str,
 
         if attempt >= MAX_RETRIES:
             return {
-                "lcc_sn": "",
+                sn_field: "",
                 "confidence": 0.0,
                 "notes": [f"Rate limit: gave up after {MAX_RETRIES} retries"],
                 "error": True
@@ -469,12 +507,12 @@ def call_claude(model: str, unv_sn: str, lcc: str,
         if paused_acc is not None:
             paused_acc[0] += time.time() - _pause_start
 
-    return parse_stream_json(result_proc.stdout)
+    return parse_stream_json(result_proc.stdout, sn_field)
 
 
 # ── Output ───────────────────────────────────────────────────────────────────
 
-OUTPUT_DIR = os.path.join(SCRIPT_DIR, "output")
+OUTPUT_DIR = os.path.join(REPO_ROOT, "output")
 
 MODEL_BRAND_MAP = {
     "sonnet": "claude", "opus": "claude", "haiku": "claude",
@@ -488,18 +526,23 @@ KNOWN_BRANDS = sorted(set(MODEL_BRAND_MAP.values()))
 
 def save_result(result: dict, book_chi: str, book_eng: str,
                 chap: int, sec: int, model: str, brand: str,
-                unv_sn: str, lcc: str) -> str:
-    """Save result to output/{brand}/{Book}/{chap}/{sec}.json. Returns file path."""
-    sec_dir = os.path.join(OUTPUT_DIR, brand, book_eng, str(chap))
+                target_version: str,
+                unv_sn: str, target_text: str) -> str:
+    """Save result to output/{version}/{brand}/{Book}/{chap}/{sec}.json."""
+    sec_dir = os.path.join(OUTPUT_DIR, target_version, brand, book_eng, str(chap))
     os.makedirs(sec_dir, exist_ok=True)
+
+    sn_field = f"{target_version}_sn"
+    orig_field = f"{target_version}_original"
 
     output = {
         "book": book_eng,
         "book_chi": book_chi,
         "chap": chap,
         "sec": sec,
-        "lcc_sn": result.get("lcc_sn", ""),
-        "lcc_original": lcc,
+        "target_version": target_version,
+        sn_field: result.get(sn_field, result.get("lcc_sn", "")),
+        orig_field: target_text,
         "unv_sn_reference": unv_sn,
         "confidence": result.get("confidence", 0.0),
         "notes": result.get("notes", []),
@@ -524,10 +567,10 @@ def count_sns(text: str) -> list:
     return re.findall(pattern, text)
 
 
-def verify_sn_coverage(unv_sn: str, lcc_sn: str) -> dict:
-    """Check that all SNs from UNV appear in LCC+SN output."""
+def verify_sn_coverage(unv_sn: str, target_sn: str) -> dict:
+    """Check that all SNs from UNV appear in target+SN output."""
     unv_sns = sorted(count_sns(unv_sn))
-    lcc_sns = sorted(count_sns(lcc_sn))
+    lcc_sns = sorted(count_sns(target_sn))
 
     missing = []
     extra = []
@@ -561,7 +604,7 @@ def verify_sn_coverage(unv_sn: str, lcc_sn: str) -> dict:
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 
-def process_sec(model: str, brand: str, book_chi: str,
+def process_sec(model: str, brand: str, target_version: str, book_chi: str,
                 chap: int, sec: int, dry_run: bool = False,
                 verbose: bool = False,
                 progress: tuple = None,
@@ -572,26 +615,29 @@ def process_sec(model: str, brand: str, book_chi: str,
     paused_acc: optional mutable [float] to accumulate pause/wait seconds.
     """
     verse_t0 = time.time()
+    ver = target_version.upper()
+    sn_field = f"{target_version}_sn"
     book_eng = CHI_TO_ENG.get(book_chi)
     if not book_eng:
         print(f"  ✗ Unknown book: {book_chi}", file=sys.stderr)
         return None, None
 
     try:
-        unv_sn, lcc = fetch_sec_pair(book_chi, chap, sec)
+        unv_sn, target_text = fetch_sec_pair(book_chi, chap, sec, target_version)
     except ValueError as e:
         print(f"  ✗ {e}", file=sys.stderr)
         return None, None
 
     print(f"\n  UNV+SN: {unv_sn}")
-    print(f"\n  LCC:    {lcc}")
+    print(f"\n  {ver}:    {target_text}")
 
     if dry_run:
         print("  [dry-run] Skipping claude call")
-        return {"lcc_sn": "", "confidence": 0.0, "notes": ["dry-run"]}, None
+        return {sn_field: "", "confidence": 0.0, "notes": ["dry-run"]}, None
 
     try:
-        result, rate_limit_info = call_claude(model, unv_sn, lcc, book_chi,
+        result, rate_limit_info = call_claude(model, unv_sn, target_text,
+                                              target_version, book_chi,
                                               chap, sec, verbose=verbose,
                                               progress=progress,
                                               paused_acc=paused_acc)
@@ -604,8 +650,9 @@ def process_sec(model: str, brand: str, book_chi: str,
         result["notes"] = [result["notes"]] if result["notes"] else []
 
     # Verify SN coverage
-    if result.get("lcc_sn"):
-        verify = verify_sn_coverage(unv_sn, result["lcc_sn"])
+    target_sn = result.get(sn_field, "")
+    if target_sn:
+        verify = verify_sn_coverage(unv_sn, target_sn)
         if not verify["perfect"]:
             if verify["missing"]:
                 result.setdefault("notes", []).append(
@@ -615,10 +662,10 @@ def process_sec(model: str, brand: str, book_chi: str,
                 result.setdefault("notes", []).append(
                     f"Extra SNs: {', '.join(verify['extra'])}"
                 )
-            print(f"  ⚠ SN mismatch: {verify['unv_count']} UNV → {verify['lcc_count']} LCC"
+            print(f"  ⚠ SN mismatch: {verify['unv_count']} UNV → {verify['lcc_count']} {ver}"
                   f" (missing: {verify['missing']}, extra: {verify['extra']})")
 
-    print(f"\n  LCC+SN: {result.get('lcc_sn', '(empty)')}")
+    print(f"\n  {ver}+SN: {result.get(sn_field, '(empty)')}")
     print(f"\n  Conf:   {result.get('confidence', 0.0)}")
     if result.get("notes"):
         for note in result["notes"]:
@@ -626,7 +673,7 @@ def process_sec(model: str, brand: str, book_chi: str,
 
     # Save
     file_path = save_result(result, book_chi, book_eng, chap, sec,
-                            model, brand, unv_sn, lcc)
+                            model, brand, target_version, unv_sn, target_text)
     verse_secs = time.time() - verse_t0
     if verse_secs >= 60:
         verse_time_str = f"{verse_secs / 60:.1f}min"
@@ -670,10 +717,17 @@ def parse_chap_arg(chap_str: str, book_chi: str) -> list:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="LLM-Direct Strong's Number Transfer: UNV → LCC"
+        description="LLM-Direct Strong's Number Transfer: UNV → Target Version"
     )
+    parser.add_argument("--target-version", "--tv", dest="target_version", default=None,
+                        help=f"Target Bible version code (default: from .target_version or lcc). "
+                             f"e.g., lcc, rcuv2010, tcv, esv, nasb")
+    parser.add_argument("--set-target-version", dest="set_target_version", default=None,
+                        metavar="VERSION",
+                        help="Set and persist default target version, then exit")
     parser.add_argument("--chineses", "--book", required=False, dest="chineses",
-                        help="Chinese book abbreviation (e.g., 創, 出, 詩)")
+                        nargs='+',
+                        help="Chinese book abbreviation(s) (e.g., 創 出 詩)")
     parser.add_argument("--chap", required=False, type=str,
                         help="Chapter: single (1), range (1-10), or 'all'")
     parser.add_argument("--list-books", "--book-list", action="store_true",
@@ -712,6 +766,14 @@ def main():
                         help="Enforce pause window immediately (default: always run on first start)")
     args = parser.parse_args()
 
+    # Handle --set-target-version (persist and exit)
+    if args.set_target_version:
+        save_default_target_version(args.set_target_version)
+        sys.exit(0)
+
+    # Resolve target version: flag > .target_version file > "lcc"
+    target_version = args.target_version or load_default_target_version()
+
     if args.list_books:
         books = load_books()["ALL"]
         print("Book abbreviations (66 books):\n")
@@ -725,6 +787,9 @@ def main():
 
     if not args.chineses or not args.chap:
         parser.error("--chineses and --chap are required (or use --list-books)")
+
+    # Normalize: support both "利 民" and "利, 民" and "利,民"
+    args.chineses = [b.strip() for raw in args.chineses for b in raw.split(',') if b.strip()]
 
     # Validate --verse-count
     if args.verse_count < 0:
@@ -745,15 +810,24 @@ def main():
         print(f"Use --brand to specify brand explicitly.", file=sys.stderr)
         sys.exit(1)
 
-    book_chi = args.chineses
-    book_eng = CHI_TO_ENG.get(book_chi)
-    if not book_eng:
-        print(f"Error: Unknown book abbreviation '{book_chi}'", file=sys.stderr)
-        print(f"Valid: {', '.join(sorted(CHI_TO_ENG.keys()))}", file=sys.stderr)
-        sys.exit(1)
+    # Validate all books upfront
+    book_list = []  # [(book_chi, book_eng, chapters), ...]
+    for bchi in args.chineses:
+        beng = CHI_TO_ENG.get(bchi)
+        if not beng:
+            print(f"Error: Unknown book abbreviation '{bchi}'", file=sys.stderr)
+            print(f"Valid: {', '.join(sorted(CHI_TO_ENG.keys()))}", file=sys.stderr)
+            sys.exit(1)
+        bchaps = parse_chap_arg(args.chap, bchi)
+        book_list.append((bchi, beng, bchaps))
 
-    chapters = parse_chap_arg(args.chap, book_chi)
-    chap_label = f"{chapters[0]}-{chapters[-1]}" if len(chapters) > 1 else str(chapters[0])
+    # For banner: summarize books
+    if len(book_list) == 1:
+        book_chi, book_eng, chapters = book_list[0]
+        chap_label = f"{chapters[0]}-{chapters[-1]}" if len(chapters) > 1 else str(chapters[0])
+        banner_books = f"{book_eng} ({book_chi}) Chap {chap_label}"
+    else:
+        banner_books = ', '.join(f"{beng}({bchi})" for bchi, beng, _ in book_list)
 
     # Validate work-hours times
     stop_hour, stop_minute = 6, 50
@@ -774,8 +848,8 @@ def main():
                   f"(expected HH:MM)", file=sys.stderr)
             sys.exit(1)
 
-    print(f"═══ LLM-Direct SN Transfer: {book_eng} ({book_chi}) Chap {chap_label} ═══")
-    print(f"Brand: {brand}  Model: {args.model}")
+    print(f"═══ LLM-Direct SN Transfer: {banner_books} ═══")
+    print(f"Target: {target_version}  Brand: {brand}  Model: {args.model}")
     if args.reprocess_low_confidence:
         print(f"Mode: reprocess low confidence (<0.85)")
     elif not args.force:
@@ -870,8 +944,26 @@ def main():
     chapter_stats = []  # [(book_eng, chap, first_sec, last_sec, processed, skipped, failed)]
     user_interrupted = False
 
-    for chap in chapters:
-        if args.sec and len(chapters) == 1:
+    # Flatten all books' chapters into one sequential list for the main loop
+    _chap_jobs = []  # [(book_chi, book_eng, chap), ...]
+    for _bchi, _beng, _bchaps in book_list:
+        for _ch in _bchaps:
+            _chap_jobs.append((_bchi, _beng, _ch))
+
+    _prev_book_eng = None
+    for _job_book_chi, _job_book_eng, chap in _chap_jobs:
+        book_chi = _job_book_chi
+        book_eng = _job_book_eng
+
+        # Print book header when switching to a new book
+        if book_eng != _prev_book_eng:
+            if len(book_list) > 1 and _prev_book_eng is not None:
+                print(f"\n{'─' * 40}")
+            if len(book_list) > 1:
+                print(f"\n── Book: {book_eng} ({book_chi}) ──")
+            _prev_book_eng = book_eng
+
+        if args.sec and len(_chap_jobs) == 1:
             # Single verse mode
             secs = [args.sec]
         else:
@@ -895,7 +987,7 @@ def main():
         chap_last_sec = None
 
         for i, s in enumerate(secs):
-            out_path = os.path.join(OUTPUT_DIR, brand, book_eng, str(chap), f"{s}.json")
+            out_path = os.path.join(OUTPUT_DIR, target_version, brand, book_eng, str(chap), f"{s}.json")
 
             # Skip logic: --force skips nothing, --reprocess-low-confidence only reprocesses low conf
             if not args.force and os.path.isfile(out_path):
@@ -975,7 +1067,7 @@ def main():
             try:
                 paused_acc = [total_paused]
                 result, rate_limit_info = process_sec(
-                    args.model, brand, book_chi, chap, s,
+                    args.model, brand, target_version, book_chi, chap, s,
                     dry_run=args.dry_run, verbose=args.verbose,
                     progress=(total_processed, start_time, total_paused),
                     paused_acc=paused_acc)
@@ -984,7 +1076,8 @@ def main():
                 print(f"\n⏹ Interrupted by user.")
                 user_interrupted = True
                 break
-            if result and result.get("lcc_sn"):
+            sn_field = f"{target_version}_sn"
+            if result and result.get(sn_field):
                 chap_processed += 1
                 total_processed += 1
                 if chap_first_sec is None:
@@ -1043,7 +1136,7 @@ def main():
             chapter_stats.append((book_eng, chap, chap_first_sec, chap_last_sec,
                                   chap_processed, chap_failed))
 
-        if len(chapters) > 1 or len(secs) > 1:
+        if len(_chap_jobs) > 1 or len(secs) > 1:
             print(f"\n  Chapter {chap}: {chap_processed} processed, "
                   f"{chap_skipped} skipped, {chap_failed} failed")
 
@@ -1069,7 +1162,7 @@ def main():
     elif time_limit_reached:
         stop_reason = " (time limit reached)"
 
-    print(f"\n═══ Session Report ({brand}/{args.model}) ═══")
+    print(f"\n═══ Session Report ({target_version}/{brand}/{args.model}) ═══")
     paused_str = ""
     if total_paused >= 60:
         paused_str = f", paused {total_paused / 60:.0f}min"

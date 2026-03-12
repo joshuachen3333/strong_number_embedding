@@ -34,7 +34,7 @@ Not a remote service. It's a local subprocess that translates MCP tool calls int
 
 | Component | Endpoint | Purpose |
 |-----------|----------|---------|
-| `llm_direct_sn_unv2lcc.py` | `qb.php` | Fetch UNV+SN and LCC verse text |
+| `llm_direct_sn_unv2notyet.py` | `qb.php` | Fetch UNV+SN and LCC verse text |
 | `fetch_text.sh` | `qb.php` + `qp.php` | Verse text + word-by-word analysis |
 | `viewer_v2` | local JSON (from FHL SQLite) | Strong's dictionary tooltips |
 

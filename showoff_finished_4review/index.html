@@ -304,6 +304,7 @@ header h1 { font-size: 1.1em; font-weight: 600; }
 </div>
 
 <div class="controls">
+  <label><span data-i18n="version"></span> <select id="version-select"></select></label>
   <div class="brand-tabs" id="brand-tabs"></div>
   <label><span data-i18n="book"></span> <select id="book-select"><option>Loading...</option></select></label>
   <label><span data-i18n="chapter"></span> <select id="chap-select"><option>—</option></select></label>
@@ -371,11 +372,12 @@ function authFetchOpts(extra = {}) {
 
 const I18N = {
   'zh-Hant': {
-    title: '呂振中譯本 + Strong\'s Numbers — AI 轉移成果審閱',
+    title: 'Strong\'s Numbers AI 轉移成果審閱',
+    version: '目標版本',
     book: '書卷',
     chapter: '章',
     leftHeader: '和合本 + Strong\'s Numbers（參照）',
-    rightHeader: '呂振中譯本 + Strong\'s Numbers（AI 產出）',
+    rightHeader: (ver) => `${ver} + Strong\'s Numbers（AI 產出）`,
     emptyState: '請選擇書卷與章數',
     loading: '載入中…',
     notesSummary: 'AI 註記與審閱 — 點擊經節查看',
@@ -386,7 +388,7 @@ const I18N = {
     chapLabel: (ch, count) => `第 ${ch} 章（${count} 節）`,
     bookName: (b) => `${b.chiLong}（${b.engLong}）`,
     chapHeadingLeft: (label, ch) => `${label} ${ch} — 和合本+SN`,
-    chapHeadingRight: (label, ch) => `${label} ${ch} — 呂振中+SN`,
+    chapHeadingRight: (label, ch, ver) => `${label} ${ch} — ${ver}+SN`,
     errorLoad: '載入失敗',
     // Auth
     enterReviewMode: '進入審閱模式',
@@ -426,11 +428,12 @@ const I18N = {
     closePending: '我知道了，先關閉',
   },
   'en': {
-    title: 'LCC + Strong\'s Numbers — AI Transfer Review',
+    title: 'Strong\'s Numbers — AI Transfer Review',
+    version: 'Target',
     book: 'Book',
     chapter: 'Chapter',
     leftHeader: 'UNV + Strong\'s Numbers (Reference)',
-    rightHeader: 'LCC + Strong\'s Numbers (AI Output)',
+    rightHeader: (ver) => `${ver} + Strong\'s Numbers (AI Output)`,
     emptyState: 'Select a book and chapter',
     loading: 'Loading...',
     notesSummary: 'AI Notes & Reviews — click a verse',
@@ -441,7 +444,7 @@ const I18N = {
     chapLabel: (ch, count) => `Chapter ${ch} (${count} verses)`,
     bookName: (b) => `${b.engLong} (${b.chiLong})`,
     chapHeadingLeft: (label, ch) => `${label} ${ch} &mdash; UNV+SN`,
-    chapHeadingRight: (label, ch) => `${label} ${ch} &mdash; LCC+SN`,
+    chapHeadingRight: (label, ch, ver) => `${label} ${ch} &mdash; ${ver}+SN`,
     errorLoad: 'Error loading',
     enterReviewMode: 'Enter Review Mode',
     authTitle: 'Reviewer Authentication',
@@ -479,11 +482,12 @@ const I18N = {
     closePending: 'OK, close for now',
   },
   'zh-Hans': {
-    title: '吕振中译本 + Strong\'s Numbers — AI 转移成果审阅',
+    title: 'Strong\'s Numbers AI 转移成果审阅',
+    version: '目标版本',
     book: '书卷',
     chapter: '章',
     leftHeader: '和合本 + Strong\'s Numbers（参照）',
-    rightHeader: '吕振中译本 + Strong\'s Numbers（AI 产出）',
+    rightHeader: (ver) => `${ver} + Strong\'s Numbers（AI 产出）`,
     emptyState: '请选择书卷与章数',
     loading: '加载中…',
     notesSummary: 'AI 注记与审阅 — 点击经节查看',
@@ -494,7 +498,7 @@ const I18N = {
     chapLabel: (ch, count) => `第 ${ch} 章（${count} 节）`,
     bookName: (b) => `${b.chiLong}（${b.engLong}）`,
     chapHeadingLeft: (label, ch) => `${label} ${ch} — 和合本+SN`,
-    chapHeadingRight: (label, ch) => `${label} ${ch} — 吕振中+SN`,
+    chapHeadingRight: (label, ch, ver) => `${label} ${ch} — ${ver}+SN`,
     errorLoad: '加载失败',
     enterReviewMode: '进入审阅模式',
     authTitle: '审阅者验证',
@@ -542,11 +546,24 @@ let manifest = null;
 let bundle = null;
 let booksData = [];
 let bookMap = {};
+let currentVersion = localStorage.getItem('showoff_target_version') || null;
 let currentBrand = null;
 let currentData = null;
 let currentBook = null;
 let currentChap = null;
 let selectedVerseSec = null;
+
+// Version display names
+const VERSION_NAMES = {
+  lcc: '呂振中譯本',
+  rcuv2010: '和合本2010',
+  tcv: '現代中文譯本',
+  esv: 'ESV',
+  nasb: 'NASB',
+};
+function versionDisplayName(ver) {
+  return VERSION_NAMES[ver] || ver.toUpperCase();
+}
 
 // Auth state
 let sessionToken = localStorage.getItem('showoff_session_token') || null;
@@ -578,14 +595,28 @@ async function init() {
     booksData = await booksResp.json();
     booksData.forEach(b => { bookMap[b.eng] = b; });
 
-    // Brand-aware bundle: { brands: { claude: { manifest, verses }, ... } }
-    if (bundle.brands) {
+    // Version-aware bundle: { versions: { lcc: { brands: { claude: { manifest, verses } } } } }
+    if (bundle.versions) {
+      const versions = Object.keys(bundle.versions);
+      if (!currentVersion || !versions.includes(currentVersion)) {
+        currentVersion = versions.includes('lcc') ? 'lcc' : versions[0];
+      }
+      renderVersionSelect(versions);
+      const versionData = bundle.versions[currentVersion];
+      const brands = Object.keys(versionData.brands);
+      currentBrand = brands.includes('claude') ? 'claude' : brands[0];
+      manifest = versionData.brands[currentBrand].manifest;
+      renderBrandTabs(brands);
+    } else if (bundle.brands) {
+      // Legacy brand-only format: { brands: { claude: { manifest, verses }, ... } }
+      currentVersion = 'lcc';
       const brands = Object.keys(bundle.brands);
       currentBrand = brands.includes('claude') ? 'claude' : brands[0];
       manifest = bundle.brands[currentBrand].manifest;
       renderBrandTabs(brands);
     } else {
-      // Legacy format fallback: { manifest, verses }
+      // Legacy flat format: { manifest, verses }
+      currentVersion = 'lcc';
       manifest = bundle.manifest;
       currentBrand = 'claude';
     }
@@ -595,7 +626,7 @@ async function init() {
     showStats();
   } catch (e) {
     applyI18n();
-    leftContent.innerHTML = `<div class="empty-state">${t('errorLoad')}<br><code>cd llm_direct_sn_unv2lcc && python generate_manifest.py</code></div>`;
+    leftContent.innerHTML = `<div class="empty-state">${t('errorLoad')}<br><code>cd llm_direct_sn_unv2notyet && python generate_manifest.py && python generate_data_bundle.py</code></div>`;
     rightContent.innerHTML = leftContent.innerHTML;
   }
 
@@ -629,7 +660,7 @@ function onLangChange() {
 function applyI18n() {
   document.getElementById('title').textContent = t('title');
   document.getElementById('left-header').textContent = t('leftHeader');
-  document.getElementById('right-header').textContent = t('rightHeader');
+  document.getElementById('right-header').textContent = t('rightHeader')(versionDisplayName(currentVersion || 'lcc'));
   document.getElementById('notes-summary').textContent = t('notesSummary');
   document.getElementById('reviews-header').textContent = t('reviewsHeader');
   document.getElementById('review-submit-btn').textContent = t('submit');
@@ -706,6 +737,43 @@ function showStats() {
   statsEl.textContent = t('stats')(totalBooks, totalVerses, totalVerses - totalLow, totalLow);
 }
 
+function renderVersionSelect(versions) {
+  const sel = document.getElementById('version-select');
+  sel.innerHTML = '';
+  for (const ver of versions) {
+    const opt = document.createElement('option');
+    opt.value = ver;
+    opt.textContent = `${versionDisplayName(ver)} (${ver})`;
+    sel.appendChild(opt);
+  }
+  sel.value = currentVersion;
+  if (versions.length <= 1) sel.parentElement.style.display = 'none';
+  if (!sel._listening) {
+    sel.addEventListener('change', onVersionChange);
+    sel._listening = true;
+  }
+}
+
+function onVersionChange() {
+  const ver = document.getElementById('version-select').value;
+  if (ver === currentVersion) return;
+  currentVersion = ver;
+  localStorage.setItem('showoff_target_version', ver);
+  const versionData = bundle.versions[ver];
+  const brands = Object.keys(versionData.brands);
+  currentBrand = brands.includes(currentBrand) ? currentBrand :
+                 brands.includes('claude') ? 'claude' : brands[0];
+  manifest = versionData.brands[currentBrand].manifest;
+  renderBrandTabs(brands);
+  selectedVerseSec = null;
+  reviewCache = {};
+  notesContent.innerHTML = `<em>${t('noVerse')}</em>`;
+  document.getElementById('reviews-list').innerHTML = '';
+  applyI18n();
+  populateBookSelect();
+  showStats();
+}
+
 function renderBrandTabs(brands) {
   const container = document.getElementById('brand-tabs');
   container.innerHTML = '';
@@ -723,7 +791,9 @@ function renderBrandTabs(brands) {
 function onBrandChange(brand) {
   if (brand === currentBrand) return;
   currentBrand = brand;
-  manifest = bundle.brands[brand].manifest;
+  const src = bundle.versions ? bundle.versions[currentVersion].brands[brand] :
+              bundle.brands ? bundle.brands[brand] : bundle;
+  manifest = src.manifest;
   // Update tab active state
   document.querySelectorAll('.brand-tab').forEach(t => {
     t.classList.toggle('active', t.dataset.brand === brand);
@@ -928,10 +998,11 @@ async function verifyOTP() {
 // ── Reviews API ─────────────────────────────────────────────────────────
 
 async function fetchReviews(book, chap) {
-  const cacheKey = `${currentBrand}/${book}/${chap}`;
+  const cacheKey = `${currentVersion}/${currentBrand}/${book}/${chap}`;
   try {
     const brandParam = currentBrand ? `&brand=${currentBrand}` : '';
-    const resp = await fetch(`/api/reviews?book=${book}&chap=${chap}${brandParam}`, FETCH_OPTS);
+    const versionParam = currentVersion ? `&version=${currentVersion}` : '';
+    const resp = await fetch(`/api/reviews?book=${book}&chap=${chap}${brandParam}${versionParam}`, FETCH_OPTS);
     if (resp.ok) {
       const data = await resp.json();
       reviewCache[cacheKey] = data.reviews || [];
@@ -945,11 +1016,11 @@ async function fetchReviews(book, chap) {
 }
 
 function getVerseReviews(book, chap, sec) {
-  return (reviewCache[`${currentBrand}/${book}/${chap}`] || []).filter(r => r.sec === sec);
+  return (reviewCache[`${currentVersion}/${currentBrand}/${book}/${chap}`] || []).filter(r => r.sec === sec);
 }
 
 function getChapterReviewCounts(book, chap) {
-  const all = reviewCache[`${currentBrand}/${book}/${chap}`] || [];
+  const all = reviewCache[`${currentVersion}/${currentBrand}/${book}/${chap}`] || [];
   const counts = {};
   for (const r of all) {
     if (!counts[r.sec]) counts[r.sec] = { total: 0, hasApproval: false, hasNeedsWork: false };
@@ -1029,7 +1100,7 @@ async function submitReview() {
         headers: { 'Authorization': `Bearer ${sessionToken}`, 'ngrok-skip-browser-warning': '1' },
       });
       // Remove from cache
-      const cacheKey = `${currentBrand}/${currentBook}/${currentChap}`;
+      const cacheKey = `${currentVersion}/${currentBrand}/${currentBook}/${currentChap}`;
       if (reviewCache[cacheKey]) {
         reviewCache[cacheKey] = reviewCache[cacheKey].filter(r => r.id !== editingReviewId);
       }
@@ -1039,6 +1110,7 @@ async function submitReview() {
   }
 
   const body = {
+    version: currentVersion,
     brand: currentBrand,
     book: currentBook,
     chap: parseInt(currentChap),
@@ -1060,7 +1132,7 @@ async function submitReview() {
 
     if (resp.ok) {
       const newReview = await resp.json();
-      const cacheKey = `${currentBrand}/${currentBook}/${currentChap}`;
+      const cacheKey = `${currentVersion}/${currentBrand}/${currentBook}/${currentChap}`;
       if (!reviewCache[cacheKey]) reviewCache[cacheKey] = [];
       reviewCache[cacheKey].push(newReview);
       showVerseReviews(currentBook, parseInt(currentChap), selectedVerseSec);
@@ -1081,7 +1153,7 @@ async function submitReview() {
 
 function loadReviewForEdit(reviewId) {
   if (!currentReviewer) return;
-  const cacheKey = `${currentBrand}/${currentBook}/${currentChap}`;
+  const cacheKey = `${currentVersion}/${currentBrand}/${currentBook}/${currentChap}`;
   const review = (reviewCache[cacheKey] || []).find(r => r.id === reviewId);
   if (!review || review.reviewer_email !== currentReviewer.email) return;
 
@@ -1125,7 +1197,7 @@ async function deleteReview(reviewId) {
       headers: { 'Authorization': `Bearer ${sessionToken}`, 'ngrok-skip-browser-warning': '1' },
     });
     if (resp.ok) {
-      const cacheKey = `${currentBrand}/${currentBook}/${currentChap}`;
+      const cacheKey = `${currentVersion}/${currentBrand}/${currentBook}/${currentChap}`;
       if (reviewCache[cacheKey]) {
         reviewCache[cacheKey] = reviewCache[cacheKey].filter(r => r.id !== reviewId);
       }
@@ -1186,7 +1258,8 @@ async function onChapChange() {
   currentChap = chap;
 
   const cacheKey = `${book}/${chap}`;
-  const brandData = bundle.brands ? bundle.brands[currentBrand] : bundle;
+  const brandData = bundle.versions ? bundle.versions[currentVersion].brands[currentBrand] :
+                    bundle.brands ? bundle.brands[currentBrand] : bundle;
   const data = (brandData.verses || {})[cacheKey] || [];
   currentData = data;
   renderVerses(data, book, chap);
@@ -1222,15 +1295,22 @@ function confidenceClass(c) {
 function renderVerses(data, book, chap) {
   const info = bookMap[book];
   const bookLabel = info ? t('bookName')(info) : book;
+  const ver = currentVersion || 'lcc';
+  const verName = versionDisplayName(ver);
+  const snField = `${ver}_sn`;
+  const origField = `${ver}_original`;
 
   let leftHtml = `<h3 style="margin:0 0 10px;font-size:1em;color:#1a237e">${t('chapHeadingLeft')(bookLabel, chap)}</h3>`;
-  let rightHtml = `<h3 style="margin:0 0 10px;font-size:1em;color:#00695c">${t('chapHeadingRight')(bookLabel, chap)}</h3>`;
+  let rightHtml = `<h3 style="margin:0 0 10px;font-size:1em;color:#00695c">${t('chapHeadingRight')(bookLabel, chap, verName)}</h3>`;
 
   for (const v of data) {
     const sec = v.sec;
     const cls = confidenceClass(v.confidence);
     const pct = (v.confidence * 100).toFixed(0);
     const modelTag = v.model ? `<span class="model-tag">${v.model}</span>` : '';
+    // Dynamic field access: try version-specific, fallback to lcc_sn for legacy data
+    const targetSN = v[snField] || v.lcc_sn || '';
+    const targetOrig = v[origField] || v.lcc_original || '';
 
     leftHtml += `<p class="verse" data-sec="${sec}">`;
     leftHtml += `<span class="verse-num">${sec}</span> `;
@@ -1239,9 +1319,9 @@ function renderVerses(data, book, chap) {
 
     rightHtml += `<p class="verse" data-sec="${sec}">`;
     rightHtml += `<span class="verse-num">${sec}</span> `;
-    rightHtml += parseSN(v.lcc_sn);
+    rightHtml += parseSN(targetSN);
     rightHtml += `<span class="confidence ${cls}">${pct}%</span>${modelTag}`;
-    rightHtml += `<span class="lcc-original">${escHtml(v.lcc_original || '')}</span>`;
+    rightHtml += `<span class="lcc-original">${escHtml(targetOrig)}</span>`;
     rightHtml += `</p>`;
   }
 

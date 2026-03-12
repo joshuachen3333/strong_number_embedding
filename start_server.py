@@ -12,8 +12,9 @@ Usage:
 API:
     GET /api/parse?chineses=創&chapter=1&verse=1
     GET /api/parse?book=Gen&chapter=1&verse=1
-    GET /api/lcc-sn?chineses=創&chapter=1          (all available verses)
-    GET /api/lcc-sn?chineses=創&chapter=1&verse=1   (single verse)
+    GET /api/target-sn?version=lcc&chineses=創&chapter=1          (all available verses)
+    GET /api/target-sn?version=lcc&chineses=創&chapter=1&verse=1  (single verse)
+    GET /api/lcc-sn?chineses=創&chapter=1                          (legacy alias, version=lcc)
 """
 
 import http.server
@@ -35,7 +36,7 @@ REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
 PARSER_DIR = os.path.join(REPO_ROOT, "sn_within_unv_selfgroup_segmentation")
 OUTPUT_DIR = os.path.join(PARSER_DIR, "output")
 PARSER_SCRIPT = os.path.join(PARSER_DIR, "run_parser_temp.py")
-LCC_SN_DIR = os.path.join(REPO_ROOT, "llm_direct_sn_unv2lcc", "output")
+TARGET_SN_DIR = os.path.join(REPO_ROOT, "output")
 
 # ── Review system paths ──────────────────────────────────────────────────
 SHOWOFF_DIR = os.path.join(REPO_ROOT, "showoff_finished_4review")
@@ -115,8 +116,8 @@ class BibleServerHandler(http.server.SimpleHTTPRequestHandler):
 
         if parsed.path == "/api/parse":
             self._handle_parse_api(parsed.query)
-        elif parsed.path == "/api/lcc-sn":
-            self._handle_lcc_sn_api(parsed.query)
+        elif parsed.path == "/api/target-sn" or parsed.path == "/api/lcc-sn":
+            self._handle_target_sn_api(parsed.query, parsed.path)
         elif parsed.path == "/api/reviews":
             self._handle_get_reviews(parsed.query)
         elif parsed.path == "/api/auth/status":
@@ -223,9 +224,14 @@ class BibleServerHandler(http.server.SimpleHTTPRequestHandler):
             "cached": cached
         })
 
-    def _handle_lcc_sn_api(self, query_string):
-        """Handle GET /api/lcc-sn?chineses=創&chapter=1[&verse=1]"""
+    def _handle_target_sn_api(self, query_string, path):
+        """Handle GET /api/target-sn?version=lcc&chineses=創&chapter=1[&verse=1]
+        Also handles legacy /api/lcc-sn (defaults version=lcc)."""
         params = urllib.parse.parse_qs(query_string)
+
+        # Determine version: explicit param, or "lcc" for legacy /api/lcc-sn
+        version = params.get("version", ["lcc"])[0] if path == "/api/target-sn" else "lcc"
+        sn_field = f"{version}_sn"
 
         # Extract book code (same logic as /api/parse)
         book = None
@@ -243,6 +249,9 @@ class BibleServerHandler(http.server.SimpleHTTPRequestHandler):
         else:
             self._send_json(400, {"error": "Missing 'book' or 'chineses' parameter"})
             return
+
+        # Extract brand (optional, default scan all)
+        brand = params.get("brand", ["claude"])[0]
 
         # Extract chapter (required)
         try:
@@ -264,14 +273,14 @@ class BibleServerHandler(http.server.SimpleHTTPRequestHandler):
                 self._send_json(400, {"error": "Invalid 'verse' parameter"})
                 return
 
-        chapter_dir = os.path.join(LCC_SN_DIR, book, str(chapter))
+        chapter_dir = os.path.join(TARGET_SN_DIR, version, brand, book, str(chapter))
 
         if verse is not None:
             # Single verse mode
             file_path = os.path.join(chapter_dir, f"{verse}.json")
             if not os.path.isfile(file_path):
                 self._send_json(404, {
-                    "error": f"No LCC+SN data for {book} {chapter}:{verse}",
+                    "error": f"No {version.upper()}+SN data for {book} {chapter}:{verse}",
                     "book": book, "chapter": chapter, "verse": verse
                 })
                 return
@@ -279,7 +288,8 @@ class BibleServerHandler(http.server.SimpleHTTPRequestHandler):
                 data = json.load(f)
             self._send_json(200, {
                 "book": book, "chapter": chapter, "verse": verse,
-                "lcc_sn": data.get("lcc_sn", ""),
+                "version": version,
+                sn_field: data.get(sn_field, ""),
                 "confidence": data.get("confidence", 0.0),
                 "notes": data.get("notes", [])
             })
@@ -287,7 +297,7 @@ class BibleServerHandler(http.server.SimpleHTTPRequestHandler):
             # Chapter mode — read all verse JSON files
             if not os.path.isdir(chapter_dir):
                 self._send_json(404, {
-                    "error": f"No LCC+SN data for {book} chapter {chapter}",
+                    "error": f"No {version.upper()}+SN data for {book} chapter {chapter}",
                     "book": book, "chapter": chapter
                 })
                 return
@@ -301,13 +311,13 @@ class BibleServerHandler(http.server.SimpleHTTPRequestHandler):
                         with open(file_path, "r", encoding="utf-8") as f:
                             data = json.load(f)
                         verses[verse_num] = {
-                            "lcc_sn": data.get("lcc_sn", ""),
+                            sn_field: data.get(sn_field, ""),
                             "confidence": data.get("confidence", 0.0),
                             "notes": data.get("notes", [])
                         }
 
             self._send_json(200, {
-                "book": book, "chapter": chapter,
+                "book": book, "chapter": chapter, "version": version,
                 "verses": verses, "count": len(verses)
             })
 
@@ -558,6 +568,12 @@ class BibleServerHandler(http.server.SimpleHTTPRequestHandler):
             filtered = [r for r in filtered
                         if r.get("brand", "claude") == brand]
 
+        # Filter by version (reviews without version field match "lcc" for backward compat)
+        version = params.get("version", [None])[0]
+        if version:
+            filtered = [r for r in filtered
+                        if r.get("version", "lcc") == version]
+
         sec_str = params.get("sec", [None])[0]
         if sec_str:
             try:
@@ -602,11 +618,13 @@ class BibleServerHandler(http.server.SimpleHTTPRequestHandler):
 
         text = str(body.get("text", "")).strip()[:2000]
         brand = str(body.get("brand", "claude")).strip()
+        version = str(body.get("version", "lcc")).strip()
 
         ts_ms = int(time.time() * 1000)
         rand_hex = format(_rng.randint(0, 0xFFFF), '04x')
         review = {
             "id": f"r_{ts_ms}_{rand_hex}",
+            "version": version,
             "brand": brand,
             "book": book, "chap": chap, "sec": sec,
             "reviewer_email": sess["email"],
@@ -735,7 +753,7 @@ def main():
     print(f"  Dual reader:  http://localhost:{port}/dual_reader_right_editor/")
     print(f"  Viewer v2:    http://localhost:{port}/sn_within_unv_selfgroup_segmentation/viewer_v2/")
     print(f"  Parse API:    http://localhost:{port}/api/parse?chineses=創&chapter=1&verse=1")
-    print(f"  LCC+SN API:   http://localhost:{port}/api/lcc-sn?chineses=創&chapter=1")
+    print(f"  Target+SN:    http://localhost:{port}/api/target-sn?version=lcc&chineses=創&chapter=1")
     print(f"  Reviews API:  http://localhost:{port}/api/reviews?book=Gen&chap=1")
     smtp_ok = os.path.isfile(SMTP_CONFIG_FILE)
     print(f"  SMTP:         {'configured' if smtp_ok else 'NOT configured (create smtp_config.json)'}")

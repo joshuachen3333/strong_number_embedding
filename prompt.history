@@ -150,3 +150,9 @@ I am going to expand the model to different brand (gemini, codex) and their diff
 fhl (bible.fhl.net) they claims to have mcp capabilities, check for that, see if we can get the qb.php qp.php,etc, api json data from mcp instead.
 
 Result: Found ytssamuel/FHL-MCP-Server — a local Python wrapper, not a remote service. Same bible.fhl.net API behind the scenes. 27 tools. Not integrating now. Report saved to FHL_MCP.md.
+
+### 24. [2026-03-13] Rename llm_direct_sn_unv2lcc → llm_direct_sn_unv2notyet + multi-version support
+refactor llm_direct_sn_unv2lcc into llm_direct_sn_unv2notyet, introduce a --target-version lcc (default) or other 版本縮寫 (rcuv2010, tcv, esv, nasb...). output/ folder should be moved one level above to output/{version}/{brand}/{Book}/{Chap}/{verse}.json. --set-target-version for other version's coworkers. Version-specific JSON fields (lcc_sn, rcuv2010_sn), per-version system prompts (system_prompt_lcc.md), showoff viewer version selector with localStorage memory.
+
+### 25. [2026-03-13] --chineses accepts multiple books
+--chineses 利 民 and --chineses 利, 民 and --chineses 利,民 and --chineses 利 should all work. nargs='+' with comma-split normalization.

@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """
 generate_manifest.py
-Generate per-brand manifest.json from llm_direct_sn_unv2lcc output/ directory structure.
+Generate per-version/brand manifest.json from output/{version}/{brand}/ directory structure.
 
-Scans output/{brand}/{Book}/{Chapter}/{verse}.json files, reads confidence from each,
+Scans output/{version}/{brand}/{Book}/{Chapter}/{verse}.json files, reads confidence from each,
 and builds a manifest with verse lists and low-confidence classifications.
 
 Usage:
-    python generate_manifest.py              # all brands
-    python generate_manifest.py --brand claude  # single brand
+    python generate_manifest.py                          # all versions, all brands
+    python generate_manifest.py --version lcc             # single version
+    python generate_manifest.py --brand claude            # single brand (all versions)
+    python generate_manifest.py --version lcc --brand claude  # specific combo
 """
 
 import os
@@ -25,7 +27,7 @@ if _REPO_ROOT not in sys.path:
 
 from shared.data.book_data_loader import load_books
 
-OUTPUT_DIR = 'output'
+OUTPUT_DIR = os.path.join(_REPO_ROOT, 'output')
 LOW_CONFIDENCE_THRESHOLD = 0.85
 KNOWN_BRANDS = ['claude', 'codex', 'gemini']
 
@@ -92,8 +94,8 @@ def generate_manifest_for_brand(brand_dir, brand_name):
     return manifest
 
 
-def print_summary(brand_name, manifest):
-    """Print summary for a brand's manifest."""
+def print_summary(version, brand_name, manifest):
+    """Print summary for a version/brand's manifest."""
     total_verses = 0
     total_low = 0
     for book_data in manifest['books'].values():
@@ -114,47 +116,57 @@ def print_summary(brand_name, manifest):
             print(f"    {book}: {len(chapters)} ch, {vc} verses{low_str}")
 
 
-def generate_manifests(brand_filter=None):
-    """Generate manifest.json for each brand under output/."""
+def generate_manifests(version_filter=None, brand_filter=None):
+    """Generate manifest.json for each version/brand under output/."""
     if not os.path.exists(OUTPUT_DIR):
         print(f"Error: {OUTPUT_DIR} directory not found")
         return
 
-    # Detect brands (subdirs of output/ that are in KNOWN_BRANDS)
-    brands = []
+    # Detect versions (subdirs of output/ that are NOT known brands — versions are like lcc, rcuv2010, etc.)
+    versions = []
     for item in sorted(os.listdir(OUTPUT_DIR)):
         item_path = os.path.join(OUTPUT_DIR, item)
-        if os.path.isdir(item_path) and item in KNOWN_BRANDS:
-            if brand_filter and item != brand_filter:
+        if os.path.isdir(item_path) and item not in BOOK_ORDER:
+            if version_filter and item != version_filter:
                 continue
-            brands.append(item)
+            versions.append(item)
 
-    # Warn about un-migrated legacy data
-    for item in os.listdir(OUTPUT_DIR):
-        item_path = os.path.join(OUTPUT_DIR, item)
-        if os.path.isdir(item_path) and item in BOOK_ORDER:
-            print(f"⚠ Legacy un-migrated book dir: output/{item}/ "
-                  f"(should be under output/claude/{item}/)")
-
-    if not brands:
-        print("No brand directories found in output/")
+    if not versions:
+        print("No version directories found in output/")
         return
 
-    for brand in brands:
-        brand_dir = os.path.join(OUTPUT_DIR, brand)
-        manifest = generate_manifest_for_brand(brand_dir, brand)
+    for version in versions:
+        version_dir = os.path.join(OUTPUT_DIR, version)
 
-        manifest_path = os.path.join(brand_dir, 'manifest.json')
-        with open(manifest_path, 'w', encoding='utf-8') as f:
-            json.dump(manifest, f, ensure_ascii=False, indent=2)
+        # Detect brands under this version
+        brands = []
+        for item in sorted(os.listdir(version_dir)):
+            item_path = os.path.join(version_dir, item)
+            if os.path.isdir(item_path) and item in KNOWN_BRANDS:
+                if brand_filter and item != brand_filter:
+                    continue
+                brands.append(item)
 
-        print(f"\n[{brand}] → {manifest_path}")
-        print_summary(brand, manifest)
+        if not brands:
+            continue
+
+        for brand in brands:
+            brand_dir = os.path.join(version_dir, brand)
+            manifest = generate_manifest_for_brand(brand_dir, brand)
+
+            manifest_path = os.path.join(brand_dir, 'manifest.json')
+            with open(manifest_path, 'w', encoding='utf-8') as f:
+                json.dump(manifest, f, ensure_ascii=False, indent=2)
+
+            print(f"\n[{version}/{brand}] -> {manifest_path}")
+            print_summary(version, brand, manifest)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Generate per-brand manifest.json")
+    parser = argparse.ArgumentParser(description="Generate per-version/brand manifest.json")
+    parser.add_argument('--version', default=None,
+                        help="Generate for a single version (default: all)")
     parser.add_argument('--brand', choices=KNOWN_BRANDS, default=None,
                         help="Generate for a single brand (default: all)")
     args = parser.parse_args()
-    generate_manifests(brand_filter=args.brand)
+    generate_manifests(version_filter=args.version, brand_filter=args.brand)
