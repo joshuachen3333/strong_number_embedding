@@ -145,3 +145,8 @@ next verse's first line is ── Exod 13:21 (21/22) ── (for example) with 3
 
 ### 22. [2026-03-12] Multi-brand output reorganization (claude/gemini/codex)
 I am going to expand the model to different brand (gemini, codex) and their different models (gemini3 pro, flash, gemini 2.5 pro, flash), and codex (5.4, 5.3 codex, 5.2 codex, 5.2), so our output/* must be re-organized to output/gemini output/codex output/claude, right? and the models will be more than just claude (4.6 opus, 4.6 sonnet). note that output/* changed to 3 brands, then our showoff_4review must follow that.
+
+### 23. [2026-03-12] FHL MCP Server research
+fhl (bible.fhl.net) they claims to have mcp capabilities, check for that, see if we can get the qb.php qp.php,etc, api json data from mcp instead.
+
+Result: Found ytssamuel/FHL-MCP-Server — a local Python wrapper, not a remote service. Same bible.fhl.net API behind the scenes. 27 tools. Not integrating now. Report saved to FHL_MCP.md.
