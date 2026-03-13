@@ -14,8 +14,8 @@ Parses UNV text with Strong's Numbers into structured semantic groups. Three-sta
 
 ```bash
 # Single verse (Genesis 1:1)
-python run_parser_temp.py 1 1
-python run_parser_temp.py --no-write 1 1   # preview without saving
+python3 run_parser_temp.py 1 1
+python3 run_parser_temp.py --no-write 1 1   # preview without saving
 
 # Fetch raw data
 ./fetch_text.sh --engs Gen --chap 1 --sec 1
@@ -25,7 +25,7 @@ python run_parser_temp.py --no-write 1 1   # preview without saving
 ./batch_parse_book.sh Gen                   # full book
 
 # Generate manifest for viewer
-python generate_manifest.py
+python3 generate_manifest.py
 ```
 
 **Authoritative spec**: `SPECIFICATION_v1.8.md` (standalone, self-contained).
@@ -72,11 +72,11 @@ cd chinese_term_segmentation
 pip install -r requirements.txt
 
 # Segment a verse
-python segment.py --verse "Gen 1:3" --version unv
-python segment.py --verse "創 1:1" --version unv --seg jieba
+python3 segment.py --verse "Gen 1:3" --version unv
+python3 segment.py --verse "創 1:1" --version unv --seg jieba
 
 # SN-based boundary correction
-python segment.py --engs gen --chap 3 --sec 3 --version lcc \
+python3 segment.py --engs gen --chap 3 --sec 3 --version lcc \
   --seg pkuseg --correct-with-sn --use-refinement --semantic-engine edit-distance
 
 # Run tests
@@ -96,7 +96,7 @@ Extends `dual_reader/` with edit mode, localStorage persistence, undo/redo, A1 w
 
 ```bash
 # With group coloring (requires server for parsed verse data):
-python start_server.py                    # from repo root, port 8080
+python3 start_server.py                    # from repo root, port 8080
 # Open http://localhost:8080/dual_reader_right_editor/
 
 # Without server (basic mode, no group coloring):
@@ -145,8 +145,8 @@ Reusable JavaScript modules shared across multiple web applications. All web app
 Lightweight Python server (port 8080) that serves static files from repo root and provides an on-demand verse parsing API. Required for features that access parsed verse data (group coloring in `dual_reader_right_editor`).
 
 ```bash
-python start_server.py              # default port 8080
-python start_server.py --port 9000  # custom port
+python3 start_server.py              # default port 8080
+python3 start_server.py --port 9000  # custom port
 ```
 
 API: `GET /api/parse?chineses=創&chapter=1&verse=1` — returns parsed verse content (from pre-parsed files or on-demand parsing).

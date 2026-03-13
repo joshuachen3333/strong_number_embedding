@@ -7,10 +7,10 @@ from UNV (和合本, which has SN from FHL) to a target Bible version (default: 
 No API key needed — uses your Claude Code subscription.
 
 Usage:
-    python llm_direct_sn_unv2notyet.py --book 創 --chap 1 --sec 1
-    python llm_direct_sn_unv2notyet.py --book 創 --chap 1 --target-version rcuv2010
-    python llm_direct_sn_unv2notyet.py --set-target-version rcuv2010   # persist default
-    python llm_direct_sn_unv2notyet.py --book 創 --chap 1 --dry-run
+    python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --sec 1
+    python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --target-version rcuv2010
+    python3 llm_direct_sn_unv2notyet.py --set-target-version rcuv2010   # persist default
+    python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --dry-run
 """
 
 import argparse

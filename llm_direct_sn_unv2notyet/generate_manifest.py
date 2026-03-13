@@ -7,10 +7,10 @@ Scans output/{version}/{brand}/{Book}/{Chapter}/{verse}.json files, reads confid
 and builds a manifest with verse lists and low-confidence classifications.
 
 Usage:
-    python generate_manifest.py                          # all versions, all brands
-    python generate_manifest.py --version lcc             # single version
-    python generate_manifest.py --brand claude            # single brand (all versions)
-    python generate_manifest.py --version lcc --brand claude  # specific combo
+    python3 generate_manifest.py                          # all versions, all brands
+    python3 generate_manifest.py --version lcc             # single version
+    python3 generate_manifest.py --brand claude            # single brand (all versions)
+    python3 generate_manifest.py --version lcc --brand claude  # specific combo
 """
 
 import os

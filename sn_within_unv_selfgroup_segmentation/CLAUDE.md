@@ -67,13 +67,13 @@ The system follows a three-stage pipeline:
 
 ```bash
 # Using run_parser_temp.py (recommended workflow)
-python run_parser_temp.py 1 1  # Genesis 1:1 (default book is Gen)
+python3 run_parser_temp.py 1 1  # Genesis 1:1 (default book is Gen)
 
 # Just view output without writing to disk
-python run_parser_temp.py --no-write 1 1
+python3 run_parser_temp.py --no-write 1 1
 
 # Direct parser invocation (advanced)
-python parse_verse_v1_8.py '<qb_json>' '<qp_json>' '<verse_ref>'
+python3 parse_verse_v1_8.py '<qb_json>' '<qp_json>' '<verse_ref>'
 ```
 
 ### Batch Parsing

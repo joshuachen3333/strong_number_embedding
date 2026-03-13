@@ -17,11 +17,11 @@ Reads per-version/brand manifests and verse JSONs, outputs a combined bundle:
 }
 
 Usage:
-    python generate_data_bundle.py                              # all versions, all brands
-    python generate_data_bundle.py --version lcc                # single version
-    python generate_data_bundle.py --brand claude               # single brand (all versions)
-    python generate_data_bundle.py --version lcc --brand claude # specific combo
-    python generate_data_bundle.py -o custom.json               # custom output path
+    python3 generate_data_bundle.py                              # all versions, all brands
+    python3 generate_data_bundle.py --version lcc                # single version
+    python3 generate_data_bundle.py --brand claude               # single brand (all versions)
+    python3 generate_data_bundle.py --version lcc --brand claude # specific combo
+    python3 generate_data_bundle.py -o custom.json               # custom output path
 """
 
 import os
