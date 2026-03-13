@@ -22,6 +22,7 @@ output/
 llm_direct_sn_unv2notyet/.run_config.conf
 llm_direct_sn_unv2notyet/.target_version
 llm_direct_sn_unv2notyet/.window_budget.json
+llm_direct_sn_unv2notyet/.codex_schema.json
 
 # Large binary database files
 original_text_preparation/source_sqlite/*.db

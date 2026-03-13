@@ -2,17 +2,17 @@
 """
 LLM-Direct Strong's Number Transfer: UNV → Target Version
 
-Uses Claude CLI (claude -p) or Ollama local LLMs to transfer Strong's Number
-annotations from UNV (和合本, which has SN from FHL) to a target Bible version
-(default: LCC). Claude: no API key needed — uses your Claude Code subscription.
-Local models: requires Ollama running (default http://localhost:11434).
+Transfers Strong's Number annotations from UNV (和合本, which has SN from FHL)
+to a target Bible version (default: LCC) using LLM CLI tools.
+Supports 4 brands: Claude, Gemini, Codex (OpenAI), and local Ollama models.
+All cloud brands use CLI auth (no API keys needed).
 
 Usage:
     python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --sec 1
-    python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --target-version rcuv2010
-    python3 llm_direct_sn_unv2notyet.py --set-target-version rcuv2010   # persist default
-    python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --dry-run
-    python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --model qwen2.5:72b  # local Ollama
+    python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --model gemini-3-flash
+    python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --model gpt-5.2
+    python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --model qwen3:32b
+    python3 llm_direct_sn_unv2notyet.py --model --help                 # full model list
 """
 
 import argparse
@@ -706,6 +706,405 @@ def call_claude(model: str, unv_sn: str, target_text: str,
     return parse_stream_json(result_proc.stdout, sn_field)
 
 
+# ── Gemini CLI ───────────────────────────────────────────────────────────────
+
+def parse_gemini_stream_json(raw: str, sn_field: str) -> tuple:
+    """Parse stream-json output from gemini CLI.
+
+    Gemini stream-json format:
+      {"type":"message","role":"assistant","content":"...","delta":true}
+      {"type":"result","status":"success","stats":{...}}
+
+    Returns (result_dict, rate_limit_info).
+    """
+    result = None
+    rate_limit_info = None
+    text_parts = []
+
+    for line in raw.strip().split('\n'):
+        if not line.strip():
+            continue
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+
+        if obj.get("type") == "message" and obj.get("role") == "assistant":
+            content = obj.get("content", "")
+            if content:
+                text_parts.append(content)
+
+        if obj.get("type") == "result":
+            stats = obj.get("stats", {})
+            # Try to extract structured result from accumulated text
+            if result is None and text_parts:
+                full_text = ''.join(text_parts)
+                result = _extract_json(full_text, sn_field)
+                result["_tokens"] = {
+                    "input": stats.get("input_tokens", 0),
+                    "output": stats.get("output_tokens", 0),
+                }
+
+    if result is not None:
+        return result, rate_limit_info
+
+    # Fallback
+    if text_parts:
+        full_text = ''.join(text_parts)
+        result = _extract_json(full_text, sn_field)
+        return result, rate_limit_info
+
+    return {
+        sn_field: "",
+        "confidence": 0.0,
+        "notes": [f"Failed to parse gemini stream-json: {raw[:300]}"],
+        "error": True,
+    }, rate_limit_info
+
+
+def call_gemini(model: str, unv_sn: str, target_text: str,
+                target_version: str,
+                book_chi: str, chap: int, sec: int,
+                verbose: bool = False,
+                progress: tuple = None,
+                paused_acc: list = None) -> tuple:
+    """Call gemini CLI to insert SNs into target version text.
+
+    Returns (result_dict, rate_limit_info).
+    """
+    sn_field = f"{target_version}_sn"
+
+    gemini_bin = shutil.which("gemini")
+    if not gemini_bin:
+        raise RuntimeError("'gemini' CLI not found in PATH")
+
+    system_prompt = load_system_prompt(target_version)
+    json_schema = build_json_schema(target_version)
+    user_prompt = build_user_prompt(
+        unv_sn, target_text, target_version, book_chi, chap, sec)
+
+    # Gemini has no --json-schema flag, so embed schema instruction in prompt
+    full_prompt = (system_prompt + "\n\n" + user_prompt +
+                   "\n\nRespond with ONLY valid JSON matching this schema:\n" +
+                   json_schema)
+
+    if verbose:
+        print(f"  ── prompt ──")
+        print(f"  {full_prompt}")
+        print(f"  ── /prompt ──")
+
+    cmd = [
+        gemini_bin,
+        "-p", full_prompt,
+        "-y",
+        "--output-format", "stream-json",
+        "--model", model,
+    ]
+
+    if verbose:
+        print(f"  [gemini {model}] calling... (timeout 300s)", flush=True)
+
+    DEFAULT_TIMEOUT = 300
+    RETRY_TIMEOUT = 600
+    IMMEDIATE_RETRIES = 2
+    RETRY_INTERVAL = 30 * 60
+    MAX_RETRIES = 48
+    RATE_LIMIT_PATTERNS = [
+        "rate limit", "rate_limit", "token limit", "too many requests",
+        "overloaded", "capacity", "quota", "throttl", "429",
+    ]
+
+    for attempt in range(MAX_RETRIES + 1):
+        timeout = DEFAULT_TIMEOUT if attempt == 0 else RETRY_TIMEOUT
+        try:
+            result_proc = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=timeout,
+            )
+        except subprocess.TimeoutExpired as e:
+            now_str = datetime.now().strftime("%H:%M:%S")
+            partial = (e.stdout or "").strip()
+            event_lines = [l for l in partial.split('\n') if l.strip()]
+            model_active = len(event_lines) > 1
+
+            if model_active:
+                print(f"  ⏳ [{now_str}] Timed out ({timeout}s) but model was "
+                      f"generating ({len(event_lines)} events). Slow verse.", flush=True)
+                result, rl_info = parse_gemini_stream_json(partial, sn_field)
+                if result.get(sn_field):
+                    print(f"  ✓ Salvaged partial result", flush=True)
+                    return result, rl_info
+                return {
+                    sn_field: "", "confidence": 0.0,
+                    "notes": [f"Timeout ({timeout}s): verse too complex"],
+                    "error": True
+                }, rl_info
+
+            if attempt < IMMEDIATE_RETRIES:
+                print(f"  ⏳ [{now_str}] Timed out ({timeout}s, no output, "
+                      f"attempt {attempt + 1}/{IMMEDIATE_RETRIES + 1}). "
+                      f"Retrying immediately...", flush=True)
+                continue
+
+            next_try = datetime.now(timezone.utc).timestamp() + RETRY_INTERVAL
+            next_str = datetime.fromtimestamp(next_try).strftime("%H:%M:%S")
+            print(f"  ⏸ [{now_str}] Timed out (attempt {attempt + 1}, likely "
+                  f"rate limit). Waiting 30 min, next retry at {next_str}...", flush=True)
+
+            if attempt >= MAX_RETRIES:
+                return {sn_field: "", "confidence": 0.0,
+                        "notes": ["Timeout: gave up after max retries"], "error": True}, None
+
+            _pause_start = time.time()
+            time.sleep(RETRY_INTERVAL)
+            if paused_acc is not None:
+                paused_acc[0] += time.time() - _pause_start
+            continue
+
+        if result_proc.returncode == 0:
+            break
+
+        stderr = result_proc.stderr.strip().lower()
+        is_rate_limit = any(pat in stderr for pat in RATE_LIMIT_PATTERNS)
+
+        if not is_rate_limit:
+            return {sn_field: "", "confidence": 0.0,
+                    "notes": [f"gemini CLI error: {result_proc.stderr.strip()[:300]}"],
+                    "error": True}, None
+
+        now_str = datetime.now().strftime("%H:%M:%S")
+        next_try = datetime.now(timezone.utc).timestamp() + RETRY_INTERVAL
+        next_str = datetime.fromtimestamp(next_try).strftime("%H:%M:%S")
+        print(f"  ⏸ [{now_str}] Rate limit hit (attempt {attempt + 1}). "
+              f"Waiting 30 min, next retry at {next_str}...", flush=True)
+
+        if attempt >= MAX_RETRIES:
+            return {sn_field: "", "confidence": 0.0,
+                    "notes": ["Rate limit: gave up after max retries"], "error": True}, None
+
+        _pause_start = time.time()
+        time.sleep(RETRY_INTERVAL)
+        if paused_acc is not None:
+            paused_acc[0] += time.time() - _pause_start
+
+    return parse_gemini_stream_json(result_proc.stdout, sn_field)
+
+
+# ── Codex CLI ────────────────────────────────────────────────────────────────
+
+def parse_codex_jsonl(raw: str, sn_field: str) -> tuple:
+    """Parse JSONL output from codex exec --json.
+
+    Codex JSONL format:
+      {"type":"item.completed","item":{"text":"..."}}
+      {"type":"turn.completed","usage":{...}}
+      {"type":"turn.failed","error":{"message":"..."}}  (error case)
+
+    Returns (result_dict, rate_limit_info).
+    """
+    result = None
+    rate_limit_info = None
+    text_parts = []
+    error_msg = None
+
+    for line in raw.strip().split('\n'):
+        if not line.strip():
+            continue
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+
+        if obj.get("type") == "item.completed":
+            item = obj.get("item", {})
+            text = item.get("text", "")
+            if text:
+                text_parts.append(text)
+
+        if obj.get("type") == "error":
+            error_msg = obj.get("message", "unknown error")
+
+        if obj.get("type") == "turn.failed":
+            err = obj.get("error", {})
+            error_msg = err.get("message", error_msg or "turn failed")
+
+        if obj.get("type") == "turn.completed":
+            usage = obj.get("usage", {})
+            if result is None and text_parts:
+                full_text = ''.join(text_parts)
+                result = _extract_json(full_text, sn_field)
+                result["_tokens"] = {
+                    "input": usage.get("input_tokens", 0),
+                    "output": usage.get("output_tokens", 0),
+                }
+
+    if result is not None:
+        return result, rate_limit_info
+
+    if text_parts:
+        full_text = ''.join(text_parts)
+        result = _extract_json(full_text, sn_field)
+        return result, rate_limit_info
+
+    if error_msg:
+        return {
+            sn_field: "", "confidence": 0.0,
+            "notes": [f"Codex error: {error_msg[:300]}"],
+            "error": True,
+        }, rate_limit_info
+
+    return {
+        sn_field: "",
+        "confidence": 0.0,
+        "notes": [f"Failed to parse codex JSONL: {raw[:300]}"],
+        "error": True,
+    }, rate_limit_info
+
+
+def call_codex(model: str, unv_sn: str, target_text: str,
+               target_version: str,
+               book_chi: str, chap: int, sec: int,
+               verbose: bool = False,
+               progress: tuple = None,
+               paused_acc: list = None) -> tuple:
+    """Call codex CLI to insert SNs into target version text.
+
+    Returns (result_dict, rate_limit_info).
+    """
+    sn_field = f"{target_version}_sn"
+
+    codex_bin = shutil.which("codex")
+    if not codex_bin:
+        raise RuntimeError("'codex' CLI not found in PATH")
+
+    system_prompt = load_system_prompt(target_version)
+    json_schema = build_json_schema(target_version)
+    user_prompt = build_user_prompt(
+        unv_sn, target_text, target_version, book_chi, chap, sec)
+
+    full_prompt = (system_prompt + "\n\n" + user_prompt +
+                   "\n\nRespond with ONLY valid JSON matching this schema:\n" +
+                   json_schema)
+
+    if verbose:
+        print(f"  ── prompt ──")
+        print(f"  {full_prompt}")
+        print(f"  ── /prompt ──")
+
+    # Write schema file for --output-schema (OpenAI requires additionalProperties: false)
+    schema_obj = json.loads(json_schema)
+    schema_obj["additionalProperties"] = False
+    schema_file = os.path.join(SCRIPT_DIR, ".codex_schema.json")
+    with open(schema_file, "w", encoding="utf-8") as f:
+        json.dump(schema_obj, f)
+
+    cmd = [
+        codex_bin, "exec",
+        "--dangerously-bypass-approvals-and-sandbox",
+        "--json",
+        "--model", model,
+        "--output-schema", schema_file,
+        full_prompt,
+    ]
+
+    if verbose:
+        print(f"  [codex {model}] calling... (timeout 300s)", flush=True)
+
+    DEFAULT_TIMEOUT = 300
+    RETRY_TIMEOUT = 600
+    IMMEDIATE_RETRIES = 2
+    RETRY_INTERVAL = 30 * 60
+    MAX_RETRIES = 48
+    RATE_LIMIT_PATTERNS = [
+        "rate limit", "rate_limit", "token limit", "too many requests",
+        "overloaded", "capacity", "quota", "throttl", "429",
+    ]
+
+    for attempt in range(MAX_RETRIES + 1):
+        timeout = DEFAULT_TIMEOUT if attempt == 0 else RETRY_TIMEOUT
+        try:
+            result_proc = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=timeout,
+            )
+        except subprocess.TimeoutExpired as e:
+            now_str = datetime.now().strftime("%H:%M:%S")
+            partial = (e.stdout or "").strip()
+            event_lines = [l for l in partial.split('\n') if l.strip()]
+            model_active = len(event_lines) > 1
+
+            if model_active:
+                print(f"  ⏳ [{now_str}] Timed out ({timeout}s) but model was "
+                      f"generating ({len(event_lines)} events). Slow verse.", flush=True)
+                result, rl_info = parse_codex_jsonl(partial, sn_field)
+                if result.get(sn_field):
+                    print(f"  ✓ Salvaged partial result", flush=True)
+                    return result, rl_info
+                return {
+                    sn_field: "", "confidence": 0.0,
+                    "notes": [f"Timeout ({timeout}s): verse too complex"],
+                    "error": True
+                }, rl_info
+
+            if attempt < IMMEDIATE_RETRIES:
+                print(f"  ⏳ [{now_str}] Timed out ({timeout}s, no output, "
+                      f"attempt {attempt + 1}/{IMMEDIATE_RETRIES + 1}). "
+                      f"Retrying immediately...", flush=True)
+                continue
+
+            next_try = datetime.now(timezone.utc).timestamp() + RETRY_INTERVAL
+            next_str = datetime.fromtimestamp(next_try).strftime("%H:%M:%S")
+            print(f"  ⏸ [{now_str}] Timed out (attempt {attempt + 1}, likely "
+                  f"rate limit). Waiting 30 min, next retry at {next_str}...", flush=True)
+
+            if attempt >= MAX_RETRIES:
+                return {sn_field: "", "confidence": 0.0,
+                        "notes": ["Timeout: gave up after max retries"], "error": True}, None
+
+            _pause_start = time.time()
+            time.sleep(RETRY_INTERVAL)
+            if paused_acc is not None:
+                paused_acc[0] += time.time() - _pause_start
+            continue
+
+        # Codex may succeed (rc=0) but have errors in JSONL, or fail (rc!=0)
+        # Check both stderr and stdout for rate limit patterns
+        all_output = (result_proc.stderr + result_proc.stdout).strip().lower()
+
+        if result_proc.returncode == 0:
+            # Check if JSONL contains turn.failed
+            if "turn.failed" not in result_proc.stdout:
+                break
+            # Parse to get error details
+            parsed, _ = parse_codex_jsonl(result_proc.stdout, sn_field)
+            if not parsed.get("error"):
+                break
+            # Fall through to rate-limit check with error output
+
+        is_rate_limit = any(pat in all_output for pat in RATE_LIMIT_PATTERNS)
+
+        if not is_rate_limit:
+            return parse_codex_jsonl(result_proc.stdout, sn_field) if result_proc.stdout.strip() else (
+                {sn_field: "", "confidence": 0.0,
+                 "notes": [f"codex CLI error: {result_proc.stderr.strip()[:300]}"],
+                 "error": True}, None)
+
+        now_str = datetime.now().strftime("%H:%M:%S")
+        next_try = datetime.now(timezone.utc).timestamp() + RETRY_INTERVAL
+        next_str = datetime.fromtimestamp(next_try).strftime("%H:%M:%S")
+        print(f"  ⏸ [{now_str}] Rate limit hit (attempt {attempt + 1}). "
+              f"Waiting 30 min, next retry at {next_str}...", flush=True)
+
+        if attempt >= MAX_RETRIES:
+            return {sn_field: "", "confidence": 0.0,
+                    "notes": ["Rate limit: gave up after max retries"], "error": True}, None
+
+        _pause_start = time.time()
+        time.sleep(RETRY_INTERVAL)
+        if paused_acc is not None:
+            paused_acc[0] += time.time() - _pause_start
+
+    return parse_codex_jsonl(result_proc.stdout, sn_field)
+
+
 # ── Ollama (local LLM) ──────────────────────────────────────────────────────
 
 OLLAMA_URL = "http://localhost:11434"
@@ -829,11 +1228,11 @@ OUTPUT_DIR = os.path.join(REPO_ROOT, "output")
 MODEL_BRAND_MAP = {
     # Cloud — Claude (via claude CLI)
     "sonnet": "claude", "opus": "claude", "haiku": "claude",
-    # Cloud — Gemini
-    "gemini-3-pro": "gemini", "gemini-3-flash": "gemini",
+    # Cloud — Gemini (via gemini CLI)
     "gemini-2.5-pro": "gemini", "gemini-2.5-flash": "gemini",
-    # Cloud — Codex
-    "codex-5.4": "codex", "codex-5.3": "codex", "codex-5.2": "codex",
+    # Cloud — Codex (via codex CLI)
+    "gpt-5.4": "codex", "gpt-5.3-codex": "codex",
+    "gpt-5.2-codex": "codex", "gpt-5.2": "codex",
     # Local — Ollama (qwen family, best for Chinese)
     "qwen3:32b": "local", "qwen3:30b": "local",
     "qwen2.5:72b": "local", "qwen2.5:32b": "local", "qwen2.5:7b": "local",
@@ -860,6 +1259,12 @@ def _print_model_help():
         "sonnet": "default, fast & capable",
         "opus": "strongest reasoning, slowest",
         "haiku": "fastest, cheapest",
+        "gemini-2.5-pro": "strongest Gemini, deep thinking",
+        "gemini-2.5-flash": "fast Gemini, good balance",
+        "gpt-5.4": "latest OpenAI flagship",
+        "gpt-5.3-codex": "strong reasoning",
+        "gpt-5.2-codex": "Codex optimized",
+        "gpt-5.2": "base GPT-5.2",
         "qwen3:32b": "★ recommended for Chinese",
         "qwen3:30b": "similar to 32b",
         "qwen2.5:72b": "strong Chinese, large",
@@ -873,9 +1278,9 @@ def _print_model_help():
 
     brand_order = ["claude", "gemini", "codex", "local"]
     brand_desc = {
-        "claude": "Cloud — calls claude CLI (your subscription)",
-        "gemini": "Cloud — Google Gemini (future)",
-        "codex": "Cloud — OpenAI Codex (future)",
+        "claude": "Cloud — claude CLI (your subscription)",
+        "gemini": "Cloud — gemini CLI -y (your Google login)",
+        "codex":  "Cloud — codex exec CLI (your OpenAI login)",
         "local":  "Local — Ollama REST API (--ollama-url)",
     }
 
@@ -889,6 +1294,8 @@ def _print_model_help():
 
     print(f"\nUsage:")
     print(f"  --model sonnet              (default, Claude cloud)")
+    print(f"  --model gemini-2.5-flash     (Gemini, via gemini CLI)")
+    print(f"  --model gpt-5.2             (OpenAI, via codex CLI)")
     print(f"  --model qwen3:32b           (local Ollama, best Chinese)")
     print(f"  --model llama3.3:70b --ollama-url http://host:11434")
     print(f"  --brand local --model mymodel:latest   (custom Ollama model)")
@@ -1011,7 +1418,10 @@ def process_sec(model: str, brand: str, target_version: str, book_chi: str,
         return {sn_field: "", "confidence": 0.0, "notes": ["dry-run"]}, None
 
     try:
-        call_fn = call_ollama if brand == "local" else call_claude
+        _call_dispatch = {
+            "local": call_ollama, "gemini": call_gemini, "codex": call_codex,
+        }
+        call_fn = _call_dispatch.get(brand, call_claude)
         result, rate_limit_info = call_fn(model, unv_sn, target_text,
                                           target_version, book_chi,
                                           chap, sec, verbose=verbose,
@@ -1611,9 +2021,9 @@ def main():
             window_cost += verse_cost
 
             # Preserve-token check: pause at (100-N)% of learned budget
-            # (skip for local models — no shared token budget)
+            # (only for Claude — other brands have separate billing)
             should_pause_preserve = False
-            if (brand != "local" and preserve_pct > 0 and window_budget > 0
+            if (brand == "claude" and preserve_pct > 0 and window_budget > 0
                     and window_cost >= window_budget * (1 - preserve_pct / 100)):
                 should_pause_preserve = True
 
