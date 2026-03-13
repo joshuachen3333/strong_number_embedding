@@ -1758,9 +1758,12 @@ def main():
               f"(pause at {100 - preserve_pct}%{budget_str})")
 
     if not args.dry_run:
-        if not shutil.which("claude"):
-            print("Error: 'claude' CLI not found in PATH.", file=sys.stderr)
-            sys.exit(1)
+        cli_needed = {"claude": "claude", "gemini": "gemini", "codex": "codex"}
+        if brand in cli_needed:
+            cli_name = cli_needed[brand]
+            if not shutil.which(cli_name):
+                print(f"Error: '{cli_name}' CLI not found in PATH.", file=sys.stderr)
+                sys.exit(1)
 
     # --start-at: wait until the specified time
     if start_at_ts:
