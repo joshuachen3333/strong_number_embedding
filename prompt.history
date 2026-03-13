@@ -162,3 +162,6 @@ I want you to always preserve 30% token for my colleagues, enter pause/wait for 
 
 ### 27. [2026-03-13] Linux compatibility — update all usage instructions to python3
 I want to expand the project to also work on linux. Tested llm_direct_sn_unv2notyet by running 申命記 chap 1 for 10 verses — all passed. The code is already cross-platform; the only fix was updating all usage instructions from `python` to `python3` across docstrings and CLAUDE.md files.
+
+### 28. [2026-03-13] Hot-reloadable .run_config.conf — on-the-fly parameter changes
+Replace .target_version single-value file with .run_config.conf (bash-style NAME=value). Hot-reloaded every ~10s during runs. File always wins over CLI args. Parameters: TARGET_VERSION, TILL, VERSE_COUNT, PRESERVE_TOKEN_PERCENTAGE, PAUSED. Set PAUSED=true to pause at next verse, false to resume. CLI args merge into config at startup. Migration from old .target_version on first run.

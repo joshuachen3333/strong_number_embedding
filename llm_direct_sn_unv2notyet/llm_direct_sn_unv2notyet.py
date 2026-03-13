@@ -87,6 +87,27 @@ def parse_till(s: str) -> float:
     return parse_time_spec(s, "--till")
 
 
+def _try_parse_time_spec(s: str) -> float | None:
+    """Non-fatal version of parse_time_spec for hot-reload. Returns None on error."""
+    cm = _CLOCK_RE.match(s)
+    if cm:
+        hour, minute = int(cm.group(1)), int(cm.group(2))
+        if hour > 23 or minute > 59:
+            return None
+        now = datetime.now()
+        target = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        if target <= now:
+            return None
+        return target.timestamp()
+    dm = _DURATION_RE.match(s)
+    if dm:
+        value = float(dm.group(1))
+        unit = dm.group(2).lower()
+        secs = value * 3600 if unit in ('h', 'hr', 'hrs', 'hour', 'hours') else value * 60
+        return time.time() + secs if secs > 0 else None
+    return None
+
+
 # ── FHL API ──────────────────────────────────────────────────────────────────
 
 FHL_API = "https://bible.fhl.net/json/qb.php"
@@ -147,27 +168,124 @@ def fetch_sec_pair(book_chi: str, chap: int, sec: int,
 
 # ── Prompt Construction ──────────────────────────────────────────────────────
 
-# Target version config file (gitignored, persisted by --set-target-version)
-TARGET_VERSION_FILE = os.path.join(SCRIPT_DIR, ".target_version")
-DEFAULT_TARGET_VERSION = "lcc"
+# ── Run config (.run_config.conf) ────────────────────────────────────────────
+# Bash-style NAME=value file, hot-reloaded every ~10 seconds during runs.
+# Replaces the old .target_version single-value file.
+
+RUN_CONFIG_FILE = os.path.join(SCRIPT_DIR, ".run_config.conf")
+_OLD_TARGET_VERSION_FILE = os.path.join(SCRIPT_DIR, ".target_version")
+
+RUN_CONFIG_DEFAULTS = {
+    "TARGET_VERSION": "lcc",
+    "TILL": "",
+    "VERSE_COUNT": "0",
+    "PRESERVE_TOKEN_PERCENTAGE": "30",
+    "PAUSED": "false",
+}
 
 
+def load_run_config() -> dict:
+    """Parse .run_config.conf (NAME=value). Returns dict with string values."""
+    config = dict(RUN_CONFIG_DEFAULTS)
+    if not os.path.isfile(RUN_CONFIG_FILE):
+        return config
+    with open(RUN_CONFIG_FILE, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            config[key.strip()] = value.strip()
+    return config
+
+
+def save_run_config(config: dict):
+    """Write .run_config.conf preserving only known keys with comments."""
+    lines = ["# Runtime config — edit while script is running\n"]
+    for key in RUN_CONFIG_DEFAULTS:
+        val = config.get(key, RUN_CONFIG_DEFAULTS[key])
+        lines.append(f"{key} = {val}\n")
+    # Preserve any extra keys not in defaults
+    for key in config:
+        if key not in RUN_CONFIG_DEFAULTS:
+            lines.append(f"{key} = {config[key]}\n")
+    with open(RUN_CONFIG_FILE, "w") as f:
+        f.writelines(lines)
+
+
+def update_run_config(key: str, value: str):
+    """Update a single key in .run_config.conf (creates file if needed)."""
+    config = load_run_config()
+    config[key] = value
+    save_run_config(config)
+
+
+# Hot-reload state
+_config_mtime = 0.0
+_config_cache: dict = {}
+_last_config_check = 0.0
+
+
+def maybe_reload_config(force: bool = False) -> dict:
+    """Re-read .run_config.conf if file changed. Throttled to every 10s."""
+    global _config_mtime, _config_cache, _last_config_check
+    now = time.time()
+    if not force and now - _last_config_check < 10:
+        return _config_cache
+    _last_config_check = now
+    try:
+        mt = os.path.getmtime(RUN_CONFIG_FILE)
+    except OSError:
+        return _config_cache
+    if mt != _config_mtime:
+        old = _config_cache.copy()
+        _config_cache = load_run_config()
+        _config_mtime = mt
+        # Log changes (skip on first load)
+        if old:
+            for k in set(list(_config_cache.keys()) + list(old.keys())):
+                if old.get(k) != _config_cache.get(k):
+                    print(f"  🔄 Config changed: {k} {old.get(k)!r} → {_config_cache.get(k)!r}")
+    return _config_cache
+
+
+def get_config_int(key: str, default: int = 0) -> int:
+    """Get an integer value from the hot config cache."""
+    try:
+        return int(_config_cache.get(key, str(default)))
+    except (ValueError, TypeError):
+        return default
+
+
+def get_config_bool(key: str, default: bool = False) -> bool:
+    """Get a boolean value from the hot config cache."""
+    val = _config_cache.get(key, str(default)).lower()
+    return val in ("true", "1", "yes")
+
+
+# Backward-compat wrappers (used by --set-target-version and startup)
 def load_default_target_version() -> str:
-    """Load persisted target version from .target_version file."""
-    if os.path.isfile(TARGET_VERSION_FILE):
-        with open(TARGET_VERSION_FILE, "r") as f:
+    """Load target version from .run_config.conf (migrates from .target_version)."""
+    # Migration: old .target_version → .run_config.conf
+    if (os.path.isfile(_OLD_TARGET_VERSION_FILE)
+            and not os.path.isfile(RUN_CONFIG_FILE)):
+        with open(_OLD_TARGET_VERSION_FILE, "r") as f:
             ver = f.read().strip()
-            if ver:
-                return ver
-    return DEFAULT_TARGET_VERSION
+        if ver:
+            update_run_config("TARGET_VERSION", ver)
+            print(f"Migrated .target_version → .run_config.conf (TARGET_VERSION={ver})")
+            return ver
+    config = load_run_config()
+    return config.get("TARGET_VERSION", "lcc")
 
 
 def save_default_target_version(version: str):
-    """Persist target version to .target_version file."""
-    with open(TARGET_VERSION_FILE, "w") as f:
-        f.write(version + "\n")
+    """Persist target version to .run_config.conf."""
+    update_run_config("TARGET_VERSION", version)
     print(f"Default target version set to: {version}")
-    print(f"Saved to: {TARGET_VERSION_FILE}")
+    print(f"Saved to: {RUN_CONFIG_FILE}")
 
 
 def load_system_prompt(target_version: str) -> str:
@@ -816,8 +934,48 @@ def main():
         save_default_target_version(args.set_target_version)
         sys.exit(0)
 
-    # Resolve target version: flag > .target_version file > "lcc"
-    target_version = args.target_version or load_default_target_version()
+    # ── Initialize .run_config.conf: merge CLI args into config file ──
+    # Migrate from old .target_version if needed
+    if (os.path.isfile(_OLD_TARGET_VERSION_FILE)
+            and not os.path.isfile(RUN_CONFIG_FILE)):
+        with open(_OLD_TARGET_VERSION_FILE, "r") as f:
+            _migrated_ver = f.read().strip()
+        if _migrated_ver:
+            _mig_config = dict(RUN_CONFIG_DEFAULTS)
+            _mig_config["TARGET_VERSION"] = _migrated_ver
+            save_run_config(_mig_config)
+            print(f"Migrated .target_version → .run_config.conf "
+                  f"(TARGET_VERSION={_migrated_ver})")
+    # Load existing config (or defaults)
+    _startup_config = load_run_config()
+
+    # Detect which CLI args were explicitly provided (vs defaults)
+    _explicit_cli = set()
+    for action in parser._actions:
+        for opt in action.option_strings:
+            if opt in sys.argv:
+                _explicit_cli.update(action.option_strings)
+                break
+
+    # Overlay explicitly-provided CLI args into config
+    if any(o in _explicit_cli for o in ('--target-version', '--tv')):
+        _startup_config["TARGET_VERSION"] = args.target_version
+    if any(o in _explicit_cli for o in ('--till', '--until')):
+        _startup_config["TILL"] = ' '.join(args.till) if args.till else ""
+    if '--verse-count' in _explicit_cli:
+        _startup_config["VERSE_COUNT"] = str(args.verse_count)
+    if '--preserve-token-percentage-4-colleagues' in _explicit_cli:
+        _startup_config["PRESERVE_TOKEN_PERCENTAGE"] = str(
+            args.preserve_token_percentage_4_colleagues)
+
+    # Write merged config to file
+    save_run_config(_startup_config)
+
+    # Initialize hot-reload cache
+    maybe_reload_config(force=True)
+
+    # Resolve target version from config (file is now the source of truth)
+    target_version = _config_cache.get("TARGET_VERSION", "lcc")
 
     if args.list_books:
         books = load_books()["ALL"]
@@ -899,7 +1057,9 @@ def main():
         print(f"Mode: reprocess low confidence (<0.85)")
     elif not args.force:
         print(f"Skip existing: ON (use --force to reprocess)")
-    print(f"Verse count: {args.verse_count if args.verse_count > 0 else 'unlimited'}")
+    _vc = get_config_int("VERSE_COUNT")
+    print(f"Verse count: {_vc if _vc > 0 else 'unlimited'}")
+    print(f"Config: {RUN_CONFIG_FILE} (hot-reloaded every ~10s)")
     # Parse --start-at (wait before starting)
     start_at_ts = None
     start_at_str = None
@@ -913,8 +1073,9 @@ def main():
     # When used with --start-at, --till is relative to the start time, not now
     deadline = None
     till_str = None
-    if args.till:
-        till_str = ' '.join(args.till)
+    _till_raw = _config_cache.get("TILL", "").strip()
+    if _till_raw:
+        till_str = _till_raw
         if start_at_ts:
             # --till is a run duration when combined with --start-at
             # Re-parse as duration from start_at_ts instead of from now
@@ -933,6 +1094,7 @@ def main():
             deadline = parse_till(till_str)
         quit_at = datetime.fromtimestamp(deadline).strftime("%H:%M")
         print(f"Till: {till_str} (quit at {quit_at})")
+    _prev_till_str = till_str  # Track for hot-reload change detection
     if not args.no_work_hours_stop:
         print(f"Work hours: pause at {args.work_hours_start}, "
               f"resume at {args.midnight_resume_at}"
@@ -940,7 +1102,7 @@ def main():
               if not args.quit_at_work_hours else
               f"Work hours: quit at {args.work_hours_start}")
 
-    preserve_pct = args.preserve_token_percentage_4_colleagues
+    preserve_pct = get_config_int("PRESERVE_TOKEN_PERCENTAGE", 30)
     window_budget = load_window_budget(args.model)
     if preserve_pct > 0:
         budget_str = f", learned budget: ${window_budget:.2f}" if window_budget > 0 else ", budget: learning..."
@@ -1042,6 +1204,38 @@ def main():
         chap_last_sec = None
 
         for i, s in enumerate(secs):
+            # ── Hot-reload config + PAUSED check ──
+            cfg = maybe_reload_config()
+            # Update live values from config
+            target_version = cfg.get("TARGET_VERSION", target_version)
+            preserve_pct = get_config_int("PRESERVE_TOKEN_PERCENTAGE", 30)
+            # Re-check TILL if changed
+            _new_till = cfg.get("TILL", "").strip()
+            if _new_till != _prev_till_str:
+                _prev_till_str = _new_till
+                if _new_till:
+                    _new_deadline = _try_parse_time_spec(_new_till)
+                    if _new_deadline is not None:
+                        deadline = _new_deadline
+                else:
+                    deadline = None
+            # PAUSED check
+            if get_config_bool("PAUSED"):
+                print(f"\n  ⏸ Paused via .run_config.conf — set PAUSED=false to resume",
+                      flush=True)
+                while get_config_bool("PAUSED"):
+                    try:
+                        time.sleep(5)
+                    except KeyboardInterrupt:
+                        print(f"\n⏹ Interrupted during pause.")
+                        user_interrupted = True
+                        break
+                    maybe_reload_config(force=True)
+                if user_interrupted:
+                    break
+                pause_resume_time = datetime.now().strftime("%H:%M")
+                print(f"  ⏵ Resumed at {pause_resume_time}.", flush=True)
+
             out_path = os.path.join(OUTPUT_DIR, target_version, brand, book_eng, str(chap), f"{s}.json")
 
             # Skip logic: --force skips nothing, --reprocess-low-confidence only reprocesses low conf
@@ -1226,9 +1420,10 @@ def main():
                     window_cost = 0.0  # new window after wait
                     print(f"  ⏵ Resuming (new window).", flush=True)
 
-            # --verse-count check
-            if args.verse_count > 0 and total_processed >= args.verse_count:
-                print(f"\n⏹ Verse count reached ({args.verse_count}).")
+            # --verse-count check (hot-reloadable from config)
+            _vc_limit = get_config_int("VERSE_COUNT")
+            if _vc_limit > 0 and total_processed >= _vc_limit:
+                print(f"\n⏹ Verse count reached ({_vc_limit}).")
                 limit_reached = True
                 break
 

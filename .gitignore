@@ -18,7 +18,8 @@ Thumbs.db
 # LLM-direct SN transfer output (large, machine-generated)
 output/
 
-# Target version config (user-specific default)
+# Runtime config (user-specific, hot-reloaded)
+llm_direct_sn_unv2notyet/.run_config.conf
 llm_direct_sn_unv2notyet/.target_version
 llm_direct_sn_unv2notyet/.window_budget.json
 
