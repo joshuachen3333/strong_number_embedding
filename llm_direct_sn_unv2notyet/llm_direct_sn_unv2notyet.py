@@ -1168,7 +1168,7 @@ def call_ollama(model: str, unv_sn: str, target_text: str,
     }
 
     if progress:
-        total_done, t0 = progress
+        total_done, t0 = progress[0], progress[1]
         elapsed = time.time() - t0
         rate = elapsed / 60 / max(total_done, 1)
         print(f"  📊 {total_done} done, {elapsed/60:.0f}min, {rate:.1f} min/v", flush=True)
