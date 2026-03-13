@@ -2,15 +2,17 @@
 """
 LLM-Direct Strong's Number Transfer: UNV → Target Version
 
-Uses Claude CLI (claude -p) to transfer Strong's Number annotations
-from UNV (和合本, which has SN from FHL) to a target Bible version (default: LCC).
-No API key needed — uses your Claude Code subscription.
+Uses Claude CLI (claude -p) or Ollama local LLMs to transfer Strong's Number
+annotations from UNV (和合本, which has SN from FHL) to a target Bible version
+(default: LCC). Claude: no API key needed — uses your Claude Code subscription.
+Local models: requires Ollama running (default http://localhost:11434).
 
 Usage:
     python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --sec 1
     python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --target-version rcuv2010
     python3 llm_direct_sn_unv2notyet.py --set-target-version rcuv2010   # persist default
     python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --dry-run
+    python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --model qwen2.5:72b  # local Ollama
 """
 
 import argparse
@@ -704,18 +706,195 @@ def call_claude(model: str, unv_sn: str, target_text: str,
     return parse_stream_json(result_proc.stdout, sn_field)
 
 
+# ── Ollama (local LLM) ──────────────────────────────────────────────────────
+
+OLLAMA_URL = "http://localhost:11434"
+
+
+def _extract_json(text: str, sn_field: str) -> dict:
+    """Extract JSON from LLM response, handling markdown fences and preamble."""
+    # Try direct parse first
+    try:
+        return json.loads(text)
+    except (json.JSONDecodeError, TypeError):
+        pass
+    # Try extracting from ```json ... ``` fences
+    m = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', text, re.DOTALL)
+    if m:
+        try:
+            return json.loads(m.group(1))
+        except json.JSONDecodeError:
+            pass
+    # Try finding first { ... } block (allow nested braces)
+    m = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', text, re.DOTALL)
+    if m:
+        try:
+            return json.loads(m.group(0))
+        except json.JSONDecodeError:
+            pass
+    # Fallback: return raw text as the sn field
+    return {sn_field: text.strip(), "confidence": 0.3,
+            "notes": ["JSON parse failed, raw output used"]}
+
+
+def call_ollama(model: str, unv_sn: str, target_text: str,
+                target_version: str,
+                book_chi: str, chap: int, sec: int,
+                verbose: bool = False,
+                progress: tuple = None,
+                paused_acc: list = None) -> tuple:
+    """Call Ollama local LLM to insert SNs into target version text.
+
+    Returns (result_dict, rate_limit_info).
+    rate_limit_info is always None for local models.
+    """
+    sn_field = f"{target_version}_sn"
+
+    system_prompt = load_system_prompt(target_version)
+    user_prompt = build_user_prompt(
+        unv_sn, target_text, target_version, book_chi, chap, sec)
+
+    if verbose:
+        print(f"  ── prompt ──")
+        print(f"  {system_prompt}\n\n{user_prompt}")
+        print(f"  ── /prompt ──")
+
+    payload = {
+        "model": model,
+        "prompt": user_prompt,
+        "system": system_prompt,
+        "stream": False,
+        "format": "json",
+        "options": {"temperature": 0.1, "num_ctx": 8192},
+    }
+
+    if progress:
+        total_done, t0 = progress
+        elapsed = time.time() - t0
+        rate = elapsed / 60 / max(total_done, 1)
+        print(f"  📊 {total_done} done, {elapsed/60:.0f}min, {rate:.1f} min/v", flush=True)
+
+    if verbose:
+        print(f"  [ollama {model}] calling {OLLAMA_URL}... (timeout 600s)", flush=True)
+    else:
+        print(f"  [ollama {model}] calling...", flush=True)
+
+    # Retry loop — local models don't have rate limits but may fail transiently
+    MAX_RETRIES = 3
+    RETRY_DELAY = 10
+
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            req = urllib.request.Request(
+                f"{OLLAMA_URL}/api/generate",
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+            )
+            resp = urllib.request.urlopen(req, timeout=600)
+            body = json.loads(resp.read().decode("utf-8"))
+            raw_text = body.get("response", "")
+
+            if verbose:
+                print(f"  [ollama] raw response: {raw_text[:500]}")
+
+            result = _extract_json(raw_text, sn_field)
+
+            # Add eval_duration if available (for timing info)
+            eval_ns = body.get("eval_duration", 0)
+            if eval_ns:
+                result.setdefault("notes", [])
+                if isinstance(result["notes"], str):
+                    result["notes"] = [result["notes"]]
+                result["notes"].append(f"ollama eval: {eval_ns/1e9:.1f}s")
+
+            return result, None
+
+        except Exception as e:
+            if attempt < MAX_RETRIES:
+                print(f"  ⚠ Ollama error (attempt {attempt+1}/{MAX_RETRIES+1}): {e}")
+                print(f"  Retrying in {RETRY_DELAY}s...")
+                time.sleep(RETRY_DELAY)
+                if paused_acc is not None:
+                    paused_acc[0] += RETRY_DELAY
+            else:
+                raise RuntimeError(
+                    f"Ollama call failed after {MAX_RETRIES+1} attempts: {e}"
+                ) from e
+
+
 # ── Output ───────────────────────────────────────────────────────────────────
 
 OUTPUT_DIR = os.path.join(REPO_ROOT, "output")
 
 MODEL_BRAND_MAP = {
+    # Cloud — Claude (via claude CLI)
     "sonnet": "claude", "opus": "claude", "haiku": "claude",
+    # Cloud — Gemini
     "gemini-3-pro": "gemini", "gemini-3-flash": "gemini",
     "gemini-2.5-pro": "gemini", "gemini-2.5-flash": "gemini",
+    # Cloud — Codex
     "codex-5.4": "codex", "codex-5.3": "codex", "codex-5.2": "codex",
+    # Local — Ollama (qwen family, best for Chinese)
+    "qwen3:32b": "local", "qwen3:30b": "local",
+    "qwen2.5:72b": "local", "qwen2.5:32b": "local", "qwen2.5:7b": "local",
+    # Local — Ollama (llama family)
+    "llama3.3:70b": "local", "llama3.1:70b": "local", "llama3.1:8b": "local",
+    # Local — Ollama (others)
+    "gpt-oss:120b": "local",
 }
 
 KNOWN_BRANDS = sorted(set(MODEL_BRAND_MAP.values()))
+
+
+def _print_model_help():
+    """Print detailed model/brand help and exit."""
+    brands = {}
+    for model, brand in MODEL_BRAND_MAP.items():
+        brands.setdefault(brand, []).append(model)
+
+    print("Available models and brands:\n")
+    print("  Brand      Model              Notes")
+    print("  ─────      ─────              ─────")
+
+    notes = {
+        "sonnet": "default, fast & capable",
+        "opus": "strongest reasoning, slowest",
+        "haiku": "fastest, cheapest",
+        "qwen3:32b": "★ recommended for Chinese",
+        "qwen3:30b": "similar to 32b",
+        "qwen2.5:72b": "strong Chinese, large",
+        "qwen2.5:32b": "good Chinese, medium",
+        "qwen2.5:7b": "fast, lighter quality",
+        "llama3.3:70b": "strong reasoning, weaker Chinese",
+        "llama3.1:70b": "good general, weaker Chinese",
+        "llama3.1:8b": "fast, for testing only",
+        "gpt-oss:120b": "large open-source, untested for SN",
+    }
+
+    brand_order = ["claude", "gemini", "codex", "local"]
+    brand_desc = {
+        "claude": "Cloud — calls claude CLI (your subscription)",
+        "gemini": "Cloud — Google Gemini (future)",
+        "codex": "Cloud — OpenAI Codex (future)",
+        "local":  "Local — Ollama REST API (--ollama-url)",
+    }
+
+    for b in brand_order:
+        if b not in brands:
+            continue
+        print(f"\n  [{b}] {brand_desc.get(b, '')}")
+        for m in brands[b]:
+            note = notes.get(m, "")
+            print(f"    --model {m:<20s} {note}")
+
+    print(f"\nUsage:")
+    print(f"  --model sonnet              (default, Claude cloud)")
+    print(f"  --model qwen3:32b           (local Ollama, best Chinese)")
+    print(f"  --model llama3.3:70b --ollama-url http://host:11434")
+    print(f"  --brand local --model mymodel:latest   (custom Ollama model)")
+    print(f"\nLocal models require Ollama running. Check: curl <ollama-url>/api/tags")
+    print(f"Pull new models: docker exec <container> ollama pull <model>")
+    sys.exit(0)
 
 
 def save_result(result: dict, book_chi: str, book_eng: str,
@@ -828,15 +1007,16 @@ def process_sec(model: str, brand: str, target_version: str, book_chi: str,
     print(f"\n  {ver}:    {target_text}")
 
     if dry_run:
-        print("  [dry-run] Skipping claude call")
+        print("  [dry-run] Skipping LLM call")
         return {sn_field: "", "confidence": 0.0, "notes": ["dry-run"]}, None
 
     try:
-        result, rate_limit_info = call_claude(model, unv_sn, target_text,
-                                              target_version, book_chi,
-                                              chap, sec, verbose=verbose,
-                                              progress=progress,
-                                              paused_acc=paused_acc)
+        call_fn = call_ollama if brand == "local" else call_claude
+        result, rate_limit_info = call_fn(model, unv_sn, target_text,
+                                          target_version, book_chi,
+                                          chap, sec, verbose=verbose,
+                                          progress=progress,
+                                          paused_acc=paused_acc)
     except Exception as e:
         print(f"  ✗ Error: {e}")
         return None, None
@@ -953,9 +1133,10 @@ def main():
     parser.add_argument("--sec", type=int, default=None,
                         help="Section/verse number (omit for whole chapter)")
     parser.add_argument("--model", default="sonnet",
-                        help="LLM model (default: sonnet). Claude: sonnet, opus, haiku. "
-                             "Gemini: gemini-3-pro, gemini-3-flash, gemini-2.5-pro, gemini-2.5-flash. "
-                             "Codex: codex-5.4, codex-5.3, codex-5.2")
+                        help="LLM model (default: sonnet). Use --model --help for full list. "
+                             "Brands: claude, gemini, codex, local (Ollama)")
+    parser.add_argument("--ollama-url", default="http://localhost:11434",
+                        help="Ollama API base URL (default: http://localhost:11434)")
     parser.add_argument("--brand", default=None, choices=KNOWN_BRANDS,
                         help="Override brand (auto-derived from --model if omitted)")
     parser.add_argument("--dry-run", action="store_true",
@@ -982,6 +1163,12 @@ def main():
                         default=0, metavar="N",
                         help="Preserve N%% of token budget for colleagues; "
                              "0=no limit (default: 0, set in .run_config.conf for persistent)")
+    # Intercept --model --help / --model -h before argparse consumes -h
+    _argv = sys.argv[1:]
+    for i, a in enumerate(_argv):
+        if a == "--model" and i + 1 < len(_argv) and _argv[i + 1] in ("-h", "--help"):
+            _print_model_help()
+
     args = parser.parse_args()
 
     # Handle --set-target-version (persist and exit)
@@ -1043,6 +1230,10 @@ def main():
               f"{', '.join(sorted(MODEL_BRAND_MAP.keys()))}", file=sys.stderr)
         print(f"Use --brand to specify brand explicitly.", file=sys.stderr)
         sys.exit(1)
+
+    # Set Ollama URL for local models
+    global OLLAMA_URL
+    OLLAMA_URL = args.ollama_url
 
     # Validate all books upfront
     book_list = []  # [(book_chi, book_eng, chapters), ...]
@@ -1420,8 +1611,9 @@ def main():
             window_cost += verse_cost
 
             # Preserve-token check: pause at (100-N)% of learned budget
+            # (skip for local models — no shared token budget)
             should_pause_preserve = False
-            if (preserve_pct > 0 and window_budget > 0
+            if (brand != "local" and preserve_pct > 0 and window_budget > 0
                     and window_cost >= window_budget * (1 - preserve_pct / 100)):
                 should_pause_preserve = True
 

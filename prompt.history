@@ -174,3 +174,9 @@ Remove stale .target_version migration code that kept re-creating config with rc
 
 ### 31. [2026-03-13] Add max/min verse time to progress summary
 Add per-verse time tracking (max/min) to the 📊 progress line. Shows after 2+ verses: `📊 3 verses done, 3min working, 0.9 min/verse, max 90s, min 30s`.
+
+### 32. [2026-03-14] Add Ollama local LLM as new "local" brand
+sai.fhl.net has NVIDIA GB10 GPU + 119GB RAM with Ollama already running in Docker on port 11434. Added `call_ollama()` using Ollama REST API (`/api/generate`) with `_extract_json()` fallback for unreliable JSON output. New brand "local" in MODEL_BRAND_MAP. Models: qwen3:32b, qwen3:30b, qwen2.5:72b/32b/7b, llama3.3:70b, llama3.1:70b/8b, gpt-oss:120b (already pulled by colleagues on sai.fhl.net). Brand-based dispatch in process_sec(): local→call_ollama(), else→call_claude(). Skip preserve-token logic for local (no shared budget). Added --ollama-url (default http://localhost:11434).
+
+### 33. [2026-03-14] --model --help detailed model/brand reference
+Added `--model --help` (or `--model -h`) that prints a detailed table of all models grouped by brand, with notes, recommendations (★ qwen3:32b for Chinese), and usage examples. Main `--help` now says "Use --model --help for full list" instead of listing all models inline.
