@@ -176,16 +176,23 @@ RUN_CONFIG_FILE = os.path.join(SCRIPT_DIR, ".run_config.conf")
 _OLD_TARGET_VERSION_FILE = os.path.join(SCRIPT_DIR, ".target_version")
 
 RUN_CONFIG_DEFAULTS = {
-    "TARGET_VERSION": "lcc",
-    "TILL": "",
-    "VERSE_COUNT": "0",
-    "PRESERVE_TOKEN_PERCENTAGE": "30",
-    "PAUSED": "false",
+    "target-version": "lcc",
+    "paused": "false",
 }
+
+# Optional keys — only active when uncommented in config or passed via CLI
+_CONFIG_TEMPLATE_COMMENTS = [
+    "# till = 08:00                               (clock time, or: 90min, 2hrs)",
+    "# verse-count = 50                            (0 or omit = unlimited)",
+    "# preserve-token-percentage-4-colleagues = 30  (pause at 70% budget; omit = no limit)",
+    "# work-hours-start = 06:50                    (pause at this time; omit = no pause)",
+    "# midnight-resume-at = 01:00                  (resume at this time)",
+    "# quit-at-work-hours = false                  (true = quit instead of pause)",
+]
 
 
 def load_run_config() -> dict:
-    """Parse .run_config.conf (NAME=value). Returns dict with string values."""
+    """Parse .run_config.conf (name=value). Returns dict with string values."""
     config = dict(RUN_CONFIG_DEFAULTS)
     if not os.path.isfile(RUN_CONFIG_FILE):
         return config
@@ -202,24 +209,65 @@ def load_run_config() -> dict:
 
 
 def save_run_config(config: dict):
-    """Write .run_config.conf preserving only known keys with comments."""
+    """Write .run_config.conf with active keys + commented-out template."""
     lines = ["# Runtime config — edit while script is running\n"]
+    # Write active default keys
     for key in RUN_CONFIG_DEFAULTS:
         val = config.get(key, RUN_CONFIG_DEFAULTS[key])
         lines.append(f"{key} = {val}\n")
-    # Preserve any extra keys not in defaults
+    # Write any extra active keys (user-set optional keys)
     for key in config:
         if key not in RUN_CONFIG_DEFAULTS:
             lines.append(f"{key} = {config[key]}\n")
+    # Write commented-out template for optional keys
+    lines.append("\n")
+    for comment in _CONFIG_TEMPLATE_COMMENTS:
+        lines.append(comment + "\n")
     with open(RUN_CONFIG_FILE, "w") as f:
         f.writelines(lines)
 
 
 def update_run_config(key: str, value: str):
-    """Update a single key in .run_config.conf (creates file if needed)."""
-    config = load_run_config()
-    config[key] = value
-    save_run_config(config)
+    """Update a single key in .run_config.conf (creates file if needed).
+
+    Reads existing file, updates/adds the key, preserves comments.
+    """
+    # Read existing lines
+    existing_lines = []
+    if os.path.isfile(RUN_CONFIG_FILE):
+        with open(RUN_CONFIG_FILE, "r") as f:
+            existing_lines = f.readlines()
+
+    # Try to update existing key in-place
+    found = False
+    new_lines = []
+    for line in existing_lines:
+        stripped = line.strip()
+        if stripped and not stripped.startswith("#") and "=" in stripped:
+            k, _, _ = stripped.partition("=")
+            if k.strip() == key:
+                new_lines.append(f"{key} = {value}\n")
+                found = True
+                continue
+        new_lines.append(line)
+
+    if not found:
+        # Insert before comment block (or at end)
+        insert_pos = len(new_lines)
+        for i, line in enumerate(new_lines):
+            if line.strip().startswith("# till") or line.strip().startswith("# verse-count"):
+                insert_pos = i
+                break
+        new_lines.insert(insert_pos, f"{key} = {value}\n")
+
+    with open(RUN_CONFIG_FILE, "w") as f:
+        f.writelines(new_lines)
+
+    # If file didn't exist, create with template
+    if not existing_lines:
+        config = load_run_config()
+        config[key] = value
+        save_run_config(config)
 
 
 # Hot-reload state
@@ -265,6 +313,18 @@ def get_config_bool(key: str, default: bool = False) -> bool:
     return val in ("true", "1", "yes")
 
 
+def _interruptible_sleep(total_secs: float, chunk: float = 30.0):
+    """Sleep in chunks, hot-reloading config each chunk.
+
+    Raises KeyboardInterrupt if user presses Ctrl+C.
+    """
+    remaining = total_secs
+    while remaining > 0:
+        time.sleep(min(chunk, remaining))
+        remaining -= chunk
+        maybe_reload_config(force=True)
+
+
 # Backward-compat wrappers (used by --set-target-version and startup)
 def load_default_target_version() -> str:
     """Load target version from .run_config.conf (migrates from .target_version)."""
@@ -274,16 +334,16 @@ def load_default_target_version() -> str:
         with open(_OLD_TARGET_VERSION_FILE, "r") as f:
             ver = f.read().strip()
         if ver:
-            update_run_config("TARGET_VERSION", ver)
-            print(f"Migrated .target_version → .run_config.conf (TARGET_VERSION={ver})")
+            update_run_config("target-version", ver)
+            print(f"Migrated .target_version → .run_config.conf (target-version={ver})")
             return ver
     config = load_run_config()
-    return config.get("TARGET_VERSION", "lcc")
+    return config.get("target-version", "lcc")
 
 
 def save_default_target_version(version: str):
     """Persist target version to .run_config.conf."""
-    update_run_config("TARGET_VERSION", version)
+    update_run_config("target-version", version)
     print(f"Default target version set to: {version}")
     print(f"Saved to: {RUN_CONFIG_FILE}")
 
@@ -913,20 +973,16 @@ def main():
                         help="Reprocess verses with confidence < 0.85 using opus (or --model)")
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="Show full prompt and claude command details")
-    parser.add_argument("--no-work-hours-stop", action="store_true",
-                        help="Disable automatic pause before work hours")
-    parser.add_argument("--work-hours-start", default="06:50",
-                        help="Pause time in HH:MM format (default: 06:50)")
+    parser.add_argument("--work-hours-start", default=None,
+                        help="Enable work-hours pause at HH:MM (e.g., 06:50). Off by default.")
     parser.add_argument("--midnight-resume-at", default="01:00",
                         help="Resume time in HH:MM format (default: 01:00)")
     parser.add_argument("--quit-at-work-hours", action="store_true",
                         help="Quit instead of pausing when work hours reached")
-    parser.add_argument("--immediately-restrict-first-session", action="store_true",
-                        help="Enforce pause window immediately (default: always run on first start)")
     parser.add_argument("--preserve-token-percentage-4-colleagues", type=int,
-                        default=30, metavar="N",
+                        default=0, metavar="N",
                         help="Preserve N%% of token budget for colleagues; "
-                             "pause at (100-N)%% usage (default: 30)")
+                             "0=no limit (default: 0, set in .run_config.conf for persistent)")
     args = parser.parse_args()
 
     # Handle --set-target-version (persist and exit)
@@ -934,7 +990,7 @@ def main():
         save_default_target_version(args.set_target_version)
         sys.exit(0)
 
-    # ── Initialize .run_config.conf: merge CLI args into config file ──
+    # ── Initialize .run_config.conf ──
     # Migrate from old .target_version if needed
     if (os.path.isfile(_OLD_TARGET_VERSION_FILE)
             and not os.path.isfile(RUN_CONFIG_FILE)):
@@ -942,14 +998,19 @@ def main():
             _migrated_ver = f.read().strip()
         if _migrated_ver:
             _mig_config = dict(RUN_CONFIG_DEFAULTS)
-            _mig_config["TARGET_VERSION"] = _migrated_ver
+            _mig_config["target-version"] = _migrated_ver
             save_run_config(_mig_config)
             print(f"Migrated .target_version → .run_config.conf "
-                  f"(TARGET_VERSION={_migrated_ver})")
-    # Load existing config (or defaults)
-    _startup_config = load_run_config()
+                  f"(target-version={_migrated_ver})")
 
-    # Detect which CLI args were explicitly provided (vs defaults)
+    # Create config file with template if it doesn't exist
+    if not os.path.isfile(RUN_CONFIG_FILE):
+        save_run_config(dict(RUN_CONFIG_DEFAULTS))
+
+    # Initialize hot-reload cache (reads file, does NOT write)
+    maybe_reload_config(force=True)
+
+    # Detect which CLI args were explicitly provided
     _explicit_cli = set()
     for action in parser._actions:
         for opt in action.option_strings:
@@ -957,25 +1018,10 @@ def main():
                 _explicit_cli.update(action.option_strings)
                 break
 
-    # Overlay explicitly-provided CLI args into config
-    if any(o in _explicit_cli for o in ('--target-version', '--tv')):
-        _startup_config["TARGET_VERSION"] = args.target_version
-    if any(o in _explicit_cli for o in ('--till', '--until')):
-        _startup_config["TILL"] = ' '.join(args.till) if args.till else ""
-    if '--verse-count' in _explicit_cli:
-        _startup_config["VERSE_COUNT"] = str(args.verse_count)
-    if '--preserve-token-percentage-4-colleagues' in _explicit_cli:
-        _startup_config["PRESERVE_TOKEN_PERCENTAGE"] = str(
-            args.preserve_token_percentage_4_colleagues)
-
-    # Write merged config to file
-    save_run_config(_startup_config)
-
-    # Initialize hot-reload cache
-    maybe_reload_config(force=True)
-
-    # Resolve target version from config (file is now the source of truth)
-    target_version = _config_cache.get("TARGET_VERSION", "lcc")
+    # Resolve values: CLI overrides config for this session (not persisted)
+    target_version = (args.target_version
+                      if any(o in _explicit_cli for o in ('--target-version', '--tv'))
+                      else _config_cache.get("target-version", "lcc"))
 
     if args.list_books:
         books = load_books()["ALL"]
@@ -1032,22 +1078,32 @@ def main():
     else:
         banner_books = ', '.join(f"{beng}({bchi})" for bchi, beng, _ in book_list)
 
-    # Validate work-hours times
+    # Resolve work-hours: CLI > config > off
+    _wh_start = (args.work_hours_start
+                 if '--work-hours-start' in _explicit_cli
+                 else _config_cache.get("work-hours-start", "").strip() or None)
+    _wh_resume = (args.midnight_resume_at
+                  if '--midnight-resume-at' in _explicit_cli
+                  else _config_cache.get("midnight-resume-at", "01:00").strip())
+    _wh_quit = (args.quit_at_work_hours
+                if '--quit-at-work-hours' in _explicit_cli
+                else get_config_bool("quit-at-work-hours"))
+    work_hours_enabled = bool(_wh_start)
     stop_hour, stop_minute = 6, 50
     resume_hour, resume_minute = 1, 0
-    if not args.no_work_hours_stop:
+    if work_hours_enabled:
         try:
-            t = datetime.strptime(args.work_hours_start, "%H:%M")
+            t = datetime.strptime(_wh_start, "%H:%M")
             stop_hour, stop_minute = t.hour, t.minute
         except ValueError:
-            print(f"Error: Invalid --work-hours-start '{args.work_hours_start}' "
+            print(f"Error: Invalid work-hours-start '{_wh_start}' "
                   f"(expected HH:MM)", file=sys.stderr)
             sys.exit(1)
         try:
-            t = datetime.strptime(args.midnight_resume_at, "%H:%M")
+            t = datetime.strptime(_wh_resume, "%H:%M")
             resume_hour, resume_minute = t.hour, t.minute
         except ValueError:
-            print(f"Error: Invalid --midnight-resume-at '{args.midnight_resume_at}' "
+            print(f"Error: Invalid midnight-resume-at '{_wh_resume}' "
                   f"(expected HH:MM)", file=sys.stderr)
             sys.exit(1)
 
@@ -1057,7 +1113,10 @@ def main():
         print(f"Mode: reprocess low confidence (<0.85)")
     elif not args.force:
         print(f"Skip existing: ON (use --force to reprocess)")
-    _vc = get_config_int("VERSE_COUNT")
+    # Resolve verse-count: CLI > config > unlimited (0)
+    _vc = (args.verse_count
+           if '--verse-count' in _explicit_cli
+           else get_config_int("verse-count"))
     print(f"Verse count: {_vc if _vc > 0 else 'unlimited'}")
     print(f"Config: {RUN_CONFIG_FILE} (hot-reloaded every ~10s)")
     # Parse --start-at (wait before starting)
@@ -1069,11 +1128,12 @@ def main():
         start_at_fmt = datetime.fromtimestamp(start_at_ts).strftime("%H:%M")
         print(f"Start at: {start_at_str} (begin at {start_at_fmt})")
 
-    # Parse --till and compute deadline
-    # When used with --start-at, --till is relative to the start time, not now
+    # Resolve --till: CLI > config > none
     deadline = None
     till_str = None
-    _till_raw = _config_cache.get("TILL", "").strip()
+    _till_raw = (' '.join(args.till)
+                 if any(o in _explicit_cli for o in ('--till', '--until')) and args.till
+                 else _config_cache.get("till", "").strip())
     if _till_raw:
         till_str = _till_raw
         if start_at_ts:
@@ -1095,14 +1155,17 @@ def main():
         quit_at = datetime.fromtimestamp(deadline).strftime("%H:%M")
         print(f"Till: {till_str} (quit at {quit_at})")
     _prev_till_str = till_str  # Track for hot-reload change detection
-    if not args.no_work_hours_stop:
-        print(f"Work hours: pause at {args.work_hours_start}, "
-              f"resume at {args.midnight_resume_at}"
+    if work_hours_enabled:
+        print(f"Work hours: pause at {_wh_start}, "
+              f"resume at {_wh_resume}"
               f" (--quit-at-work-hours to exit instead)"
-              if not args.quit_at_work_hours else
-              f"Work hours: quit at {args.work_hours_start}")
+              if not _wh_quit else
+              f"Work hours: quit at {_wh_start}")
 
-    preserve_pct = get_config_int("PRESERVE_TOKEN_PERCENTAGE", 30)
+    # Resolve preserve-token: CLI > config > 0 (no limit)
+    preserve_pct = (args.preserve_token_percentage_4_colleagues
+                    if '--preserve-token-percentage-4-colleagues' in _explicit_cli
+                    else get_config_int("preserve-token-percentage-4-colleagues"))
     window_budget = load_window_budget(args.model)
     if preserve_pct > 0:
         budget_str = f", learned budget: ${window_budget:.2f}" if window_budget > 0 else ", budget: learning..."
@@ -1154,7 +1217,7 @@ def main():
     work_hours_stop = False
     limit_reached = False
     time_limit_reached = False
-    enforce_work_hours = args.immediately_restrict_first_session
+    enforce_work_hours = work_hours_enabled  # active immediately if configured
     chapter_stats = []  # [(book_eng, chap, first_sec, last_sec, processed, skipped, failed)]
     user_interrupted = False
     # Token-budget tracking per rate-limit window
@@ -1206,24 +1269,49 @@ def main():
         for i, s in enumerate(secs):
             # ── Hot-reload config + PAUSED check ──
             cfg = maybe_reload_config()
-            # Update live values from config
-            target_version = cfg.get("TARGET_VERSION", target_version)
-            preserve_pct = get_config_int("PRESERVE_TOKEN_PERCENTAGE", 30)
-            # Re-check TILL if changed
-            _new_till = cfg.get("TILL", "").strip()
-            if _new_till != _prev_till_str:
-                _prev_till_str = _new_till
-                if _new_till:
-                    _new_deadline = _try_parse_time_spec(_new_till)
-                    if _new_deadline is not None:
-                        deadline = _new_deadline
-                else:
-                    deadline = None
+            # Update live values from config (CLI-only values not overridden)
+            if '--target-version' not in _explicit_cli and '--tv' not in _explicit_cli:
+                target_version = cfg.get("target-version", target_version)
+            if '--preserve-token-percentage-4-colleagues' not in _explicit_cli:
+                preserve_pct = get_config_int("preserve-token-percentage-4-colleagues")
+            if '--verse-count' not in _explicit_cli:
+                _vc = get_config_int("verse-count")
+            # Re-check till if changed (only when not CLI-pinned)
+            if '--till' not in _explicit_cli and '--until' not in _explicit_cli:
+                _new_till = cfg.get("till", "").strip()
+                if _new_till != _prev_till_str:
+                    _prev_till_str = _new_till
+                    if _new_till:
+                        _new_deadline = _try_parse_time_spec(_new_till)
+                        if _new_deadline is not None:
+                            deadline = _new_deadline
+                    else:
+                        deadline = None
+            # Re-check work-hours from config
+            if '--work-hours-start' not in _explicit_cli:
+                _wh_cfg = cfg.get("work-hours-start", "").strip()
+                work_hours_enabled = bool(_wh_cfg)
+                enforce_work_hours = work_hours_enabled
+                if work_hours_enabled:
+                    try:
+                        _t = datetime.strptime(_wh_cfg, "%H:%M")
+                        stop_hour, stop_minute = _t.hour, _t.minute
+                    except ValueError:
+                        pass
+                if '--midnight-resume-at' not in _explicit_cli:
+                    _mr_cfg = cfg.get("midnight-resume-at", "01:00").strip()
+                    try:
+                        _t = datetime.strptime(_mr_cfg, "%H:%M")
+                        resume_hour, resume_minute = _t.hour, _t.minute
+                    except ValueError:
+                        pass
+                if '--quit-at-work-hours' not in _explicit_cli:
+                    _wh_quit = get_config_bool("quit-at-work-hours")
             # PAUSED check
-            if get_config_bool("PAUSED"):
-                print(f"\n  ⏸ Paused via .run_config.conf — set PAUSED=false to resume",
+            if get_config_bool("paused"):
+                print(f"\n  ⏸ Paused via .run_config.conf — set paused=false to resume",
                       flush=True)
-                while get_config_bool("PAUSED"):
+                while get_config_bool("paused"):
                     try:
                         time.sleep(5)
                     except KeyboardInterrupt:
@@ -1276,11 +1364,11 @@ def main():
                 break
 
             # Work-hours pause/quit check
-            if not args.no_work_hours_stop and not args.dry_run:
+            if work_hours_enabled and not args.dry_run:
                 now = datetime.now()
                 currently_in_window = in_pause_window(now)
                 if currently_in_window and enforce_work_hours:
-                    if args.quit_at_work_hours:
+                    if _wh_quit:
                         print(f"\n⏹ Work hours ({now.strftime('%H:%M')}). Quitting.")
                         work_hours_stop = True
                         break
@@ -1290,12 +1378,13 @@ def main():
                             resume += timedelta(days=1)
                         wait_secs = (resume - now).total_seconds()
                         wait_hours = wait_secs / 3600
+                        _resume_str = f"{resume_hour:02d}:{resume_minute:02d}"
                         print(f"\n⏸ Work hours ({now.strftime('%H:%M')}). "
-                              f"Pausing until {args.midnight_resume_at} "
+                              f"Pausing until {_resume_str} "
                               f"({wait_hours:.1f}h)...", flush=True)
                         pause_start = time.time()
                         try:
-                            time.sleep(wait_secs)
+                            _interruptible_sleep(wait_secs)
                         except KeyboardInterrupt:
                             pause_duration = time.time() - pause_start
                             total_paused += pause_duration
@@ -1308,7 +1397,7 @@ def main():
                         total_paused += pause_duration
                         if deadline:
                             deadline += pause_duration
-                        print(f"⏵ {args.midnight_resume_at} reached, resuming.",
+                        print(f"⏵ {_resume_str} reached, resuming.",
                               flush=True)
                 elif not currently_in_window:
                     enforce_work_hours = True
@@ -1373,7 +1462,7 @@ def main():
                           flush=True)
                     pause_start = time.time()
                     try:
-                        time.sleep(wait_secs)
+                        _interruptible_sleep(wait_secs)
                     except KeyboardInterrupt:
                         pause_duration = time.time() - pause_start
                         total_paused += pause_duration
@@ -1404,7 +1493,7 @@ def main():
                           flush=True)
                     pause_start = time.time()
                     try:
-                        time.sleep(wait_secs)
+                        _interruptible_sleep(wait_secs)
                     except KeyboardInterrupt:
                         pause_duration = time.time() - pause_start
                         total_paused += pause_duration
@@ -1421,7 +1510,7 @@ def main():
                     print(f"  ⏵ Resuming (new window).", flush=True)
 
             # --verse-count check (hot-reloadable from config)
-            _vc_limit = get_config_int("VERSE_COUNT")
+            _vc_limit = _vc  # from hot-reload block above
             if _vc_limit > 0 and total_processed >= _vc_limit:
                 print(f"\n⏹ Verse count reached ({_vc_limit}).")
                 limit_reached = True

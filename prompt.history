@@ -165,3 +165,6 @@ I want to expand the project to also work on linux. Tested llm_direct_sn_unv2not
 
 ### 28. [2026-03-13] Hot-reloadable .run_config.conf — on-the-fly parameter changes
 Replace .target_version single-value file with .run_config.conf (bash-style NAME=value). Hot-reloaded every ~10s during runs. File always wins over CLI args. Parameters: TARGET_VERSION, TILL, VERSE_COUNT, PRESERVE_TOKEN_PERCENTAGE, PAUSED. Set PAUSED=true to pause at next verse, false to resume. CLI args merge into config at startup. Migration from old .target_version on first run.
+
+### 29. [2026-03-13] Aggressive defaults + config template cleanup
+Aggressive refactor: remove --no-work-hours-stop and --immediately-restrict-first-session flags. Default to NO preserve-token limit (was 30%) and NO work-hours pause (was ON). Config keys now match CLI arg names (lowercase with hyphens: target-version, till, verse-count, preserve-token-percentage-4-colleagues, work-hours-start, midnight-resume-at, quit-at-work-hours, paused). CLI args override config for session only — NOT persisted to file. Template config has only target-version and paused active, rest commented out with examples. Long sleeps (rate-limit, preserve-token, work-hours) now use interruptible 30s chunks with config hot-reload.
