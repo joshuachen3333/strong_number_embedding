@@ -173,7 +173,6 @@ def fetch_sec_pair(book_chi: str, chap: int, sec: int,
 # Replaces the old .target_version single-value file.
 
 RUN_CONFIG_FILE = os.path.join(SCRIPT_DIR, ".run_config.conf")
-_OLD_TARGET_VERSION_FILE = os.path.join(SCRIPT_DIR, ".target_version")
 
 RUN_CONFIG_DEFAULTS = {
     "target-version": "lcc",
@@ -325,18 +324,8 @@ def _interruptible_sleep(total_secs: float, chunk: float = 30.0):
         maybe_reload_config(force=True)
 
 
-# Backward-compat wrappers (used by --set-target-version and startup)
 def load_default_target_version() -> str:
-    """Load target version from .run_config.conf (migrates from .target_version)."""
-    # Migration: old .target_version → .run_config.conf
-    if (os.path.isfile(_OLD_TARGET_VERSION_FILE)
-            and not os.path.isfile(RUN_CONFIG_FILE)):
-        with open(_OLD_TARGET_VERSION_FILE, "r") as f:
-            ver = f.read().strip()
-        if ver:
-            update_run_config("target-version", ver)
-            print(f"Migrated .target_version → .run_config.conf (target-version={ver})")
-            return ver
+    """Load target version from .run_config.conf."""
     config = load_run_config()
     return config.get("target-version", "lcc")
 
@@ -939,7 +928,7 @@ def main():
         description="LLM-Direct Strong's Number Transfer: UNV → Target Version"
     )
     parser.add_argument("--target-version", "--tv", dest="target_version", default=None,
-                        help=f"Target Bible version code (default: from .target_version or lcc). "
+                        help=f"Target Bible version code (default: from .run_config.conf or lcc). "
                              f"e.g., lcc, rcuv2010, tcv, esv, nasb")
     parser.add_argument("--set-target-version", dest="set_target_version", default=None,
                         metavar="VERSION",
@@ -991,37 +980,23 @@ def main():
         sys.exit(0)
 
     # ── Initialize .run_config.conf ──
-    # Migrate from old .target_version if needed
-    if (os.path.isfile(_OLD_TARGET_VERSION_FILE)
-            and not os.path.isfile(RUN_CONFIG_FILE)):
-        with open(_OLD_TARGET_VERSION_FILE, "r") as f:
-            _migrated_ver = f.read().strip()
-        if _migrated_ver:
-            _mig_config = dict(RUN_CONFIG_DEFAULTS)
-            _mig_config["target-version"] = _migrated_ver
-            save_run_config(_mig_config)
-            print(f"Migrated .target_version → .run_config.conf "
-                  f"(target-version={_migrated_ver})")
-
     # Create config file with template if it doesn't exist
     if not os.path.isfile(RUN_CONFIG_FILE):
         save_run_config(dict(RUN_CONFIG_DEFAULTS))
 
-    # Initialize hot-reload cache (reads file, does NOT write)
+    # Snapshot config file state at startup (for delta detection during hot-reload)
+    _config_snapshot1 = load_run_config()
+
+    # Initialize hot-reload cache
     maybe_reload_config(force=True)
 
-    # Detect which CLI args were explicitly provided
-    _explicit_cli = set()
-    for action in parser._actions:
-        for opt in action.option_strings:
-            if opt in sys.argv:
-                _explicit_cli.update(action.option_strings)
-                break
+    # Helper: check if a CLI arg was explicitly provided
+    def _cli_given(*opts):
+        return any(o in sys.argv for o in opts)
 
-    # Resolve values: CLI overrides config for this session (not persisted)
-    target_version = (args.target_version
-                      if any(o in _explicit_cli for o in ('--target-version', '--tv'))
-                      else _config_cache.get("target-version", "lcc"))
+    # Resolve startup values: CLI > config > default
+    target_version = (args.target_version if _cli_given('--target-version', '--tv')
+                      else _config_snapshot1.get("target-version", "lcc"))
 
     if args.list_books:
         books = load_books()["ALL"]
@@ -1079,15 +1054,12 @@ def main():
         banner_books = ', '.join(f"{beng}({bchi})" for bchi, beng, _ in book_list)
 
     # Resolve work-hours: CLI > config > off
-    _wh_start = (args.work_hours_start
-                 if '--work-hours-start' in _explicit_cli
-                 else _config_cache.get("work-hours-start", "").strip() or None)
-    _wh_resume = (args.midnight_resume_at
-                  if '--midnight-resume-at' in _explicit_cli
-                  else _config_cache.get("midnight-resume-at", "01:00").strip())
-    _wh_quit = (args.quit_at_work_hours
-                if '--quit-at-work-hours' in _explicit_cli
-                else get_config_bool("quit-at-work-hours"))
+    _wh_start = (args.work_hours_start if _cli_given('--work-hours-start')
+                 else _config_snapshot1.get("work-hours-start", "").strip() or None)
+    _wh_resume = (args.midnight_resume_at if _cli_given('--midnight-resume-at')
+                  else _config_snapshot1.get("midnight-resume-at", "01:00").strip())
+    _wh_quit = (args.quit_at_work_hours if _cli_given('--quit-at-work-hours')
+                else _config_snapshot1.get("quit-at-work-hours", "").lower() in ("true", "1", "yes"))
     work_hours_enabled = bool(_wh_start)
     stop_hour, stop_minute = 6, 50
     resume_hour, resume_minute = 1, 0
@@ -1114,9 +1086,8 @@ def main():
     elif not args.force:
         print(f"Skip existing: ON (use --force to reprocess)")
     # Resolve verse-count: CLI > config > unlimited (0)
-    _vc = (args.verse_count
-           if '--verse-count' in _explicit_cli
-           else get_config_int("verse-count"))
+    _vc = (args.verse_count if _cli_given('--verse-count')
+           else int(_config_snapshot1.get("verse-count", "0") or "0"))
     print(f"Verse count: {_vc if _vc > 0 else 'unlimited'}")
     print(f"Config: {RUN_CONFIG_FILE} (hot-reloaded every ~10s)")
     # Parse --start-at (wait before starting)
@@ -1131,9 +1102,8 @@ def main():
     # Resolve --till: CLI > config > none
     deadline = None
     till_str = None
-    _till_raw = (' '.join(args.till)
-                 if any(o in _explicit_cli for o in ('--till', '--until')) and args.till
-                 else _config_cache.get("till", "").strip())
+    _till_raw = (' '.join(args.till) if _cli_given('--till', '--until') and args.till
+                 else _config_snapshot1.get("till", "").strip())
     if _till_raw:
         till_str = _till_raw
         if start_at_ts:
@@ -1164,8 +1134,8 @@ def main():
 
     # Resolve preserve-token: CLI > config > 0 (no limit)
     preserve_pct = (args.preserve_token_percentage_4_colleagues
-                    if '--preserve-token-percentage-4-colleagues' in _explicit_cli
-                    else get_config_int("preserve-token-percentage-4-colleagues"))
+                    if _cli_given('--preserve-token-percentage-4-colleagues')
+                    else int(_config_snapshot1.get("preserve-token-percentage-4-colleagues", "0") or "0"))
     window_budget = load_window_budget(args.model)
     if preserve_pct > 0:
         budget_str = f", learned budget: ${window_budget:.2f}" if window_budget > 0 else ", budget: learning..."
@@ -1267,17 +1237,21 @@ def main():
         chap_last_sec = None
 
         for i, s in enumerate(secs):
-            # ── Hot-reload config + PAUSED check ──
+            # ── Hot-reload config: snapshot-delta model ──
+            # Only apply keys that changed from snapshot1 (startup file state).
+            # Unchanged keys keep their resolved startup value (which may be from CLI).
             cfg = maybe_reload_config()
-            # Update live values from config (CLI-only values not overridden)
-            if '--target-version' not in _explicit_cli and '--tv' not in _explicit_cli:
+            def _delta(key):
+                """True if key changed from snapshot1 (including absent→present)."""
+                return cfg.get(key) != _config_snapshot1.get(key)
+
+            if _delta("target-version"):
                 target_version = cfg.get("target-version", target_version)
-            if '--preserve-token-percentage-4-colleagues' not in _explicit_cli:
+            if _delta("preserve-token-percentage-4-colleagues"):
                 preserve_pct = get_config_int("preserve-token-percentage-4-colleagues")
-            if '--verse-count' not in _explicit_cli:
+            if _delta("verse-count"):
                 _vc = get_config_int("verse-count")
-            # Re-check till if changed (only when not CLI-pinned)
-            if '--till' not in _explicit_cli and '--until' not in _explicit_cli:
+            if _delta("till"):
                 _new_till = cfg.get("till", "").strip()
                 if _new_till != _prev_till_str:
                     _prev_till_str = _new_till
@@ -1287,8 +1261,7 @@ def main():
                             deadline = _new_deadline
                     else:
                         deadline = None
-            # Re-check work-hours from config
-            if '--work-hours-start' not in _explicit_cli:
+            if _delta("work-hours-start"):
                 _wh_cfg = cfg.get("work-hours-start", "").strip()
                 work_hours_enabled = bool(_wh_cfg)
                 enforce_work_hours = work_hours_enabled
@@ -1298,15 +1271,15 @@ def main():
                         stop_hour, stop_minute = _t.hour, _t.minute
                     except ValueError:
                         pass
-                if '--midnight-resume-at' not in _explicit_cli:
-                    _mr_cfg = cfg.get("midnight-resume-at", "01:00").strip()
-                    try:
-                        _t = datetime.strptime(_mr_cfg, "%H:%M")
-                        resume_hour, resume_minute = _t.hour, _t.minute
-                    except ValueError:
-                        pass
-                if '--quit-at-work-hours' not in _explicit_cli:
-                    _wh_quit = get_config_bool("quit-at-work-hours")
+            if _delta("midnight-resume-at"):
+                _mr_cfg = cfg.get("midnight-resume-at", "01:00").strip()
+                try:
+                    _t = datetime.strptime(_mr_cfg, "%H:%M")
+                    resume_hour, resume_minute = _t.hour, _t.minute
+                except ValueError:
+                    pass
+            if _delta("quit-at-work-hours"):
+                _wh_quit = get_config_bool("quit-at-work-hours")
             # PAUSED check
             if get_config_bool("paused"):
                 print(f"\n  ⏸ Paused via .run_config.conf — set paused=false to resume",

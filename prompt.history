@@ -168,3 +168,6 @@ Replace .target_version single-value file with .run_config.conf (bash-style NAME
 
 ### 29. [2026-03-13] Aggressive defaults + config template cleanup
 Aggressive refactor: remove --no-work-hours-stop and --immediately-restrict-first-session flags. Default to NO preserve-token limit (was 30%) and NO work-hours pause (was ON). Config keys now match CLI arg names (lowercase with hyphens: target-version, till, verse-count, preserve-token-percentage-4-colleagues, work-hours-start, midnight-resume-at, quit-at-work-hours, paused). CLI args override config for session only — NOT persisted to file. Template config has only target-version and paused active, rest commented out with examples. Long sleeps (rate-limit, preserve-token, work-hours) now use interruptible 30s chunks with config hot-reload.
+
+### 30. [2026-03-13] Remove .target_version migration + snapshot-delta priority model
+Remove stale .target_version migration code that kept re-creating config with rcuv2010. Implement snapshot-delta priority model: CLI args win at startup, config file state is snapshotted (snapshot1). During hot-reload, only keys that changed from snapshot1 are applied — overriding even CLI args. Unchanged keys keep their startup-resolved value. This cleanly resolves the design conflict between CLI and config file priority.
