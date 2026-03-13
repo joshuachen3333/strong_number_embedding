@@ -171,3 +171,6 @@ Aggressive refactor: remove --no-work-hours-stop and --immediately-restrict-firs
 
 ### 30. [2026-03-13] Remove .target_version migration + snapshot-delta priority model
 Remove stale .target_version migration code that kept re-creating config with rcuv2010. Implement snapshot-delta priority model: CLI args win at startup, config file state is snapshotted (snapshot1). During hot-reload, only keys that changed from snapshot1 are applied — overriding even CLI args. Unchanged keys keep their startup-resolved value. This cleanly resolves the design conflict between CLI and config file priority.
+
+### 31. [2026-03-13] Add max/min verse time to progress summary
+Add per-verse time tracking (max/min) to the 📊 progress line. Shows after 2+ verses: `📊 3 verses done, 3min working, 0.9 min/verse, max 90s, min 30s`.

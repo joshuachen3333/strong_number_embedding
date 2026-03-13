@@ -802,11 +802,13 @@ def process_sec(model: str, brand: str, target_version: str, book_chi: str,
                 chap: int, sec: int, dry_run: bool = False,
                 verbose: bool = False,
                 progress: tuple = None,
-                paused_acc: list = None) -> tuple:
+                paused_acc: list = None,
+                verse_stats: list = None) -> tuple:
     """Process a single sec. Returns (result_dict, rate_limit_info).
 
     progress: optional (total_processed, start_time, total_paused) for display.
     paused_acc: optional mutable [float] to accumulate pause/wait seconds.
+    verse_stats: optional mutable [max_secs, min_secs] for min/max tracking.
     """
     verse_t0 = time.time()
     ver = target_version.upper()
@@ -869,6 +871,11 @@ def process_sec(model: str, brand: str, target_version: str, book_chi: str,
     file_path = save_result(result, book_chi, book_eng, chap, sec,
                             model, brand, target_version, unv_sn, target_text)
     verse_secs = time.time() - verse_t0
+    if verse_stats is not None:
+        if verse_secs > verse_stats[0]:
+            verse_stats[0] = verse_secs
+        if verse_secs < verse_stats[1]:
+            verse_stats[1] = verse_secs
     if verse_secs >= 60:
         verse_time_str = f"{verse_secs / 60:.1f}min"
     else:
@@ -886,8 +893,11 @@ def process_sec(model: str, brand: str, target_version: str, book_chi: str,
         if done_now > 0:
             rate = working / done_now / 60  # minutes per verse (working time only)
             working_m = working / 60
+            minmax = ""
+            if verse_stats and done_now >= 2:
+                minmax = f", max {verse_stats[0]:.0f}s, min {verse_stats[1]:.0f}s"
             print(f"\n  📊 {done_now} verses done, {working_m:.0f}min working, "
-                  f"{rate:.1f} min/verse", flush=True)
+                  f"{rate:.1f} min/verse{minmax}", flush=True)
 
     return result, rate_limit_info
 
@@ -1184,6 +1194,7 @@ def main():
     total_processed = 0
     total_skipped = 0
     total_failed = 0
+    verse_stats = [0.0, float('inf')]  # [max_secs, min_secs]
     work_hours_stop = False
     limit_reached = False
     time_limit_reached = False
@@ -1381,7 +1392,7 @@ def main():
                     args.model, brand, target_version, book_chi, chap, s,
                     dry_run=args.dry_run, verbose=args.verbose,
                     progress=(total_processed, start_time, total_paused),
-                    paused_acc=paused_acc)
+                    paused_acc=paused_acc, verse_stats=verse_stats)
                 total_paused = paused_acc[0]
             except KeyboardInterrupt:
                 print(f"\n⏹ Interrupted by user.")
