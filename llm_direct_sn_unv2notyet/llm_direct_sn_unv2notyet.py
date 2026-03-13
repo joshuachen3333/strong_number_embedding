@@ -1229,6 +1229,7 @@ MODEL_BRAND_MAP = {
     # Cloud — Claude (via claude CLI)
     "sonnet": "claude", "opus": "claude", "haiku": "claude",
     # Cloud — Gemini (via gemini CLI)
+    "gemini-3-pro-preview": "gemini", "gemini-3-flash-preview": "gemini",
     "gemini-2.5-pro": "gemini", "gemini-2.5-flash": "gemini",
     # Cloud — Codex (via codex CLI)
     "gpt-5.4": "codex", "gpt-5.3-codex": "codex",
@@ -1259,8 +1260,10 @@ def _print_model_help():
         "sonnet": "default, fast & capable",
         "opus": "strongest reasoning, slowest",
         "haiku": "fastest, cheapest",
-        "gemini-2.5-pro": "strongest Gemini, deep thinking",
-        "gemini-2.5-flash": "fast Gemini, good balance",
+        "gemini-3-pro-preview": "latest, strongest Gemini 3",
+        "gemini-3-flash-preview": "fast Gemini 3",
+        "gemini-2.5-pro": "strong Gemini 2.5, deep thinking",
+        "gemini-2.5-flash": "fast Gemini 2.5, good balance",
         "gpt-5.4": "latest OpenAI flagship",
         "gpt-5.3-codex": "strong reasoning",
         "gpt-5.2-codex": "Codex optimized",
@@ -1294,7 +1297,7 @@ def _print_model_help():
 
     print(f"\nUsage:")
     print(f"  --model sonnet              (default, Claude cloud)")
-    print(f"  --model gemini-2.5-flash     (Gemini, via gemini CLI)")
+    print(f"  --model gemini-3-flash-preview (Gemini 3, via gemini CLI)")
     print(f"  --model gpt-5.2             (OpenAI, via codex CLI)")
     print(f"  --model qwen3:32b           (local Ollama, best Chinese)")
     print(f"  --model llama3.3:70b --ollama-url http://host:11434")
