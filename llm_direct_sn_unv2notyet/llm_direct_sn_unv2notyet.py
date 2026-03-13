@@ -1415,6 +1415,7 @@ def process_sec(model: str, brand: str, target_version: str, book_chi: str,
 
     print(f"\n  UNV+SN: {unv_sn}")
     print(f"\n  {ver}:    {target_text}")
+    print(f"\n  ⚙ Invoking {brand}/{model} for SN embedding...", flush=True)
 
     if dry_run:
         print("  [dry-run] Skipping LLM call")
