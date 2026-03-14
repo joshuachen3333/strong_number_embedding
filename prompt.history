@@ -186,3 +186,9 @@ I want to implement the full chatgpt/gemini brands/models too. I want to save mo
 
 ### 35. [2026-03-14] Show brand/model during LLM invocation
 between the LCC: and LCC+SN: output lines, add a line showing which brand/model is being invoked: `⚙ Invoking {brand}/{model} for SN embedding...` so the user knows which LLM is working.
+
+### 36. [2026-03-14] Fix CLI check + progress tuple unpacking for non-claude brands
+Startup always required `claude` CLI even for local models — fixed to only check the CLI matching the brand. Also fixed `call_ollama()` unpacking `progress` as 2 values when it's a 3-tuple `(total_processed, start_time, total_paused)`.
+
+### 37. [2026-03-14] OSS model benchmark on sai.fhl.net
+Benchmarked local models on sai.fhl.net (NVIDIA GB10, 119GB RAM) for Gen 1:1–3. qwen3:32b is the only usable local model (confidence 0.9–0.98, ~8–15 min/verse). qwen3:30b and gpt-oss:120b both failed to produce structured JSON (confidence 0.3). Cloud models (gemini-3-flash-preview 1.0, codex/gpt-5.2 0.96, claude/sonnet ref) remain superior. Results documented in OSS_MODEL.md.
