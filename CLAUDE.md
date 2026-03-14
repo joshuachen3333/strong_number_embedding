@@ -63,6 +63,26 @@ cd sn_within_unv_selfgroup_segmentation
 
 **Event flow**: `VERSE_SELECT → App loads data → VERSE_SELECTED → RightPanel parses → COLORS_APPLY → LeftPanel colors`
 
+### `llm_direct_sn_unv2notyet/` — LLM-Direct SN Transfer (Python)
+
+Uses LLMs to transfer Strong's Number annotations from UNV to other Chinese translations (LCC, etc.). Supports 4 brands: Claude CLI, Gemini CLI, Codex CLI, and local Ollama models.
+
+```bash
+# Basic usage (default: sonnet, LCC)
+python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1
+
+# With specific model/brand
+python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --model gemini-3-flash-preview
+python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --model qwen3:32b --ollama-url http://sai.fhl.net:11434
+
+# Model reference
+python3 llm_direct_sn_unv2notyet.py --model --help
+```
+
+**Key docs**:
+- [CONFIDENCE_BASIS.md](llm_direct_sn_unv2notyet/CONFIDENCE_BASIS.md) — How confidence scores work (LLM self-reported vs objective SN coverage check)
+- [OSS_MODEL.md](llm_direct_sn_unv2notyet/OSS_MODEL.md) — Open-source/local model benchmark results on sai.fhl.net
+
 ### `chinese_term_segmentation/` — Chinese Segmentation Framework (Python)
 
 Segments Chinese biblical text and maps terms to Strong's Numbers using pluggable NLP engines.

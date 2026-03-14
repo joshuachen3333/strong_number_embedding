@@ -192,3 +192,6 @@ Startup always required `claude` CLI even for local models — fixed to only che
 
 ### 37. [2026-03-14] OSS model benchmark on sai.fhl.net
 Benchmarked local models on sai.fhl.net (NVIDIA GB10, 119GB RAM) for Gen 1:1–3. qwen3:32b is the only usable local model (confidence 0.9–0.98, ~8–15 min/verse). qwen3:30b and gpt-oss:120b both failed to produce structured JSON (confidence 0.3). Cloud models (gemini-3-flash-preview 1.0, codex/gpt-5.2 0.96, claude/sonnet ref) remain superior. Results documented in OSS_MODEL.md.
+
+### 38. [2026-03-14] Document confidence scoring basis & update CLAUDE.md
+把這些關鍵評分與 LLM 自評分的根據或者參考細節寫在 CONFIDENCE_BASIS.md. Created CONFIDENCE_BASIS.md documenting the two-layer quality assessment: (1) LLM self-reported confidence (subjective 0.0–1.0 with tier table), (2) verify_sn_coverage() objective SN count check. Documents special values (0.3 = JSON parse fallback, 0.0 = error), model-specific observations, and reprocessing threshold (0.85). Updated CLAUDE.md with llm_direct_sn_unv2notyet component section linking to both CONFIDENCE_BASIS.md and OSS_MODEL.md. Also cleaned up system_prompt_lcc.md (removed duplicate/garbage content after line 41).
