@@ -198,3 +198,6 @@ Benchmarked local models on sai.fhl.net (NVIDIA GB10, 119GB RAM) for Gen 1:1–3
 
 ### 39. [2026-03-14] Add gpt-5.1-codex-max and gpt-5.1-codex-mini models
 add models: gpt-5.1-codex-max and gpt-5.1-codex-mini. Added to MODEL_BRAND_MAP as codex brand and --model --help notes.
+
+### 40. [2026-03-14] Add qwen3:8b local model
+Colleagues added qwen3:8b on sai.fhl.net. Added to MODEL_BRAND_MAP as local brand and --model --help notes.

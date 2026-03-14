@@ -1236,7 +1236,7 @@ MODEL_BRAND_MAP = {
     "gpt-5.2-codex": "codex", "gpt-5.2": "codex",
     "gpt-5.1-codex-max": "codex", "gpt-5.1-codex-mini": "codex",
     # Local — Ollama (qwen family, best for Chinese)
-    "qwen3:32b": "local", "qwen3:30b": "local",
+    "qwen3:32b": "local", "qwen3:30b": "local", "qwen3:8b": "local",
     "qwen2.5:72b": "local", "qwen2.5:32b": "local", "qwen2.5:7b": "local",
     # Local — Ollama (llama family)
     "llama3.3:70b": "local", "llama3.1:70b": "local", "llama3.1:8b": "local",
@@ -1273,6 +1273,7 @@ def _print_model_help():
         "gpt-5.1-codex-mini": "Codex 5.1, lightweight",
         "qwen3:32b": "★ recommended for Chinese",
         "qwen3:30b": "similar to 32b",
+        "qwen3:8b": "fast, lightweight qwen3",
         "qwen2.5:72b": "strong Chinese, large",
         "qwen2.5:32b": "good Chinese, medium",
         "qwen2.5:7b": "fast, lighter quality",
