@@ -1234,6 +1234,7 @@ MODEL_BRAND_MAP = {
     # Cloud — Codex (via codex CLI)
     "gpt-5.4": "codex", "gpt-5.3-codex": "codex",
     "gpt-5.2-codex": "codex", "gpt-5.2": "codex",
+    "gpt-5.1-codex-max": "codex", "gpt-5.1-codex-mini": "codex",
     # Local — Ollama (qwen family, best for Chinese)
     "qwen3:32b": "local", "qwen3:30b": "local",
     "qwen2.5:72b": "local", "qwen2.5:32b": "local", "qwen2.5:7b": "local",
@@ -1268,6 +1269,8 @@ def _print_model_help():
         "gpt-5.3-codex": "strong reasoning",
         "gpt-5.2-codex": "Codex optimized",
         "gpt-5.2": "base GPT-5.2",
+        "gpt-5.1-codex-max": "Codex 5.1, max capacity",
+        "gpt-5.1-codex-mini": "Codex 5.1, lightweight",
         "qwen3:32b": "★ recommended for Chinese",
         "qwen3:30b": "similar to 32b",
         "qwen2.5:72b": "strong Chinese, large",
