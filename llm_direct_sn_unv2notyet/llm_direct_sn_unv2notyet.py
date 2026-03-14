@@ -968,6 +968,7 @@ def call_codex(model: str, unv_sn: str, target_text: str,
                paused_acc: list = None) -> tuple:
     """Call codex CLI to insert SNs into target version text.
 
+    Uses --output-last-message to capture clean final answer (no thinking text).
     Returns (result_dict, rate_limit_info).
     """
     sn_field = f"{target_version}_sn"
@@ -997,13 +998,16 @@ def call_codex(model: str, unv_sn: str, target_text: str,
     with open(schema_file, "w", encoding="utf-8") as f:
         json.dump(schema_obj, f)
 
+    # Temp file for --output-last-message (captures clean final answer, no thinking text)
+    last_msg_file = os.path.join(SCRIPT_DIR, ".codex_last_message.txt")
+
     cmd = [
         codex_bin, "exec",
-        "--dangerously-bypass-approvals-and-sandbox",
-        "--json",
+        "--sandbox", "read-only",
         "--model", model,
         "--output-schema", schema_file,
-        full_prompt,
+        "--output-last-message", last_msg_file,
+        "-",  # read prompt from stdin
     ]
 
     if verbose:
@@ -1024,28 +1028,27 @@ def call_codex(model: str, unv_sn: str, target_text: str,
         try:
             result_proc = subprocess.run(
                 cmd, capture_output=True, text=True, timeout=timeout,
+                input=full_prompt,
             )
-        except subprocess.TimeoutExpired as e:
+        except subprocess.TimeoutExpired:
             now_str = datetime.now().strftime("%H:%M:%S")
-            partial = (e.stdout or "").strip()
-            event_lines = [l for l in partial.split('\n') if l.strip()]
-            model_active = len(event_lines) > 1
 
-            if model_active:
-                print(f"  ⏳ [{now_str}] Timed out ({timeout}s) but model was "
-                      f"generating ({len(event_lines)} events). Slow verse.", flush=True)
-                result, rl_info = parse_codex_jsonl(partial, sn_field)
-                if result.get(sn_field):
-                    print(f"  ✓ Salvaged partial result", flush=True)
-                    return result, rl_info
-                return {
-                    sn_field: "", "confidence": 0.0,
-                    "notes": [f"Timeout ({timeout}s): verse too complex"],
-                    "error": True
-                }, rl_info
+            # Check if --output-last-message file has partial result
+            if os.path.isfile(last_msg_file):
+                try:
+                    with open(last_msg_file, "r", encoding="utf-8") as f:
+                        partial = f.read().strip()
+                    if partial:
+                        result = _extract_json(partial, sn_field)
+                        if result.get(sn_field):
+                            print(f"  ✓ [{now_str}] Timed out ({timeout}s) but "
+                                  f"salvaged result from output file", flush=True)
+                            return result, None
+                except IOError:
+                    pass
 
             if attempt < IMMEDIATE_RETRIES:
-                print(f"  ⏳ [{now_str}] Timed out ({timeout}s, no output, "
+                print(f"  ⏳ [{now_str}] Timed out ({timeout}s, "
                       f"attempt {attempt + 1}/{IMMEDIATE_RETRIES + 1}). "
                       f"Retrying immediately...", flush=True)
                 continue
@@ -1065,27 +1068,17 @@ def call_codex(model: str, unv_sn: str, target_text: str,
                 paused_acc[0] += time.time() - _pause_start
             continue
 
-        # Codex may succeed (rc=0) but have errors in JSONL, or fail (rc!=0)
-        # Check both stderr and stdout for rate limit patterns
         all_output = (result_proc.stderr + result_proc.stdout).strip().lower()
 
         if result_proc.returncode == 0:
-            # Check if JSONL contains turn.failed
-            if "turn.failed" not in result_proc.stdout:
-                break
-            # Parse to get error details
-            parsed, _ = parse_codex_jsonl(result_proc.stdout, sn_field)
-            if not parsed.get("error"):
-                break
-            # Fall through to rate-limit check with error output
+            break
 
         is_rate_limit = any(pat in all_output for pat in RATE_LIMIT_PATTERNS)
 
         if not is_rate_limit:
-            return parse_codex_jsonl(result_proc.stdout, sn_field) if result_proc.stdout.strip() else (
-                {sn_field: "", "confidence": 0.0,
-                 "notes": [f"codex CLI error: {result_proc.stderr.strip()[:300]}"],
-                 "error": True}, None)
+            return {sn_field: "", "confidence": 0.0,
+                    "notes": [f"codex CLI error: {result_proc.stderr.strip()[:300]}"],
+                    "error": True}, None
 
         now_str = datetime.now().strftime("%H:%M:%S")
         next_try = datetime.now(timezone.utc).timestamp() + RETRY_INTERVAL
@@ -1102,7 +1095,24 @@ def call_codex(model: str, unv_sn: str, target_text: str,
         if paused_acc is not None:
             paused_acc[0] += time.time() - _pause_start
 
-    return parse_codex_jsonl(result_proc.stdout, sn_field)
+    # Read clean final answer from --output-last-message file
+    last_msg = ""
+    if os.path.isfile(last_msg_file):
+        try:
+            with open(last_msg_file, "r", encoding="utf-8") as f:
+                last_msg = f.read().strip()
+        except IOError:
+            pass
+
+    if last_msg:
+        return _extract_json(last_msg, sn_field), None
+
+    # Fallback: try stdout if output file is empty
+    if result_proc.stdout.strip():
+        return _extract_json(result_proc.stdout.strip(), sn_field), None
+
+    return {sn_field: "", "confidence": 0.0,
+            "notes": ["codex: no output received"], "error": True}, None
 
 
 # ── Ollama (local LLM) ──────────────────────────────────────────────────────

@@ -201,3 +201,6 @@ add models: gpt-5.1-codex-max and gpt-5.1-codex-mini. Added to MODEL_BRAND_MAP a
 
 ### 40. [2026-03-14] Add qwen3:8b local model
 Colleagues added qwen3:8b on sai.fhl.net. Added to MODEL_BRAND_MAP as local brand and --model --help notes.
+
+### 41. [2026-03-14] Fix codex JSON parse failures via --output-last-message
+Read side efforts (strong_number_embedding_gemini, strong_number_embedding_codex) to compare. Found codex fork uses `codex exec --output-last-message <file>` which writes clean final answer to a file — no thinking text contamination. Adopted this for call_codex(): replaced `--json` + `parse_codex_jsonl()` with `--output-last-message` + `_extract_json()`. Also switched from `--dangerously-bypass-approvals-and-sandbox` to `--sandbox read-only`. Tested: Gen 1:1 went from 0.3 (parse fail) to 0.72, Gen 1:4 went from 0.3 (parse fail, +6 extra SNs) to 0.95 with perfect SN coverage.
