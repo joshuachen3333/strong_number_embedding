@@ -1605,6 +1605,14 @@ def main():
     # Initialize hot-reload cache
     maybe_reload_config(force=True)
 
+    # ── Force unpause on startup: running the script = intent to run ──
+    if get_config_bool("paused"):
+        cfg = load_run_config()
+        cfg["paused"] = "false"
+        save_run_config(cfg)
+        maybe_reload_config(force=True)
+        print("  ℹ paused was true in .run_config.conf — overridden to false (startup = run)")
+
     # Helper: check if a CLI arg was explicitly provided
     def _cli_given(*opts):
         return any(o in sys.argv for o in opts)
