@@ -1964,7 +1964,7 @@ def main():
                 pause_resume_time = datetime.now().strftime("%H:%M")
                 print(f"  ⏵ Resumed at {pause_resume_time}.", flush=True)
 
-            out_path = os.path.join(OUTPUT_DIR, target_version, _sanitize_model(model), book_eng, str(chap), f"{s}.json")
+            out_path = os.path.join(OUTPUT_DIR, target_version, _sanitize_model(args.model), book_eng, str(chap), f"{s}.json")
 
             # Skip logic: --force skips nothing, --reprocess-low-confidence only reprocesses low conf
             if not args.force and os.path.isfile(out_path):
