@@ -9,6 +9,8 @@ All cloud brands use CLI auth (no API keys needed).
 
 Usage:
     python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --sec 1
+    python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --sec 1-10
+    python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --sec 1,2,5-13,17,19
     python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --model gemini-3-flash
     python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --model gpt-5.2
     python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --model qwen3:32b
@@ -87,6 +89,38 @@ def parse_time_spec(s: str, label: str = "--till") -> float:
 
 def parse_till(s: str) -> float:
     return parse_time_spec(s, "--till")
+
+
+def parse_sec_arg(raw_args: list[str]) -> list[int]:
+    """Parse flexible verse/sec specification.
+
+    Accepts: ['1', '2', '3'] or ['1,2,3'] or ['1-10'] or ['1,2,5-13,17,19']
+    or mixed: ['1', '2,', '5-13,', '17', '19']
+    Returns sorted deduplicated list of ints.
+    """
+    # Join all args, split on commas and whitespace
+    joined = " ".join(raw_args)
+    # Split on comma or whitespace (handles "1, 2, 3" and "1,2,3" and "1 2 3")
+    tokens = re.split(r'[,\s]+', joined.strip())
+    result = set()
+    for tok in tokens:
+        if not tok:
+            continue
+        if '-' in tok:
+            parts = tok.split('-', 1)
+            try:
+                start, end = int(parts[0]), int(parts[1])
+                result.update(range(start, end + 1))
+            except ValueError:
+                print(f"Error: Invalid verse range '{tok}'", file=sys.stderr)
+                sys.exit(1)
+        else:
+            try:
+                result.add(int(tok))
+            except ValueError:
+                print(f"Error: Invalid verse number '{tok}'", file=sys.stderr)
+                sys.exit(1)
+    return sorted(result)
 
 
 def _try_parse_time_spec(s: str) -> float | None:
@@ -1584,8 +1618,8 @@ def main():
                         help="Chapter: single (1), range (1-10), or 'all'")
     parser.add_argument("--list-books", "--book-list", action="store_true",
                         help="List all 66 book abbreviations and exit")
-    parser.add_argument("--sec", type=int, default=None,
-                        help="Section/verse number (omit for whole chapter)")
+    parser.add_argument("--sec", type=str, default=None, nargs="+",
+                        help="Verse(s): 1 2 3, 1,2,3, 1-10, 1,2,5-13,17,19")
     parser.add_argument("--model", default="sonnet",
                         help="LLM model (default: sonnet). Use --model --help for full list. "
                              "Brands: claude, gemini, codex, local (Ollama)")
@@ -1881,8 +1915,8 @@ def main():
             _prev_book_eng = book_eng
 
         if args.sec and len(_chap_jobs) == 1:
-            # Single verse mode
-            secs = [args.sec]
+            # Specific verse(s) mode
+            secs = parse_sec_arg(args.sec)
         else:
             # Whole chapter — fetch UNV to get sec list (also warms cache)
             print(f"\nFetching verse list for {book_eng} {chap}...")

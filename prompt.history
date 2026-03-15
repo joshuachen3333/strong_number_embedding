@@ -208,5 +208,8 @@ Read side efforts (strong_number_embedding_gemini, strong_number_embedding_codex
 ### 42. [2026-03-15] Add Google TranslateGemma support (all 12 variants)
 go to sai and run code there. Add Google's TranslateGemma support — translation-specific model (55 languages incl. Chinese) built on Gemma 3. Added all 12 variants to MODEL_BRAND_MAP: 3 base (4b/12b/27b) + 9 instruction-tuned (4b/12b/27b × q4_K_M/q8_0/bf16). Pulled all models on sai.fhl.net via `docker exec ollama ollama pull`. Ollama on sai runs in Docker container, not bare metal.
 
+### 43a. [2026-03-15] Flexible --sec argument
+let --sec support multiple verses like 1 2 3 4 or 1,2,3,4, or 1, 2, 3 ,4 ,5 or 1,2, 5-13,17,19. Added parse_sec_arg() supporting space-separated, comma-separated, ranges, and mixed formats. --sec now accepts nargs="+" with flexible parsing.
+
 ### 43. [2026-03-15] Refactor output/ path: brand → model segment
 do you think we should expand our spec, that the output/ area is like output/version/model/book/chap/? add a model segment in between, the same name as --model? Changed output path from `output/{version}/{brand}/` to `output/{version}/{model}/` with sanitized names (colon→underscore). Fixes collision where all local Ollama models shared `output/lcc/local/`. Updated save_result(), skip-check, generate_manifest.py, generate_data_bundle.py, start_server.py (/api/target-sn now uses model= param). Created migrate_output_brand_to_model.py for one-time data migration. `--brand` flag kept as internal dispatch mechanism (picks which CLI to call).
