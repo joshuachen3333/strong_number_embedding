@@ -463,8 +463,9 @@ def parse_stream_json(raw: str, sn_field: str = "lcc_sn") -> tuple:
     result = None
     rate_limit_info = None
     cost_usd = 0.0
+    resolved_model = ""
 
-    # First pass: collect structured result, rate_limit_info, and cost
+    # First pass: collect structured result, rate_limit_info, cost, and resolved model
     for line in raw.strip().split('\n'):
         if not line.strip():
             continue
@@ -472,6 +473,10 @@ def parse_stream_json(raw: str, sn_field: str = "lcc_sn") -> tuple:
             obj = json.loads(line)
         except json.JSONDecodeError:
             continue
+
+        # Extract resolved model from system event
+        if obj.get("type") == "system" and obj.get("model"):
+            resolved_model = obj["model"]
 
         # Extract rate limit info
         if obj.get("type") == "rate_limit_event":
@@ -504,6 +509,8 @@ def parse_stream_json(raw: str, sn_field: str = "lcc_sn") -> tuple:
 
     if result is not None:
         result["_cost_usd"] = cost_usd
+        if resolved_model:
+            result["_resolved_model"] = resolved_model
         return result, rate_limit_info
 
     # Last resort: concatenate all text_delta content and try parsing
@@ -556,6 +563,39 @@ def parse_stream_json(raw: str, sn_field: str = "lcc_sn") -> tuple:
 
 
 BUDGET_FILE = os.path.join(SCRIPT_DIR, ".window_budget.json")
+
+# Cached resolved model name (populated at startup for claude brand)
+_resolved_model_name = None
+
+
+def resolve_claude_model(alias: str) -> str:
+    """Resolve a claude model alias (e.g. 'sonnet') to the actual model ID
+    (e.g. 'claude-sonnet-4-6') by making one quick CLI call and reading
+    the 'system' event's 'model' field from stream-json output.
+    Falls back to the alias if resolution fails."""
+    claude_bin = shutil.which("claude")
+    if not claude_bin:
+        return alias
+    try:
+        env = os.environ.copy()
+        env.pop("CLAUDECODE", None)
+        result = subprocess.run(
+            [claude_bin, "-p", "--output-format", "stream-json", "--model", alias],
+            capture_output=True, text=True, timeout=30, env=env,
+            input="say ok"
+        )
+        for line in result.stdout.strip().split('\n'):
+            if not line.strip():
+                continue
+            try:
+                obj = json.loads(line)
+                if obj.get("type") == "system" and obj.get("model"):
+                    return obj["model"]
+            except json.JSONDecodeError:
+                continue
+    except Exception:
+        pass
+    return alias
 
 
 def load_window_budget(model: str) -> float:
@@ -1385,8 +1425,10 @@ def save_result(result: dict, book_chi: str, book_eng: str,
                 chap: int, sec: int, model: str, brand: str,
                 target_version: str,
                 unv_sn: str, target_text: str) -> str:
-    """Save result to output/{version}/{model}/{Book}/{chap}/{sec}.json."""
-    sec_dir = os.path.join(OUTPUT_DIR, target_version, _sanitize_model(model), book_eng, str(chap))
+    """Save result to output/{version}/{resolved_model}/{Book}/{chap}/{sec}.json."""
+    # Use resolved model from LLM response if available, otherwise fall back
+    resolved = result.get("_resolved_model", model)
+    sec_dir = os.path.join(OUTPUT_DIR, target_version, _sanitize_model(resolved), book_eng, str(chap))
     os.makedirs(sec_dir, exist_ok=True)
 
     sn_field = f"{target_version}_sn"
@@ -1404,7 +1446,7 @@ def save_result(result: dict, book_chi: str, book_eng: str,
         "confidence": result.get("confidence", 0.0),
         "notes": result.get("notes", []),
         "brand": brand,
-        "model": model,
+        "model": resolved,
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
@@ -1731,6 +1773,15 @@ def main():
     global OLLAMA_URL
     OLLAMA_URL = args.ollama_url
 
+    # Resolve actual model version for output paths (claude aliases → full ID)
+    global _resolved_model_name
+    if brand == "claude":
+        print(f"Resolving model '{args.model}' via claude CLI...", flush=True)
+        _resolved_model_name = resolve_claude_model(args.model)
+        print(f"  Resolved: {_resolved_model_name}", flush=True)
+    else:
+        _resolved_model_name = args.model
+
     # Validate all books upfront
     book_list = []  # [(book_chi, book_eng, chapters), ...]
     for bchi in args.chineses:
@@ -1777,7 +1828,8 @@ def main():
             sys.exit(1)
 
     print(f"═══ LLM-Direct SN Transfer: {banner_books} ═══")
-    print(f"Target: {target_version}  Brand: {brand}  Model: {args.model}")
+    resolved_display = f" → {_resolved_model_name}" if _resolved_model_name != args.model else ""
+    print(f"Target: {target_version}  Brand: {brand}  Model: {args.model}{resolved_display}")
     if args.reprocess_low_confidence:
         print(f"Mode: reprocess low confidence (<0.85)")
     elif not args.force:
@@ -1998,7 +2050,7 @@ def main():
                 pause_resume_time = datetime.now().strftime("%H:%M")
                 print(f"  ⏵ Resumed at {pause_resume_time}.", flush=True)
 
-            out_path = os.path.join(OUTPUT_DIR, target_version, _sanitize_model(args.model), book_eng, str(chap), f"{s}.json")
+            out_path = os.path.join(OUTPUT_DIR, target_version, _sanitize_model(_resolved_model_name), book_eng, str(chap), f"{s}.json")
 
             # Skip logic: --force skips nothing, --reprocess-low-confidence only reprocesses low conf
             if not args.force and os.path.isfile(out_path):
