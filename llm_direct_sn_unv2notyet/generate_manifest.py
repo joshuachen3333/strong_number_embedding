@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
 generate_manifest.py
-Generate per-version/brand manifest.json from output/{version}/{brand}/ directory structure.
+Generate per-version/model manifest.json from output/{version}/{model}/ directory structure.
 
-Scans output/{version}/{brand}/{Book}/{Chapter}/{verse}.json files, reads confidence from each,
+Scans output/{version}/{model}/{Book}/{Chapter}/{verse}.json files, reads confidence from each,
 and builds a manifest with verse lists and low-confidence classifications.
 
 Usage:
-    python3 generate_manifest.py                          # all versions, all brands
+    python3 generate_manifest.py                          # all versions, all models
     python3 generate_manifest.py --version lcc             # single version
-    python3 generate_manifest.py --brand claude            # single brand (all versions)
-    python3 generate_manifest.py --version lcc --brand claude  # specific combo
+    python3 generate_manifest.py --model sonnet            # single model (all versions)
+    python3 generate_manifest.py --version lcc --model sonnet  # specific combo
 """
 
 import os
@@ -29,20 +29,19 @@ from shared.data.book_data_loader import load_books
 
 OUTPUT_DIR = os.path.join(_REPO_ROOT, 'output')
 LOW_CONFIDENCE_THRESHOLD = 0.85
-KNOWN_BRANDS = ['claude', 'codex', 'gemini']
 
 BOOK_ORDER = load_books()["BOOK_ORDER"]
 
 
-def generate_manifest_for_brand(brand_dir, brand_name):
-    """Generate manifest dict for a single brand directory."""
+def generate_manifest_for_model(model_dir, model_name):
+    """Generate manifest dict for a single model directory."""
     manifest = {
         'generated': datetime.now(timezone.utc).isoformat(),
         'books': {}
     }
 
     for book in BOOK_ORDER:
-        book_path = os.path.join(brand_dir, book)
+        book_path = os.path.join(model_dir, book)
         if not os.path.isdir(book_path):
             continue
 
@@ -94,8 +93,8 @@ def generate_manifest_for_brand(brand_dir, brand_name):
     return manifest
 
 
-def print_summary(version, brand_name, manifest):
-    """Print summary for a version/brand's manifest."""
+def print_summary(version, model_name, manifest):
+    """Print summary for a version/model's manifest."""
     total_verses = 0
     total_low = 0
     for book_data in manifest['books'].values():
@@ -116,13 +115,13 @@ def print_summary(version, brand_name, manifest):
             print(f"    {book}: {len(chapters)} ch, {vc} verses{low_str}")
 
 
-def generate_manifests(version_filter=None, brand_filter=None):
-    """Generate manifest.json for each version/brand under output/."""
+def generate_manifests(version_filter=None, model_filter=None):
+    """Generate manifest.json for each version/model under output/."""
     if not os.path.exists(OUTPUT_DIR):
         print(f"Error: {OUTPUT_DIR} directory not found")
         return
 
-    # Detect versions (subdirs of output/ that are NOT known brands — versions are like lcc, rcuv2010, etc.)
+    # Detect versions (subdirs of output/)
     versions = []
     for item in sorted(os.listdir(OUTPUT_DIR)):
         item_path = os.path.join(OUTPUT_DIR, item)
@@ -138,35 +137,35 @@ def generate_manifests(version_filter=None, brand_filter=None):
     for version in versions:
         version_dir = os.path.join(OUTPUT_DIR, version)
 
-        # Detect brands under this version
-        brands = []
+        # Detect models under this version (all subdirs)
+        models = []
         for item in sorted(os.listdir(version_dir)):
             item_path = os.path.join(version_dir, item)
-            if os.path.isdir(item_path) and item in KNOWN_BRANDS:
-                if brand_filter and item != brand_filter:
+            if os.path.isdir(item_path):
+                if model_filter and item != model_filter:
                     continue
-                brands.append(item)
+                models.append(item)
 
-        if not brands:
+        if not models:
             continue
 
-        for brand in brands:
-            brand_dir = os.path.join(version_dir, brand)
-            manifest = generate_manifest_for_brand(brand_dir, brand)
+        for model in models:
+            model_dir = os.path.join(version_dir, model)
+            manifest = generate_manifest_for_model(model_dir, model)
 
-            manifest_path = os.path.join(brand_dir, 'manifest.json')
+            manifest_path = os.path.join(model_dir, 'manifest.json')
             with open(manifest_path, 'w', encoding='utf-8') as f:
                 json.dump(manifest, f, ensure_ascii=False, indent=2)
 
-            print(f"\n[{version}/{brand}] -> {manifest_path}")
-            print_summary(version, brand, manifest)
+            print(f"\n[{version}/{model}] -> {manifest_path}")
+            print_summary(version, model, manifest)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Generate per-version/brand manifest.json")
+    parser = argparse.ArgumentParser(description="Generate per-version/model manifest.json")
     parser.add_argument('--version', default=None,
                         help="Generate for a single version (default: all)")
-    parser.add_argument('--brand', choices=KNOWN_BRANDS, default=None,
-                        help="Generate for a single brand (default: all)")
+    parser.add_argument('--model', default=None,
+                        help="Generate for a single model (default: all)")
     args = parser.parse_args()
-    generate_manifests(version_filter=args.version, brand_filter=args.brand)
+    generate_manifests(version_filter=args.version, model_filter=args.model)

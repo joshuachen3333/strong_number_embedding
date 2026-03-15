@@ -1235,6 +1235,12 @@ def call_ollama(model: str, unv_sn: str, target_text: str,
 
 OUTPUT_DIR = os.path.join(REPO_ROOT, "output")
 
+
+def _sanitize_model(model: str) -> str:
+    """Sanitize model name for filesystem paths (replace : with _)."""
+    return model.replace(":", "_")
+
+
 MODEL_BRAND_MAP = {
     # Cloud — Claude (via claude CLI)
     "sonnet": "claude", "opus": "claude", "haiku": "claude",
@@ -1345,8 +1351,8 @@ def save_result(result: dict, book_chi: str, book_eng: str,
                 chap: int, sec: int, model: str, brand: str,
                 target_version: str,
                 unv_sn: str, target_text: str) -> str:
-    """Save result to output/{version}/{brand}/{Book}/{chap}/{sec}.json."""
-    sec_dir = os.path.join(OUTPUT_DIR, target_version, brand, book_eng, str(chap))
+    """Save result to output/{version}/{model}/{Book}/{chap}/{sec}.json."""
+    sec_dir = os.path.join(OUTPUT_DIR, target_version, _sanitize_model(model), book_eng, str(chap))
     os.makedirs(sec_dir, exist_ok=True)
 
     sn_field = f"{target_version}_sn"
@@ -1958,7 +1964,7 @@ def main():
                 pause_resume_time = datetime.now().strftime("%H:%M")
                 print(f"  ⏵ Resumed at {pause_resume_time}.", flush=True)
 
-            out_path = os.path.join(OUTPUT_DIR, target_version, brand, book_eng, str(chap), f"{s}.json")
+            out_path = os.path.join(OUTPUT_DIR, target_version, _sanitize_model(model), book_eng, str(chap), f"{s}.json")
 
             # Skip logic: --force skips nothing, --reprocess-low-confidence only reprocesses low conf
             if not args.force and os.path.isfile(out_path):

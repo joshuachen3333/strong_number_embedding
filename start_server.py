@@ -12,8 +12,8 @@ Usage:
 API:
     GET /api/parse?chineses=創&chapter=1&verse=1
     GET /api/parse?book=Gen&chapter=1&verse=1
-    GET /api/target-sn?version=lcc&chineses=創&chapter=1          (all available verses)
-    GET /api/target-sn?version=lcc&chineses=創&chapter=1&verse=1  (single verse)
+    GET /api/target-sn?version=lcc&model=sonnet&chineses=創&chapter=1          (all available verses)
+    GET /api/target-sn?version=lcc&model=sonnet&chineses=創&chapter=1&verse=1  (single verse)
     GET /api/lcc-sn?chineses=創&chapter=1                          (legacy alias, version=lcc)
 """
 
@@ -250,8 +250,8 @@ class BibleServerHandler(http.server.SimpleHTTPRequestHandler):
             self._send_json(400, {"error": "Missing 'book' or 'chineses' parameter"})
             return
 
-        # Extract brand (optional, default scan all)
-        brand = params.get("brand", ["claude"])[0]
+        # Extract model (optional, default "sonnet"; backward compat: accept "brand" param)
+        model = params.get("model", params.get("brand", ["sonnet"]))[0]
 
         # Extract chapter (required)
         try:
@@ -273,7 +273,7 @@ class BibleServerHandler(http.server.SimpleHTTPRequestHandler):
                 self._send_json(400, {"error": "Invalid 'verse' parameter"})
                 return
 
-        chapter_dir = os.path.join(TARGET_SN_DIR, version, brand, book, str(chapter))
+        chapter_dir = os.path.join(TARGET_SN_DIR, version, model, book, str(chapter))
 
         if verse is not None:
             # Single verse mode
@@ -753,7 +753,7 @@ def main():
     print(f"  Dual reader:  http://localhost:{port}/dual_reader_right_editor/")
     print(f"  Viewer v2:    http://localhost:{port}/sn_within_unv_selfgroup_segmentation/viewer_v2/")
     print(f"  Parse API:    http://localhost:{port}/api/parse?chineses=創&chapter=1&verse=1")
-    print(f"  Target+SN:    http://localhost:{port}/api/target-sn?version=lcc&chineses=創&chapter=1")
+    print(f"  Target+SN:    http://localhost:{port}/api/target-sn?version=lcc&model=sonnet&chineses=創&chapter=1")
     print(f"  Reviews API:  http://localhost:{port}/api/reviews?book=Gen&chap=1")
     smtp_ok = os.path.isfile(SMTP_CONFIG_FILE)
     print(f"  SMTP:         {'configured' if smtp_ok else 'NOT configured (create smtp_config.json)'}")

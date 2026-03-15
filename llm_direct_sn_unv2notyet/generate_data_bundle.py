@@ -3,13 +3,13 @@
 generate_data_bundle.py
 Generate data_bundle.json for showoff_finished_4review viewer.
 
-Reads per-version/brand manifests and verse JSONs, outputs a combined bundle:
+Reads per-version/model manifests and verse JSONs, outputs a combined bundle:
 {
   "versions": {
     "lcc": {
-      "brands": {
-        "claude": { "manifest": {...}, "verses": {"Gen/1": [...], ...} },
-        "gemini": { ... }
+      "models": {
+        "sonnet": { "manifest": {...}, "verses": {"Gen/1": [...], ...} },
+        "gemini-3-flash-preview": { ... }
       }
     },
     "rcuv2010": { ... }
@@ -17,10 +17,10 @@ Reads per-version/brand manifests and verse JSONs, outputs a combined bundle:
 }
 
 Usage:
-    python3 generate_data_bundle.py                              # all versions, all brands
+    python3 generate_data_bundle.py                              # all versions, all models
     python3 generate_data_bundle.py --version lcc                # single version
-    python3 generate_data_bundle.py --brand claude               # single brand (all versions)
-    python3 generate_data_bundle.py --version lcc --brand claude # specific combo
+    python3 generate_data_bundle.py --model sonnet               # single model (all versions)
+    python3 generate_data_bundle.py --version lcc --model sonnet # specific combo
     python3 generate_data_bundle.py -o custom.json               # custom output path
 """
 
@@ -34,14 +34,13 @@ _REPO_ROOT = os.path.dirname(_SCRIPT_DIR)
 
 OUTPUT_DIR = os.path.join(_REPO_ROOT, 'output')
 DEFAULT_BUNDLE_PATH = os.path.join(_REPO_ROOT, 'showoff_finished_4review', 'data_bundle.json')
-KNOWN_BRANDS = ['claude', 'codex', 'gemini']
 
 
-def bundle_brand(brand_dir):
-    """Read manifest and all verse JSONs for a brand. Returns (manifest, verses_dict, total)."""
-    manifest_path = os.path.join(brand_dir, 'manifest.json')
+def bundle_model(model_dir):
+    """Read manifest and all verse JSONs for a model. Returns (manifest, verses_dict, total)."""
+    manifest_path = os.path.join(model_dir, 'manifest.json')
     if not os.path.isfile(manifest_path):
-        print(f"  Warning: No manifest.json in {brand_dir}, skipping")
+        print(f"  Warning: No manifest.json in {model_dir}, skipping")
         return None, None, 0
 
     with open(manifest_path, 'r', encoding='utf-8') as f:
@@ -56,7 +55,7 @@ def bundle_brand(brand_dir):
             chapter_verses = []
 
             for sec in chap_data.get('verses', []):
-                verse_path = os.path.join(brand_dir, book, chap, f"{sec}.json")
+                verse_path = os.path.join(model_dir, book, chap, f"{sec}.json")
                 try:
                     with open(verse_path, 'r', encoding='utf-8') as f:
                         verse = json.load(f)
@@ -72,7 +71,7 @@ def bundle_brand(brand_dir):
     return manifest, verses, total
 
 
-def generate_bundle(version_filter=None, brand_filter=None, output_path=None):
+def generate_bundle(version_filter=None, model_filter=None, output_path=None):
     """Generate the combined data bundle."""
     if output_path is None:
         output_path = DEFAULT_BUNDLE_PATH
@@ -99,32 +98,32 @@ def generate_bundle(version_filter=None, brand_filter=None, output_path=None):
     for version in versions:
         version_dir = os.path.join(OUTPUT_DIR, version)
 
-        # Detect brands under this version
-        brands = []
+        # Detect models under this version (all subdirs)
+        models = []
         for item in sorted(os.listdir(version_dir)):
             item_path = os.path.join(version_dir, item)
-            if os.path.isdir(item_path) and item in KNOWN_BRANDS:
-                if brand_filter and item != brand_filter:
+            if os.path.isdir(item_path):
+                if model_filter and item != model_filter:
                     continue
-                brands.append(item)
+                models.append(item)
 
-        if not brands:
+        if not models:
             continue
 
-        version_data = {"brands": {}}
-        for brand in brands:
-            brand_dir = os.path.join(version_dir, brand)
-            print(f"\n[{version}/{brand}]")
-            manifest, verses, total = bundle_brand(brand_dir)
+        version_data = {"models": {}}
+        for model in models:
+            model_dir = os.path.join(version_dir, model)
+            print(f"\n[{version}/{model}]")
+            manifest, verses, total = bundle_model(model_dir)
             if manifest is None:
                 continue
-            version_data["brands"][brand] = {
+            version_data["models"][model] = {
                 "manifest": manifest,
                 "verses": verses
             }
             print(f"  {len(manifest.get('books', {}))} books, {total} verses bundled")
 
-        if version_data["brands"]:
+        if version_data["models"]:
             bundle["versions"][version] = version_data
 
     with open(output_path, 'w', encoding='utf-8') as f:
@@ -133,18 +132,18 @@ def generate_bundle(version_filter=None, brand_filter=None, output_path=None):
     size_mb = os.path.getsize(output_path) / (1024 * 1024)
     print(f"\n-> {output_path} ({size_mb:.1f} MB)")
     for ver, vdata in bundle['versions'].items():
-        brands_str = ', '.join(vdata['brands'].keys())
-        print(f"  {ver}: [{brands_str}]")
+        models_str = ', '.join(vdata['models'].keys())
+        print(f"  {ver}: [{models_str}]")
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Generate data_bundle.json for showoff viewer")
     parser.add_argument('--version', default=None,
                         help="Bundle a single version (default: all)")
-    parser.add_argument('--brand', choices=KNOWN_BRANDS, default=None,
-                        help="Bundle a single brand (default: all)")
+    parser.add_argument('--model', default=None,
+                        help="Bundle a single model (default: all)")
     parser.add_argument('-o', '--output', default=None,
                         help=f"Output path (default: {DEFAULT_BUNDLE_PATH})")
     args = parser.parse_args()
-    generate_bundle(version_filter=args.version, brand_filter=args.brand,
+    generate_bundle(version_filter=args.version, model_filter=args.model,
                     output_path=args.output)
