@@ -1250,6 +1250,14 @@ MODEL_BRAND_MAP = {
     "qwen2.5:72b": "local", "qwen2.5:32b": "local", "qwen2.5:7b": "local",
     # Local — Ollama (llama family)
     "llama3.3:70b": "local", "llama3.1:70b": "local", "llama3.1:8b": "local",
+    # Local — Ollama (TranslateGemma — Google translation model, 55 languages)
+    "translategemma:4b": "local", "translategemma:12b": "local", "translategemma:27b": "local",
+    "translategemma:4b-it-q4_K_M": "local", "translategemma:4b-it-q8_0": "local",
+    "translategemma:4b-it-bf16": "local",
+    "translategemma:12b-it-q4_K_M": "local", "translategemma:12b-it-q8_0": "local",
+    "translategemma:12b-it-bf16": "local",
+    "translategemma:27b-it-q4_K_M": "local", "translategemma:27b-it-q8_0": "local",
+    "translategemma:27b-it-bf16": "local",
     # Local — Ollama (others)
     "gpt-oss:120b": "local",
 }
@@ -1291,6 +1299,18 @@ def _print_model_help():
         "llama3.1:70b": "good general, weaker Chinese",
         "llama3.1:8b": "fast, for testing only",
         "gpt-oss:120b": "large open-source, untested for SN",
+        "translategemma:4b": "Google translation, 4B base",
+        "translategemma:12b": "Google translation, 12B base",
+        "translategemma:27b": "Google translation, 27B base",
+        "translategemma:4b-it-q4_K_M": "4B instruction-tuned, compact",
+        "translategemma:4b-it-q8_0": "4B instruction-tuned, balanced",
+        "translategemma:4b-it-bf16": "4B instruction-tuned, full precision",
+        "translategemma:12b-it-q4_K_M": "12B instruction-tuned, compact",
+        "translategemma:12b-it-q8_0": "12B instruction-tuned, balanced",
+        "translategemma:12b-it-bf16": "12B instruction-tuned, full precision",
+        "translategemma:27b-it-q4_K_M": "★ 27B instruction-tuned, compact",
+        "translategemma:27b-it-q8_0": "27B instruction-tuned, balanced",
+        "translategemma:27b-it-bf16": "27B instruction-tuned, full precision (55GB)",
     }
 
     brand_order = ["claude", "gemini", "codex", "local"]

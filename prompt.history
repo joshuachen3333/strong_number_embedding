@@ -204,3 +204,6 @@ Colleagues added qwen3:8b on sai.fhl.net. Added to MODEL_BRAND_MAP as local bran
 
 ### 41. [2026-03-14] Fix codex JSON parse failures via --output-last-message
 Read side efforts (strong_number_embedding_gemini, strong_number_embedding_codex) to compare. Found codex fork uses `codex exec --output-last-message <file>` which writes clean final answer to a file — no thinking text contamination. Adopted this for call_codex(): replaced `--json` + `parse_codex_jsonl()` with `--output-last-message` + `_extract_json()`. Also switched from `--dangerously-bypass-approvals-and-sandbox` to `--sandbox read-only`. Tested: Gen 1:1 went from 0.3 (parse fail) to 0.72, Gen 1:4 went from 0.3 (parse fail, +6 extra SNs) to 0.95 with perfect SN coverage.
+
+### 42. [2026-03-15] Add Google TranslateGemma support (all 12 variants)
+go to sai and run code there. Add Google's TranslateGemma support — translation-specific model (55 languages incl. Chinese) built on Gemma 3. Added all 12 variants to MODEL_BRAND_MAP: 3 base (4b/12b/27b) + 9 instruction-tuned (4b/12b/27b × q4_K_M/q8_0/bf16). Pulled all models on sai.fhl.net via `docker exec ollama ollama pull`. Ollama on sai runs in Docker container, not bare metal.
