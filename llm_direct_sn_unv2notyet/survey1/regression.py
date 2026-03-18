@@ -74,15 +74,25 @@ def select_regression_verses(gold_standard, trigger_verses, seed=42):
         elif resolved == "round3":
             round3_verses.append(verse_key)
 
-    # Sample according to rates
-    def sample(verses, rate):
-        n = max(1, int(len(verses) * rate)) if verses else 0
+    # Sample according to rates, with minimum-count thresholds.
+    # Below the min count → test ALL (percentage sampling is meaningless
+    # when you only have a few verses).
+    MIN_COUNT_R3 = 5    # ≥ 5 → sample 80%, else all
+    MIN_COUNT_R2 = 10   # ≥ 10 → sample 50%, else all
+    MIN_COUNT_R1 = 20   # ≥ 20 → sample 20%, else all
+
+    def sample(verses, rate, min_count):
+        if not verses:
+            return []
+        if len(verses) < min_count:
+            return list(verses)  # too few → test all
+        n = max(1, int(len(verses) * rate))
         return random.sample(verses, min(n, len(verses)))
 
-    selected = list(trigger_set)  # 100% of triggers
-    selected.extend(sample(round3_verses, 0.80))
-    selected.extend(sample(round2_verses, 0.50))
-    selected.extend(sample(round1_verses, 0.20))
+    selected = list(trigger_set)  # 100% of triggers — always all
+    selected.extend(sample(round3_verses, 0.80, MIN_COUNT_R3))
+    selected.extend(sample(round2_verses, 0.50, MIN_COUNT_R2))
+    selected.extend(sample(round1_verses, 0.20, MIN_COUNT_R1))
 
     # Deduplicate and sort
     return sorted(set(selected))
