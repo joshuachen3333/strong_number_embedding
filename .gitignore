@@ -25,6 +25,14 @@ llm_direct_sn_unv2notyet/.window_budget.json
 llm_direct_sn_unv2notyet/.codex_schema.json
 llm_direct_sn_unv2notyet/.codex_last_message.txt
 
+# Survey1 — large machine-generated results, temp files
+llm_direct_sn_unv2notyet/survey1/round1_results/
+llm_direct_sn_unv2notyet/survey1/round2_results/
+llm_direct_sn_unv2notyet/survey1/round3_results/
+llm_direct_sn_unv2notyet/survey1/gold_standard/
+llm_direct_sn_unv2notyet/survey1/.codex_schema.json
+llm_direct_sn_unv2notyet/survey1/.codex_last_message.txt
+
 # Large binary database files
 original_text_preparation/source_sqlite/*.db
 original_text_preparation/source_sqlite/*.zip
