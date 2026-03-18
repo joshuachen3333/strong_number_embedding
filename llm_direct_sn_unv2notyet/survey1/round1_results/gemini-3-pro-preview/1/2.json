@@ -1,0 +1,38 @@
+{
+  "lcc_sn": "地<WH0776>還沒有定形<WH8414>、混混沌沌<WH0922>；黑暗<WH2822>在深淵<WH8415>上面<WH5921><WH6440>；上帝<WH0430>的靈<WH7307>覆煦<WH7363>在水<WH4325>面<WH6440>上<WH5921>。",
+  "confidence": 0.85,
+  "notes": [
+    "The UNV+SN text provided in the prompt lacked explicit SN tags, so Strong's Numbers were inferred from the standard Masoretic Text for Genesis 1:2.",
+    "LCC '還沒有定形' corresponds to H8414 (without form), and '混混沌沌' to H0922 (void).",
+    "LCC '深淵上面' aligns with H8415 (deep), H5921 (upon), and H6440 (face).",
+    "LCC '上帝' aligns with H0430 (God), replacing UNV's '神'.",
+    "LCC '覆煦' aligns with H7363 (hover/move), replacing UNV's '運行'."
+  ],
+  "_tokens": {
+    "input": 5846,
+    "output": 322
+  },
+  "_model": "gemini-3-pro-preview",
+  "_brand": "gemini",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 13,
+    "missing": [],
+    "extra": [
+      "0430",
+      "0776",
+      "0922",
+      "2822",
+      "4325",
+      "5921",
+      "5921",
+      "6440",
+      "6440",
+      "7307",
+      "7363",
+      "8414",
+      "8415"
+    ],
+    "perfect": false
+  }
+}

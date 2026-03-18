@@ -1,0 +1,38 @@
+{
+  "lcc_sn": "地<WH0776>還沒有定形<WH1961><WH8414>、混混沌沌<WH0922>；黑暗<WH2822>在<WH5921>深淵<WH8415>上面<WH6440>；上帝<WH0430>的靈<WH7307>覆煦<WH7363><WTH8764>在<WH5921>水<WH4325>面<WH6440>上。",
+  "confidence": 0.82,
+  "notes": [
+    "LCC '還沒有定形' fuses UNV '是'(H1961) + '空虛'(H8414) into one phrase — both SNs attached at phrase end since LCC has no separate word for 'was'",
+    "UNV implicit {<WH5921>} (first עַל, 'upon') becomes explicit '在' in LCC — braces dropped per Rule 3",
+    "LCC reorders clause to '黑暗在深淵上面' (SVO) vs UNV '淵面黑暗' — SNs redistributed: 黑暗→H2822, 在→H5921, 深淵→H8415, 上面→H6440",
+    "LCC '上帝' for UNV '神' — both map to H0430 (אֱלֹהִים)",
+    "LCC '覆煦' (brood/hover) for UNV '運行' (move) — same H7363 (מְרַחֶפֶת) with Piel ptc H8764"
+  ],
+  "_cost_usd": 0.38587150000000003,
+  "_resolved_model": "claude-opus-4-6",
+  "_model": "opus",
+  "_brand": "claude",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 15,
+    "missing": [],
+    "extra": [
+      "0430",
+      "0776",
+      "0922",
+      "1961",
+      "2822",
+      "4325",
+      "5921",
+      "5921",
+      "6440",
+      "6440",
+      "7307",
+      "7363",
+      "8414",
+      "8415",
+      "8764"
+    ],
+    "perfect": false
+  }
+}

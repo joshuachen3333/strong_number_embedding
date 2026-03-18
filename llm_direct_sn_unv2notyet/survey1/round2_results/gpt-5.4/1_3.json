@@ -1,0 +1,11 @@
+{
+  "best": "A",
+  "corrected": null,
+  "reasoning": "A is the most accurate: it preserves the full LCC text, includes all 6 Strong-number tags from the UNV, places them on the correct LCC words/phrases, and attaches the <WTH8799> morphology to the correct verbs. B omits all SN tags. C is close, but one occurrence is malformed as <WAH01961> instead of a valid H-tag, so it is not fully complete/correct.",
+  "sn_count_unv": 6,
+  "sn_counts": {
+    "A": 6,
+    "B": 0,
+    "C": 5
+  }
+}

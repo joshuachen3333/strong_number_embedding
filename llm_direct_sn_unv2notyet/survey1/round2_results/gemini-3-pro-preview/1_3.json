@@ -1,0 +1,11 @@
+{
+  "best": "A",
+  "corrected": null,
+  "reasoning": "Output A correctly places all Strong's numbers and morphological codes using the standard 4-digit format (e.g., <WH1961>) while preserving the original LCC text perfectly. Output B is missing all tags. Output C incorrectly uses 5-digit padding (<WH01961>) and an invalid prefix (<WAH01961>).",
+  "sn_count_unv": 9,
+  "sn_counts": {
+    "A": 9,
+    "B": 0,
+    "C": 9
+  }
+}
