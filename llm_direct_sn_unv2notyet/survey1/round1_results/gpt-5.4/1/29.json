@@ -1,0 +1,49 @@
+{
+  "lcc_sn": "上帝<WH0430>說<WH0559><WTH8799>：『看哪<WH2009>，我將<WH0853>{<WH0834>}全<WH3605>地<WH0776>上<WH5921><WH6440>結<WH2232><WTH8802>種子<WH2233>的各樣<WH3605>菜蔬<WH6212>、和{<WH0853>}各樣<WH3605>的樹<WH6086>、樹上<WAH09002>有<WH0834>果實<WH6529>結<WH2232><WTH8802>種子<WH2233>的、都賜<WH5414><WTH8804>給你們<WAH09001>做<WH1961><WTH8799>食物<WAH09001><WH0402>。",
+  "confidence": 0.87,
+  "notes": [
+    "The first <WH0834> before \"全地上...菜蔬\" has no standalone LCC equivalent, so it is retained as an implicit marker before that clause.",
+    "The second object marker <WH0853> is kept implicit before \"各樣的樹\" because LCC uses one shared \"將\" for both coordinated objects; <WAH09002> is attached to \"樹上\" and <WH0834> to \"有\" in the appositional tree-fruit clause."
+  ],
+  "_model": "gpt-5.4",
+  "_brand": "codex",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 31,
+    "missing": [],
+    "extra": [
+      "0402",
+      "0430",
+      "0559",
+      "0776",
+      "0834",
+      "0834",
+      "0853",
+      "0853",
+      "09001",
+      "09001",
+      "09002",
+      "1961",
+      "2009",
+      "2232",
+      "2232",
+      "2233",
+      "2233",
+      "3605",
+      "3605",
+      "3605",
+      "5414",
+      "5921",
+      "6086",
+      "6212",
+      "6440",
+      "6529",
+      "8799",
+      "8799",
+      "8802",
+      "8802",
+      "8804"
+    ],
+    "perfect": false
+  }
+}

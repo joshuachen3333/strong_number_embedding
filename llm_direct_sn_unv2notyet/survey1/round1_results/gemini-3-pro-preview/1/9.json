@@ -1,0 +1,20 @@
+{
+  "lcc_sn": "上帝說：『天下的水要積聚在一處，讓旱地露出來。』就這樣成了。",
+  "confidence": 1.0,
+  "notes": [
+    "The provided UNV text did not contain any Strong's Numbers to transfer, so the LCC text is returned without tags."
+  ],
+  "_tokens": {
+    "input": 147268,
+    "output": 870
+  },
+  "_model": "gemini-3-pro-preview",
+  "_brand": "gemini",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 0,
+    "missing": [],
+    "extra": [],
+    "perfect": true
+  }
+}

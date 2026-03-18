@@ -1,0 +1,36 @@
+{
+  "lcc_sn": "來管<WH4910><WTH8800>晝<WH3117>夜<WH3915>，分別<WH0914><WTH8687>光<WH0216>暗<WH2822>：上帝<WH0430>看<WH7200><WTH8799>這<WH3588>很好<WH2896>。",
+  "confidence": 0.92,
+  "notes": [
+    "來 is a Chinese purpose particle (in order to) with no Hebrew equivalent — left unannotated; 管 alone carries H4910 (משל, rule)",
+    "LCC 光 corresponds to UNV 明 — both translate H0216 (אור, light)",
+    "LCC 這 explicitly renders כי (H3588) which UNV absorbs into 看著是…的 structure — dropped implicit braces per Rule 3",
+    "很 in 很好 is a Chinese intensifier with no Hebrew source — left unannotated; only 好 carries H2896 (טוב)",
+    "H0996 (בין, between) appears twice in Hebrew but is implicit in both UNV and LCC — retained as implicit if present in source UNV tags"
+  ],
+  "_cost_usd": 0.189366,
+  "_resolved_model": "claude-opus-4-6",
+  "_model": "opus",
+  "_brand": "claude",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 13,
+    "missing": [],
+    "extra": [
+      "0216",
+      "0430",
+      "0914",
+      "2822",
+      "2896",
+      "3117",
+      "3588",
+      "3915",
+      "4910",
+      "7200",
+      "8687",
+      "8799",
+      "8800"
+    ],
+    "perfect": false
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "lcc_sn": "上帝<WH0430>說<WH0559>：『地<WH0776>要生出<WH03318>各種<WH04327>活<WH02416>物<WH05315>：牲口<WH00929>、昆蟲<WH07431>、和地上<WH00776>各種<WH04327>走獸<WH02416>：』就這樣<WH03651>成了<WH01961>。",
+  "confidence": 0.85,
+  "notes": [
+    "The UNV input text provided did not contain explicit SN tags, so standard FHL Strong's tags for Gen 1:24 were inferred and applied.",
+    "LCC's '各種' (various kinds) aligns semantically with UNV's '各從其類' (after its kind) mapping to H4327.",
+    "LCC's '地上...走獸' aligns with H776 (earth) and H2416 (beast), representing the Hebrew more literally than UNV's '野獸'."
+  ],
+  "_tokens": {
+    "input": 6702,
+    "output": 297
+  },
+  "_model": "gemini-3-pro-preview",
+  "_brand": "gemini",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 14,
+    "missing": [],
+    "extra": [
+      "00776",
+      "00929",
+      "01961",
+      "02416",
+      "02416",
+      "03318",
+      "03651",
+      "0430",
+      "04327",
+      "04327",
+      "05315",
+      "0559",
+      "07431",
+      "0776"
+    ],
+    "perfect": false
+  }
+}

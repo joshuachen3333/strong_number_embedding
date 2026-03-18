@@ -1,0 +1,42 @@
+{
+  "lcc_sn": "上帝<WH430>造<WH6213><WTH8799>了{<WH853>}穹蒼<WH7549>，將<WH996>穹蒼<WH7549>以下<WH8478>的水<WH4325>和<WH996>穹蒼<WH7549>以上<WH5921>的水<WH4325>分開<WH914><WTH8686>：就這樣<WH3651>成<WH1961><WTH8799>了。",
+  "confidence": 0.85,
+  "notes": [
+    "No explicit Strong's numbers were provided in the UNV source text in the prompt, so SNs were inferred directly from the Hebrew Masoretic Text.",
+    "H996 (beyn) maps contextually to '將' and '和' which represent the 'between... and...' structure in LCC.",
+    "H914 (badal) attaches to '分開', with Hiphil imperfect morphology WTH8686.",
+    "Implicit direct object marker H853 is retained as '{<WH853>}' before the first '穹蒼'."
+  ],
+  "_tokens": {
+    "input": 69015,
+    "output": 720
+  },
+  "_model": "gemini-3-pro-preview",
+  "_brand": "gemini",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 18,
+    "missing": [],
+    "extra": [
+      "1961",
+      "3651",
+      "430",
+      "4325",
+      "4325",
+      "5921",
+      "6213",
+      "7549",
+      "7549",
+      "7549",
+      "8478",
+      "853",
+      "8686",
+      "8799",
+      "8799",
+      "914",
+      "996",
+      "996"
+    ],
+    "perfect": false
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "lcc_sn": "上帝<WH0430>稱<WH07121><WTH8799>旱地<WAH09001><WH03004>爲地<WH0776>，稱<WH07121><WTH8804>水<WH04325>之積聚<WAH09001><WH04723>爲海<WH03220>：上帝<WH0430>看<WH07200><WTH8799>這很好<WH02896>。",
+  "confidence": 0.88,
+  "notes": [
+    "Provided UNV+SN text had no visible tags, so the mapping was inferred from the standard Hebrew/FHL alignment for Genesis 1:10.",
+    "The prefixed ל markers were attached to the corresponding LCC noun phrases: 旱地<WAH09001><WH03004> and 之積聚<WAH09001><WH04723>.",
+    "很好 corresponds to טוֹב (H2896); no separate tag was added to 這 because the visible UNV line did not supply an explicit tag for כי."
+  ],
+  "_model": "gpt-5.4",
+  "_brand": "codex",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 16,
+    "missing": [],
+    "extra": [
+      "02896",
+      "03004",
+      "03220",
+      "0430",
+      "0430",
+      "04325",
+      "04723",
+      "07121",
+      "07121",
+      "07200",
+      "0776",
+      "09001",
+      "09001",
+      "8799",
+      "8799",
+      "8804"
+    ],
+    "perfect": false
+  }
+}

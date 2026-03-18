@@ -1,0 +1,43 @@
+{
+  "lcc_sn": "上帝<WH0430>說<WH0559><WTH8799>：『天穹<WH08064><WH07549>要有<WH01961><WTH8799>發光之體<WH03974>來分<WH0914><WTH8687>晝<WH03117><WH0996>夜<WH03915><WH0996>；它們要做<WH01961><WTH8804>天象<WH0226>，定節令<WH04150>、日子<WH03117>、年歲<WH08141>；",
+  "confidence": 0.9,
+  "notes": [
+    "The provided UNV text lacked SN tags, so standard FHL Strong's Numbers for Genesis 1:14 were inferred.",
+    "'天穹' corresponds to both 'heavens' (WH08064) and 'expanse/firmament' (WH07549).",
+    "'天象' (heavenly signs/phenomena) corresponds to 'signs' (WH0226)."
+  ],
+  "_tokens": {
+    "input": 12833,
+    "output": 324
+  },
+  "_model": "gemini-3-pro-preview",
+  "_brand": "gemini",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 20,
+    "missing": [],
+    "extra": [
+      "01961",
+      "01961",
+      "0226",
+      "03117",
+      "03117",
+      "03915",
+      "03974",
+      "04150",
+      "0430",
+      "0559",
+      "07549",
+      "08064",
+      "08141",
+      "0914",
+      "0996",
+      "0996",
+      "8687",
+      "8799",
+      "8799",
+      "8804"
+    ],
+    "perfect": false
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "lcc_sn": "上帝<WH0430>就給它們<WH0853>祝福<WH1288><WTH8762>說<WH0559><WTH8800>：『要繁殖<WH6509><WTH8798>增多<WH7235><WTH8798>，充滿<WH4390><WTH8798>{<WH0853>}海<WH3220>中的水<WH4325>；飛鳥<WH5775>也要增多<WH7235><WTH8799>在地上<WH0776>。』",
+  "confidence": 0.88,
+  "notes": [
+    "神→上帝: standard LCC substitution for אלהים (H0430)",
+    "UNV {<WH0853>} (אֹתָם 'them') is implicit in UNV but LCC has explicit 它們, so braces dropped and SN attached directly",
+    "Second {<WH0853>} (את before המים) kept implicit with braces — LCC has no explicit object marker word for it",
+    "滋生→繁殖 and 繁多→增多: semantic equivalents for פְּרוּ and וּרְבוּ respectively",
+    "雀鳥→飛鳥: both mean 'birds' (H5775 עוֹף)",
+    "Could not verify exact FHL SN tags via API — worked from known Hebrew text and standard FHL conventions; confidence lowered slightly"
+  ],
+  "_cost_usd": 0.384056,
+  "_resolved_model": "claude-opus-4-6",
+  "_model": "opus",
+  "_brand": "claude",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 19,
+    "missing": [],
+    "extra": [
+      "0430",
+      "0559",
+      "0776",
+      "0853",
+      "0853",
+      "1288",
+      "3220",
+      "4325",
+      "4390",
+      "5775",
+      "6509",
+      "7235",
+      "7235",
+      "8762",
+      "8798",
+      "8798",
+      "8798",
+      "8799",
+      "8800"
+    ],
+    "perfect": false
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "lcc_sn": "{<WAH09002>}上帝<WH0430>稱<WH7121><WTH8799>{<WAH09001>}旱地<WH3004>爲地<WH0776>，{<WAH09002>}{<WAH09001>}稱<WH7121><WTH8804>水<WH4325>{<WAH09009>}之積聚<WH4723>爲海<WH3220>：{<WAH09002>}上帝<WH0430>看<WH7200><WTH8799>這<WH3588>很好<WH2896>。",
+  "confidence": 0.88,
+  "notes": [
+    "UNV 神 → LCC 上帝: systematic lexical difference, both H0430",
+    "כִּי (H3588) is implicit in UNV but LCC has explicit 這 → dropped braces per Rule 3",
+    "Second 稱 uses WTH8804 (Qal Perfect קָרָא) vs first 稱 WTH8799 (Qal Impf w.c. וַיִּקְרָא) — different Hebrew verb forms",
+    "UNV 聚處 → LCC 積聚: different Chinese word, same semantic mapping to מִקְוֵה (H4723)",
+    "Prefix markers (WAH09002/09001/09009) placed at expected positions based on Hebrew morphology — could not verify against live FHL source data"
+  ],
+  "_cost_usd": 0.6533575,
+  "_resolved_model": "claude-opus-4-6",
+  "_model": "opus",
+  "_brand": "claude",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 21,
+    "missing": [],
+    "extra": [
+      "0430",
+      "0430",
+      "0776",
+      "09001",
+      "09001",
+      "09002",
+      "09002",
+      "09002",
+      "09009",
+      "2896",
+      "3004",
+      "3220",
+      "3588",
+      "4325",
+      "4723",
+      "7121",
+      "7121",
+      "7200",
+      "8799",
+      "8799",
+      "8804"
+    ],
+    "perfect": false
+  }
+}

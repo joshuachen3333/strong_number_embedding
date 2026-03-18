@@ -1,0 +1,35 @@
+{
+  "lcc_sn": "上帝<WH0430>說<WH0559><WTH8799>：『衆水<WH0432>之間<WH08432>要有<WH01961><WTH8799>穹蒼<WH07549>，將水<WH0432>和<WH0996>水<WH0432>分開<WH0914><WTH8688>。』",
+  "confidence": 0.95,
+  "notes": [
+    "The provided UNV text was missing SN tags (likely due to an XML parsing bug that stripped tags). Derived the standard FHL Hebrew tags independently.",
+    "LCC's '將水和水分開' clearly splits the phrase 'between waters to waters'. Attached H0996 to '和' (between) and H0432 to the second '水' (waters) to best preserve alignment."
+  ],
+  "_tokens": {
+    "input": 6122,
+    "output": 235
+  },
+  "_model": "gemini-3-pro-preview",
+  "_brand": "gemini",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 13,
+    "missing": [],
+    "extra": [
+      "01961",
+      "0430",
+      "0432",
+      "0432",
+      "0432",
+      "0559",
+      "07549",
+      "08432",
+      "0914",
+      "0996",
+      "8688",
+      "8799",
+      "8799"
+    ],
+    "perfect": false
+  }
+}

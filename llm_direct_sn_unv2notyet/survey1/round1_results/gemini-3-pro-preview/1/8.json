@@ -1,0 +1,20 @@
+{
+  "lcc_sn": "上帝稱穹蒼爲天：有晚上有早晨，是第二日。",
+  "confidence": 1.0,
+  "notes": [
+    "The provided UNV text did not contain any Strong's Numbers to transfer, so the LCC text is returned without tags. If SN tags were intended, please provide them in the UNV+SN string."
+  ],
+  "_tokens": {
+    "input": 6181,
+    "output": 98
+  },
+  "_model": "gemini-3-pro-preview",
+  "_brand": "gemini",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 0,
+    "missing": [],
+    "extra": [],
+    "perfect": true
+  }
+}

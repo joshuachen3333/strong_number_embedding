@@ -1,0 +1,42 @@
+{
+  "lcc_sn": "於是上帝<WH0430>造了<WH6213>{<WH0853>}地上<WH0776>各種<WH4327>走獸<WH2416>，{<WH0853>}各種<WH4327>牲口<WH0929>，和{<WH0853>}地上<WH0127>各種各樣<WH3605>的昆蟲<WH7431><WH4327>：上帝<WH0430>看<WH7200>這<WH3588>很好<WH2896>。",
+  "confidence": 0.82,
+  "notes": [
+    "Could not fetch live FHL SN-tagged UNV — worked from known Hebrew text and standard SN assignments for Gen 1:25",
+    "UNV 地上 maps to H776 (הָאָרֶץ) for first occurrence with 走獸, and H127 (הָאֲדָמָה) for second occurrence with 昆蟲 — matching the Hebrew distinction between אֶרֶץ and אֲדָמָה",
+    "LCC 各種各樣的 covers both כָּל (H3605) and לְמִינֵהוּ (H4327) — attached both SNs to the phrase",
+    "Three אֶת (H853) object markers have no explicit LCC equivalent → kept as implicit {<WH0853>}",
+    "LCC 了 and 和 are Chinese grammatical particles with no Hebrew equivalent → left unannotated",
+    "Zero-padding uncertainty: used H0430 style but actual FHL format may use WH0430 with different padding — verify against live data"
+  ],
+  "_cost_usd": 0.4230147499999999,
+  "_resolved_model": "claude-opus-4-6",
+  "_model": "opus",
+  "_brand": "claude",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 18,
+    "missing": [],
+    "extra": [
+      "0127",
+      "0430",
+      "0430",
+      "0776",
+      "0853",
+      "0853",
+      "0853",
+      "0929",
+      "2416",
+      "2896",
+      "3588",
+      "3605",
+      "4327",
+      "4327",
+      "4327",
+      "6213",
+      "7200",
+      "7431"
+    ],
+    "perfect": false
+  }
+}

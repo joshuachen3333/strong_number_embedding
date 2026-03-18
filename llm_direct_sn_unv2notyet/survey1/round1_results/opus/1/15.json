@@ -1,0 +1,39 @@
+{
+  "lcc_sn": "要做<WH1961><WTH8804>發光之體<WAH09001><WH3974>在天穹<WAH09002><WH7549><WH8064>裏，來<WAH09001>照<WH0215><WTH8687>在<WH5921>地<WH0776>上；』就這樣<WH3651>成了<WH1961><WTH8799>。",
+  "confidence": 0.82,
+  "notes": [
+    "LCC 天穹 ('heavenly vault') absorbs both H7549 (raqia/firmament) and H8064 (shamayim/heavens) — UNV splits these across 天+空",
+    "LCC 發光之體 ('light-bodies') explicitly translates מאורות vs UNV's simpler 發光 — single SN H3974 covers the whole compound",
+    "LCC 來 serves as purpose marker paralleling Hebrew ל prefix (WAH09001) on להאיר; 照 carries the core H0215",
+    "LCC omits UNV's 事 before 就這樣成了 — H1961 attached to 成了 as the main verbal element",
+    "UNV+SN tags in the input appear to have been stripped by rendering — reconstruction based on Hebrew source text and standard FHL encoding patterns",
+    "Prefix markers (WAH09001 for ל, WAH09002 for ב) placement follows the pattern of attaching to the Chinese word corresponding to the Hebrew prefix function"
+  ],
+  "_cost_usd": 0.5092322499999999,
+  "_resolved_model": "claude-opus-4-6",
+  "_model": "opus",
+  "_brand": "claude",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 15,
+    "missing": [],
+    "extra": [
+      "0215",
+      "0776",
+      "09001",
+      "09001",
+      "09002",
+      "1961",
+      "1961",
+      "3651",
+      "3974",
+      "5921",
+      "7549",
+      "8064",
+      "8687",
+      "8799",
+      "8804"
+    ],
+    "perfect": false
+  }
+}

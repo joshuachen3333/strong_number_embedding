@@ -1,0 +1,20 @@
+{
+  "lcc_sn": "上帝就創造大魚、和滋生在水中各樣能行動的活物，各從其類；又創造各樣有翅膀的鳥兒，各從其類：上帝看這很好。",
+  "confidence": 1.0,
+  "notes": [
+    "No SN tags were provided in the UNV text to transfer."
+  ],
+  "_tokens": {
+    "input": 169643,
+    "output": 637
+  },
+  "_model": "gemini-3-pro-preview",
+  "_brand": "gemini",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 0,
+    "missing": [],
+    "extra": [],
+    "perfect": true
+  }
+}

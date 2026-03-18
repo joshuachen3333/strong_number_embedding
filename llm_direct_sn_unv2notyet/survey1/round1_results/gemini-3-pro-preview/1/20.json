@@ -1,0 +1,43 @@
+{
+  "lcc_sn": "上帝<WH0430>說<WH0559><WTH8799>：『水<WH4325>要滋生<WH8317><WTH8799>無數的<WH8318>活物<WH5315><WH2416>，要有飛鳥<WH5775>飛<WH5774><WTH8787>在<WH5921>地<WH0776>上，天穹<WH7549>之中<WH5921><WH6440>{<WH8064>}。』",
+  "confidence": 0.9,
+  "notes": [
+    "Inferred SN tags since the provided UNV source text was missing explicit tags.",
+    "LCC '無數的' corresponds to Hebrew cognate accusative WH8318 (sherets).",
+    "LCC '活物' corresponds to WH5315 (nephesh) + WH2416 (chayyah).",
+    "LCC '天穹' corresponds to WH7549 (raqia); WH8064 (heavens) marked as implicit {<WH8064>} since there is no separate explicit word.",
+    "WH5921 and WH6440 assigned to '之中' reflecting 'upon the face of'."
+  ],
+  "_tokens": {
+    "input": 92343,
+    "output": 623
+  },
+  "_model": "gemini-3-pro-preview",
+  "_brand": "gemini",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 18,
+    "missing": [],
+    "extra": [
+      "0430",
+      "0559",
+      "0776",
+      "2416",
+      "4325",
+      "5315",
+      "5774",
+      "5775",
+      "5921",
+      "5921",
+      "6440",
+      "7549",
+      "8064",
+      "8317",
+      "8318",
+      "8787",
+      "8799",
+      "8799"
+    ],
+    "perfect": false
+  }
+}

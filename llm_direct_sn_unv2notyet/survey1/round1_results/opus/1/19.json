@@ -1,0 +1,25 @@
+{
+  "lcc_sn": "有<WH1961>晚上<WH6153>有<WH1961>早晨<WH1242>，是第四<WH7243>日<WH3117>。",
+  "confidence": 0.97,
+  "notes": [
+    "Direct 1:1 mapping — LCC and UNV use identical wording; only difference is LCC omits the comma between 晚上 and 有早晨. All six SNs transferred straightforwardly."
+  ],
+  "_cost_usd": 0.13558175,
+  "_resolved_model": "claude-opus-4-6",
+  "_model": "opus",
+  "_brand": "claude",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 6,
+    "missing": [],
+    "extra": [
+      "1242",
+      "1961",
+      "1961",
+      "3117",
+      "6153",
+      "7243"
+    ],
+    "perfect": false
+  }
+}

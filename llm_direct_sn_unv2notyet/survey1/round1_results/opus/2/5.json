@@ -1,0 +1,50 @@
+{
+  "lcc_sn": "地上<WH7704>還沒有<WH2962>{<WH1961>}草木<WH7880>【2】，田野<WH7704>的菜蔬<WH6212>還沒有<WH2962>長起來<WH6779><WTH8799>，因爲<WH3588>永恆主<WH3068>上帝<WH0430>還沒有<WH3808>降雨<WH4305><WTH8689>在<WH5921>地上<WH0776>，也沒有<WH0369>人<WH0120>耕種<WH5647><WTH8800>土地<WH0127>；{<WH0853>}",
+  "confidence": 0.78,
+  "notes": [
+    "Could not fetch actual FHL UNV+SN tags (API blocked) — reconstructed from Hebrew source text. SN assignments are based on Hebrew lexicon knowledge, not verified against FHL's specific tagging.",
+    "UNV 野地 maps to H7704 (שָׂדֶה field); LCC uses 地上 for same concept in first clause — slightly different semantic scope but same Hebrew referent.",
+    "H3605 (כֹל every) appears twice in Hebrew but neither UNV nor LCC translate it explicitly — kept as implicit. However FHL may tag it differently.",
+    "H0776 (אֶרֶץ earth) in first clause בָאָרֶץ: UNV and LCC both absorb this into the field/ground word; second occurrence (עַל הָאָרֶץ) is explicit in both.",
+    "H1961 (יִהְיֶה was/be) has no explicit LCC word — kept as implicit {<WH1961>}.",
+    "H0853 (אֶת object marker) has no LCC equivalent — kept as implicit {<WH0853>} at end.",
+    "Morphology codes estimated: H6779 Qal imperfect (8799), H4305 Hiphil perfect (8689), H5647 Qal infinitive construct (8800). These should be verified against FHL data.",
+    "【2】 footnote marker in LCC preserved as-is (not an SN tag).",
+    "Lower confidence due to inability to verify against actual FHL tagging — zero-padding, prefix markers (WAH/09xxx), and implicit marker placement may differ."
+  ],
+  "_cost_usd": 0.46881900000000004,
+  "_resolved_model": "claude-opus-4-6",
+  "_model": "opus",
+  "_brand": "claude",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 23,
+    "missing": [],
+    "extra": [
+      "0120",
+      "0127",
+      "0369",
+      "0430",
+      "0776",
+      "0853",
+      "1961",
+      "2962",
+      "2962",
+      "3068",
+      "3588",
+      "3808",
+      "4305",
+      "5647",
+      "5921",
+      "6212",
+      "6779",
+      "7704",
+      "7704",
+      "7880",
+      "8689",
+      "8799",
+      "8800"
+    ],
+    "perfect": false
+  }
+}

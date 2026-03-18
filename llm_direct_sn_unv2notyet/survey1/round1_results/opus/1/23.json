@@ -1,0 +1,29 @@
+{
+  "lcc_sn": "有<WH1961><WTH8799>晚上<WH6153>有<WH1961><WTH8799>早晨<WH1242>，是第五<WH2549>日<WH3117>。",
+  "confidence": 0.98,
+  "notes": [
+    "UNV and LCC are nearly identical — only difference is LCC omits the comma after 晚上. All SN positions map 1:1.",
+    "是 (copula) has no Hebrew equivalent and is left unannotated.",
+    "This is the standard day-closing formula (same pattern as Gen 1:5, 1:8, 1:13, 1:19, 1:31)."
+  ],
+  "_cost_usd": 0.30351775000000003,
+  "_resolved_model": "claude-opus-4-6",
+  "_model": "opus",
+  "_brand": "claude",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 8,
+    "missing": [],
+    "extra": [
+      "1242",
+      "1961",
+      "1961",
+      "2549",
+      "3117",
+      "6153",
+      "8799",
+      "8799"
+    ],
+    "perfect": false
+  }
+}

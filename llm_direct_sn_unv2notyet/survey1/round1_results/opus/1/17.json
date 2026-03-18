@@ -1,0 +1,36 @@
+{
+  "lcc_sn": "上帝<WH0430>把這些發光之體{<WH0853>}佈置<WAH09001><WH5414><WTH8799>在天穹<WAH09002><WH7549>，讓它們照<WAH09001><WH0215><WTH8687>在地<WH0776>上<WH5921>，",
+  "confidence": 0.72,
+  "notes": [
+    "Could not fetch live FHL API data — SN tags reconstructed from known Hebrew source (BHS) for Gen 1:17. Confidence lowered accordingly.",
+    "UNV 就 has no SN equivalent — left unannotated in LCC (上帝 absorbs H0430 which appears at verse level).",
+    "H0853 (אֹתָם/them): LCC has '這些發光之體' which is explicit, but the direct object marker itself has no Chinese word — kept as implicit {<WH0853>} after the noun phrase.",
+    "LCC '讓它們照' maps to UNV '普照' — the infinitive construct לְהָאִיר gets H0215 with lamed prefix H09001.",
+    "H8064 (שָׁמָיִם/heavens) — UNV has 天空 but LCC uses 天穹 (firmament); the SN for heavens may belong on the implied 'of heaven' genitive. Placed H7549 on 天穹 as it maps to רָקִיעַ (firmament/expanse), but H8064 may be implicit here since LCC omits a separate word for 'heavens'. This is the main source of uncertainty.",
+    "Morphology: H8799 (Qal Imperfect wayyiqtol for נָתַן), H8687 (Hiphil Infinitive construct for אוֹר). These are approximate without live API verification."
+  ],
+  "_cost_usd": 0.22497675,
+  "_resolved_model": "claude-opus-4-6",
+  "_model": "opus",
+  "_brand": "claude",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 12,
+    "missing": [],
+    "extra": [
+      "0215",
+      "0430",
+      "0776",
+      "0853",
+      "09001",
+      "09001",
+      "09002",
+      "5414",
+      "5921",
+      "7549",
+      "8687",
+      "8799"
+    ],
+    "perfect": false
+  }
+}

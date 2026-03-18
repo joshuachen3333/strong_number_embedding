@@ -1,0 +1,43 @@
+{
+  "lcc_sn": "於是地<WH0776>生出了<WH3318><WTH8686>青草<WH1877>，和結<WH2232><WTH8688>種子<WH2233>的菜蔬<WH6212>，各從其類<WH4327>，跟結<WH6213><WTH8802>果子<WH6529>的樹<WH6086>，各從其類<WH4327>，果子裏有<WH0834>種子<WH2233>。上帝<WH0430>看<WH7200><WTH8799>這<WH3588>很好<WH2896>。",
+  "confidence": 0.9,
+  "notes": [
+    "UNV '神' maps to LCC '上帝', both translating H0430 (elohim).",
+    "Added Strong's Number tags directly to LCC based on the Hebrew Masoretic Text, as they were absent in the provided UNV reference string."
+  ],
+  "_tokens": {
+    "input": 75486,
+    "output": 427
+  },
+  "_model": "gemini-3-pro-preview",
+  "_brand": "gemini",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 21,
+    "missing": [],
+    "extra": [
+      "0430",
+      "0776",
+      "0834",
+      "1877",
+      "2232",
+      "2233",
+      "2233",
+      "2896",
+      "3318",
+      "3588",
+      "4327",
+      "4327",
+      "6086",
+      "6212",
+      "6213",
+      "6529",
+      "7200",
+      "8686",
+      "8688",
+      "8799",
+      "8802"
+    ],
+    "perfect": false
+  }
+}

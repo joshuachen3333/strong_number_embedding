@@ -1,0 +1,37 @@
+{
+  "lcc_sn": "上帝<WH0430>說<WH0559><WTH8799>：『天<WH8064>下<WAH09002>的水<WH4325>要積聚<WH6960><WTH8735>在一<WH0259>處<WAH09001>，讓旱地<WH3004>露出來<WH7200><WTH8735>。』就這樣成了<WH1961><WTH8799>。",
+  "confidence": 0.95,
+  "notes": [
+    "神→上帝: systematic UNV/LCC difference, same SN H0430 (אֱלֹהִים)",
+    "聚→積聚: LCC uses compound verb form; SN tags attached after full compound 積聚",
+    "使→讓: both are Chinese causative particles with no Hebrew equivalent, left unannotated",
+    "UNV has 事 before 就這樣成了; LCC omits it — no SN impact since 事 was unannotated in UNV"
+  ],
+  "_cost_usd": 0.39427874999999996,
+  "_resolved_model": "claude-opus-4-6",
+  "_model": "opus",
+  "_brand": "claude",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 15,
+    "missing": [],
+    "extra": [
+      "0259",
+      "0430",
+      "0559",
+      "09001",
+      "09002",
+      "1961",
+      "3004",
+      "4325",
+      "6960",
+      "7200",
+      "8064",
+      "8735",
+      "8735",
+      "8799",
+      "8799"
+    ],
+    "perfect": false
+  }
+}

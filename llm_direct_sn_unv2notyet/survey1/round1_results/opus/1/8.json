@@ -1,0 +1,34 @@
+{
+  "lcc_sn": "上帝<WH0430>稱<WH7121><WTH8799>穹蒼<WH7549>爲天<WH8064>：有<WH1961><WTH8799>晚上<WH6153>有<WH1961><WTH8799>早晨<WH1242>，是第二<WH8145>日<WH3117>。",
+  "confidence": 0.95,
+  "notes": [
+    "上帝(LCC) = 神(UNV), both map to H0430 (אֱלֹהִים)",
+    "穹蒼(LCC) = 空氣(UNV), both map to H7549 (רָקִיעַ)",
+    "爲 left unannotated — Chinese grammatical word expressing the lamed-accusative function on לָרָקִיעַ, not a separate Hebrew lexeme"
+  ],
+  "_cost_usd": 0.2136125,
+  "_resolved_model": "claude-opus-4-6",
+  "_model": "opus",
+  "_brand": "claude",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 13,
+    "missing": [],
+    "extra": [
+      "0430",
+      "1242",
+      "1961",
+      "1961",
+      "3117",
+      "6153",
+      "7121",
+      "7549",
+      "8064",
+      "8145",
+      "8799",
+      "8799",
+      "8799"
+    ],
+    "perfect": false
+  }
+}

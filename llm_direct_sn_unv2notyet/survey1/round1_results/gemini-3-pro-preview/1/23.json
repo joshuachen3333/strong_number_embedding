@@ -1,0 +1,30 @@
+{
+  "lcc_sn": "有<WH1961><WTH8799>晚上<WH6153>有<WH1961><WTH8799>早晨<WH1242>，是第五<WH2549>日<WH3117>。",
+  "confidence": 0.98,
+  "notes": [
+    "UNV and LCC texts are nearly identical, differing only in punctuation, allowing for a straightforward 1:1 mapping.",
+    "The copula '是' has no explicit Hebrew equivalent in this sentence structure and is left unannotated."
+  ],
+  "_tokens": {
+    "input": 71666,
+    "output": 320
+  },
+  "_model": "gemini-3-pro-preview",
+  "_brand": "gemini",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 8,
+    "missing": [],
+    "extra": [
+      "1242",
+      "1961",
+      "1961",
+      "2549",
+      "3117",
+      "6153",
+      "8799",
+      "8799"
+    ],
+    "perfect": false
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "lcc_sn": "上帝<WH0430>就按自己的形像<WAH09002><WH06754>創造<WH01254><WTH8799>{<WAH0853>}人<WH0120>：按上帝<WH0430>的形像<WAH09002><WH06754>創造<WH01254><WTH8804>他<WAH0853>：創造<WH01254><WTH8804>他們<WAH0853>有男<WH02145>有女<WH05347>。",
+  "confidence": 0.92,
+  "notes": [
+    "LCC makes the second-clause referent explicit as 上帝<WH0430>, where UNV compresses it in 他<WH0430>.",
+    "The implicit object marker {<WAH0853>} before 男/女 in UNV is represented explicitly in LCC by 他 / 他們, so the braces are dropped there.",
+    "The first clause still has no explicit Chinese equivalent for the object marker before 人, so {<WAH0853>} is retained before 人<WH0120>.",
+    "LCC’s 有 in 有男有女 has no separate Hebrew equivalent and is left unannotated."
+  ],
+  "_model": "gpt-5.4",
+  "_brand": "codex",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 18,
+    "missing": [],
+    "extra": [
+      "0120",
+      "01254",
+      "01254",
+      "01254",
+      "02145",
+      "0430",
+      "0430",
+      "05347",
+      "06754",
+      "06754",
+      "0853",
+      "0853",
+      "0853",
+      "09002",
+      "09002",
+      "8799",
+      "8804",
+      "8804"
+    ],
+    "perfect": false
+  }
+}

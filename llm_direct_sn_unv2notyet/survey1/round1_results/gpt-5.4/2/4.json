@@ -1,0 +1,35 @@
+{
+  "lcc_sn": "天<WH08064>地<WH0776>之被創造<WAH09002><WH01254><WTH8736>，其來歷<WH08435>是這樣<WH0428>：當永恆主<WH03068>上帝<WH0430>造<WH06213><WTH8800>地<WH0776>造天<WH08064>的日子<WAH09002><WH03117>，",
+  "confidence": 0.88,
+  "notes": [
+    "LCC places 天地 before 被創造, so <WH08064><WH0776> attach to 天地 and the creation tags attach to 被創造.",
+    "永恆主 and 上帝 correspond to 耶和華 and 神 respectively: 永恆主<WH03068>上帝<WH0430>.",
+    "LCC has 造地造天 instead of UNV 造天地; <WH0776> attaches to 地 and <WH08064> attaches to 天, while the second 造 is left unannotated as a Chinese stylistic repetition.",
+    "<WAH09002> is kept with 日子 as in the UNV tagging convention, even though LCC also has 當 marking the temporal sense."
+  ],
+  "_model": "gpt-5.4",
+  "_brand": "codex",
+  "_sn_coverage": {
+    "unv_count": 0,
+    "lcc_count": 15,
+    "missing": [],
+    "extra": [
+      "01254",
+      "03068",
+      "03117",
+      "0428",
+      "0430",
+      "06213",
+      "0776",
+      "0776",
+      "08064",
+      "08064",
+      "08435",
+      "09002",
+      "09002",
+      "8736",
+      "8800"
+    ],
+    "perfect": false
+  }
+}
