@@ -1,4 +1,4 @@
-# survey1/ — 3-Model Gold Standard with Live Prompt Evolution
+# survey1_prompt_evolving/ — 3-Model Gold Standard with Live Prompt Evolution
 
 ## Purpose
 
@@ -136,7 +136,7 @@ Each verse in `gold_standard/{chap}/{sec}.json`:
 ## File Structure
 
 ```
-survey1/
+survey1_prompt_evolving/
 ├── run_gold_standard.py     # Main orchestrator + CLI (per-verse pipeline)
 ├── cli_caller.py            # Unified CLI wrapper (claude/gemini/codex)
 │                            #   modes: production, judge, freeform

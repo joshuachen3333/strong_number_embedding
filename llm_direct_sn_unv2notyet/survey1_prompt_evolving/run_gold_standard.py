@@ -325,7 +325,7 @@ def _get_base_prompt_trigger(prompt_version):
 
 
 def load_prompt_file(prompt_file):
-    """Load system prompt from a file (relative to survey1/ or absolute)."""
+    """Load system prompt from a file (relative to survey1_prompt_evolving/ or absolute)."""
     if not os.path.isabs(prompt_file):
         prompt_file = os.path.join(SURVEY_DIR, prompt_file)
     with open(prompt_file, "r", encoding="utf-8") as f:

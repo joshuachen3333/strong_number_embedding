@@ -142,7 +142,7 @@ def check_all():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Health check for survey1 models")
+    parser = argparse.ArgumentParser(description="Health check for survey1_prompt_evolving models")
     parser.add_argument("--poll", action="store_true",
                         help="Poll until all models are ready")
     parser.add_argument("--interval", type=int, default=5,
