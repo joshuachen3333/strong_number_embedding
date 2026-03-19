@@ -2,19 +2,23 @@
 """
 Gold Standard Builder — 3-Model Consensus for SN Embedding
 
-Uses opus, gemini-3-pro-preview, and gpt-5.4 to establish the best possible
+Uses opus, gemini-3-flash-preview, and gpt-5.4 to establish the best possible
 Strong's Number embedding via a 3-round consensus process.
 
 Round 1: All 3 models produce output. Only UNANIMOUS agreement passes.
-Round 2: Each model judges disagreed verses. 2/3 majority wins.
-Round 3: Final arbitration with full history. 2/3 majority wins.
+Round 2: Convergence (blind re-do until stable) + Debate (judge stable outputs).
+         2/3 majority wins.
+Round 3: Dual-capability final arbitration (pick winner OR identify collective
+         error → prompt evolution). 2/3 majority wins.
          Remaining → unresolved (human review).
 
 Usage:
     python3 run_gold_standard.py                          # default: Gen 1-2
     python3 run_gold_standard.py --book 創 --chap 1-5
     python3 run_gold_standard.py --book 創 --chap 1 --sec 1-10
-    python3 run_gold_standard.py --resume
+    python3 run_gold_standard.py --prompt-file prompts/v1.1.md --prompt-version v1.1
+    python3 run_gold_standard.py --max-r2-retries 2
+    python3 run_gold_standard.py --force                           # re-run cached
     python3 run_gold_standard.py --round1-only
     python3 run_gold_standard.py --skip-round1
     python3 run_gold_standard.py --show-summary
@@ -23,10 +27,147 @@ Usage:
 """
 
 import argparse
+import atexit
 import json
 import os
+import signal
 import sys
 import time
+from datetime import datetime
+
+
+def ts():
+    """Return current timestamp string for progress logging."""
+    return datetime.now().strftime("%H:%M:%S")
+
+
+class _TeeWriter:
+    """Write to both stdout and a log file."""
+    def __init__(self, log_path, original_stdout):
+        self._log = open(log_path, "a", encoding="utf-8")
+        self._stdout = original_stdout
+
+    def write(self, text):
+        self._stdout.write(text)
+        self._log.write(text)
+        self._log.flush()
+
+    def flush(self):
+        self._stdout.flush()
+        self._log.flush()
+
+
+def _setup_tee(log_path):
+    """Redirect stdout to both console and log file."""
+    sys.stdout = _TeeWriter(log_path, sys.stdout)
+
+
+# ── Log file rename tracking ────────────────────────────────────────────────
+
+_log_rename_state = {
+    "log_file": None,
+    "book_eng": None,
+    "first_chap": None,
+    "first_sec": None,
+    "last_book_eng": None,
+    "last_chap": None,
+    "last_sec": None,
+}
+
+
+def _update_last_verse(book_eng, chap, sec):
+    """Track the last processed verse for log rename."""
+    _log_rename_state["last_book_eng"] = book_eng
+    _log_rename_state["last_chap"] = chap
+    _log_rename_state["last_sec"] = sec
+
+
+def _rename_log_on_exit():
+    """Rename log file to include ending verse. Called via atexit/signal."""
+    s = _log_rename_state
+    if not s["log_file"] or not s["last_chap"]:
+        return
+    # Build end part
+    if s["last_book_eng"] and s["last_book_eng"] != s["book_eng"]:
+        # Crossed books
+        end_part = f"{s['last_book_eng']}_{s['last_chap']}_{s['last_sec']}"
+    else:
+        end_part = f"{s['last_chap']}_{s['last_sec']}"
+
+    start_part = f"{s['book_eng']}_{s['first_chap']}_{s['first_sec']}"
+    old_path = s["log_file"]
+    new_path = old_path.replace(f"{start_part}-.", f"{start_part}-{end_part}.")
+    if old_path != new_path:
+        try:
+            os.rename(old_path, new_path)
+        except OSError:
+            pass
+
+
+def _signal_handler(signum, frame):
+    """Handle Ctrl-C: rename log then exit."""
+    _rename_log_on_exit()
+    sys.exit(0)
+
+
+# ── Stability helpers ────────────────────────────────────────────────────────
+
+STABILITY_ORDER = {"R1": 0, "R2a": 1, "R2b": 2, "R2c": 3, "R2d": 4, "unstable": 5}
+
+
+def is_easy_convergence(conv_data):
+    """Check if a model converged easily (R1 or R2a)."""
+    return conv_data.get("stable_at") in ("R1", "R2a")
+
+
+def load_model_patch(model_name, prompt_version):
+    """Load latest model-specific prompt patch if it exists.
+
+    Filename format: v1.1_Gen_1_1.{model}-patch-{ver}_{Book}_{chap}_{sec}.md
+    Matches on prompt_version prefix (e.g., "v1.1") and model name.
+
+    Returns (patch_text, patch_version_str) or ("", "") if no patch.
+    """
+    import re as _re
+    prompts_dir = os.path.join(SURVEY_DIR, "prompts")
+    if not os.path.isdir(prompts_dir):
+        return "", ""
+    patches = []
+    for fname in os.listdir(prompts_dir):
+        m = _re.match(
+            rf'^{_re.escape(prompt_version)}_\w+_\d+_\d+\.{_re.escape(model_name)}-patch-(\d+\.\d+)_\w+_\d+_\d+\.md$',
+            fname)
+        if m:
+            ver_str = m.group(1)
+            ver = tuple(int(x) for x in ver_str.split('.'))
+            patches.append((ver, ver_str, fname))
+    if not patches:
+        return "", ""
+    patches.sort()
+    _, ver_str, latest = patches[-1]
+    with open(os.path.join(prompts_dir, latest), "r", encoding="utf-8") as f:
+        return f.read().strip(), ver_str
+
+
+def next_patch_version(model_name, prompt_version):
+    """Find the next patch version number for a model."""
+    import re as _re
+    prompts_dir = os.path.join(SURVEY_DIR, "prompts")
+    if not os.path.isdir(prompts_dir):
+        return "0.1"
+    max_minor = 0
+    for fname in os.listdir(prompts_dir):
+        m = _re.match(
+            rf'^{_re.escape(prompt_version)}_\w+_\d+_\d+\.{_re.escape(model_name)}-patch-(\d+)\.(\d+)_',
+            fname)
+        if m:
+            minor = int(m.group(1)) * 10 + int(m.group(2))
+            max_minor = max(max_minor, minor)
+    if max_minor == 0:
+        return "0.1"
+    major = (max_minor + 1) // 10
+    minor = (max_minor + 1) % 10
+    return f"{major}.{minor}"
 
 SURVEY_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.dirname(SURVEY_DIR)
@@ -45,7 +186,7 @@ from shared.data.book_data_loader import load_books
 
 from cli_caller import call_llm, DEFAULT_MODELS
 from comparator import compare_round1, summarize_disagreement
-from judge import run_judge_round
+from judge import run_r2_convergence, run_r2_debate, run_round3, tally_r2_debate
 from consensus import build_gold_standard, save_gold_standard, print_summary
 from regression import (
     load_gold_standard, select_regression_verses, print_regression_plan,
@@ -77,8 +218,152 @@ def get_verse_list(book_chi, chapters, sec_range=None):
     return verses
 
 
-def run_round1(verses, book_chi, models, target_version, sn_field,
-               system_prompt, resume=False, verbose=False):
+def _run_patch_regression(model_name, prompt_version, base_prompt, patch_text,
+                          convergence_results, verse_data, models,
+                          target_version, sn_field, verbose):
+    """Minor 回測: re-run patched model solo on 10% of past verses.
+
+    Compares new stability to model's own previous stability.
+    Returns True if patch is OK, False if regression detected.
+    """
+    import random
+    from llm_direct_sn_unv2notyet import build_user_prompt
+    from comparator import texts_match
+    from judge import _eng_to_chi
+
+    # Collect past verses with convergence data for this model
+    past_verses = []
+    model_conv = convergence_results.get(model_name, {})
+    for vk, cv in model_conv.items():
+        if cv.get("stable_at") and cv.get("stable_at") != "unstable":
+            past_verses.append(vk)
+
+    if not past_verses:
+        print(f"    Patch 回測: no past data for {model_name}, skipping")
+        return True
+
+    # Sample 10%, minimum 1
+    sample_size = max(1, int(len(past_verses) * 0.10))
+    sampled = random.sample(past_verses, min(sample_size, len(past_verses)))
+
+    print(f"    Patch 回測: testing {len(sampled)}/{len(past_verses)} past verses for {model_name}")
+
+    patched_prompt = base_prompt + "\n\n" + patch_text
+
+    # Find model info
+    model_info = None
+    for m in models:
+        if m["name"] == model_name:
+            model_info = m
+            break
+    if not model_info:
+        return True
+
+    for vk in sampled:
+        old_conv = model_conv[vk]
+        old_stable = old_conv.get("stable_at", "unstable")
+        vdata = verse_data.get(vk)
+        if not vdata:
+            continue
+
+        book_chi = _eng_to_chi(vdata.get("book", ""))
+        chap, sec = vk
+
+        # Do one blind call with patched prompt
+        user_prompt = build_user_prompt(
+            vdata["unv_sn"], vdata["lcc_original"],
+            target_version, book_chi, chap, sec)
+
+        result = call_llm(
+            brand=model_info["brand"], model=model_info["model"],
+            system_prompt=patched_prompt,
+            user_prompt=user_prompt,
+            target_version=target_version,
+            verbose=verbose,
+        )
+
+        new_text = result.get(sn_field, "")
+        r1_text = old_conv.get("attempts", [""])[0]  # R1 output
+
+        # Check: does new output match R1? (best case = stable at R1)
+        if new_text and r1_text and texts_match(new_text, r1_text):
+            new_stable = "R1"
+        elif new_text:
+            new_stable = "R2a"  # produced something different but non-empty
+        else:
+            new_stable = "unstable"
+
+        old_rank = STABILITY_ORDER.get(old_stable, 5)
+        new_rank = STABILITY_ORDER.get(new_stable, 5)
+
+        if new_rank > old_rank:
+            print(f"    REGRESSION on {chap}:{sec}: was {old_stable}, now {new_stable}")
+            return False
+        else:
+            print(f"    {chap}:{sec}: was {old_stable}, now {new_stable} ✓")
+
+    return True
+
+
+def _get_base_prompt_trigger(prompt_version):
+    """Extract the trigger suffix from the base prompt filename.
+
+    e.g., v1.1_Gen_1_1.md → "_Gen_1_1"
+          v1.0.md → "" (baseline, no trigger)
+    """
+    import re as _re
+    prompts_dir = os.path.join(SURVEY_DIR, "prompts")
+    if not os.path.isdir(prompts_dir):
+        return ""
+    for fname in os.listdir(prompts_dir):
+        if "-patch-" in fname:
+            continue
+        m = _re.match(rf'^{_re.escape(prompt_version)}(_\w+_\d+_\d+)?\.md$', fname)
+        if m and m.group(1):
+            return m.group(1)  # e.g., "_Gen_1_1"
+    return ""
+
+
+def load_prompt_file(prompt_file):
+    """Load system prompt from a file (relative to survey1/ or absolute)."""
+    if not os.path.isabs(prompt_file):
+        prompt_file = os.path.join(SURVEY_DIR, prompt_file)
+    with open(prompt_file, "r", encoding="utf-8") as f:
+        return f.read().strip()
+
+
+def detect_latest_prompt():
+    """Find the latest versioned base prompt file in prompts/ directory.
+
+    Matches: v{ver}.md (baseline) or v{ver}_{Book}_{chap}_{sec}.md (evolved)
+    Excludes patch files (contain '-patch-').
+    Returns (prompt_path, version_string) or (None, None) if none found.
+    """
+    import re
+    prompts_dir = os.path.join(SURVEY_DIR, "prompts")
+    if not os.path.isdir(prompts_dir):
+        return None, None
+
+    version_files = []
+    for fname in os.listdir(prompts_dir):
+        if "-patch-" in fname:
+            continue  # skip model patches
+        m = re.match(r'^v(\d+(?:\.\d+)*)(?:_\w+_\d+_\d+)?\.md$', fname)
+        if m:
+            ver_str = m.group(1)
+            ver_tuple = tuple(int(x) for x in ver_str.split('.'))
+            version_files.append((ver_tuple, ver_str, fname))
+
+    if not version_files:
+        return None, None
+
+    version_files.sort()
+    _, ver_str, fname = version_files[-1]
+    return os.path.join(prompts_dir, fname), f"v{ver_str}"
+
+
+def run_round1(verses, book_chi, book_eng, models, target_version, sn_field,
+               system_prompt, force=False, verbose=False):
     """Run Round 1: each model produces SN output for each verse.
 
     Returns:
@@ -88,8 +373,6 @@ def run_round1(verses, book_chi, models, target_version, sn_field,
     round1_dir = os.path.join(SURVEY_DIR, "round1_results")
     round1_results = {m["name"]: {} for m in models}
     verse_data = {}
-
-    book_eng = CHI_TO_ENG.get(book_chi, book_chi)
     total = len(verses) * len(models)
     done = 0
     t0 = time.time()
@@ -123,16 +406,16 @@ def run_round1(verses, book_chi, models, target_version, sn_field,
 
             # Check cache
             result_file = os.path.join(
-                round1_dir, model_name, str(chap), f"{sec}.json")
+                round1_dir, model_name, book_eng, str(chap), f"{sec}.json")
 
-            if resume and os.path.isfile(result_file):
+            if not force and os.path.isfile(result_file):
                 with open(result_file, "r", encoding="utf-8") as f:
                     round1_results[model_name][(chap, sec)] = json.load(f)
                 done += 1
-                print(f"  [{model_name}] cached", flush=True)
+                print(f"  [ {model_name} ] cached", flush=True)
                 continue
 
-            print(f"  [{model_name}] calling...", end=" ", flush=True)
+            print(f"  [ {model_name} ] calling...", end=" ", flush=True)
 
             result = call_llm(
                 brand=brand, model=model_id,
@@ -185,10 +468,16 @@ def main():
                         help="Verse range: '1-10' or '1,3,5-7' (optional)")
     parser.add_argument("--target-version", default="lcc",
                         help="Target Bible version (default: lcc)")
-    parser.add_argument("--prompt-version", default="v1.0",
-                        help="Prompt version label (default: v1.0)")
-    parser.add_argument("--resume", action="store_true",
-                        help="Skip already-completed verses")
+    parser.add_argument("--prompt-version", default=None,
+                        help="Prompt version label (default: auto-detected from latest prompt)")
+    parser.add_argument("--prompt-file", default=None,
+                        help="Override prompt file (default: latest in prompts/)")
+    parser.add_argument("--max-r2-retries", type=int, default=0,
+                        help="Max R2 convergence retries after R2a (default: 0 = unlimited, hard cap 26)")
+    parser.add_argument("--verse-count", type=int, default=None,
+                        help="Process only N verses (from the start of the range)")
+    parser.add_argument("--force", action="store_true",
+                        help="Re-run even if cached results exist (default: skip cached)")
     parser.add_argument("--round1-only", action="store_true",
                         help="Run Round 1 only (no judging)")
     parser.add_argument("--skip-round1", action="store_true",
@@ -234,13 +523,28 @@ def main():
                         print(f"    [{model}] opinion={info.get('opinion')} "
                               f"conf={info.get('confidence')}")
                         print(f"      {info.get('lcc_sn', '')[:120]}")
+                if g.get("round2_convergence"):
+                    print("    R2 convergence:")
+                    for model, info in g["round2_convergence"].items():
+                        print(f"      [{model}] stable_at={info.get('stable_at')} "
+                              f"converged={info.get('converged')} "
+                              f"attempts={info.get('attempt_count')}")
                 if g.get("round2"):
-                    print("    Round 2 judgments:")
+                    print("    R2 debate:")
                     for judge, info in g["round2"].items():
                         print(f"      [{judge}] best={info.get('best')} "
                               f"opinion={info.get('opinion')}")
                         if info.get("reasoning"):
                             print(f"        {info['reasoning'][:150]}")
+                if g.get("round3"):
+                    print("    R3 judgments:")
+                    for judge, info in g["round3"].items():
+                        verdict = info.get("verdict", "?")
+                        if verdict == "all_wrong":
+                            print(f"      [{judge}] ALL_WRONG: {info.get('error_identified', '')[:100]}")
+                        else:
+                            print(f"      [{judge}] PICK best={info.get('best')} "
+                                  f"opinion={info.get('opinion')}")
         return
 
     # Regression testing
@@ -261,133 +565,470 @@ def main():
     chapters = parse_range(args.chap)
     sec_range = set(parse_range(args.sec)) if args.sec else None
 
+    # Load system prompt (before header so version is known)
+    if args.prompt_file:
+        system_prompt = load_prompt_file(args.prompt_file)
+        if args.prompt_version is None:
+            import re
+            m = re.search(r'v(\d+(?:\.\d+)*)', args.prompt_file)
+            args.prompt_version = f"v{m.group(1)}" if m else "unknown"
+    else:
+        latest_path, latest_ver = detect_latest_prompt()
+        if latest_path:
+            system_prompt = load_prompt_file(latest_path)
+            if args.prompt_version is None:
+                args.prompt_version = latest_ver
+        else:
+            system_prompt = load_system_prompt(target_version)
+            if args.prompt_version is None:
+                args.prompt_version = "unknown"
+
+    # Get verse list
+    verses = get_verse_list(book_chi, chapters, sec_range)
+    if args.verse_count is not None:
+        verses = verses[:args.verse_count]
+
+    # ── Set up run log with verse info ──
+    run_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    logs_dir = os.path.join(SURVEY_DIR, "run_logs")
+    os.makedirs(logs_dir, exist_ok=True)
+    first_chap, first_sec = verses[0] if verses else (0, 0)
+    log_start = f"{book_eng}_{first_chap}_{first_sec}"
+    log_file = os.path.join(logs_dir, f"run_{run_timestamp}_{log_start}-.log")
+    _setup_tee(log_file)
+
+    # Register rename on exit (normal or Ctrl-C)
+    _log_rename_state["log_file"] = log_file
+    _log_rename_state["book_eng"] = book_eng
+    _log_rename_state["first_chap"] = first_chap
+    _log_rename_state["first_sec"] = first_sec
+    atexit.register(_rename_log_on_exit)
+    signal.signal(signal.SIGINT, _signal_handler)
+
     print(f"\n{'='*60}")
     print(f"  Gold Standard: {book_eng} chapters {args.chap}")
     print(f"  Target: {target_version.upper()}")
     print(f"  Models: {', '.join(m['name'] for m in DEFAULT_MODELS)}")
-    print(f"  Prompt version: {args.prompt_version}")
+    print(f"  Prompt: {args.prompt_version}")
+    if args.prompt_file:
+        print(f"  Prompt file: {args.prompt_file}")
+    print(f"  Max R2 retries: {args.max_r2_retries}")
+    if args.verse_count is not None:
+        print(f"  Verse count:  {args.verse_count}")
+    print(f"  Verses: {len(verses)}")
+    print(f"  Log: {log_file}")
     print(f"{'='*60}")
 
-    # Get verse list
-    verses = get_verse_list(book_chi, chapters, sec_range)
-    print(f"\n  {len(verses)} verses to process")
+    # ── Per-verse pipeline ─────────────────────────────────────────────
+    # Each verse goes through R1 → compare → R2 → R3 → gold standard
+    # before moving to the next. If R3 triggers prompt evolution, we stop.
 
-    # Load system prompt
-    system_prompt = load_system_prompt(target_version)
+    round1_dir = os.path.join(SURVEY_DIR, "round1_results")
+    round1_results = {m["name"]: {} for m in DEFAULT_MODELS}
+    verse_data = {}
+    convergence_results = {}
+    round2_judgments = {}
+    round3_judgments = {}
+    all_unanimous = []
+    all_disagreed = []
+    all_prompt_evolutions = []
 
-    # Round 1
-    if not args.skip_round1:
-        print(f"\n{'='*60}")
-        print(f"  ROUND 1 — Production Run")
+    for verse_idx, (chap, sec) in enumerate(verses):
+        verse_key = (chap, sec)
+        _update_last_verse(book_eng, chap, sec)
+
+        if verse_idx > 0:
+            print("\n\n\n\n\n")
+        print(f"{'='*60}")
+        print(f"  [{ts()}] [{verse_idx+1}/{len(verses)}] {book_eng} {chap}:{sec} main prompt {args.prompt_version}")
         print(f"{'='*60}")
 
-        round1_results, verse_data = run_round1(
-            verses, book_chi, DEFAULT_MODELS, target_version, sn_field,
-            system_prompt, resume=args.resume, verbose=args.verbose)
-    else:
-        # Load from disk
-        print(f"\n  Loading Round 1 results from disk...")
-        round1_results = {m["name"]: {} for m in DEFAULT_MODELS}
-        verse_data = {}
-        round1_dir = os.path.join(SURVEY_DIR, "round1_results")
+        # ── Fetch verse data ──
+        try:
+            unv_sn, target_text = fetch_sec_pair(book_chi, chap, sec, target_version)
+        except ValueError as e:
+            print(f"  SKIP {chap}:{sec} — {e}", flush=True)
+            continue
+
+        verse_data[verse_key] = {
+            "unv_sn": unv_sn,
+            "lcc_original": target_text,
+            "book": book_eng,
+        }
+
+        print(f"  UNV: {unv_sn[:100]}...")
+        print(f"  LCC: {target_text[:100]}...")
+
+        # ── R1: All 3 models produce output ──
+        print(f"\n  ── R1 [{ts()}] ──")
+        user_prompt = build_user_prompt(
+            unv_sn, target_text, target_version, book_chi, chap, sec)
 
         for model_info in DEFAULT_MODELS:
             model_name = model_info["name"]
-            for chap, sec in verses:
-                result_file = os.path.join(
-                    round1_dir, model_name, str(chap), f"{sec}.json")
-                if os.path.isfile(result_file):
-                    with open(result_file, "r", encoding="utf-8") as f:
-                        round1_results[model_name][(chap, sec)] = json.load(f)
+            brand = model_info["brand"]
+            model_id = model_info["model"]
 
-                # Fetch verse data
-                if (chap, sec) not in verse_data:
-                    try:
-                        unv_sn, target_text = fetch_sec_pair(
-                            book_chi, chap, sec, target_version)
-                        verse_data[(chap, sec)] = {
-                            "unv_sn": unv_sn,
-                            "lcc_original": target_text,
-                            "book": CHI_TO_ENG.get(book_chi, book_chi),
-                        }
-                    except ValueError:
-                        pass
+            result_file = os.path.join(
+                round1_dir, model_name, book_eng, str(chap), f"{sec}.json")
 
-    if args.round1_only:
-        print(f"\n  Round 1 complete. Use --skip-round1 to continue with judging.")
-        return
+            if not args.force and os.path.isfile(result_file):
+                with open(result_file, "r", encoding="utf-8") as f:
+                    round1_results[model_name][verse_key] = json.load(f)
+                print(f"  [ {model_name} ] cached", flush=True)
+                continue
 
-    # Compare
-    print(f"\n{'='*60}")
-    print(f"  COMPARISON — Strict Unanimous Check")
-    print(f"{'='*60}")
+            # Load model-specific patch if it exists
+            model_patch, patch_ver = load_model_patch(model_name, args.prompt_version)
+            model_prompt = system_prompt + ("\n\n" + model_patch if model_patch else "")
+            if model_patch:
+                print(f"  [ {model_name} (patch {patch_ver}) ] calling...", end=" ", flush=True)
+            else:
+                print(f"  [ {model_name} ] calling...", end=" ", flush=True)
 
-    unanimous, disagreed = compare_round1(round1_results, sn_field)
-    print(f"\n  Unanimous: {len(unanimous)}")
-    print(f"  Disagreed: {len(disagreed)}")
+            t_start = time.time()
+            result = call_llm(
+                brand=brand, model=model_id,
+                system_prompt=model_prompt,
+                user_prompt=user_prompt,
+                target_version=target_version,
+                verbose=args.verbose,
+            )
+            elapsed_s = int(time.time() - t_start)
 
-    if args.verbose or len(disagreed) <= 20:
-        for v in disagreed:
-            print(summarize_disagreement(v, round1_results, sn_field))
+            result["_model"] = model_name
+            result["_brand"] = brand
 
-    # Round 2
-    round2_judgments = {}
-    if disagreed:
-        print(f"\n{'='*60}")
-        print(f"  ROUND 2 — Judge Reviews ({len(disagreed)} verses)")
-        print(f"{'='*60}")
+            output_sn = result.get(sn_field, "")
+            if output_sn and not result.get("error"):
+                coverage = verify_sn_coverage(unv_sn, output_sn)
+                result["_sn_coverage"] = coverage
+                status = "OK" if coverage["perfect"] else f"MISMATCH (missing={coverage['missing']})"
+            else:
+                status = "ERROR" if result.get("error") else "empty"
 
-        round2_judgments = run_judge_round(
-            round_num=2,
-            disagreed_verses=disagreed,
+            print(f"conf={result.get('confidence', '?')} {status} {elapsed_s}s", flush=True)
+
+            round1_results[model_name][verse_key] = result
+
+            os.makedirs(os.path.dirname(result_file), exist_ok=True)
+            with open(result_file, "w", encoding="utf-8") as f:
+                json.dump(result, f, indent=2, ensure_ascii=False)
+
+        if args.round1_only:
+            continue
+
+        # ── Compare: unanimous? ──
+        unanimous_v, disagreed_v = compare_round1(round1_results, sn_field,
+                                                   verse_keys=[verse_key])
+        if unanimous_v:
+            print(f"  → UNANIMOUS [{ts()}]", flush=True)
+            all_unanimous.append(verse_key)
+            continue
+
+        print(f"  → DISAGREED", flush=True)
+        all_disagreed.append(verse_key)
+
+        # ── R2 Phase 1: Convergence ──
+        print(f"\n  ── R2 Convergence [{ts()}] (max_retries={args.max_r2_retries}) ──")
+        conv = run_r2_convergence(
+            verses=[verse_key],
             round1_results=round1_results,
+            verse_data=verse_data,
+            models=DEFAULT_MODELS,
+            system_prompt=system_prompt,
+            target_version=target_version,
+            sn_field=sn_field,
+            max_retries=args.max_r2_retries,
+            verbose=args.verbose,
+            force=args.force,
+        )
+        for m in conv:
+            convergence_results.setdefault(m, {}).update(conv[m])
+
+        # ── R2 Phase 1.5: Convergence Analysis ──
+        models_list = [m["name"] for m in DEFAULT_MODELS]
+        easy_models = [m for m in models_list
+                       if is_easy_convergence(convergence_results.get(m, {}).get(verse_key, {}))]
+        hard_models = [m for m in models_list if m not in easy_models]
+
+        print(f"\n  ── R2 Convergence Analysis [{ts()}] ──")
+        print(f"    Easy: {easy_models}, Hard: {hard_models}")
+
+        # TRIGGER 1: All 3 unstable → early prompt evolution
+        if len(hard_models) == 3:
+            print(f"\n  {'*'*60}")
+            print(f"  [{ts()}] TRIGGER 1: ALL 3 MODELS UNSTABLE → early +0.1")
+            print(f"  Prompt is ambiguous for this verse type.")
+            print(f"  {'*'*60}")
+            for m in models_list:
+                c = convergence_results.get(m, {}).get(verse_key, {})
+                print(f"    [{m}] stable_at={c.get('stable_at','?')} "
+                      f"attempts={len(c.get('attempts', []))}")
+            # Save evolution record
+            evo_record = {
+                "verse": f"{chap}:{sec}",
+                "book": book_eng,
+                "trigger": "r2_all_unstable",
+                "prompt_from": args.prompt_version,
+                "prompt_to": None,
+                "convergence": {m: {
+                    "stable_at": convergence_results.get(m, {}).get(verse_key, {}).get("stable_at", "?"),
+                    "attempts": convergence_results.get(m, {}).get(verse_key, {}).get("attempts", []),
+                } for m in models_list},
+                "timestamp": datetime.now().isoformat(),
+            }
+            evo_dir = os.path.join(SURVEY_DIR, "round2_results",
+                                   "prompt_evolution", book_eng)
+            os.makedirs(evo_dir, exist_ok=True)
+            evo_path = os.path.join(evo_dir, f"{chap}_{sec}_evolution_record.json")
+            with open(evo_path, "w", encoding="utf-8") as f:
+                json.dump(evo_record, f, indent=2, ensure_ascii=False)
+            print(f"  Evolution record saved: {evo_path}")
+
+            all_prompt_evolutions.append({
+                "verse_key": verse_key,
+                "error_descriptions": ["All 3 models unstable in R2 convergence"],
+                "improvements": ["Prompt may be ambiguous — review verse structure"],
+                "aligned": True,
+                "trigger": "r2_all_unstable",
+            })
+            all_disagreed.append(verse_key)
+            print(f"\n  STOPPING — fix prompt before processing more verses.")
+            break
+
+        # TRIGGER 2: 2 easy + agree, 1 unstable → model patch
+        if len(easy_models) == 2 and len(hard_models) == 1:
+            from comparator import texts_match
+            e1, e2 = easy_models
+            t1 = convergence_results[e1][verse_key]["stable_result"]
+            t2 = convergence_results[e2][verse_key]["stable_result"]
+            if texts_match(t1, t2):
+                unstable_model = hard_models[0]
+                print(f"\n  {'*'*60}")
+                print(f"  [{ts()}] TRIGGER 2: {unstable_model} unstable, "
+                      f"{easy_models} agree")
+                print(f"  Auto-resolving with 2/3 output. Generating model patch.")
+                print(f"  {'*'*60}")
+
+                # Generate model patch
+                from judge import generate_model_patch
+                unstable_conv = convergence_results[unstable_model][verse_key]
+                patch_text, patch_record = generate_model_patch(
+                    unstable_model=unstable_model,
+                    unstable_attempts=unstable_conv.get("attempts", []),
+                    stable_output=t1,
+                    unv_sn=verse_data[verse_key]["unv_sn"],
+                    stable_models=easy_models,
+                    models=DEFAULT_MODELS,
+                    target_version=target_version,
+                    verse_key=verse_key,
+                    book_eng=book_eng,
+                    verbose=args.verbose,
+                )
+
+                if patch_text:
+                    # Save patch — filename includes base prompt trigger + patch trigger
+                    patch_ver = next_patch_version(unstable_model, args.prompt_version)
+                    base_trigger = _get_base_prompt_trigger(args.prompt_version)
+                    patch_trigger = f"{book_eng}_{chap}_{sec}"
+                    patch_fname = f"{args.prompt_version}{base_trigger}.{unstable_model}-patch-{patch_ver}_{patch_trigger}.md"
+                    patch_path = os.path.join(SURVEY_DIR, "prompts", patch_fname)
+
+                    # Build self-documenting header with full context
+                    unstable_conv = convergence_results[unstable_model][verse_key]
+                    attempt_summary = []
+                    a_labels = ["R1", "R2a", "R2b", "R2c", "R2d", "R2e", "R2f"]
+                    for ai, att in enumerate(unstable_conv.get("attempts", [])):
+                        lbl = a_labels[ai] if ai < len(a_labels) else f"attempt_{ai}"
+                        attempt_summary.append(f"#   {lbl}: {att[:120]}{'...' if len(att) > 120 else ''}")
+                    feedback_summary = []
+                    for fb_model, fb_text in patch_record.get("feedbacks", {}).items():
+                        feedback_summary.append(f"# [{fb_model}] feedback:")
+                        for line in fb_text.split('\n')[:5]:
+                            feedback_summary.append(f"#   {line[:120]}")
+                        if len(fb_text.split('\n')) > 5:
+                            feedback_summary.append(f"#   ... ({len(fb_text)} chars total)")
+
+                    header_lines = [
+                        f"# Patch {patch_ver} for {unstable_model}",
+                        f"# Triggered by: {book_eng} {chap}:{sec}",
+                        f"# Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+                        f"# Base prompt: {args.prompt_version}",
+                        f"# Stable models: {', '.join(easy_models)}",
+                        f"#",
+                        f"# --- Convergence story ---",
+                        f"# {unstable_model} failed to converge easily "
+                        f"(stable_at={unstable_conv.get('stable_at', '?')}, "
+                        f"{len(unstable_conv.get('attempts', []))} attempts)",
+                        f"# while {', '.join(easy_models)} agreed on the same output.",
+                        f"#",
+                        f"# {unstable_model}'s attempts:",
+                        *attempt_summary,
+                        f"#",
+                        f"# --- Feedback from stable models ---",
+                        *feedback_summary,
+                        f"#",
+                        f"# --- Self-patch (written by {unstable_model}) ---",
+                        f"",
+                    ]
+                    header = '\n'.join(header_lines) + '\n'
+
+                    with open(patch_path, "w", encoding="utf-8") as f:
+                        f.write(header + patch_text)
+                    print(f"  Patch saved: {patch_fname}")
+
+                    # Minor 回測: solo self-comparison
+                    patch_ok = _run_patch_regression(
+                        unstable_model, args.prompt_version,
+                        system_prompt, patch_text,
+                        convergence_results, verse_data,
+                        DEFAULT_MODELS, target_version, sn_field,
+                        args.verbose)
+
+                    if not patch_ok:
+                        print(f"  PATCH REVERTED — made {unstable_model} less stable")
+                        os.remove(patch_path)
+                    else:
+                        print(f"  Patch 回測 PASSED for {unstable_model}")
+
+                # Use the 2 agreeing models' output as gold standard
+                # Mark as r2_model_patch resolved
+                gold_entry = {
+                    "book": book_eng, "chap": chap, "sec": sec,
+                    "lcc_sn": t1,
+                    "lcc_original": verse_data[verse_key]["lcc_original"],
+                    "unv_sn_reference": verse_data[verse_key]["unv_sn"],
+                    "resolved_at": "r2_model_patch",
+                    "prompt_version": args.prompt_version,
+                    "round1": {m: {
+                        "lcc_sn": round1_results[m].get(verse_key, {}).get(sn_field, ""),
+                        "confidence": round1_results[m].get(verse_key, {}).get("confidence", 0),
+                        "opinion": "majority" if m in easy_models else "unstable",
+                    } for m in models_list},
+                    "round2_convergence": {m: {
+                        "stable_result": convergence_results.get(m, {}).get(verse_key, {}).get("stable_result", ""),
+                        "converged": convergence_results.get(m, {}).get(verse_key, {}).get("converged", False),
+                        "stable_at": convergence_results.get(m, {}).get(verse_key, {}).get("stable_at", "?"),
+                        "attempt_count": len(convergence_results.get(m, {}).get(verse_key, {}).get("attempts", [])),
+                    } for m in models_list},
+                    "round2": None,
+                    "round3": None,
+                    "trigger2_model": unstable_model,
+                }
+                # Save directly (save_gold_standard imported at top level)
+                save_gold_standard({verse_key: gold_entry})
+                print(f"  → R2 TRIGGER 2 RESOLVED [{ts()}] (2/3 agree, patch for {unstable_model})")
+                all_disagreed.append(verse_key)
+                continue
+
+        # ── R2 Phase 2: Debate ──
+        print(f"\n  ── R2 Debate [{ts()}] ──")
+        r2j = run_r2_debate(
+            verses=[verse_key],
+            convergence_results=convergence_results,
             verse_data=verse_data,
             models=DEFAULT_MODELS,
             target_version=target_version,
             sn_field=sn_field,
             verbose=args.verbose,
+            force=args.force,
         )
+        round2_judgments.update(r2j)
 
-    # Check which verses are still unresolved after Round 2
-    from judge import tally_judgments
-    still_disagreed = []
-    for verse_key in disagreed:
+        # Check R2 result
         r2 = round2_judgments.get(verse_key, {})
         if r2:
-            winner, _ = tally_judgments(r2, round1_results, sn_field)
-            if winner is None:
-                still_disagreed.append(verse_key)
-        else:
-            still_disagreed.append(verse_key)
+            winner, _ = tally_r2_debate(r2, convergence_results, sn_field)
+            if winner is not None:
+                print(f"  → R2 RESOLVED [{ts()}] (winner={winner})", flush=True)
+                continue
 
-    # Round 3
-    round3_judgments = {}
-    if still_disagreed:
-        print(f"\n{'='*60}")
-        print(f"  ROUND 3 — Final Arbitration ({len(still_disagreed)} verses)")
-        print(f"{'='*60}")
-
-        round3_judgments = run_judge_round(
-            round_num=3,
-            disagreed_verses=still_disagreed,
-            round1_results=round1_results,
+        # ── R3: Dual-capability ──
+        print(f"\n  ── R3 Final Arbitration [{ts()}] ──")
+        r3j = run_round3(
+            verses=[verse_key],
+            convergence_results=convergence_results,
+            round2_judgments=round2_judgments,
             verse_data=verse_data,
             models=DEFAULT_MODELS,
-            round2_judgments=round2_judgments,
             target_version=target_version,
             sn_field=sn_field,
             verbose=args.verbose,
+            force=args.force,
         )
+        round3_judgments.update(r3j)
 
-    # Build gold standard
+        # Check R3 result — did it trigger prompt evolution?
+        from judge import tally_r3_judgments
+        r3 = round3_judgments.get(verse_key, {})
+        if r3:
+            outcome, details = tally_r3_judgments(r3, convergence_results)
+            if outcome == "resolved":
+                print(f"  → R3 RESOLVED [{ts()}]", flush=True)
+            elif outcome == "prompt_evolution":
+                print(f"\n  {'*'*60}")
+                print(f"  PROMPT EVOLUTION TRIGGERED at {chap}:{sec}")
+                print(f"  {'*'*60}")
+                evo_record = {
+                    "verse": f"{chap}:{sec}",
+                    "book": book_eng,
+                    "trigger": "r3_all_wrong",
+                    "prompt_from": args.prompt_version,
+                    "prompt_to": None,  # filled when new prompt is drafted
+                    "judges": {},
+                    "aligned": details["aligned"],
+                    "timestamp": datetime.now().isoformat(),
+                }
+                # Collect each judge's full opinion
+                for judge_key, judgment in r3.items():
+                    evo_record["judges"][judge_key] = {
+                        k: judgment.get(k) for k in
+                        ["verdict", "error_identified", "prompt_improvement", "reasoning"]
+                    }
+                # Save evolution record
+                evo_dir = os.path.join(SURVEY_DIR, "round3_results",
+                                       "prompt_evolution", book_eng)
+                os.makedirs(evo_dir, exist_ok=True)
+                evo_path = os.path.join(evo_dir, f"{chap}_{sec}_evolution_record.json")
+                with open(evo_path, "w", encoding="utf-8") as f:
+                    json.dump(evo_record, f, indent=2, ensure_ascii=False)
+                print(f"  Evolution record saved: {evo_path}")
+
+                all_prompt_evolutions.append({
+                    "verse_key": verse_key,
+                    "error_descriptions": details["error_descriptions"],
+                    "improvements": details["improvements"],
+                    "aligned": details["aligned"],
+                })
+                if details["aligned"]:
+                    print(f"  Models AGREE on the error. Auto-evolve possible.")
+                else:
+                    print(f"  Models DISAGREE on improvement direction. Human review needed.")
+                for i, (err, imp) in enumerate(zip(
+                        details["error_descriptions"], details["improvements"])):
+                    print(f"    Judge {i+1} error: {err[:150]}")
+                    print(f"    Judge {i+1} fix:   {imp[:150]}")
+                print(f"\n  STOPPING — fix prompt before processing more verses.")
+                # Still build gold standard for what we have so far
+                break
+            else:
+                print(f"  → R3 UNRESOLVED [{ts()}] (human review needed)", flush=True)
+
+    if args.round1_only:
+        print(f"\n  Round 1 complete for {len(verses)} verses.")
+        return
+
+    # ── Build gold standard for all processed verses ──
     print(f"\n{'='*60}")
     print(f"  BUILDING GOLD STANDARD")
     print(f"{'='*60}")
 
-    gold_standard, unresolved = build_gold_standard(
-        unanimous=unanimous,
-        disagreed=disagreed,
+    gold_standard, unresolved, prompt_evolutions = build_gold_standard(
+        unanimous=all_unanimous,
+        disagreed=all_disagreed,
         round1_results=round1_results,
+        convergence_results=convergence_results,
         round2_judgments=round2_judgments,
         round3_judgments=round3_judgments if round3_judgments else None,
         verse_data=verse_data,
@@ -396,13 +1037,13 @@ def main():
     )
 
     save_gold_standard(gold_standard)
-    print_summary(gold_standard, unresolved)
+    print_summary(gold_standard, unresolved, prompt_evolutions + all_prompt_evolutions)
 
     # Verify SN coverage on gold standard
     print(f"\n  Verifying SN coverage on gold standard...")
     bad_coverage = 0
     for verse_key, gold in gold_standard.items():
-        if gold["resolved_at"] == "unresolved":
+        if gold["resolved_at"] in ("unresolved", "prompt_evolution"):
             continue
         coverage = verify_sn_coverage(gold["unv_sn_reference"], gold["lcc_sn"])
         if not coverage["perfect"]:

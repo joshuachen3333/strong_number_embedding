@@ -35,12 +35,15 @@ def texts_match(sn_text_a: str, sn_text_b: str) -> bool:
     return normalize(sn_text_a) == normalize(sn_text_b)
 
 
-def compare_round1(round1_results: dict, sn_field: str = "lcc_sn"):
+def compare_round1(round1_results: dict, sn_field: str = "lcc_sn",
+                   verse_keys: list = None):
     """Compare Round 1 outputs from all models.
 
     Args:
         round1_results: {model_name: {(chap, sec): result_dict}}
         sn_field: field name containing the SN-annotated text
+        verse_keys: optional list of specific verse keys to compare
+                    (default: all verses in round1_results)
 
     Returns:
         (unanimous, disagreed) where:
@@ -51,10 +54,13 @@ def compare_round1(round1_results: dict, sn_field: str = "lcc_sn"):
     if len(models) < 2:
         raise ValueError(f"Need at least 2 models, got {len(models)}")
 
-    # Collect all verse keys
-    all_verses = set()
-    for model_results in round1_results.values():
-        all_verses.update(model_results.keys())
+    # Collect verse keys
+    if verse_keys is not None:
+        all_verses = set(verse_keys)
+    else:
+        all_verses = set()
+        for model_results in round1_results.values():
+            all_verses.update(model_results.keys())
 
     unanimous = []
     disagreed = []

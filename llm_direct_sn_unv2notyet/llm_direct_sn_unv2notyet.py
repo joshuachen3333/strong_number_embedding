@@ -178,7 +178,7 @@ _chap_cache = {}
 
 def fetch_chap_cached(book_chi: str, chap: int, version: str, strong: int = 0) -> dict:
     """Fetch a chapter, with caching to avoid redundant API calls."""
-    key = (book_chi, chap, version)
+    key = (book_chi, chap, version, strong)
     if key not in _chap_cache:
         _chap_cache[key] = fetch_chap(book_chi, chap, version, strong)
     return _chap_cache[key]

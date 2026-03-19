@@ -41,6 +41,8 @@ def call_llm(brand: str, model: str, system_prompt: str, user_prompt: str,
     mode="production": uses JSON schema for {lcc_sn, confidence, notes}.
     mode="judge": free-form prompt, parses JSON from raw text.
                   Returns raw parsed dict (e.g. {best, corrected, reasoning}).
+    mode="freeform": free-form prompt, returns {"text": raw_text}.
+                     For feedback/patch generation where plain text is expected.
     """
     sn_field = f"{target_version}_sn"
 
@@ -98,6 +100,9 @@ def _call_claude(model, system_prompt, user_prompt, target_version,
         result, _ = parse_stream_json(result_proc.stdout, sn_field)
         return result
 
+    if mode == "freeform":
+        return _parse_claude_freeform_text(result_proc.stdout)
+
     # Judge mode: extract text from stream-json, then parse as JSON
     return _parse_claude_freeform(result_proc.stdout)
 
@@ -140,6 +145,9 @@ def _call_gemini(model, system_prompt, user_prompt, target_version,
     if mode == "production":
         result, _ = parse_gemini_stream_json(result_proc.stdout, sn_field)
         return result
+
+    if mode == "freeform":
+        return _parse_gemini_freeform_text(result_proc.stdout)
 
     # Judge mode: extract text, parse JSON
     return _parse_gemini_freeform(result_proc.stdout)
@@ -209,12 +217,16 @@ def _call_codex(model, system_prompt, user_prompt, target_version,
             if last_msg:
                 if mode == "production":
                     return _extract_json(last_msg, sn_field)
+                elif mode == "freeform":
+                    return {"text": last_msg}
                 else:
                     return _extract_json(last_msg, "best")
         except IOError:
             pass
 
     if result_proc.stdout.strip():
+        if mode == "freeform":
+            return {"text": result_proc.stdout.strip()}
         key = sn_field if mode == "production" else "best"
         return _extract_json(result_proc.stdout.strip(), key)
 
@@ -265,3 +277,45 @@ def _parse_gemini_freeform(raw_stdout: str) -> dict:
     if text_parts:
         return _extract_json(''.join(text_parts), "best")
     return {"error": True, "notes": [f"Failed to parse gemini freeform: {raw_stdout[:300]}"]}
+
+
+def _parse_claude_freeform_text(raw_stdout: str) -> dict:
+    """Parse claude stream-json output as plain text (no JSON extraction)."""
+    text_parts = []
+    for line in raw_stdout.strip().split('\n'):
+        if not line.strip():
+            continue
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if obj.get("type") == "result":
+            result_text = obj.get("result", "")
+            if isinstance(result_text, str) and result_text.strip():
+                return {"text": result_text.strip()}
+        if obj.get("type") == "content_block_delta":
+            delta = obj.get("delta", {})
+            if delta.get("type") == "text_delta":
+                text_parts.append(delta.get("text", ""))
+    if text_parts:
+        return {"text": ''.join(text_parts).strip()}
+    return {"error": True, "text": "", "notes": ["Failed to parse claude freeform text"]}
+
+
+def _parse_gemini_freeform_text(raw_stdout: str) -> dict:
+    """Parse gemini stream-json output as plain text (no JSON extraction)."""
+    text_parts = []
+    for line in raw_stdout.strip().split('\n'):
+        if not line.strip():
+            continue
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if obj.get("type") == "message" and obj.get("role") == "assistant":
+            content = obj.get("content", "")
+            if content:
+                text_parts.append(content)
+    if text_parts:
+        return {"text": ''.join(text_parts).strip()}
+    return {"error": True, "text": "", "notes": ["Failed to parse gemini freeform text"]}

@@ -21,27 +21,38 @@ import sys
 SURVEY_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def load_gold_standard():
-    """Load all existing gold standard verses."""
+def load_gold_standard(book_eng=None):
+    """Load all existing gold standard verses.
+
+    Args:
+        book_eng: if provided, load only this book (e.g., "Gen").
+                  If None, load all books.
+    """
     gs_dir = os.path.join(SURVEY_DIR, "gold_standard")
     gold = {}
     if not os.path.isdir(gs_dir):
         return gold
 
-    for chap_name in os.listdir(gs_dir):
-        chap_dir = os.path.join(gs_dir, chap_name)
-        if not os.path.isdir(chap_dir):
+    # Walk: gold_standard/{book}/{chap}/{sec}.json
+    book_dirs = [book_eng] if book_eng else os.listdir(gs_dir)
+    for book_name in book_dirs:
+        book_dir = os.path.join(gs_dir, book_name)
+        if not os.path.isdir(book_dir):
             continue
-        try:
-            chap = int(chap_name)
-        except ValueError:
-            continue
-        for fname in os.listdir(chap_dir):
-            if not fname.endswith(".json"):
+        for chap_name in os.listdir(book_dir):
+            chap_dir = os.path.join(book_dir, chap_name)
+            if not os.path.isdir(chap_dir):
                 continue
-            sec = int(fname.replace(".json", ""))
-            with open(os.path.join(chap_dir, fname), "r", encoding="utf-8") as f:
-                gold[(chap, sec)] = json.load(f)
+            try:
+                chap = int(chap_name)
+            except ValueError:
+                continue
+            for fname in os.listdir(chap_dir):
+                if not fname.endswith(".json"):
+                    continue
+                sec = int(fname.replace(".json", ""))
+                with open(os.path.join(chap_dir, fname), "r", encoding="utf-8") as f:
+                    gold[(chap, sec)] = json.load(f)
 
     return gold
 

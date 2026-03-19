@@ -30,6 +30,7 @@ llm_direct_sn_unv2notyet/survey1/round1_results/
 llm_direct_sn_unv2notyet/survey1/round2_results/
 llm_direct_sn_unv2notyet/survey1/round3_results/
 llm_direct_sn_unv2notyet/survey1/gold_standard/
+llm_direct_sn_unv2notyet/survey1/run_logs/
 llm_direct_sn_unv2notyet/survey1/.codex_schema.json
 llm_direct_sn_unv2notyet/survey1/.codex_last_message.txt
 

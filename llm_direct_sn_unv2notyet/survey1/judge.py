@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Round 2-3: Each model judges disagreed verses."""
+"""Round 2-3: R2 convergence + debate, R3 dual-capability judging."""
 
 import json
 import os
 import sys
+import time
 
 SURVEY_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.dirname(SURVEY_DIR)
@@ -11,8 +12,11 @@ if PARENT_DIR not in sys.path:
     sys.path.insert(0, PARENT_DIR)
 
 from cli_caller import call_llm, DEFAULT_MODELS
+from comparator import texts_match
 
-ROUND2_PROMPT = """\
+# ── R2 Debate Prompt ─────────────────────────────────────────────────────────
+
+ROUND2_DEBATE_PROMPT = """\
 You are judging Strong's Number (SN) placement quality in Chinese Bible text.
 
 Given the UNV source (with correct SN tags) and 3 model outputs that annotated \
@@ -25,13 +29,13 @@ UNV+SN (source of truth for which SNs exist):
 LCC original (unannotated):
 {lcc_original}
 
-Output A ({model_a}):
+Output A ({model_a}) [convergence: {convergence_a}]:
 {output_a}
 
-Output B ({model_b}):
+Output B ({model_b}) [convergence: {convergence_b}]:
 {output_b}
 
-Output C ({model_c}):
+Output C ({model_c}) [convergence: {convergence_c}]:
 {output_c}
 
 Evaluate each output on:
@@ -51,10 +55,24 @@ Return ONLY a JSON object:
   "sn_counts": {{"A": <count>, "B": <count>, "C": <count>}}
 }}"""
 
+# ── R3 Dual-Capability Prompt ────────────────────────────────────────────────
+
 ROUND3_PROMPT = """\
-You are making a FINAL judgment on Strong's Number (SN) placement quality.
+You are making a FINAL, independent judgment on Strong's Number (SN) placement.
 
 This verse had no consensus in Round 2. You now see ALL prior evidence.
+Your task has TWO possible outcomes — choose the one that honestly fits:
+
+**Option 1 — PICK the best output**: One of the outputs (or a corrected version) \
+is good enough to be the gold standard.
+
+**Option 2 — ALL WRONG**: ALL outputs share the same systematic error that none \
+got right. This is NOT about minor differences — it means a fundamental issue \
+(e.g., all dropped implicit markers, all lost prefix tags). If you choose this, \
+you MUST identify the specific error and propose how the prompt should be improved.
+
+Be honest. If one output is genuinely better, pick it. Only choose "all_wrong" if \
+you independently see a systematic problem that affects all outputs equally.
 
 UNV+SN (source of truth):
 {unv_sn}
@@ -62,80 +80,249 @@ UNV+SN (source of truth):
 LCC original (unannotated):
 {lcc_original}
 
-=== Round 1 outputs ===
-Output A ({model_a}):
+=== Round 1 stable outputs ===
+Output A ({model_a}) [convergence: {convergence_a}]:
 {output_a}
 
-Output B ({model_b}):
+Output B ({model_b}) [convergence: {convergence_b}]:
 {output_b}
 
-Output C ({model_c}):
+Output C ({model_c}) [convergence: {convergence_c}]:
 {output_c}
 
-=== Round 2 judgments ===
+=== Round 2 debate judgments ===
 {round2_judgments_text}
 
 Based on ALL the above, give your final answer.
 
-Return ONLY a JSON object:
+Return ONLY a JSON object matching ONE of these formats:
+
+If picking a winner:
 {{
+  "verdict": "pick",
   "best": "A" or "B" or "C",
-  "corrected": null or "the corrected LCC+SN text if none is fully correct",
-  "reasoning": "your final reasoning considering all prior judgments"
+  "corrected": null or "the corrected LCC+SN text",
+  "reasoning": "your final reasoning"
+}}
+
+If all are wrong:
+{{
+  "verdict": "all_wrong",
+  "error_identified": "specific description of what ALL outputs got wrong",
+  "prompt_improvement": "concrete suggestion for fixing the prompt to prevent this",
+  "reasoning": "why this is a prompt deficiency, not a model-specific error"
 }}"""
 
 
-def build_judge_prompt(round_num, verse_key, round1_results, round2_judgments,
-                       unv_sn, lcc_original, sn_field="lcc_sn"):
-    """Build the judge prompt for a single verse."""
-    models = list(round1_results.keys())
-    model_a, model_b, model_c = models
+# ── R2 Convergence ───────────────────────────────────────────────────────────
 
-    output_a = round1_results[model_a].get(verse_key, {}).get(sn_field, "(no output)")
-    output_b = round1_results[model_b].get(verse_key, {}).get(sn_field, "(no output)")
-    output_c = round1_results[model_c].get(verse_key, {}).get(sn_field, "(no output)")
+def run_r2_convergence(verses, round1_results, verse_data, models=None,
+                       system_prompt="", target_version="lcc",
+                       sn_field="lcc_sn", max_retries=3, verbose=False,
+                       force=False):
+    """Run R2 convergence: each model re-does the task blindly until stable.
 
-    if round_num == 2:
-        return ROUND2_PROMPT.format(
-            unv_sn=unv_sn, lcc_original=lcc_original,
-            model_a=model_a, model_b=model_b, model_c=model_c,
-            output_a=output_a, output_b=output_b, output_c=output_c,
-        )
-    elif round_num == 3:
-        # Format Round 2 judgments
-        r2_lines = []
-        if round2_judgments:
-            for judge_model, judgment in round2_judgments.items():
-                best = judgment.get("best", "?")
-                reasoning = judgment.get("reasoning", "")
-                r2_lines.append(f"{judge_model} chose: {best}")
-                r2_lines.append(f"  Reasoning: {reasoning}")
-        round2_text = '\n'.join(r2_lines) if r2_lines else "(no Round 2 judgments)"
-
-        return ROUND3_PROMPT.format(
-            unv_sn=unv_sn, lcc_original=lcc_original,
-            model_a=model_a, model_b=model_b, model_c=model_c,
-            output_a=output_a, output_b=output_b, output_c=output_c,
-            round2_judgments_text=round2_text,
-        )
-
-
-def run_judge_round(round_num, disagreed_verses, round1_results,
-                    verse_data, models=None, round2_judgments=None,
-                    target_version="lcc", sn_field="lcc_sn",
-                    verbose=False):
-    """Run a judge round for all disagreed verses.
+    For each model+verse:
+      1. Produce R2a (blind, same prompt as R1)
+      2. If R2a == R1 → stable at R1
+      3. If different → retry up to max_retries times until consecutive match
+      4. Store convergence history
 
     Args:
-        round_num: 2 or 3
-        disagreed_verses: list of (chap, sec) tuples
+        verses: list of (chap, sec) tuples (disagreed verses)
         round1_results: {model_name: {(chap,sec): result_dict}}
-        verse_data: {(chap,sec): {"unv_sn": str, "lcc_original": str}}
-        models: list of model dicts (default: DEFAULT_MODELS)
-        round2_judgments: {(chap,sec): {model_name: judgment_dict}} (for Round 3)
+        verse_data: {(chap,sec): {"unv_sn", "lcc_original", "book"}}
+        models: list of model dicts
+        system_prompt: the system prompt to use for blind re-do
         target_version: target Bible version
         sn_field: field name for SN text
+        max_retries: max retries after R2a (default 3 → R2a,b,c,d)
         verbose: print progress
+
+    Returns:
+        convergence_results: {model_name: {(chap,sec): convergence_dict}}
+        Where convergence_dict = {
+            "stable_result": str,
+            "converged": bool,
+            "attempts": [str, ...],  # R1, R2a, R2b, ...
+            "stable_at": "R1" or "R2a" or "R2b" etc,
+        }
+    """
+    if models is None:
+        models = DEFAULT_MODELS
+
+    # Import here to avoid circular — build_user_prompt is in parent
+    from llm_direct_sn_unv2notyet import build_user_prompt
+
+    conv_dir = os.path.join(SURVEY_DIR, "round2_results")
+    os.makedirs(conv_dir, exist_ok=True)
+
+    convergence_results = {m["name"]: {} for m in models}
+
+    for verse_key in verses:
+        chap, sec = verse_key
+        vdata = verse_data.get(verse_key, {})
+        unv_sn = vdata.get("unv_sn", "")
+        lcc_original = vdata.get("lcc_original", "")
+        book_eng = vdata.get("book", "")
+        book_chi = _eng_to_chi(book_eng)
+
+        print(f"\n  R2 convergence {chap}:{sec}...", flush=True)
+
+        for model_info in models:
+            model_name = model_info["name"]
+            brand = model_info["brand"]
+            model_id = model_info["model"]
+
+            # Check cache
+            conv_file = os.path.join(
+                conv_dir, model_name, book_eng, f"{chap}_{sec}_convergence.json")
+            if not force and os.path.isfile(conv_file):
+                with open(conv_file, "r", encoding="utf-8") as f:
+                    convergence_results[model_name][verse_key] = json.load(f)
+                print(f"    [{model_name}] convergence cached", flush=True)
+                continue
+
+            # Get R1 output
+            r1_result = round1_results[model_name].get(verse_key, {})
+            r1_text = r1_result.get(sn_field, "")
+            r1_was_error = r1_result.get("error", False) or not r1_text.strip()
+
+            attempts = [r1_text]  # index 0 = R1
+            # Track R2 valid attempts for back-comparison (R1 excluded)
+            r2_valid = {}  # {label: text} — only R2 attempts, not R1
+            converged = False
+            stable_at = None
+
+            if r1_was_error:
+                print(f"    [{model_name}] R1 was error/empty — ignoring as baseline", flush=True)
+
+            effective_max = max_retries if max_retries > 0 else 702  # 0 = unlimited (a-z + aa-zz)
+            for i in range(1 + effective_max):  # R2a + up to effective_max
+                label = _r2_label(i)
+
+                print(f"    [{model_name}] {label}...", end=" ", flush=True)
+
+                # Blind re-do: same prompt as R1
+                user_prompt = build_user_prompt(
+                    unv_sn, lcc_original, target_version, book_chi, chap, sec)
+
+                t_start = time.time()
+                result = call_llm(
+                    brand=brand, model=model_id,
+                    system_prompt=system_prompt,
+                    user_prompt=user_prompt,
+                    target_version=target_version,
+                    verbose=verbose,
+                )
+                elapsed_s = int(time.time() - t_start)
+
+                new_text = result.get(sn_field, "")
+                new_is_error = result.get("error", False) or not new_text.strip()
+                attempts.append(new_text)
+
+                # Never treat empty/error as stable
+                if new_is_error:
+                    print(f"ERROR (empty/timeout) {elapsed_s}s", flush=True)
+                    continue
+
+                # R2a: compare with R1 only (special case)
+                if i == 0 and not r1_was_error and r1_text.strip():
+                    if texts_match(new_text, r1_text):
+                        stable_at = "R1"
+                        converged = True
+                        print(f"STABLE (matches R1) {elapsed_s}s", flush=True)
+                        break
+
+                # R2b+: compare against all previous R2 attempts (not R1)
+                matched_label = None
+                for prev_label, prev_text in r2_valid.items():
+                    if texts_match(new_text, prev_text):
+                        matched_label = prev_label
+                        break
+
+                if matched_label is not None:
+                    stable_at = matched_label
+                    converged = True
+                    print(f"STABLE (matches {matched_label}) {elapsed_s}s", flush=True)
+                    break
+                else:
+                    if not r2_valid and (i > 0 or r1_was_error):
+                        print(f"first valid attempt {elapsed_s}s", flush=True)
+                    elif i == 0 and not r1_was_error:
+                        print(f"differs from R1 {elapsed_s}s", flush=True)
+                    else:
+                        print(f"differs from all previous {elapsed_s}s", flush=True)
+                    r2_valid[label] = new_text
+
+            if not converged:
+                stable_at = "unstable"
+                print(f"    [{model_name}] NOT CONVERGED after {1+max_retries} attempts", flush=True)
+
+            # Stable result = the matched text, or last valid attempt if unstable
+            if converged and stable_at == "R1":
+                stable_result = r1_text
+            elif converged:
+                stable_result = new_text  # the text that matched a previous R2 attempt
+            elif r2_valid:
+                stable_result = list(r2_valid.values())[-1]  # last valid R2
+            else:
+                stable_result = ""
+
+            conv_data = {
+                "stable_result": stable_result,
+                "converged": converged,
+                "attempts": attempts,
+                "stable_at": stable_at,
+            }
+            convergence_results[model_name][verse_key] = conv_data
+
+            # Save to disk
+            os.makedirs(os.path.dirname(conv_file), exist_ok=True)
+            with open(conv_file, "w", encoding="utf-8") as f:
+                json.dump(conv_data, f, indent=2, ensure_ascii=False)
+
+    return convergence_results
+
+
+# ── R2 Debate ────────────────────────────────────────────────────────────────
+
+def build_r2_debate_prompt(verse_key, convergence_results, verse_data,
+                           sn_field="lcc_sn"):
+    """Build the R2 debate prompt showing stable outputs + convergence info."""
+    models = list(convergence_results.keys())
+    model_a, model_b, model_c = models
+
+    vdata = verse_data.get(verse_key, {})
+
+    def _get_output_and_conv(model_name):
+        conv = convergence_results[model_name].get(verse_key, {})
+        text = conv.get("stable_result", "(no output)")
+        stable = conv.get("stable_at", "?")
+        converged = conv.get("converged", False)
+        if converged:
+            conv_str = f"stable at {stable}"
+        else:
+            conv_str = f"UNSTABLE after {len(conv.get('attempts', [])) - 1} attempts"
+        return text, conv_str
+
+    output_a, conv_a = _get_output_and_conv(model_a)
+    output_b, conv_b = _get_output_and_conv(model_b)
+    output_c, conv_c = _get_output_and_conv(model_c)
+
+    return ROUND2_DEBATE_PROMPT.format(
+        unv_sn=vdata.get("unv_sn", ""),
+        lcc_original=vdata.get("lcc_original", ""),
+        model_a=model_a, model_b=model_b, model_c=model_c,
+        output_a=output_a, output_b=output_b, output_c=output_c,
+        convergence_a=conv_a, convergence_b=conv_b, convergence_c=conv_c,
+    )
+
+
+def run_r2_debate(verses, convergence_results, verse_data, models=None,
+                  target_version="lcc", sn_field="lcc_sn", verbose=False,
+                  force=False):
+    """Run R2 debate: each model judges the 3 stable outputs.
 
     Returns:
         {(chap,sec): {model_name + "_as_judge": judgment_dict}}
@@ -143,21 +330,16 @@ def run_judge_round(round_num, disagreed_verses, round1_results,
     if models is None:
         models = DEFAULT_MODELS
 
-    results_dir = os.path.join(SURVEY_DIR, f"round{round_num}_results")
-    os.makedirs(results_dir, exist_ok=True)
-
+    results_dir = os.path.join(SURVEY_DIR, "round2_results")
     all_judgments = {}
 
-    for verse_key in disagreed_verses:
+    for verse_key in verses:
         chap, sec = verse_key
         vdata = verse_data.get(verse_key, {})
-        unv_sn = vdata.get("unv_sn", "")
-        lcc_original = vdata.get("lcc_original", "")
-
+        book_eng = vdata.get("book", "")
         verse_judgments = {}
-        r2_for_verse = round2_judgments.get(verse_key, {}) if round2_judgments else {}
 
-        print(f"\n  Round {round_num} judging {chap}:{sec}...", flush=True)
+        print(f"\n  R2 debate {chap}:{sec}...", flush=True)
 
         for model_info in models:
             model_name = model_info["name"]
@@ -165,22 +347,20 @@ def run_judge_round(round_num, disagreed_verses, round1_results,
             model_id = model_info["model"]
             judge_key = f"{model_name}_as_judge"
 
-            # Check for cached result
-            result_file = os.path.join(results_dir, model_name, f"{chap}_{sec}.json")
-            if os.path.isfile(result_file):
+            # Check cache
+            result_file = os.path.join(results_dir, model_name, book_eng, f"{chap}_{sec}.json")
+            if not force and os.path.isfile(result_file):
                 with open(result_file, "r", encoding="utf-8") as f:
                     verse_judgments[judge_key] = json.load(f)
-                print(f"    [{model_name}] cached", flush=True)
+                print(f"    [{model_name}] debate cached", flush=True)
                 continue
 
-            prompt = build_judge_prompt(
-                round_num, verse_key, round1_results, r2_for_verse,
-                unv_sn, lcc_original, sn_field
-            )
+            prompt = build_r2_debate_prompt(
+                verse_key, convergence_results, verse_data, sn_field)
 
-            print(f"    [{model_name}] judging...", flush=True)
+            print(f"    [{model_name}] debating...", end=" ", flush=True)
 
-            # Use judge mode — no JSON schema forced, free-form response
+            t_start = time.time()
             result = call_llm(
                 brand=brand, model=model_id,
                 system_prompt="You are a biblical Hebrew and Chinese translation expert.",
@@ -189,8 +369,8 @@ def run_judge_round(round_num, disagreed_verses, round1_results,
                 verbose=verbose,
                 mode="judge",
             )
+            elapsed_s = int(time.time() - t_start)
 
-            # Result should be {best, corrected, reasoning, ...}
             judgment = {}
             for key in ["best", "corrected", "reasoning", "sn_count_unv", "sn_counts"]:
                 if key in result:
@@ -206,46 +386,199 @@ def run_judge_round(round_num, disagreed_verses, round1_results,
 
             verse_judgments[judge_key] = judgment
 
-            # Save to disk
             os.makedirs(os.path.dirname(result_file), exist_ok=True)
             with open(result_file, "w", encoding="utf-8") as f:
                 json.dump(judgment, f, indent=2, ensure_ascii=False)
 
-            print(f"    [{model_name}] → best={judgment.get('best', '?')}", flush=True)
+            print(f"    [{model_name}] → best={judgment.get('best', '?')} {elapsed_s}s", flush=True)
 
         all_judgments[verse_key] = verse_judgments
 
     return all_judgments
 
 
-def tally_judgments(judgments_for_verse, round1_results, sn_field="lcc_sn"):
-    """Tally judge votes for a single verse.
+# ── R3 Dual-Capability ───────────────────────────────────────────────────────
+
+def build_r3_prompt(verse_key, convergence_results, round2_judgments,
+                    verse_data, sn_field="lcc_sn"):
+    """Build R3 prompt with dual capability (pick or all_wrong)."""
+    models = list(convergence_results.keys())
+    model_a, model_b, model_c = models
+
+    vdata = verse_data.get(verse_key, {})
+
+    def _get_output_and_conv(model_name):
+        conv = convergence_results[model_name].get(verse_key, {})
+        text = conv.get("stable_result", "(no output)")
+        stable = conv.get("stable_at", "?")
+        converged = conv.get("converged", False)
+        if converged:
+            conv_str = f"stable at {stable}"
+        else:
+            conv_str = f"UNSTABLE after {len(conv.get('attempts', [])) - 1} attempts"
+        return text, conv_str
+
+    output_a, conv_a = _get_output_and_conv(model_a)
+    output_b, conv_b = _get_output_and_conv(model_b)
+    output_c, conv_c = _get_output_and_conv(model_c)
+
+    # Format R2 debate judgments
+    r2_for_verse = round2_judgments.get(verse_key, {})
+    r2_lines = []
+    for judge_model, judgment in r2_for_verse.items():
+        best = judgment.get("best", "?")
+        reasoning = judgment.get("reasoning", "")
+        r2_lines.append(f"{judge_model} chose: {best}")
+        r2_lines.append(f"  Reasoning: {reasoning}")
+    round2_text = '\n'.join(r2_lines) if r2_lines else "(no Round 2 judgments)"
+
+    return ROUND3_PROMPT.format(
+        unv_sn=vdata.get("unv_sn", ""),
+        lcc_original=vdata.get("lcc_original", ""),
+        model_a=model_a, model_b=model_b, model_c=model_c,
+        output_a=output_a, output_b=output_b, output_c=output_c,
+        convergence_a=conv_a, convergence_b=conv_b, convergence_c=conv_c,
+        round2_judgments_text=round2_text,
+    )
+
+
+def run_round3(verses, convergence_results, round2_judgments, verse_data,
+               models=None, target_version="lcc", sn_field="lcc_sn",
+               verbose=False, force=False):
+    """Run Round 3: dual-capability judging (pick or all_wrong).
 
     Returns:
-        (winner_output, opinion_map) or (None, opinion_map) if no 2/3 agreement.
-
-        winner_output: the SN text that won, or corrected text
-        opinion_map: {judge_key: "majority"|"minority"}
+        {(chap,sec): {model_name + "_as_judge": judgment_dict}}
+        Where judgment_dict has "verdict" = "pick" or "all_wrong"
     """
-    models = list(round1_results.keys())
+    if models is None:
+        models = DEFAULT_MODELS
+
+    results_dir = os.path.join(SURVEY_DIR, "round3_results")
+    os.makedirs(results_dir, exist_ok=True)
+
+    all_judgments = {}
+
+    for verse_key in verses:
+        chap, sec = verse_key
+        vdata = verse_data.get(verse_key, {})
+        book_eng = vdata.get("book", "")
+        verse_judgments = {}
+
+        print(f"\n  R3 judging {chap}:{sec}...", flush=True)
+
+        for model_info in models:
+            model_name = model_info["name"]
+            brand = model_info["brand"]
+            model_id = model_info["model"]
+            judge_key = f"{model_name}_as_judge"
+
+            # Check cache
+            result_file = os.path.join(results_dir, model_name, book_eng, f"{chap}_{sec}.json")
+            if not force and os.path.isfile(result_file):
+                with open(result_file, "r", encoding="utf-8") as f:
+                    verse_judgments[judge_key] = json.load(f)
+                print(f"    [{model_name}] cached", flush=True)
+                continue
+
+            prompt = build_r3_prompt(
+                verse_key, convergence_results, round2_judgments,
+                verse_data, sn_field)
+
+            print(f"    [{model_name}] judging...", end=" ", flush=True)
+
+            t_start = time.time()
+            result = call_llm(
+                brand=brand, model=model_id,
+                system_prompt="You are a biblical Hebrew and Chinese translation expert.",
+                user_prompt=prompt,
+                target_version=target_version,
+                verbose=verbose,
+                mode="judge",
+            )
+            elapsed_s = int(time.time() - t_start)
+
+            # Parse dual-format response
+            judgment = _parse_r3_judgment(result)
+            verse_judgments[judge_key] = judgment
+
+            os.makedirs(os.path.dirname(result_file), exist_ok=True)
+            with open(result_file, "w", encoding="utf-8") as f:
+                json.dump(judgment, f, indent=2, ensure_ascii=False)
+
+            verdict = judgment.get("verdict", "?")
+            if verdict == "pick":
+                print(f"    [{model_name}] → PICK best={judgment.get('best', '?')} {elapsed_s}s", flush=True)
+            elif verdict == "all_wrong":
+                print(f"    [{model_name}] → ALL_WRONG: {judgment.get('error_identified', '')[:80]} {elapsed_s}s", flush=True)
+            else:
+                print(f"    [{model_name}] → UNKNOWN verdict {elapsed_s}s", flush=True)
+
+        all_judgments[verse_key] = verse_judgments
+
+    return all_judgments
+
+
+def _parse_r3_judgment(result):
+    """Parse R3 response into standardized judgment dict."""
+    verdict = result.get("verdict", "").lower()
+
+    if verdict == "all_wrong":
+        return {
+            "verdict": "all_wrong",
+            "error_identified": result.get("error_identified", ""),
+            "prompt_improvement": result.get("prompt_improvement", ""),
+            "reasoning": result.get("reasoning", ""),
+        }
+    elif verdict == "pick" or result.get("best"):
+        return {
+            "verdict": "pick",
+            "best": result.get("best", "?"),
+            "corrected": result.get("corrected"),
+            "reasoning": result.get("reasoning", ""),
+        }
+    else:
+        # Fallback: try to infer from fields
+        if result.get("error_identified"):
+            return {
+                "verdict": "all_wrong",
+                "error_identified": result.get("error_identified", ""),
+                "prompt_improvement": result.get("prompt_improvement", ""),
+                "reasoning": result.get("reasoning", ""),
+            }
+        return {
+            "verdict": "unknown",
+            "reasoning": f"Could not parse R3 response: {str(result)[:200]}",
+            "error": True,
+        }
+
+
+# ── R2 Tally (debate phase) ─────────────────────────────────────────────────
+
+def tally_r2_debate(judgments_for_verse, convergence_results, sn_field="lcc_sn"):
+    """Tally R2 debate votes for a single verse.
+
+    Uses stable outputs from convergence (not R1 originals) as A/B/C.
+
+    Returns:
+        (winner_label, opinion_map) or (None, opinion_map) if no 2/3 agreement.
+    """
+    models = list(convergence_results.keys())
     label_to_model = {"A": models[0], "B": models[1], "C": models[2]}
 
-    votes = {}  # label -> count
-    corrected_texts = []
-
+    votes = {}
     for judge_key, judgment in judgments_for_verse.items():
         best = judgment.get("best", "?").upper()
         corrected = judgment.get("corrected")
 
-        if corrected:
-            corrected_texts.append(corrected)
-            votes["corrected"] = votes.get("corrected", 0) + 1
-        elif best in ("A", "B", "C"):
+        # best vote takes priority; corrected only counts when best is missing
+        if best in ("A", "B", "C"):
             votes[best] = votes.get(best, 0) + 1
+        elif corrected:
+            votes["corrected"] = votes.get("corrected", 0) + 1
 
-    # Find winner (2/3 majority)
     total_judges = len(judgments_for_verse)
-    threshold = total_judges * 2 / 3  # for 3 judges, need >= 2
+    threshold = total_judges * 2 / 3
 
     winner_label = None
     for label, count in votes.items():
@@ -253,22 +586,326 @@ def tally_judgments(judgments_for_verse, round1_results, sn_field="lcc_sn"):
             winner_label = label
             break
 
-    # Build opinion map
     opinion_map = {}
     for judge_key, judgment in judgments_for_verse.items():
         best = judgment.get("best", "?").upper()
         corrected = judgment.get("corrected")
-        if corrected:
-            judge_label = "corrected"
-        elif best in ("A", "B", "C"):
+        if best in ("A", "B", "C"):
             judge_label = best
+        elif corrected:
+            judge_label = "corrected"
         else:
             judge_label = "?"
-
         opinion_map[judge_key] = "majority" if judge_label == winner_label else "minority"
 
-    if winner_label is None:
-        return None, opinion_map
-
-    # Return the winning label (A/B/C/corrected) — caller resolves to text
     return winner_label, opinion_map
+
+
+# ── R3 Tally (dual-capability) ──────────────────────────────────────────────
+
+def tally_r3_judgments(judgments_for_verse, convergence_results):
+    """Tally R3 judgments with dual-capability (pick or all_wrong).
+
+    Returns:
+        (outcome, details)
+
+        outcome is one of:
+        - "resolved": a winner was picked (details = (winner_label, opinion_map))
+        - "prompt_evolution": 2/3+ said all_wrong with aligned errors
+          (details = {"error_descriptions": [...], "improvements": [...], "aligned": bool})
+        - "unresolved": no consensus (details = opinion_map)
+    """
+    total = len(judgments_for_verse)
+    threshold = total * 2 / 3
+
+    # Count verdicts
+    pick_votes = {}  # label -> count
+    all_wrong_judges = []
+    corrected_texts = []
+
+    for judge_key, judgment in judgments_for_verse.items():
+        verdict = judgment.get("verdict", "unknown")
+
+        if verdict == "all_wrong":
+            all_wrong_judges.append(judgment)
+        elif verdict == "pick":
+            best = judgment.get("best", "?").upper()
+            corrected = judgment.get("corrected")
+            if corrected:
+                corrected_texts.append(corrected)
+                pick_votes["corrected"] = pick_votes.get("corrected", 0) + 1
+            elif best in ("A", "B", "C"):
+                pick_votes[best] = pick_votes.get(best, 0) + 1
+
+    # Check if 2/3+ say all_wrong
+    if len(all_wrong_judges) >= threshold:
+        errors = [j.get("error_identified", "") for j in all_wrong_judges]
+        improvements = [j.get("prompt_improvement", "") for j in all_wrong_judges]
+        aligned = _check_error_alignment(errors)
+        return "prompt_evolution", {
+            "error_descriptions": errors,
+            "improvements": improvements,
+            "aligned": aligned,
+            "all_wrong_count": len(all_wrong_judges),
+        }
+
+    # Check if 2/3+ pick same winner
+    winner_label = None
+    for label, count in pick_votes.items():
+        if count >= threshold:
+            winner_label = label
+            break
+
+    if winner_label is not None:
+        opinion_map = {}
+        for judge_key, judgment in judgments_for_verse.items():
+            verdict = judgment.get("verdict", "unknown")
+            if verdict == "all_wrong":
+                opinion_map[judge_key] = "minority"
+            elif verdict == "pick":
+                best = judgment.get("best", "?").upper()
+                corrected = judgment.get("corrected")
+                if corrected:
+                    judge_label = "corrected"
+                elif best in ("A", "B", "C"):
+                    judge_label = best
+                else:
+                    judge_label = "?"
+                opinion_map[judge_key] = "majority" if judge_label == winner_label else "minority"
+            else:
+                opinion_map[judge_key] = "minority"
+        return "resolved", (winner_label, opinion_map)
+
+    # No consensus
+    opinion_map = {}
+    for judge_key in judgments_for_verse:
+        opinion_map[judge_key] = "minority"
+    return "unresolved", opinion_map
+
+
+def _check_error_alignment(error_descriptions):
+    """Check if error descriptions align (mention same issue).
+
+    Simple keyword heuristic: extract SN-tag-like patterns and common
+    error keywords, check for overlap.
+    """
+    import re
+
+    if len(error_descriptions) < 2:
+        return True  # single description is trivially aligned
+
+    # Extract keywords of interest from each description
+    keyword_sets = []
+    for desc in error_descriptions:
+        desc_lower = desc.lower()
+        keywords = set()
+
+        # SN tags mentioned
+        sn_tags = re.findall(r'<W[ATH]*[HG]?\d+>', desc)
+        keywords.update(t.upper() for t in sn_tags)
+
+        # Common error categories
+        categories = [
+            ("implicit", ["implicit", "brace", "{<", "braces"]),
+            ("prefix", ["prefix", "WAH", "09001", "09002"]),
+            ("zero-pad", ["zero", "padding", "leading zero", "0430", "07225"]),
+            ("missing", ["missing", "dropped", "lost", "omit"]),
+            ("format", ["format", "exact", "copy"]),
+        ]
+        for cat_name, cat_words in categories:
+            if any(w.lower() in desc_lower for w in cat_words):
+                keywords.add(cat_name)
+
+        keyword_sets.append(keywords)
+
+    # Check pairwise overlap: all pairs must share at least one keyword
+    for i in range(len(keyword_sets)):
+        for j in range(i + 1, len(keyword_sets)):
+            if not keyword_sets[i] & keyword_sets[j]:
+                return False
+
+    return True
+
+
+# ── Model Patch Generation ───────────────────────────────────────────────────
+
+FEEDBACK_PROMPT = """\
+You are reviewing another model's attempts at Strong's Number (SN) placement \
+in Chinese Bible text.
+
+Correct output (agreed by 2 models):
+{stable_output}
+
+UNV source (with correct SNs):
+{unv_sn}
+
+The struggling model produced these attempts (could not converge):
+{attempt_list}
+
+What specific mistakes is this model making? Give brief, actionable feedback \
+about SN placement errors, missing tags, or format issues."""
+
+SELF_PATCH_PROMPT = """\
+Two expert reviewers analyzed your Strong's Number placement attempts and gave \
+this feedback:
+
+Reviewer 1: {feedback_1}
+Reviewer 2: {feedback_2}
+
+Based on this feedback, write a concise set of additional instructions for \
+yourself that would prevent these mistakes in future SN placement tasks.
+Output ONLY the instructions — no preamble, no examples, just rules."""
+
+
+def generate_model_patch(unstable_model, unstable_attempts, stable_output,
+                         unv_sn, stable_models, models, target_version,
+                         verse_key=None, book_eng="", verbose=False):
+    """Generate a model-specific patch via feedback from stable models.
+
+    Step 1: Each stable model gives feedback on what the unstable model got wrong.
+    Step 2: The unstable model writes its own patch from both feedbacks.
+    All artifacts are saved to round2_results/{model}/trigger2_patches/.
+
+    Returns (patch_text, record) where record has all feedbacks and patch.
+    patch_text is "" if generation fails.
+    """
+    chap, sec = verse_key if verse_key else (0, 0)
+
+    # Build attempt list for prompt
+    attempt_lines = []
+    labels = ["R1", "R2a", "R2b", "R2c", "R2d", "R2e", "R2f"]
+    for i, attempt in enumerate(unstable_attempts):
+        label = labels[i] if i < len(labels) else f"attempt_{i}"
+        if attempt.strip():
+            attempt_lines.append(f"{label}: {attempt}")
+    attempt_text = "\n".join(attempt_lines) if attempt_lines else "(all empty)"
+
+    feedback_prompt = FEEDBACK_PROMPT.format(
+        stable_output=stable_output,
+        unv_sn=unv_sn,
+        attempt_list=attempt_text,
+    )
+
+    # Record everything
+    record = {
+        "verse": f"{chap}:{sec}",
+        "unstable_model": unstable_model,
+        "stable_models": stable_models,
+        "stable_output": stable_output,
+        "unstable_attempts": unstable_attempts,
+        "feedbacks": {},
+        "self_patch": "",
+        "feedback_prompt": feedback_prompt,
+    }
+
+    # Step 1: Get feedback from each stable model
+    feedbacks = []
+    for stable_name in stable_models:
+        model_info = _find_model(stable_name, models)
+        if not model_info:
+            continue
+
+        print(f"    [{stable_name}] giving feedback to {unstable_model}...", end=" ", flush=True)
+        t_start = time.time()
+        result = call_llm(
+            brand=model_info["brand"], model=model_info["model"],
+            system_prompt="You are a biblical Hebrew and Chinese translation expert.",
+            user_prompt=feedback_prompt,
+            target_version=target_version,
+            verbose=verbose,
+            mode="freeform",
+        )
+        elapsed_s = int(time.time() - t_start)
+
+        feedback = result.get("text", "")
+        if not feedback or len(feedback) < 10:
+            feedback = str(result)
+
+        feedbacks.append(feedback)
+        record["feedbacks"][stable_name] = feedback
+        print(f"{len(feedback)} chars {elapsed_s}s", flush=True)
+
+    if len(feedbacks) < 2:
+        print(f"    Failed to get 2 feedbacks, skipping patch generation")
+        _save_patch_record(record, unstable_model, book_eng, chap, sec)
+        return "", record
+
+    # Step 2: Unstable model writes its own patch
+    self_patch_prompt = SELF_PATCH_PROMPT.format(
+        feedback_1=feedbacks[0],
+        feedback_2=feedbacks[1],
+    )
+    record["self_patch_prompt"] = self_patch_prompt
+
+    unstable_info = _find_model(unstable_model, models)
+    if not unstable_info:
+        _save_patch_record(record, unstable_model, book_eng, chap, sec)
+        return "", record
+
+    print(f"    [{unstable_model}] writing self-patch...", end=" ", flush=True)
+    t_start = time.time()
+    result = call_llm(
+        brand=unstable_info["brand"], model=unstable_info["model"],
+        system_prompt="You are writing additional instructions for yourself to improve SN placement accuracy.",
+        user_prompt=self_patch_prompt,
+        target_version=target_version,
+        verbose=verbose,
+        mode="freeform",
+    )
+    elapsed_s = int(time.time() - t_start)
+
+    patch_text = result.get("text", "")
+    record["self_patch"] = patch_text
+
+    print(f"{len(patch_text)} chars {elapsed_s}s", flush=True)
+
+    # Save full record
+    _save_patch_record(record, unstable_model, book_eng, chap, sec)
+
+    return (patch_text, record) if len(patch_text) > 10 else ("", record)
+
+
+def _save_patch_record(record, unstable_model, book_eng, chap, sec):
+    """Save the full patch generation record to disk."""
+    patch_dir = os.path.join(SURVEY_DIR, "round2_results", unstable_model,
+                             book_eng, "trigger2_patches")
+    os.makedirs(patch_dir, exist_ok=True)
+    filepath = os.path.join(patch_dir, f"{chap}_{sec}_patch_record.json")
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(record, f, indent=2, ensure_ascii=False)
+    print(f"    Patch record saved: {filepath}", flush=True)
+
+
+def _r2_label(i):
+    """Generate R2 attempt label: R2a, R2b, ..., R2z, R2aa, R2ab, ..., R2zz."""
+    if i < 26:
+        return f"R2{chr(97 + i)}"
+    else:
+        i2 = i - 26
+        return f"R2{chr(97 + i2 // 26)}{chr(97 + i2 % 26)}"
+
+
+def _find_model(model_name, models):
+    """Find model info dict by name."""
+    for m in models:
+        if m["name"] == model_name:
+            return m
+    return None
+
+
+# ── Backward compat alias ────────────────────────────────────────────────────
+# Keep old name available for consensus.py imports during transition
+def tally_judgments(judgments_for_verse, round1_results_or_conv, sn_field="lcc_sn"):
+    """Legacy tally — delegates to tally_r2_debate."""
+    return tally_r2_debate(judgments_for_verse, round1_results_or_conv, sn_field)
+
+
+# ── Helpers ──────────────────────────────────────────────────────────────────
+
+def _eng_to_chi(book_eng):
+    """Reverse lookup: English book name → Chinese abbreviation."""
+    from llm_direct_sn_unv2notyet import CHI_TO_ENG
+    for chi, eng in CHI_TO_ENG.items():
+        if eng == book_eng:
+            return chi
+    return book_eng  # fallback
