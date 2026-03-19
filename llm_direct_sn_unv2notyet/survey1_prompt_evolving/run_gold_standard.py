@@ -814,6 +814,12 @@ def main():
                 # Generate model patch
                 from judge import generate_model_patch
                 unstable_conv = convergence_results[unstable_model][verse_key]
+                # Load existing patch so the model can incorporate it
+                current_patch, current_patch_ver = load_model_patch(
+                    unstable_model, args.prompt_version)
+                if current_patch:
+                    print(f"  Existing patch {current_patch_ver} will be fed to {unstable_model} for evolution")
+
                 patch_text, patch_record = generate_model_patch(
                     unstable_model=unstable_model,
                     unstable_attempts=unstable_conv.get("attempts", []),
@@ -824,6 +830,7 @@ def main():
                     target_version=target_version,
                     verse_key=verse_key,
                     book_eng=book_eng,
+                    existing_patch=current_patch,
                     verbose=args.verbose,
                 )
 

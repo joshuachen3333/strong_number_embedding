@@ -751,15 +751,27 @@ this feedback:
 
 Reviewer 1: {feedback_1}
 Reviewer 2: {feedback_2}
-
-Based on this feedback, write a concise set of additional instructions for \
-yourself that would prevent these mistakes in future SN placement tasks.
+{existing_patch_section}
+Based on ALL the above, write a COMPLETE, self-contained set of additional \
+instructions for yourself that would prevent these mistakes in future SN \
+placement tasks. This must be a full replacement — include everything you \
+need, not just the new fixes.
 Output ONLY the instructions — no preamble, no examples, just rules."""
+
+SELF_PATCH_EXISTING = """
+You also have existing self-improvement instructions from previous rounds:
+
+Your current patch:
+{existing_patch}
+
+Incorporate what is still relevant from your current patch, plus the new \
+feedback above, into one unified set of instructions."""
 
 
 def generate_model_patch(unstable_model, unstable_attempts, stable_output,
                          unv_sn, stable_models, models, target_version,
-                         verse_key=None, book_eng="", verbose=False):
+                         verse_key=None, book_eng="", existing_patch="",
+                         verbose=False):
     """Generate a model-specific patch via feedback from stable models.
 
     Step 1: Each stable model gives feedback on what the unstable model got wrong.
@@ -831,9 +843,13 @@ def generate_model_patch(unstable_model, unstable_attempts, stable_output,
         return "", record
 
     # Step 2: Unstable model writes its own patch
+    existing_section = ""
+    if existing_patch:
+        existing_section = SELF_PATCH_EXISTING.format(existing_patch=existing_patch)
     self_patch_prompt = SELF_PATCH_PROMPT.format(
         feedback_1=feedbacks[0],
         feedback_2=feedbacks[1],
+        existing_patch_section=existing_section,
     )
     record["self_patch_prompt"] = self_patch_prompt
 
