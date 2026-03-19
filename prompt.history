@@ -301,3 +301,12 @@ prompts/* renamed with _Book_chap_ver_ for lazy people — no need to open file 
 
 ### 49b. [2026-03-19 22:55] Gen 1:7 final re-run
 → gpt-5.4 still unstable on this verse. Trigger 2 fired again, patch evolved to 0.2 with full story header.
+
+### 50. [2026-03-20 ~03:00] AD-1: 統一判定原則 (Single Source of Truth)
+build_gold_standard() 是所有 resolved_at 判定的唯一來源。main loop 只負責跑模型、收集資料。任何 resolution path 的最終判定都必須經過 build_gold_standard()，不得在 main loop 直接存 gold standard。此原則來自 5 個 tracking bugs 的教訓。
+
+### 50a. [2026-03-20 ~03:30] Bug 1-5 deep audit and fix
+go /plan mode to deeply investigate my correction (based on 3 rounds logic and mini patch triggering logic). Found: Bug 1 (Trigger 1 → unresolved), Bug 2 (Trigger 2 missing from summary), Bug 3 (prompt_evolution duplicate — 確立 AD-1 原則), Bug 4 (Trigger 1 duplicate in all_disagreed), Bug 5 (R3 unresolved no continue). All fixed: Trigger 1/2 collect to separate lists, build_gold_standard() processes them, all_disagreed.remove() on trigger, summary counts r2_model_patch and r2_early_evolution.
+
+### 50b. [2026-03-20 ~04:00] survey2_fhl_sn_format_spec/ — 教科書級別 SN 格式總整理
+search very deeply on all components for FHL SN denoting. Created textbook-level reference consolidating format definitions from 10+ files. W-prefix decode, tag types, numeric classification, 900x mapping, morphology codes, normalization pipeline, regex cross-reference.

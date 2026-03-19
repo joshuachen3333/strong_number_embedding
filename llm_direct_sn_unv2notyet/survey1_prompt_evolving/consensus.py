@@ -34,7 +34,8 @@ def resolve_winner_text(winner_label, verse_key, convergence_results,
 def build_gold_standard(unanimous, disagreed, round1_results,
                         convergence_results, round2_judgments,
                         round3_judgments, verse_data,
-                        prompt_version="v1.0", sn_field="lcc_sn"):
+                        prompt_version="v1.0", sn_field="lcc_sn",
+                        trigger1_verses=None, trigger2_verses=None):
     """Build gold standard JSONs from all round results.
 
     Args:
@@ -46,6 +47,8 @@ def build_gold_standard(unanimous, disagreed, round1_results,
         round3_judgments: {(chap,sec): {judge_key: judgment_dict}} or None
         verse_data: {(chap,sec): {"unv_sn", "lcc_original", "book"}}
         prompt_version: version string for tracking
+        trigger1_verses: list of (verse_key, vdata, conv_data) — R2 all unstable
+        trigger2_verses: list of (verse_key, gold_entry) — R2 model patch
 
     Returns:
         (gold_standard, unresolved, prompt_evolutions)
@@ -232,6 +235,47 @@ def build_gold_standard(unanimous, disagreed, round1_results,
             "round3": round3_with_opinions,
         }
 
+    # Process Trigger 1 verses (all 3 unstable → early prompt evolution)
+    if trigger1_verses:
+        for verse_key, vdata, conv_data in trigger1_verses:
+            chap, sec = verse_key
+            models_in_conv = list(conv_data.keys())
+            gold_standard[verse_key] = {
+                "book": vdata.get("book", ""),
+                "chap": chap,
+                "sec": sec,
+                "lcc_sn": "",  # no valid output
+                "lcc_original": vdata.get("lcc_original", ""),
+                "unv_sn_reference": vdata.get("unv_sn", ""),
+                "resolved_at": "r2_early_evolution",
+                "prompt_version": prompt_version,
+                "round1": {m: {
+                    "lcc_sn": round1_results.get(m, {}).get(verse_key, {}).get(sn_field, ""),
+                    "confidence": round1_results.get(m, {}).get(verse_key, {}).get("confidence", 0),
+                    "opinion": "unstable",
+                } for m in models_in_conv},
+                "round2_convergence": {m: {
+                    "stable_result": conv_data.get(m, {}).get("stable_result", ""),
+                    "converged": conv_data.get(m, {}).get("converged", False),
+                    "stable_at": conv_data.get(m, {}).get("stable_at", "?"),
+                    "attempt_count": len(conv_data.get(m, {}).get("attempts", [])),
+                } for m in models_in_conv},
+                "round2": None,
+                "round3": None,
+            }
+            prompt_evolutions.append({
+                "verse_key": verse_key,
+                "error_descriptions": ["All 3 models unstable in R2 convergence"],
+                "improvements": ["Prompt may be ambiguous — review verse structure"],
+                "aligned": True,
+                "trigger": "r2_all_unstable",
+            })
+
+    # Process Trigger 2 verses (2 easy + agree, 1 unstable → model patch)
+    if trigger2_verses:
+        for verse_key, gold_entry in trigger2_verses:
+            gold_standard[verse_key] = gold_entry
+
     return gold_standard, unresolved, prompt_evolutions
 
 
@@ -257,6 +301,8 @@ def print_summary(gold_standard, unresolved, prompt_evolutions=None):
     total = len(gold_standard)
     r1 = sum(1 for g in gold_standard.values() if g["resolved_at"] == "round1")
     r2 = sum(1 for g in gold_standard.values() if g["resolved_at"] == "round2")
+    r2_patch = sum(1 for g in gold_standard.values() if g["resolved_at"] == "r2_model_patch")
+    r2_evo = sum(1 for g in gold_standard.values() if g["resolved_at"] == "r2_early_evolution")
     r3 = sum(1 for g in gold_standard.values() if g["resolved_at"] == "round3")
     pe = sum(1 for g in gold_standard.values() if g["resolved_at"] == "prompt_evolution")
     ur = len(unresolved)
@@ -264,11 +310,13 @@ def print_summary(gold_standard, unresolved, prompt_evolutions=None):
     print(f"\n{'='*60}")
     print(f"  Gold Standard Summary")
     print(f"{'='*60}")
-    print(f"  Total verses:        {total}")
+    print(f"  Total verses:          {total}")
     print(f"  Round 1 (unanimous):   {r1}")
     print(f"  Round 2 (2/3 debate):  {r2}")
+    print(f"  R2 Trigger 2 (patch):  {r2_patch}")
+    print(f"  R2 Trigger 1 (+0.1):   {r2_evo}")
     print(f"  Round 3 (2/3 final):   {r3}")
-    print(f"  Prompt evolution:      {pe}")
+    print(f"  R3 prompt evolution:   {pe}")
     print(f"  Unresolved:            {ur}")
     if unresolved:
         print(f"  Unresolved verses: {', '.join(f'{c}:{s}' for c, s in unresolved)}")

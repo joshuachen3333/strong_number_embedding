@@ -631,7 +631,8 @@ def main():
     round3_judgments = {}
     all_unanimous = []
     all_disagreed = []
-    all_prompt_evolutions = []
+    all_trigger1 = []   # (verse_key, verse_data_entry, convergence_for_verse)
+    all_trigger2 = []   # (verse_key, gold_entry)
 
     for verse_idx, (chap, sec) in enumerate(verses):
         verse_key = (chap, sec)
@@ -672,19 +673,17 @@ def main():
             result_file = os.path.join(
                 round1_dir, model_name, book_eng, str(chap), f"{sec}.json")
 
+            # Load model-specific patch info (for display, even when cached)
+            model_patch, patch_ver = load_model_patch(model_name, args.prompt_version)
+            model_label = f"{model_name} (patch {patch_ver})" if model_patch else model_name
+
             if not args.force and os.path.isfile(result_file):
                 with open(result_file, "r", encoding="utf-8") as f:
                     round1_results[model_name][verse_key] = json.load(f)
-                print(f"  [ {model_name} ] cached", flush=True)
+                print(f"  [ {model_label} ] cached", flush=True)
                 continue
-
-            # Load model-specific patch if it exists
-            model_patch, patch_ver = load_model_patch(model_name, args.prompt_version)
             model_prompt = system_prompt + ("\n\n" + model_patch if model_patch else "")
-            if model_patch:
-                print(f"  [ {model_name} (patch {patch_ver}) ] calling...", end=" ", flush=True)
-            else:
-                print(f"  [ {model_name} ] calling...", end=" ", flush=True)
+            print(f"  [ {model_label} ] calling...", end=" ", flush=True)
 
             t_start = time.time()
             result = call_llm(
@@ -786,14 +785,11 @@ def main():
                 json.dump(evo_record, f, indent=2, ensure_ascii=False)
             print(f"  Evolution record saved: {evo_path}")
 
-            all_prompt_evolutions.append({
-                "verse_key": verse_key,
-                "error_descriptions": ["All 3 models unstable in R2 convergence"],
-                "improvements": ["Prompt may be ambiguous — review verse structure"],
-                "aligned": True,
-                "trigger": "r2_all_unstable",
-            })
-            all_disagreed.append(verse_key)
+            # Collect for build_gold_standard() — don't save directly (AD-1)
+            conv_for_verse = {m: convergence_results.get(m, {}).get(verse_key, {})
+                              for m in models_list}
+            all_trigger1.append((verse_key, verse_data[verse_key], conv_for_verse))
+            all_disagreed.remove(verse_key)  # was added at DISAGREED, now handled by trigger1
             print(f"\n  STOPPING — fix prompt before processing more verses.")
             break
 
@@ -923,10 +919,10 @@ def main():
                     "round3": None,
                     "trigger2_model": unstable_model,
                 }
-                # Save directly (save_gold_standard imported at top level)
-                save_gold_standard({verse_key: gold_entry})
+                # Collect for build_gold_standard() — don't save directly (AD-1)
+                all_trigger2.append((verse_key, gold_entry))
+                all_disagreed.remove(verse_key)  # was added at DISAGREED, now resolved
                 print(f"  → R2 TRIGGER 2 RESOLVED [{ts()}] (2/3 agree, patch for {unstable_model})")
-                all_disagreed.append(verse_key)
                 continue
 
         # ── R2 Phase 2: Debate ──
@@ -1002,12 +998,7 @@ def main():
                     json.dump(evo_record, f, indent=2, ensure_ascii=False)
                 print(f"  Evolution record saved: {evo_path}")
 
-                all_prompt_evolutions.append({
-                    "verse_key": verse_key,
-                    "error_descriptions": details["error_descriptions"],
-                    "improvements": details["improvements"],
-                    "aligned": details["aligned"],
-                })
+                # Don't collect here — build_gold_standard() handles it (AD-1)
                 if details["aligned"]:
                     print(f"  Models AGREE on the error. Auto-evolve possible.")
                 else:
@@ -1021,6 +1012,7 @@ def main():
                 break
             else:
                 print(f"  → R3 UNRESOLVED [{ts()}] (human review needed)", flush=True)
+                continue
 
     if args.round1_only:
         print(f"\n  Round 1 complete for {len(verses)} verses.")
@@ -1041,16 +1033,18 @@ def main():
         verse_data=verse_data,
         prompt_version=args.prompt_version,
         sn_field=sn_field,
+        trigger1_verses=all_trigger1,
+        trigger2_verses=all_trigger2,
     )
 
     save_gold_standard(gold_standard)
-    print_summary(gold_standard, unresolved, prompt_evolutions + all_prompt_evolutions)
+    print_summary(gold_standard, unresolved, prompt_evolutions)
 
     # Verify SN coverage on gold standard
     print(f"\n  Verifying SN coverage on gold standard...")
     bad_coverage = 0
     for verse_key, gold in gold_standard.items():
-        if gold["resolved_at"] in ("unresolved", "prompt_evolution"):
+        if gold["resolved_at"] in ("unresolved", "prompt_evolution", "r2_early_evolution"):
             continue
         coverage = verify_sn_coverage(gold["unv_sn_reference"], gold["lcc_sn"])
         if not coverage["perfect"]:
