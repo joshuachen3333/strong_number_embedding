@@ -1,8 +1,12 @@
 # survey1_prompt_evolving/ — 3-Model Gold Standard with Live Prompt Evolution
 
+## Architecture
+
+**MUST READ [`ARCHITECTURE_DECISIONS.md`](ARCHITECTURE_DECISIONS.md)** before modifying resolution logic. Key principle: `build_gold_standard()` is the **sole authority** for all `resolved_at` judgments. Main loop only collects data — never directly saves gold standard.
+
 ## Purpose
 
-Establish the "best" SN embedding result using 3 top models (opus, gemini-3-flash-preview, gpt-5.4) as a consensus panel. The prompt evolves live during the run, not after.
+Establish the "best" SN embedding result using 3 top models (opus, gemini-3-pro-preview, gpt-5.4) as a consensus panel. The prompt evolves live during the run, not after.
 
 ## 3-Round Consensus
 

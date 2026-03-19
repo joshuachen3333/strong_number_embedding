@@ -1,0 +1,56 @@
+# Architecture Decisions — survey1_prompt_evolving
+
+## AD-1: 統一判定原則 (Single Source of Truth for Gold Standard)
+
+**日期**: 2026-03-20
+**狀態**: 已確認，待實作
+
+### 原則
+
+> **`build_gold_standard()` 是所有 `resolved_at` 判定的唯一來源。**
+> main loop (`run_gold_standard.py`) 只負責呼叫模型、收集資料。
+> 任何 resolution path（R1 unanimous, R2 debate, R2 Trigger 1/2, R3 pick/all_wrong）
+> 的最終判定都必須經過 `build_gold_standard()`，不得在 main loop 直接存 gold standard。
+
+### 為什麼
+
+從 Bug 1-3 學到的教訓：
+
+**Bug 1 (Trigger 1 → unresolved)**：Trigger 1（三模型全不穩定）把節加到 `all_disagreed`，但跳過了 R2 debate 和 R3。`build_gold_standard()` 看到這節在 `disagreed` 列表中，卻找不到 R2/R3 資料，只能標記為 `"unresolved"`。正確應為 `"r2_early_evolution"`。
+
+**Bug 2 (Trigger 2 → summary 少算)**：Trigger 2（2 穩定一致 + 1 不穩定）直接呼叫 `save_gold_standard()` 存到硬碟，跳過 `build_gold_standard()`。結果 summary 的 `gold_standard` dict 不包含這些節，計數不完整。
+
+**Bug 3 (R3 prompt_evolution 重複)**：main loop 和 `build_gold_standard()` 各自收集 `prompt_evolutions`，最後合併時同一節出現兩次。
+
+### 根因
+
+三個 bug 的根因相同：**resolution 邏輯散落在兩個地方**（main loop + build_gold_standard），破壞了 Single Source of Truth。
+
+### 修法
+
+| 現況 | 改為 |
+|------|------|
+| Trigger 1 直接存 gold standard + 加到 `all_disagreed` | 收集到 `all_trigger1`，傳給 `build_gold_standard()` |
+| Trigger 2 直接存 gold standard | 收集到 `all_trigger2`，傳給 `build_gold_standard()` |
+| main loop 收集 `all_prompt_evolutions` | 刪除。只由 `build_gold_standard()` 回傳 |
+| `print_summary()` 拼接多個來源 | 只用 `build_gold_standard()` 的回傳值 |
+
+### 未來擴充守則
+
+1. **新增任何 resolution path 時**（例如 R4、新的 Trigger 類型），**不得**在 main loop 直接呼叫 `save_gold_standard()`
+2. 應收集資料到適當的列表，傳給 `build_gold_standard()` 統一處理
+3. `resolved_at` 的值只在 `build_gold_standard()` 裡設定
+4. `print_summary()` 只依賴 `build_gold_standard()` 的回傳
+
+---
+
+## AD-2: 其他已知問題
+
+### Bug 4 (Trigger 1 重複加到 all_disagreed)
+
+Line 730（DISAGREED 時）和 Trigger 1 區塊各加一次 `all_disagreed.append(verse_key)`。
+被 AD-1 修法自動解決：Trigger 1 不再加到 `all_disagreed`。
+
+### Bug 5 (R3 unresolved 無 continue)
+
+R3 unresolved 後沒有明確的 `continue`，靠 fall-through 到 loop 尾端。功能正確但與其他路徑不一致。應加 `continue` 保持風格統一，避免未來在 loop 尾端加 code 時被 fall-through 影響。
