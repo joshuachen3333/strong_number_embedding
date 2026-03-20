@@ -198,6 +198,8 @@ def run_r2_convergence(verses, round1_results, verse_data, models=None,
                 print(f"    [{model_name}] R1 was error/empty — ignoring as baseline", flush=True)
 
             effective_max = max_retries if max_retries > 0 else 702  # 0 = unlimited (a-z + aa-zz)
+            consecutive_errors = 0
+            MAX_CONSECUTIVE_ERRORS = 3  # bail out after 3 consecutive errors
             for i in range(1 + effective_max):  # R2a + up to effective_max
                 label = _r2_label(i)
 
@@ -223,8 +225,13 @@ def run_r2_convergence(verses, round1_results, verse_data, models=None,
 
                 # Never treat empty/error as stable
                 if new_is_error:
-                    print(f"ERROR (empty/timeout) {elapsed_s}s", flush=True)
+                    consecutive_errors += 1
+                    print(f"ERROR (empty/timeout) {elapsed_s}s [consecutive: {consecutive_errors}/{MAX_CONSECUTIVE_ERRORS}]", flush=True)
+                    if consecutive_errors >= MAX_CONSECUTIVE_ERRORS:
+                        print(f"    [{model_name}] BAILED OUT — {MAX_CONSECUTIVE_ERRORS} consecutive errors (model may be rate-limited)", flush=True)
+                        break
                     continue
+                consecutive_errors = 0  # reset on success
 
                 # R2a: compare with R1 only (special case)
                 if i == 0 and not r1_was_error and r1_text.strip():

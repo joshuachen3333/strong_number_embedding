@@ -319,6 +319,7 @@ def _get_base_prompt_trigger(prompt_version):
     """Extract the trigger suffix from the base prompt filename.
 
     e.g., v1.1_Gen_1_1.md → "_Gen_1_1"
+          v1.2_joshua.md → "_joshua"
           v1.0.md → "" (baseline, no trigger)
     """
     import re as _re
@@ -326,11 +327,11 @@ def _get_base_prompt_trigger(prompt_version):
     if not os.path.isdir(prompts_dir):
         return ""
     for fname in os.listdir(prompts_dir):
-        if "-patch-" in fname:
+        if "-patch-" in fname or "-exp" in fname:
             continue
-        m = _re.match(rf'^{_re.escape(prompt_version)}(_\w+_\d+_\d+)?\.md$', fname)
+        m = _re.match(rf'^{_re.escape(prompt_version)}(_[\w]+(?:_\d+_\d+)?)?\.md$', fname)
         if m and m.group(1):
-            return m.group(1)  # e.g., "_Gen_1_1"
+            return m.group(1)  # e.g., "_Gen_1_1" or "_joshua"
     return ""
 
 
@@ -345,8 +346,8 @@ def load_prompt_file(prompt_file):
 def detect_latest_prompt():
     """Find the latest versioned base prompt file in prompts/ directory.
 
-    Matches: v{ver}.md (baseline) or v{ver}_{Book}_{chap}_{sec}.md (evolved)
-    Excludes patch files (contain '-patch-').
+    Matches: v{ver}.md, v{ver}_{trigger}.md (e.g., v1.1_Gen_1_1.md, v1.2_joshua.md)
+    Excludes patch files (contain '-patch-') and experiment files (contain '-exp').
     Returns (prompt_path, version_string) or (None, None) if none found.
     """
     import re
@@ -356,9 +357,9 @@ def detect_latest_prompt():
 
     version_files = []
     for fname in os.listdir(prompts_dir):
-        if "-patch-" in fname:
-            continue  # skip model patches
-        m = re.match(r'^v(\d+(?:\.\d+)*)(?:_\w+_\d+_\d+)?\.md$', fname)
+        if "-patch-" in fname or "-exp" in fname:
+            continue  # skip model patches and experiments
+        m = re.match(r'^v(\d+(?:\.\d+)*)(?:_[\w]+(?:_\d+_\d+)?)?\.md$', fname)
         if m:
             ver_str = m.group(1)
             ver_tuple = tuple(int(x) for x in ver_str.split('.'))
