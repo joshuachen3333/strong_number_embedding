@@ -331,3 +331,12 @@ Evidence-driven promotion. Trigger: _joshua_ (human-initiated). Updated system_p
 
 ### 52d. [2026-03-21 ~00:30] Consecutive error bail-out
 Gemini quota exhaustion caused infinite R2 retry loop (R2a→R2zz... all 0s errors). Added MAX_CONSECUTIVE_ERRORS=3 — after 3 consecutive errors, bail out instead of spinning.
+
+### 53. [2026-03-21 ~02:30] AD-2: Unified 4-Level Stability Scale
+有沒有可能把 easy/hard 與 3（mild, moderate, strong）整合一起考量? → 統一為 Level 0 (Easy) / Level 1 (Mild) / Level 2 (Moderate) / Level 3 (Strong)，取代之前兩套分開的系統。
+
+### 53a. [2026-03-21 ~02:45] Trigger 2 distance-based threshold
+let's give trigger2 a calculation: agreed models' average vs weak model's level, distance ≥ 2 to trigger. Examples: (0,0,2)=yes, (0,0,1)=no, (1,1,3)=yes, (2,2,3)=no. Distance-based replaces rigid "2 easy + 1 hard" rule.
+
+### 53b. [2026-03-21 ~03:00] Trigger 1 average-based threshold
+"All struggling" defined by average of all 3 models' levels: avg < 1 = not struggling, 1 ≤ avg < 2 = normal debate, avg ≥ 2 = Trigger 1 (prompt +0.1). So 1,1,1 (avg=1) → debate, 2,2,2 (avg=2) → Trigger 1.
