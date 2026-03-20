@@ -316,3 +316,18 @@ search very deeply on all components for FHL SN denoting. Created textbook-level
 
 ### 51a. [2026-03-20 ~09:00] Instability Score → Patch 力度 3 級分級
 調查 max-r2-retries=0 (=unlimited) 與 easy/hard threshold (R2a 分界) 是獨立機制後, 設計並實作 instability score: unique outputs count → mild(3)/moderate(4)/strong(5+/unstable). Feedback prompt 按級別加強 (mild=標準, moderate=+oscillation analysis+root cause, strong=+past trigger2 history+prescriptive rules). Self-patch prompt 同樣分級. 回測 sampling 也按級別調整 (10%/20%/30%). AI_PROBLEM_CLASSIFICATION.md 記錄完整學術背景與設計決策.
+
+### 52. [2026-03-20 ~23:00] Annotation Projection framing experiment
+if I want to add the phrase "this is about Few-shot Cross-lingual Annotation Projection" and make it prompt 1.2, what do you think? → Decided: not a +0.1 (human-initiated, not error-driven). Run as parallel experiment first. Label + actionable implications (not just academic name). Created v1.1-exp-annotation-projection.md.
+
+### 52a. [2026-03-21 00:04] Experiment run Gen 1:1-5
+v1.1-exp (no patches) vs v1.1 (with patches): same 4/5 unanimous rate. Framing alone matches patched performance on easy verses.
+
+### 52b. [2026-03-21 00:29] Experiment run on hard verses (1:7, 1:11, 1:16, 1:21)
+Results: 1:7 UNANIMOUS (was: needed patches). 1:16 UNANIMOUS (was: Trigger 2, gpt patch 0.3). 1:21 opus R1 stable (was: R2f 6 attempts), gpt R2a (was: R2k 11 attempts!). Annotation projection framing dramatically improves convergence without any model patches.
+
+### 52c. [2026-03-21 ~01:55] Promote experiment to v1.2_joshua.md
+Evidence-driven promotion. Trigger: _joshua_ (human-initiated). Updated system_prompt_lcc.md to v1.2 so all batch runs use the evolved prompt.
+
+### 52d. [2026-03-21 ~00:30] Consecutive error bail-out
+Gemini quota exhaustion caused infinite R2 retry loop (R2a→R2zz... all 0s errors). Added MAX_CONSECUTIVE_ERRORS=3 — after 3 consecutive errors, bail out instead of spinning.
