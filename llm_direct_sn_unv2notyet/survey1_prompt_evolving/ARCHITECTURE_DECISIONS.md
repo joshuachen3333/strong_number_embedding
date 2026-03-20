@@ -54,3 +54,57 @@ Line 730（DISAGREED 時）和 Trigger 1 區塊各加一次 `all_disagreed.appen
 ### Bug 5 (R3 unresolved 無 continue)
 
 R3 unresolved 後沒有明確的 `continue`，靠 fall-through 到 loop 尾端。功能正確但與其他路徑不一致。應加 `continue` 保持風格統一，避免未來在 loop 尾端加 code 時被 fall-through 影響。
+
+---
+
+## AD-2: Unified 4-Level Stability Scale
+
+**日期**: 2026-03-21
+**狀態**: 已確認，待實作
+
+### 取代舊的二分系統
+
+之前有兩套分開的系統：Easy/Hard（二分，控制 Trigger 2 是否觸發）+ mild/moderate/strong（三級，控制 feedback 力度）。現統一為一個 4 級量表：
+
+```
+Level 0: Easy     — stable at R1 or R2a (≤2 unique outputs)
+Level 1: Mild     — stable at R2b (3 unique outputs)
+Level 2: Moderate — stable at R2c-R2d (4 unique outputs)
+Level 3: Strong   — stable at R2e+ or never converged (5+ unique outputs)
+```
+
+### Trigger 2 — Distance-Based
+
+觸發條件：2 models agree (`texts_match`) AND **distance ≥ 2**
+
+**Distance = weak model's level − agreed models' average level**
+
+| Agreed | Weak | Avg | Distance | Trigger 2? |
+|--------|------|-----|----------|------------|
+| 0, 0 | 2 | 0.0 | 2.0 | Yes |
+| 0, 0 | 3 | 0.0 | 3.0 | Yes |
+| 0, 1 | 3 | 0.5 | 2.5 | Yes |
+| 1, 1 | 3 | 1.0 | 2.0 | Yes |
+| 0, 0 | 1 | 0.0 | 1.0 | No |
+| 1, 1 | 2 | 1.0 | 1.0 | No |
+| 1, 2 | 3 | 1.5 | 1.5 | No |
+| 2, 2 | 3 | 2.0 | 1.0 | No |
+
+### Trigger 1 — All Struggling (Average-Based)
+
+| 全體平均 | 狀態 | 行動 |
+|---------|------|------|
+| avg < 1 | 至少有人 easy | 不算 all struggling |
+| 1 ≤ avg < 2 | 全部偏難但不嚴重 | normal debate（不觸發 Trigger 1，讓 debate 解決）|
+| avg ≥ 2 | 全部嚴重掙扎 | **Trigger 1**（prompt +0.1）|
+
+### Full Flow
+
+```
+R1 → UNANIMOUS → done
+R1 → DISAGREED → R2 convergence → classify Level 0-3
+  → Trigger 1? (avg of all 3 ≥ 2 → +0.1, stop)
+  → Trigger 2? (2 agree + distance ≥ 2 → auto-resolve + patch)
+  → Neither → normal R2 debate (2/3 majority)
+    → No 2/3 → R3
+```
