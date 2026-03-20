@@ -864,18 +864,25 @@ def _count_unique_attempts(attempts):
     return len(seen)
 
 
-def _instability_level(unique_count, converged):
-    """Classify instability: mild (3), moderate (4), strong (5+/unstable).
+def _stability_level(unique_count, converged):
+    """Classify stability using unified 4-level scale (AD-2).
 
-    Returns (level_name, level_int) where level_int is the unique_count capped.
+    Level 0: Easy     — stable at R1 or R2a (≤2 unique outputs)
+    Level 1: Mild     — stable at R2b (3 unique outputs)
+    Level 2: Moderate — stable at R2c-R2d (4 unique outputs)
+    Level 3: Strong   — stable at R2e+ or never converged (5+ unique outputs)
+
+    Returns (level_name, level_int).
     """
     if not converged:
-        return "strong", max(unique_count, 5)
+        return "strong", 3
     if unique_count >= 5:
-        return "strong", unique_count
+        return "strong", 3
     if unique_count >= 4:
-        return "moderate", unique_count
-    return "mild", unique_count
+        return "moderate", 2
+    if unique_count >= 3:
+        return "mild", 1
+    return "easy", 0
 
 
 def generate_model_patch(unstable_model, unstable_attempts, stable_output,
@@ -901,7 +908,7 @@ def generate_model_patch(unstable_model, unstable_attempts, stable_output,
 
     # Calculate instability score
     unique_count = _count_unique_attempts(unstable_attempts)
-    level, score = _instability_level(unique_count, converged)
+    level, score = _stability_level(unique_count, converged)
     convergence_status = "never converged" if not converged else f"converged after {len(unstable_attempts)} attempts"
 
     # Build attempt list for prompt

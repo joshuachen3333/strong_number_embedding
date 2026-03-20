@@ -110,14 +110,34 @@ def _signal_handler(signum, frame):
     sys.exit(0)
 
 
-# ── Stability helpers ────────────────────────────────────────────────────────
+# ── Stability helpers (AD-2: Unified 4-Level Scale) ─────────────────────────
 
 STABILITY_ORDER = {"R1": 0, "R2a": 1, "R2b": 2, "R2c": 3, "R2d": 4, "unstable": 5}
 
+# Trigger thresholds
+TRIGGER2_MIN_DISTANCE = 2.0
+TRIGGER1_MIN_AVG = 2.0
+
+
+def get_stability_level(conv_data):
+    """Get unified stability level (0-3) for a model's convergence data.
+
+    Level 0: Easy     — stable at R1 or R2a (≤2 unique outputs)
+    Level 1: Mild     — stable at R2b (3 unique outputs)
+    Level 2: Moderate — stable at R2c-R2d (4 unique outputs)
+    Level 3: Strong   — stable at R2e+ or never converged (5+ unique outputs)
+    """
+    from judge import _count_unique_attempts, _stability_level
+    attempts = conv_data.get("attempts", [])
+    converged = conv_data.get("converged", False)
+    unique = _count_unique_attempts(attempts)
+    _, level = _stability_level(unique, converged)
+    return level
+
 
 def is_easy_convergence(conv_data):
-    """Check if a model converged easily (R1 or R2a)."""
-    return conv_data.get("stable_at") in ("R1", "R2a")
+    """Check if a model converged easily (Level 0)."""
+    return get_stability_level(conv_data) == 0
 
 
 def load_model_patch(model_name, prompt_version):
@@ -756,19 +776,29 @@ def main():
         for m in conv:
             convergence_results.setdefault(m, {}).update(conv[m])
 
-        # ── R2 Phase 1.5: Convergence Analysis ──
+        # ── R2 Phase 1.5: Convergence Analysis (AD-2: Level + Distance) ──
         models_list = [m["name"] for m in DEFAULT_MODELS]
-        easy_models = [m for m in models_list
-                       if is_easy_convergence(convergence_results.get(m, {}).get(verse_key, {}))]
-        hard_models = [m for m in models_list if m not in easy_models]
+        model_levels = {}
+        for m in models_list:
+            conv_data = convergence_results.get(m, {}).get(verse_key, {})
+            model_levels[m] = get_stability_level(conv_data)
+
+        level_names = {0: "Easy", 1: "Mild", 2: "Moderate", 3: "Strong"}
+        avg_level = sum(model_levels.values()) / len(model_levels)
 
         print(f"\n  ── R2 Convergence Analysis [{ts()}] ──")
-        print(f"    Easy: {easy_models}, Hard: {hard_models}")
+        for m in models_list:
+            print(f"    [{m}] Level {model_levels[m]} ({level_names[model_levels[m]]})")
+        print(f"    Average: {avg_level:.1f}")
 
-        # TRIGGER 1: All 3 unstable → early prompt evolution
-        if len(hard_models) == 3:
+        # For backward compat (used later in Trigger 2 block)
+        easy_models = [m for m in models_list if model_levels[m] == 0]
+        hard_models = [m for m in models_list if model_levels[m] > 0]
+
+        # TRIGGER 1: avg ≥ 2 → all struggling → early prompt evolution
+        if avg_level >= TRIGGER1_MIN_AVG:
             print(f"\n  {'*'*60}")
-            print(f"  [{ts()}] TRIGGER 1: ALL 3 MODELS UNSTABLE → early +0.1")
+            print(f"  [{ts()}] TRIGGER 1: ALL STRUGGLING (avg={avg_level:.1f} ≥ {TRIGGER1_MIN_AVG}) → early +0.1")
             print(f"  Prompt is ambiguous for this verse type.")
             print(f"  {'*'*60}")
             for m in models_list:
@@ -804,19 +834,34 @@ def main():
             print(f"\n  STOPPING — fix prompt before processing more verses.")
             break
 
-        # TRIGGER 2: 2 easy + agree, 1 unstable → model patch
-        if len(easy_models) == 2 and len(hard_models) == 1:
-            from comparator import texts_match
-            e1, e2 = easy_models
-            t1 = convergence_results[e1][verse_key]["stable_result"]
-            t2 = convergence_results[e2][verse_key]["stable_result"]
-            if texts_match(t1, t2):
-                unstable_model = hard_models[0]
-                print(f"\n  {'*'*60}")
-                print(f"  [{ts()}] TRIGGER 2: {unstable_model} unstable, "
-                      f"{easy_models} agree")
-                print(f"  Auto-resolving with 2/3 output. Generating model patch.")
-                print(f"  {'*'*60}")
+        # TRIGGER 2: distance-based (AD-2)
+        # Find all pairs of agreeing models, check distance to the third
+        trigger2_fired = False
+        from comparator import texts_match
+        for i, m1 in enumerate(models_list):
+            for m2 in models_list[i+1:]:
+                m3 = [m for m in models_list if m != m1 and m != m2][0]
+                t1 = convergence_results[m1].get(verse_key, {}).get("stable_result", "")
+                t2 = convergence_results[m2].get(verse_key, {}).get("stable_result", "")
+                if t1 and t2 and texts_match(t1, t2):
+                    agreed_avg = (model_levels[m1] + model_levels[m2]) / 2.0
+                    weak_level = model_levels[m3]
+                    distance = weak_level - agreed_avg
+                    if distance >= TRIGGER2_MIN_DISTANCE:
+                        easy_models = [m1, m2]
+                        unstable_model = m3
+                        trigger2_fired = True
+                        print(f"\n  {'*'*60}")
+                        print(f"  [{ts()}] TRIGGER 2: {unstable_model} (L{weak_level}) unstable, "
+                              f"{easy_models} (avg L{agreed_avg:.1f}) agree "
+                              f"[distance={distance:.1f} ≥ {TRIGGER2_MIN_DISTANCE}]")
+                        print(f"  Auto-resolving with 2/3 output. Generating model patch.")
+                        print(f"  {'*'*60}")
+                        break
+            if trigger2_fired:
+                break
+
+        if trigger2_fired:
 
                 # Generate model patch
                 from judge import generate_model_patch
