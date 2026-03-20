@@ -220,8 +220,14 @@ def get_verse_list(book_chi, chapters, sec_range=None):
 
 def _run_patch_regression(model_name, prompt_version, base_prompt, patch_text,
                           convergence_results, verse_data, models,
-                          target_version, sn_field, verbose):
-    """Minor 回測: re-run patched model solo on 10% of past verses.
+                          target_version, sn_field, verbose,
+                          instability_level="mild"):
+    """Minor 回測: re-run patched model solo on past verses.
+
+    Sampling rate scales with instability level:
+      - mild:     10% of past verses
+      - moderate: 20% of past verses
+      - strong:   30% + all past trigger2 verses for this model
 
     Compares new stability to model's own previous stability.
     Returns True if patch is OK, False if regression detected.
@@ -230,6 +236,10 @@ def _run_patch_regression(model_name, prompt_version, base_prompt, patch_text,
     from llm_direct_sn_unv2notyet import build_user_prompt
     from comparator import texts_match
     from judge import _eng_to_chi
+
+    # Sampling rate by instability level
+    sample_rates = {"mild": 0.10, "moderate": 0.20, "strong": 0.30}
+    sample_rate = sample_rates.get(instability_level, 0.10)
 
     # Collect past verses with convergence data for this model
     past_verses = []
@@ -242,8 +252,8 @@ def _run_patch_regression(model_name, prompt_version, base_prompt, patch_text,
         print(f"    Patch 回測: no past data for {model_name}, skipping")
         return True
 
-    # Sample 10%, minimum 1
-    sample_size = max(1, int(len(past_verses) * 0.10))
+    # Sample by level rate, minimum 1
+    sample_size = max(1, int(len(past_verses) * sample_rate))
     sampled = random.sample(past_verses, min(sample_size, len(past_verses)))
 
     print(f"    Patch 回測: testing {len(sampled)}/{len(past_verses)} past verses for {model_name}")
@@ -816,6 +826,18 @@ def main():
                 if current_patch:
                     print(f"  Existing patch {current_patch_ver} will be fed to {unstable_model} for evolution")
 
+                # Collect past trigger2 verse keys for this model
+                past_t2_verses = []
+                t2_patches_dir = os.path.join(
+                    SURVEY_DIR, "round2_results", unstable_model,
+                    book_eng, "trigger2_patches")
+                if os.path.isdir(t2_patches_dir):
+                    for fname in os.listdir(t2_patches_dir):
+                        if fname.endswith("_patch_record.json"):
+                            parts = fname.replace("_patch_record.json", "").split("_")
+                            if len(parts) == 2:
+                                past_t2_verses.append(f"{parts[0]}:{parts[1]}")
+
                 patch_text, patch_record = generate_model_patch(
                     unstable_model=unstable_model,
                     unstable_attempts=unstable_conv.get("attempts", []),
@@ -828,6 +850,8 @@ def main():
                     book_eng=book_eng,
                     existing_patch=current_patch,
                     verbose=args.verbose,
+                    converged=unstable_conv.get("converged", True),
+                    past_trigger2_verses=past_t2_verses if past_t2_verses else None,
                 )
 
                 if patch_text:
@@ -853,12 +877,16 @@ def main():
                         if len(fb_text.split('\n')) > 5:
                             feedback_summary.append(f"#   ... ({len(fb_text)} chars total)")
 
+                    patch_level = patch_record.get("instability_level", "mild")
+                    patch_score = patch_record.get("instability_score", "?")
+                    patch_unique = patch_record.get("unique_output_count", "?")
                     header_lines = [
                         f"# Patch {patch_ver} for {unstable_model}",
                         f"# Triggered by: {book_eng} {chap}:{sec}",
                         f"# Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
                         f"# Base prompt: {args.prompt_version}",
                         f"# Stable models: {', '.join(easy_models)}",
+                        f"# Instability: {patch_level} (score={patch_score}, unique_outputs={patch_unique})",
                         f"#",
                         f"# --- Convergence story ---",
                         f"# {unstable_model} failed to converge easily "
@@ -881,13 +909,15 @@ def main():
                         f.write(header + patch_text)
                     print(f"  Patch saved: {patch_fname}")
 
-                    # Minor 回測: solo self-comparison
+                    # Minor 回測: solo self-comparison (sampling scales with instability)
+                    patch_level = patch_record.get("instability_level", "mild")
                     patch_ok = _run_patch_regression(
                         unstable_model, args.prompt_version,
                         system_prompt, patch_text,
                         convergence_results, verse_data,
                         DEFAULT_MODELS, target_version, sn_field,
-                        args.verbose)
+                        args.verbose,
+                        instability_level=patch_level)
 
                     if not patch_ok:
                         print(f"  PATCH REVERTED — made {unstable_model} less stable")
@@ -918,6 +948,11 @@ def main():
                     "round2": None,
                     "round3": None,
                     "trigger2_model": unstable_model,
+                    "trigger2_instability": {
+                        "level": patch_record.get("instability_level", "mild"),
+                        "score": patch_record.get("instability_score", 0),
+                        "unique_outputs": patch_record.get("unique_output_count", 0),
+                    },
                 }
                 # Collect for build_gold_standard() — don't save directly (AD-1)
                 all_trigger2.append((verse_key, gold_entry))

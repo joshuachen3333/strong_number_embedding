@@ -41,8 +41,18 @@ After convergence, classify each model as "easy" (stable at R1/R2a) or "hard" (R
 3. Saved as `v1.1.{model}-patch-0.1.md`, version increments if flagged again
 4. Next verse loads: base prompt + latest model patch
 
+**Trigger 2 — Instability Score → Patch Intensity**:
+Patch intensity scales with instability (unique output count before convergence):
+
+| Score | stable_at      | Level        | Feedback style                                    | 回測 sampling |
+|-------|----------------|--------------|---------------------------------------------------|---------------|
+| 3     | R2b            | **mild**     | Standard: identify mistakes                       | 10%           |
+| 4     | R2c            | **moderate** | + full attempt history + root cause analysis      | 20%           |
+| 5+    | R2d+/unstable  | **strong**   | + past trigger2 history + prescriptive rules      | 30%           |
+
 **Trigger 2 — Patch 回測 (minor, solo)**:
-After patch generation, re-run only the patched model on 10% of past gold standard verses.
+After patch generation, re-run only the patched model on past gold standard verses.
+Sampling rate scales with instability level (mild=10%, moderate=20%, strong=30%).
 Compare to **its own previous stability** (not other models, not gold standard output).
 Pass: new stability ≤ old (R1 < R2a < R2b < ... < unstable). Any regression → revert patch.
 

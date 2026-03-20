@@ -310,3 +310,9 @@ go /plan mode to deeply investigate my correction (based on 3 rounds logic and m
 
 ### 50b. [2026-03-20 ~04:00] survey2_fhl_sn_format_spec/ — 教科書級別 SN 格式總整理
 search very deeply on all components for FHL SN denoting. Created textbook-level reference consolidating format definitions from 10+ files. W-prefix decode, tag types, numeric classification, 900x mapping, morphology codes, normalization pipeline, regex cross-reference.
+
+### 51. [2026-03-20 ~08:30] AI Problem Classification — 學術定位
+重新解釋一下我們這個整體邏輯, 這算是怎樣的 AI 解題類型? 1) 有參考範例(UNV+SN), 2) 對未知資料仿效insert SN, 3) 成果先不給人類評判. → 結論: Few-shot cross-lingual Annotation Projection (標注投射) + LLM-as-Judge + LLM-Ensemble. 逐 round 對應學術典型: R1=Cross-Model Self-Consistency, R2 Convergence=Test-Retest Reliability, R2 Debate=Multi-Agent Debate, R3=Meta-Judgment with Escape Hatch, Prompt Evolution=APE with Regression Gate. Trigger 2 的 cross-model peer review → self-patch 是獨創設計.
+
+### 51a. [2026-03-20 ~09:00] Instability Score → Patch 力度 3 級分級
+調查 max-r2-retries=0 (=unlimited) 與 easy/hard threshold (R2a 分界) 是獨立機制後, 設計並實作 instability score: unique outputs count → mild(3)/moderate(4)/strong(5+/unstable). Feedback prompt 按級別加強 (mild=標準, moderate=+oscillation analysis+root cause, strong=+past trigger2 history+prescriptive rules). Self-patch prompt 同樣分級. 回測 sampling 也按級別調整 (10%/20%/30%). AI_PROBLEM_CLASSIFICATION.md 記錄完整學術背景與設計決策.

@@ -729,7 +729,7 @@ def _check_error_alignment(error_descriptions):
 
 # ── Model Patch Generation ───────────────────────────────────────────────────
 
-FEEDBACK_PROMPT = """\
+FEEDBACK_PROMPT_MILD = """\
 You are reviewing another model's attempts at Strong's Number (SN) placement \
 in Chinese Bible text.
 
@@ -745,7 +745,48 @@ The struggling model produced these attempts (could not converge):
 What specific mistakes is this model making? Give brief, actionable feedback \
 about SN placement errors, missing tags, or format issues."""
 
-SELF_PATCH_PROMPT = """\
+FEEDBACK_PROMPT_MODERATE = """\
+You are reviewing another model's attempts at Strong's Number (SN) placement \
+in Chinese Bible text. This model showed significant instability — it produced \
+{unique_count} different outputs before converging.
+
+Correct output (agreed by 2 models):
+{stable_output}
+
+UNV source (with correct SNs):
+{unv_sn}
+
+Full attempt history (note how the output changes each time):
+{attempt_list}
+
+Analyze:
+1. What specific SN placement mistakes does this model make?
+2. WHERE is it oscillating — which SNs or positions keep changing between attempts?
+3. WHY might it be oscillating — what ambiguity or confusion is causing the instability?
+Give actionable feedback that addresses the root cause of the oscillation."""
+
+FEEDBACK_PROMPT_STRONG = """\
+You are reviewing another model's attempts at Strong's Number (SN) placement \
+in Chinese Bible text. This model is SEVERELY unstable — it produced \
+{unique_count} different outputs and {convergence_status}.
+{past_trigger2_section}
+Correct output (agreed by 2 models):
+{stable_output}
+
+UNV source (with correct SNs):
+{unv_sn}
+
+Full attempt history (note the oscillation pattern):
+{attempt_list}
+
+This model needs PRESCRIPTIVE rules, not hints. Analyze:
+1. What specific SN placement mistakes does this model make?
+2. WHERE exactly is it oscillating — list every SN tag or position that changes?
+3. WHY — what systematic confusion is causing repeated instability?
+4. Write EXPLICIT rules (not suggestions) that would eliminate each oscillation.
+Be thorough and prescriptive — this model has failed to self-correct."""
+
+SELF_PATCH_PROMPT_MILD = """\
 Two expert reviewers analyzed your Strong's Number placement attempts and gave \
 this feedback:
 
@@ -758,6 +799,44 @@ placement tasks. This must be a full replacement — include everything you \
 need, not just the new fixes.
 Output ONLY the instructions — no preamble, no examples, just rules."""
 
+SELF_PATCH_PROMPT_MODERATE = """\
+Two expert reviewers analyzed your Strong's Number placement attempts and gave \
+this feedback. You produced {unique_count} different outputs before converging \
+— you need to understand WHY you oscillated.
+
+Reviewer 1: {feedback_1}
+Reviewer 2: {feedback_2}
+{existing_patch_section}
+Based on ALL the above:
+1. First, write a ROOT CAUSE ANALYSIS: why did you produce {unique_count} \
+different outputs? What was ambiguous or confusing?
+2. Then, write a COMPLETE, self-contained set of instructions that would \
+prevent these mistakes AND the oscillation. Include explicit decision rules \
+for the ambiguous cases you identified.
+This must be a full replacement — include everything you need.
+Output ONLY the analysis and instructions — no preamble."""
+
+SELF_PATCH_PROMPT_STRONG = """\
+Two expert reviewers analyzed your Strong's Number placement attempts. You are \
+SEVERELY unstable — you produced {unique_count} different outputs and \
+{convergence_status}. This is a recurring problem.
+
+Reviewer 1: {feedback_1}
+Reviewer 2: {feedback_2}
+{existing_patch_section}{past_trigger2_section}
+You MUST write PRESCRIPTIVE rules, not hints or suggestions. For each rule, \
+include a concrete BEFORE→AFTER example from your own failed attempts.
+
+Based on ALL the above:
+1. ROOT CAUSE ANALYSIS: why do you keep oscillating? What systematic confusion \
+persists across multiple verses?
+2. EXPLICIT DECISION RULES: for each ambiguous case, write an if/then rule \
+that leaves NO room for interpretation.
+3. SELF-CHECK PROCEDURE: a step-by-step verification checklist to run before \
+finalizing output.
+This must be a full replacement — include everything you need.
+Output ONLY the analysis, rules, and checklist — no preamble."""
+
 SELF_PATCH_EXISTING = """
 You also have existing self-improvement instructions from previous rounds:
 
@@ -768,11 +847,41 @@ Incorporate what is still relevant from your current patch, plus the new \
 feedback above, into one unified set of instructions."""
 
 
+def _count_unique_attempts(attempts):
+    """Count unique non-empty outputs in attempt history."""
+    seen = set()
+    for a in attempts:
+        stripped = a.strip()
+        if stripped:
+            seen.add(stripped)
+    return len(seen)
+
+
+def _instability_level(unique_count, converged):
+    """Classify instability: mild (3), moderate (4), strong (5+/unstable).
+
+    Returns (level_name, level_int) where level_int is the unique_count capped.
+    """
+    if not converged:
+        return "strong", max(unique_count, 5)
+    if unique_count >= 5:
+        return "strong", unique_count
+    if unique_count >= 4:
+        return "moderate", unique_count
+    return "mild", unique_count
+
+
 def generate_model_patch(unstable_model, unstable_attempts, stable_output,
                          unv_sn, stable_models, models, target_version,
                          verse_key=None, book_eng="", existing_patch="",
-                         verbose=False):
+                         verbose=False, converged=True,
+                         past_trigger2_verses=None):
     """Generate a model-specific patch via feedback from stable models.
+
+    Patch intensity scales with instability:
+      - mild   (3 unique outputs): standard feedback + self-patch
+      - moderate (4 unique):       + full attempt history analysis + root cause
+      - strong  (5+ or unstable):  + past trigger2 history + prescriptive rules
 
     Step 1: Each stable model gives feedback on what the unstable model got wrong.
     Step 2: The unstable model writes its own patch from both feedbacks.
@@ -783,6 +892,11 @@ def generate_model_patch(unstable_model, unstable_attempts, stable_output,
     """
     chap, sec = verse_key if verse_key else (0, 0)
 
+    # Calculate instability score
+    unique_count = _count_unique_attempts(unstable_attempts)
+    level, score = _instability_level(unique_count, converged)
+    convergence_status = "never converged" if not converged else f"converged after {len(unstable_attempts)} attempts"
+
     # Build attempt list for prompt
     attempt_lines = []
     labels = ["R1", "R2a", "R2b", "R2c", "R2d", "R2e", "R2f"]
@@ -792,11 +906,40 @@ def generate_model_patch(unstable_model, unstable_attempts, stable_output,
             attempt_lines.append(f"{label}: {attempt}")
     attempt_text = "\n".join(attempt_lines) if attempt_lines else "(all empty)"
 
-    feedback_prompt = FEEDBACK_PROMPT.format(
-        stable_output=stable_output,
-        unv_sn=unv_sn,
-        attempt_list=attempt_text,
-    )
+    # Build past trigger2 section for strong level
+    past_trigger2_section = ""
+    if level == "strong" and past_trigger2_verses:
+        lines = [f"\nThis model has triggered instability patches on {len(past_trigger2_verses)} previous verse(s):"]
+        for pv in past_trigger2_verses:
+            lines.append(f"  - {pv}")
+        lines.append("Look for COMMON PATTERNS across these failures.\n")
+        past_trigger2_section = "\n".join(lines)
+
+    # Select feedback prompt template by level
+    if level == "strong":
+        feedback_prompt = FEEDBACK_PROMPT_STRONG.format(
+            stable_output=stable_output,
+            unv_sn=unv_sn,
+            attempt_list=attempt_text,
+            unique_count=unique_count,
+            convergence_status=convergence_status,
+            past_trigger2_section=past_trigger2_section,
+        )
+    elif level == "moderate":
+        feedback_prompt = FEEDBACK_PROMPT_MODERATE.format(
+            stable_output=stable_output,
+            unv_sn=unv_sn,
+            attempt_list=attempt_text,
+            unique_count=unique_count,
+        )
+    else:  # mild
+        feedback_prompt = FEEDBACK_PROMPT_MILD.format(
+            stable_output=stable_output,
+            unv_sn=unv_sn,
+            attempt_list=attempt_text,
+        )
+
+    print(f"  Instability: {level} (score={score}, unique_outputs={unique_count}, converged={converged})")
 
     # Record everything
     record = {
@@ -805,6 +948,9 @@ def generate_model_patch(unstable_model, unstable_attempts, stable_output,
         "stable_models": stable_models,
         "stable_output": stable_output,
         "unstable_attempts": unstable_attempts,
+        "instability_level": level,
+        "instability_score": score,
+        "unique_output_count": unique_count,
         "feedbacks": {},
         "self_patch": "",
         "feedback_prompt": feedback_prompt,
@@ -842,15 +988,38 @@ def generate_model_patch(unstable_model, unstable_attempts, stable_output,
         _save_patch_record(record, unstable_model, book_eng, chap, sec)
         return "", record
 
-    # Step 2: Unstable model writes its own patch
+    # Step 2: Unstable model writes its own patch (intensity by level)
     existing_section = ""
     if existing_patch:
         existing_section = SELF_PATCH_EXISTING.format(existing_patch=existing_patch)
-    self_patch_prompt = SELF_PATCH_PROMPT.format(
-        feedback_1=feedbacks[0],
-        feedback_2=feedbacks[1],
-        existing_patch_section=existing_section,
-    )
+
+    # Build past trigger2 section for self-patch prompt (strong level)
+    self_past_section = ""
+    if level == "strong" and past_trigger2_verses:
+        self_past_section = f"\nYou have triggered instability patches on {len(past_trigger2_verses)} previous verse(s): {', '.join(past_trigger2_verses)}. This is a recurring problem.\n"
+
+    if level == "strong":
+        self_patch_prompt = SELF_PATCH_PROMPT_STRONG.format(
+            feedback_1=feedbacks[0],
+            feedback_2=feedbacks[1],
+            existing_patch_section=existing_section,
+            unique_count=unique_count,
+            convergence_status=convergence_status,
+            past_trigger2_section=self_past_section,
+        )
+    elif level == "moderate":
+        self_patch_prompt = SELF_PATCH_PROMPT_MODERATE.format(
+            feedback_1=feedbacks[0],
+            feedback_2=feedbacks[1],
+            existing_patch_section=existing_section,
+            unique_count=unique_count,
+        )
+    else:  # mild
+        self_patch_prompt = SELF_PATCH_PROMPT_MILD.format(
+            feedback_1=feedbacks[0],
+            feedback_2=feedbacks[1],
+            existing_patch_section=existing_section,
+        )
     record["self_patch_prompt"] = self_patch_prompt
 
     unstable_info = _find_model(unstable_model, models)
