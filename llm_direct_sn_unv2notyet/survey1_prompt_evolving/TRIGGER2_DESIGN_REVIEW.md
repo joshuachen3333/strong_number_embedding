@@ -86,3 +86,27 @@ These are only compatible when the task is easy. Trigger 2 fires on the harder v
 1. If Level 2 validation is added and the unstable model *disagrees* with the stable agreement, what happens? Route to full debate? Route to R3?
 2. Should the patch regression compare against gold standard outputs (not just stability)? Would require gold standard to exist for those verses at regression time.
 3. Is "2 easy models agree with perfect SN coverage" a strong enough gate for Level 1, or can models agree on wrong placement while still having perfect SN *count*?
+
+---
+
+## Response options when unstable model disagrees (2026-03-20)
+
+### Option A — Escalate to the 2 stable models
+
+Show the unstable model's disagreement reason to each stable model (1 call each = 2 more LLM calls). Each responds: hold or change mind.
+- If either changes mind → route to full R2 debate (all 3 judge)
+- If both hold → 2/3 stands, but the disagreement reason is **recorded** in gold standard
+
+Pros: gives the stable models a chance to reconsider with new evidence.
+Cons: 2 extra calls per Trigger 2 verse.
+
+### Option B — Route to normal R2 debate (simpler)
+
+If unstable model disagrees → skip auto-resolve, go to normal R2 debate (all 3 judge each other's stable outputs). The patch still happens in parallel — model improves for future verses regardless.
+
+This is essentially Level 3 from above: **Trigger 2 fast-tracks the patch, not the resolution.**
+
+Pros: simpler, aligns with AD-1 (let the consensus process do its job). No special logic.
+Cons: same cost as full R2 (3 debate calls), but only when unstable model disagrees.
+
+### Decision: TBD — revisit after more verses reveal how often unstable models have valid objections.
