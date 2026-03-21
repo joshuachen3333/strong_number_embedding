@@ -30,6 +30,15 @@ Combinations:
 | `WTH` | Hebrew morphology code | `<WTH8804>` = Qal Perfect |
 | `WTG` | Greek morphology code | `<WTG5656>` = Aorist Active Indicative |
 
+**Note on WAH scope**: `WAH` is not limited to 900x prefixes. The `A` (Attached) marker appears on any word FHL considers syntactically bound to the next word, including:
+- 900x prefixes: `<WAH09002>` (בְּ), `<WAH09001>` (לְ)
+- Prepositions in compounds: `<WAH04480>` (מִן), `<WAH0834>` (אֲשֶׁר)
+- Negation particles: `<WAH03808>` (לֹא, Ps 23:1)
+- Conjunctions: `{<WAH03588>}` (כִּי, Gen 3:5)
+- Aramaic relative: `<WAH01768>` (דִּי, Dan 2:20)
+
+**Note on Aramaic**: Daniel 2:4–7:28 and Ezra 4:8–6:18 are in Aramaic, not Hebrew. FHL uses the **same `WH` prefix** for Aramaic words — there is no separate Aramaic prefix. E.g., `<WH0426>` is Aramaic אֱלָהּ (God) in Dan 2:20, using `WH` just like Hebrew.
+
 ### 2.2 Tag Types
 
 | Type | Format | Example | Description |
@@ -39,6 +48,9 @@ Combinations:
 | Morphology | `<WTHdddd>` or `<WTGdddd>` | `<WTH8804>` | Verbal stem/tense/mood code |
 | Implicit (braced) | `{<WHdddd>}` | `{<WH0853>}` | Hebrew word with NO Chinese equivalent |
 | Implicit prefix | `{<WAHddddd>}` | `{<WAH05921>}` | Braced preposition, no Chinese word |
+| Implicit morphology | `{<WTHdddd>}` or `{<WTGdddd>}` | `{<WTH8750>}` | Braced morphology (verb + morph both implicit) |
+
+**Implicit morphology** appears when a verb and its morphology code are both braced — the Hebrew/Greek word has no Chinese equivalent AND its conjugation is also implicit. Examples: `{<WH06032>}{<WTH8750>}` (Dan 2:20), `{<WG1510>}{<WTG5707>}` (John 1:1).
 
 ### 2.3 Real Examples
 
@@ -198,7 +210,61 @@ All regex patterns used across the codebase for SN handling:
 | `right_reader_frontend.js` | 853 | `/<W[A-Z]*[HG]\d+>/g` | Remove SN tags from display text |
 | `right_reader_frontend.js` | 855 | `/\{<W[A-Z]*[HG]\d+>\}/g` | Remove braced SN tags |
 
-## 9. Known Discrepancies
+## 9. FHL's Two Data Sources: qb.php vs qp.php
+
+FHL provides Bible data through two complementary APIs with **different annotation styles**:
+
+| API | Purpose | Annotation Style | Example (מֵעַל "from above") |
+|-----|---------|-----------------|-------------------------------|
+| **qb.php** | UNV text + SN tags | **Analytic** (split into components) | `<WAH04480><WH05921>` |
+| **qp.php** | Hebrew/Greek morphology | **Synthetic** (merged into one entry) | `sn: 05921`, `wform: "介系詞 מִן + 介系詞 עַל"` |
+
+### 9.1 qb.php (UNV + Strong's Numbers)
+
+```
+GET https://bible.fhl.net/json/qb.php?version=unv&chineses=創&chap=1&sec=1&strong=1
+```
+
+Response: `{record: [{sec, bible_text}, ...]}` where `bible_text` contains the inline SN tags documented in §2.
+
+### 9.2 qp.php (Hebrew/Greek Parsing Data)
+
+```
+GET https://bible.fhl.net/json/qp.php?engs=Gen&chap=1&sec=1
+```
+
+Response: array of word records, each containing:
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| `wid` | Word position index | `3` |
+| `word` | Hebrew/Greek word form | `מִלִּפְנֵי` |
+| `sn` | Strong's number (may differ from qb) | `03942` |
+| `wform` | Part-of-speech + morphology in Chinese | `"介系詞 מִן + 介系詞 לִפְנֵי"` |
+| `remark` | Extended notes (compound etymology, etc.) | `"לִפְנֵי 從介系詞 לְ + 名詞 פָּנֶה (臉, SN 6440)"` |
+| `exp` | Dictionary meaning | `"在…之前"` |
+
+### 9.3 Key Divergence: Compound Prepositions
+
+The analytic/synthetic split matters most for compound prepositions:
+
+- **qb.php** splits מֵעַל into `<04480>` + `<05921>` (two tags)
+- **qp.php** records it as a single entry under SN 05921 with `wform: "介系詞 מִן + 介系詞 עַל"`
+
+This means `<04480>` appears in qb.php but has **no matching record** in qp.php — it's absorbed into the compound. See §11.2 for the full compound preposition treatment.
+
+### 9.4 qp.php Compound Indicator Patterns
+
+FHL uses these conventions in `wform` and `remark` fields to signal compound words:
+
+| Pattern (in `wform` or `remark`) | Type | Example |
+|----------------------------------|------|---------|
+| `介系詞 מִן + 介系詞 ...` | prep + prep | מֵעַל (from above) |
+| `介系詞 מִן + 名詞...` | prep + noun | מִכָּל (from all) |
+| `從介系詞 לְ + 名詞 ...` | prep + noun (etymology) | לִפְנֵי (before) |
+| `...詞尾` (e.g., `3 單陽詞尾`) | pronoun suffix attached | מִמֶּנּוּ (from him) |
+
+## 10. Known Discrepancies
 
 | # | Issue | Components | Impact |
 |---|-------|-----------|--------|
@@ -207,30 +273,88 @@ All regex patterns used across the codebase for SN handling:
 | 3 | Root CLAUDE.md lists `{H1234}` and `(H1234)` formats | CLAUDE.md vs actual API | Legacy formats rarely seen in FHL data |
 | 4 | Zero-padding varies: `<WH430>` vs `<WH0430>` | Model output vs FHL | FHL always zero-pads; models sometimes don't |
 
-## 10. Edge Cases
+## 11. Edge Cases
 
-### The 4-digit vs 5-digit 900x Trap
+### 11.1 The 4-digit vs 5-digit 900x Trap
 ```
 <WH0914>  → Core Strong's H914 (NOT a 900x prefix — only 4 digits)
 <WH09140> → 900x prefix #9140 (5 digits starting with 09)
 ```
 This is the most common source of bugs. The check MUST be: `len(number) == 5 AND number.startswith('09')`.
 
-### Compound Prepositions
-Some verses have multiple consecutive SN tags forming compound prepositions:
-```
-<04480><05921> = מֵעַל "from above" (מִן + עַל)
-<09001><06440> = לִפְנֵי "before" (לְ + פָנִים)
-```
-These are detected via FHL's `qp.php` morphology data (wform field containing `'介系詞 מִן +'`).
+### 11.2 Compound Prepositions
 
-### Same Number, Different Meaning
+FHL's qb.php frequently splits compound prepositions into multiple consecutive SN tags. Three structural patterns exist:
+
+**Pattern A — prep + prep (מִן-compounds):**
+```
+qb: 將…以下<WAH04480><WH08478>的水    (Gen 1:7)
+qp: sn=08478, wform="介系詞 מִן + 介系詞 תַּחַת"
+→ <04480><08478> = מִתַּחַת "from below"
+```
+
+**Pattern B — 900x + core (לִפְנֵי-type):**
+```
+qb: 在　神<WH0430>面前<WAH09001><WH06440>敗壞    (Gen 6:11)
+qp: sn=03942, wform="介系詞", remark="לִפְנֵי 從介系詞 לְ + 名詞 פָּנֶה (臉, SN 6440)"
+→ <09001><06440> = לִפְנֵי "before" (qp.php assigns different SN: 03942)
+```
+
+**Pattern C — prep + 900x + core (multi-token):**
+```
+qb: 耶和華<WH03068>的面<WAH04480><WAH09001><WH06440>    (Gen 4:16)
+qp: sn=03942, wform="介系詞 מִן + 介系詞 לִפְנֵי"
+→ <04480><09001><06440> = מִלִּפְנֵי "from before" (3 tokens, 900x in between)
+```
+
+**Verified compound examples from Genesis:**
+
+| Verse | qb tags | Hebrew | Meaning | qp wform |
+|-------|---------|--------|---------|----------|
+| Gen 1:7 | `<04480><08478>` | מִתַּחַת | from below | 介系詞 מִן + 介系詞 תַּחַת |
+| Gen 1:7 | `<04480><05921>` | מֵעַל | from above | 介系詞 מִן + 介系詞 עַל |
+| Gen 4:16 | `<04480><09001><06440>` | מִלִּפְנֵי | from before | 介系詞 מִן + 介系詞 לִפְנֵי |
+| Gen 6:11 | `<09001><06440>` | לִפְנֵי | before | (remark field) |
+| Gen 24:27 | `<04480><05973>` | מֵעִם | from with | 介系詞 מִן + 介系詞 עִם |
+| Gen 49:30 | `<04480><00854>` | מֵאֵת | from beside | 介系詞 מִן + 介系詞 אֵת |
+| Exod 25:22 | `<04480><00996>` | מִבֵּין | from between | 介系詞 מִן + 介系詞 בֵּין |
+
+### 11.3 Same Number, Different Meaning
 The number `01961` (היה, "to be") appears both as:
 - `<WH01961>` — explicit verb "was/were"
 - `<WAH01961>` — with prefix marker (e.g., וַיְהִי "and it was")
 
 The `W` vs `WA` prefix distinguishes them.
 
+### 11.4 qb/qp SN Disagreement
+
+For compound prepositions, qp.php sometimes assigns a **completely different SN** than what qb.php uses. Example: qb has `<09001><06440>` but qp records `sn: 03942` (לִפְנֵי as a standalone lexeme). Parsers must handle this SN mismatch gracefully.
+
 ---
 
-*This document consolidates SN format definitions from SPECIFICATION_v1.8.md, parse_verse_v1_8.py, color_mapper.js, llm_direct_sn_unv2notyet.py, comparator.py, system_prompt_lcc.md, and the FHL API.*
+## Appendix A. Revision History
+
+### A.1 Initial Version (2026-03-20)
+
+Created as a textbook-level consolidation of SN format definitions scattered across 10+ files in the repository. Sources: `parse_verse_v1_8.py`, `color_mapper.js`, `llm_direct_sn_unv2notyet.py`, `comparator.py`, `system_prompt_lcc.md`, and the FHL API.
+
+### A.2 SPECIFICATION Merge & Live API Verification (2026-03-20)
+
+Merged format-level facts from `sn_within_unv_selfgroup_segmentation/SPECIFICATION_v1.4.md` through `SPECIFICATION_v1.8.md` into this reference. Parser-specific logic (grouping rules, brace-prep decision tree, config profiles, pseudo-code, logging system, FAQ) was intentionally excluded — those belong in the SPECIFICATION files.
+
+Additionally, 11 real verses were fetched from the live FHL API (Genesis 1:1–1:7, 3:5; Matthew 1:2; John 1:1; Psalm 23:1; Daniel 2:4, 2:20, 7:9; Ezra 4:8) to verify completeness against actual output. This uncovered three undocumented patterns.
+
+**Changes made:**
+
+| Addition                                                         | Section       | Source                                       |
+|------------------------------------------------------------------|---------------|----------------------------------------------|
+| Braced morphology `{<WTHdddd>}` / `{<WTGdddd>}`                | §2.2          | Live API (Dan 2:20, John 1:1)                |
+| WAH scope expanded — negation, conjunctions, Aramaic relative   | §2.1 note     | SPEC v1.8 examples + live API verification   |
+| Aramaic uses `WH` — no separate prefix                          | §2.1 note     | Live API (Dan 2:4–7:28)                      |
+| qb.php vs qp.php — two data sources, analytic vs synthetic      | New §9        | SPEC v1.8 §4.0–4.1                          |
+| qp.php field structure (`wform`, `remark`, `sn`, `word`, etc.)  | §9.2          | SPEC v1.8 §3.3, §7.6–7.8                    |
+| qp.php compound indicator patterns                              | §9.4          | SPEC v1.8 §3.3.1                            |
+| 3 compound preposition structural patterns with real qb+qp data | §11.2         | SPEC v1.8 §7.5–7.8                          |
+| qb/qp SN disagreement edge case                                 | §11.4         | SPEC v1.8 §7.8                              |
+
+Document grew from 237 to 335 lines. Not merged (parser-specific, not format): grouping rules, brace-prep decision tree, config profiles, pseudo-code, logging system, FAQ.

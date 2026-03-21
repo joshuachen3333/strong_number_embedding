@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>Survey1 Gold Standard — 系統概覽圖</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Noto Sans TC", "PingFang TC", sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2rem 3rem;
+    line-height: 1.6;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.8rem;
+    color: #58a6ff;
+    margin-bottom: 0.5rem;
+  }
+  .subtitle {
+    text-align: center;
+    color: #8b949e;
+    margin-bottom: 2.5rem;
+    font-size: 0.95rem;
+  }
+  h2 {
+    color: #f0883e;
+    font-size: 1.3rem;
+    margin: 2.5rem 0 0.3rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid #30363d;
+  }
+  .desc {
+    color: #8b949e;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+  .diagram-container {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+  }
+  .mermaid {
+    display: flex;
+    justify-content: center;
+  }
+  .mermaid svg {
+    max-width: 100%;
+  }
+  .legend {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin: 0.8rem 0;
+    font-size: 0.85rem;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+  table {
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    width: 100%;
+    max-width: 800px;
+  }
+  th, td {
+    border: 1px solid #30363d;
+    padding: 0.5rem 0.8rem;
+    text-align: left;
+  }
+  th { background: #1c2128; color: #f0883e; }
+  td { background: #161b22; }
+  .tag {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+  }
+  .tag-r1 { background: #238636; color: #fff; }
+  .tag-r2 { background: #1f6feb; color: #fff; }
+  .tag-t1 { background: #da3633; color: #fff; }
+  .tag-t2 { background: #a371f7; color: #fff; }
+  .tag-r3 { background: #f0883e; color: #000; }
+  .tag-evo { background: #f778ba; color: #000; }
+  .tag-unr { background: #484f58; color: #fff; }
+</style>
+</head>
+<body>
+
+<h1>Survey1 三模型共識系統 — 系統概覽圖</h1>
+<p class="subtitle">3-Round Gold Standard Consensus Protocol &nbsp;|&nbsp; opus · gemini · gpt</p>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2>圖 1 ─ 主流程總覽 (Main Pipeline)</h2>
+<p class="desc">每一節經文從左到右流經 R1→R2→R3，最終產出 gold_standard JSON。</p>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-dot" style="background:#238636"></span> R1 解決</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#1f6feb"></span> R2 解決</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#da3633"></span> Trigger 1</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#a371f7"></span> Trigger 2</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#f0883e"></span> R3 解決</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#f778ba"></span> Prompt 演化</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#484f58"></span> Unresolved</div>
+</div>
+
+<div class="diagram-container">
+<pre class="mermaid">
+flowchart TB
+    subgraph INPUT["📖 輸入"]
+        V["經文 (Book, Chap, Sec)\n+ UNV+SN 參考\n+ LCC 原文"]
+        P["系統 Prompt\n(v1.x.md + model patches)"]
+    end
+
+    subgraph R1["🔵 Round 1 — 獨立推理"]
+        R1A["opus 產出 SN 標注"]
+        R1B["gemini 產出 SN 標注"]
+        R1C["gpt 產出 SN 標注"]
+        CMP{"三者完全一致?"}
+    end
+
+    subgraph R2["🟡 Round 2 — 收斂 + 觸發 + 辯論"]
+        CONV["Phase 2a: 收斂測試\n(每模型盲目重做 ≤5 次)"]
+        STAB["分類穩定度\nEasy / Mild / Moderate / Strong"]
+        T1{"Trigger 1\navg_level ≥ 2.0?\n(三者皆掙扎)"}
+        T2{"Trigger 2\n兩者一致 + 第三者\ndistance ≥ 2.0?"}
+        DEBATE["Phase 2d: R2 辯論\n三模型互評\n2/3 多數決"]
+        R2OK{"2/3 一致?"}
+    end
+
+    subgraph R3["🔴 Round 3 — 最終仲裁"]
+        R3J["三模型最終判斷\n雙重裁決能力"]
+        R3D{{"verdict?"}}
+        PICK["pick: 選出最佳\n(A/B/C/corrected)"]
+        ALLW["all_wrong: 集體錯誤\n需辨識系統性問題"]
+        R3VOTE{"2/3 pick\n同一贏家?"}
+        R3ERR{"2/3 all_wrong\n且 error 對齊?"}
+    end
+
+    subgraph OUTPUT["📤 輸出"]
+        GS["✅ Gold Standard JSON\ngold_standard/Book/chap/sec.json"]
+        EVOL["🔄 Prompt 自動演化\nv1.x → v1.(x+1)"]
+        UNR["⚠️ Unresolved\n人工審查"]
+    end
+
+    V --> R1A & R1B & R1C
+    P --> R1A & R1B & R1C
+    R1A & R1B & R1C --> CMP
+
+    CMP -- "✅ 全部一致" --> GS
+    CMP -- "❌ 有分歧" --> CONV
+
+    CONV --> STAB --> T1
+
+    T1 -- "🔴 是: 全員掙扎" --> EVOL
+    T1 -- "否" --> T2
+
+    T2 -- "🟣 是: 弱模型偏離" --> GS
+    T2 -- "否" --> DEBATE
+
+    DEBATE --> R2OK
+    R2OK -- "✅ 2/3 一致" --> GS
+    R2OK -- "❌ 無共識" --> R3J
+
+    R3J --> R3D
+    R3D --> PICK & ALLW
+
+    PICK --> R3VOTE
+    R3VOTE -- "✅ 2/3 同意" --> GS
+    R3VOTE -- "❌" --> UNR
+
+    ALLW --> R3ERR
+    R3ERR -- "✅ error 對齊" --> EVOL
+    R3ERR -- "❌" --> UNR
+
+    EVOL --> GS
+
+    classDef green fill:#238636,color:#fff,stroke:#2ea043
+    classDef blue fill:#1f6feb,color:#fff,stroke:#388bfd
+    classDef red fill:#da3633,color:#fff,stroke:#f85149
+    classDef purple fill:#a371f7,color:#000,stroke:#bc8cff
+    classDef orange fill:#f0883e,color:#000,stroke:#f0883e
+    classDef pink fill:#f778ba,color:#000,stroke:#f778ba
+    classDef gray fill:#484f58,color:#fff,stroke:#6e7681
+
+    class CMP green
+    class DEBATE,R2OK blue
+    class T1 red
+    class T2 purple
+    class R3VOTE,R3ERR orange
+    class EVOL pink
+    class UNR gray
+</pre>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2>圖 2 ─ R2 收斂與觸發機制 (Convergence & Triggers)</h2>
+<p class="desc">每個模型獨立做收斂測試，再根據穩定度分級觸發不同路徑。</p>
+
+<div class="diagram-container">
+<pre class="mermaid">
+flowchart LR
+    subgraph CONV["收斂測試 (每模型獨立)"]
+        direction TB
+        R1O["R1 輸出"]
+        R2A["R2a: 盲目重做"]
+        CMP1{"R2a == R1?"}
+        R2B["R2b: 再做一次"]
+        CMP2{"R2b == R2a?"}
+        R2C["R2c-R2e: 繼續..."]
+        CMP3{"連續兩次一致?"}
+        UNSTAB["❌ 不穩定\n(max retries 耗盡)"]
+
+        R1O --> R2A --> CMP1
+        CMP1 -- "✅ 一致" --> EASY["Level 0: Easy\n(stable at R1)"]
+        CMP1 -- "❌" --> R2B --> CMP2
+        CMP2 -- "✅" --> EASY2["Level 0: Easy\n(stable at R2a)"]
+        CMP2 -- "❌" --> R2C --> CMP3
+        CMP3 -- "✅ at R2b" --> MILD["Level 1: Mild"]
+        CMP3 -- "✅ at R2c-d" --> MOD["Level 2: Moderate"]
+        CMP3 -- "✅ at R2e+" --> STRONG["Level 3: Strong"]
+        CMP3 -- "❌ 耗盡" --> UNSTAB
+    end
+
+    subgraph TRIGGERS["觸發判定"]
+        direction TB
+        AVG["計算 avg_level\n= Σ(3 models) / 3"]
+        T1D{"avg ≥ 2.0?"}
+        T1ACT["🔴 TRIGGER 1\n全員掙扎 → 演化 Prompt"]
+
+        PAIR["檢查兩兩配對\nm1==m2 且 m3 偏離"]
+        DIST["distance =\nweak_level − agreed_avg"]
+        T2D{"distance ≥ 2.0?"}
+        T2ACT["🟣 TRIGGER 2\n弱模型 → 生成 Patch"]
+
+        AVG --> T1D
+        T1D -- "是" --> T1ACT
+        T1D -- "否" --> PAIR
+        PAIR --> DIST --> T2D
+        T2D -- "是" --> T2ACT
+        T2D -- "否" --> NORM["→ 正常 R2 辯論"]
+    end
+
+    EASY & EASY2 & MILD & MOD & STRONG & UNSTAB --> AVG
+
+    classDef lv0 fill:#238636,color:#fff
+    classDef lv1 fill:#f0883e,color:#000
+    classDef lv2 fill:#da3633,color:#fff
+    classDef lv3 fill:#8b0000,color:#fff
+    classDef trig1 fill:#da3633,color:#fff
+    classDef trig2 fill:#a371f7,color:#000
+
+    class EASY,EASY2 lv0
+    class MILD lv1
+    class MOD lv2
+    class STRONG,UNSTAB lv3
+    class T1ACT trig1
+    class T2ACT trig2
+</pre>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2>圖 3 ─ Trigger 2 詳細流程 (Model Patch Generation)</h2>
+<p class="desc">距離 ≥ 2.0 時觸發：驗證 → 反饋 → 自寫 Patch → 回測。</p>
+
+<div class="diagram-container">
+<pre class="mermaid">
+flowchart TB
+    START["Trigger 2 觸發\n兩模型一致, 第三者偏離\ndistance ≥ 2.0"]
+
+    D3{"distance ≥ 3.0?"}
+
+    VAL["驗證輪:\n問弱模型是否同意\n兩者的輸出"]
+    VAGREE{"弱模型同意?"}
+
+    FB["反饋輪 (2-step)"]
+
+    subgraph FEEDBACK["Step 1: 穩定模型給反饋"]
+        F1["穩定模型 A\n指出弱模型錯誤"]
+        F2["穩定模型 B\n指出弱模型錯誤"]
+    end
+
+    subgraph SELFPATCH["Step 2: 弱模型自寫 Patch"]
+        SP["讀取兩份反饋\n+ 現有 patch (若有)\n→ 撰寫統一 patch"]
+    end
+
+    subgraph REGTEST["回測 (Regression)"]
+        SAMPLE["取樣過去經文\nMild 10% / Mod 20% / Strong 30%"]
+        RUN["用新 patch 重跑"]
+        CHECK{"穩定度 ≥ 舊?"}
+    end
+
+    SAVE["✅ 保存 patch\n用兩者輸出作 Gold Standard\nresolved_at: r2_model_patch"]
+    REVERT["❌ Revert patch\n降級為正常 R2 辯論"]
+
+    START --> D3
+    D3 -- "≥ 3.0: 直接跳過驗證" --> FB
+    D3 -- "< 3.0" --> VAL
+    VAL --> VAGREE
+    VAGREE -- "✅ 同意" --> FB
+    VAGREE -- "❌ 不同意" --> REVERT
+
+    FB --> F1 & F2
+    F1 & F2 --> SP
+
+    SP --> SAMPLE --> RUN --> CHECK
+    CHECK -- "✅ 通過" --> SAVE
+    CHECK -- "❌ 回歸" --> REVERT
+
+    classDef good fill:#238636,color:#fff
+    classDef bad fill:#da3633,color:#fff
+    classDef purple fill:#a371f7,color:#000
+
+    class SAVE good
+    class REVERT bad
+    class START purple
+</pre>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2>圖 4 ─ Prompt 自動演化流程 (Auto-Evolution)</h2>
+<p class="desc">由 Trigger 1 或 R3 all_wrong 觸發。三模型起草 → 投票 → 回測 → 採用。</p>
+
+<div class="diagram-container">
+<pre class="mermaid">
+flowchart LR
+    TRIG["觸發源\nTrigger 1 (avg≥2.0)\n或 R3 all_wrong"]
+
+    subgraph DRAFT["Phase 1: 起草新 Prompt"]
+        D1["opus 起草"]
+        D2["gemini 起草"]
+        D3["gpt 起草"]
+    end
+
+    subgraph VOTE["Phase 2: 投票"]
+        V1["opus 評三份草案"]
+        V2["gemini 評三份草案"]
+        V3["gpt 評三份草案"]
+        TALLY{"2/3 多數決?"}
+    end
+
+    subgraph REGRESS["Phase 3: 回測"]
+        SAMPLE["取樣過去 Gold Standard"]
+        RERUN["用新 Prompt 重跑"]
+        CMP{"品質 ≥ 舊 Prompt?"}
+    end
+
+    ADOPT["✅ 採用新 Prompt\nv1.x → v1.(x+1)\n儲存至 prompts/"]
+    REJECT["❌ 放棄演化\n保留舊 Prompt\n記錄失敗原因"]
+
+    TRIG --> D1 & D2 & D3
+    D1 & D2 & D3 --> V1 & V2 & V3
+    V1 & V2 & V3 --> TALLY
+
+    TALLY -- "✅ 勝出" --> SAMPLE --> RERUN --> CMP
+    TALLY -- "❌ 無共識" --> REJECT
+
+    CMP -- "✅ 通過" --> ADOPT
+    CMP -- "❌ 回歸" --> REJECT
+
+    classDef good fill:#238636,color:#fff
+    classDef bad fill:#da3633,color:#fff
+    classDef pink fill:#f778ba,color:#000
+
+    class ADOPT good
+    class REJECT bad
+    class TRIG pink
+</pre>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2>圖 5 ─ 三模型交互時序 (Sequence Diagram)</h2>
+<p class="desc">展示單一經文從 R1 到 R3 的完整模型交互。</p>
+
+<div class="diagram-container">
+<pre class="mermaid">
+sequenceDiagram
+    participant Main as 🖥️ Main Loop<br/>(run_gold_standard.py)
+    participant O as 🟠 Opus
+    participant G as 🟢 Gemini
+    participant P as 🔵 GPT
+
+    rect rgb(35, 134, 54, 0.15)
+    Note over Main,P: Round 1 — 獨立推理
+    Main->>+O: 產出 SN 標注 (verse + prompt)
+    Main->>+G: 產出 SN 標注 (verse + prompt)
+    Main->>+P: 產出 SN 標注 (verse + prompt)
+    O-->>-Main: R1 結果
+    G-->>-Main: R1 結果
+    P-->>-Main: R1 結果
+    Main->>Main: 比較三者
+    alt 全部一致
+        Main->>Main: ✅ resolved_at: round1
+    end
+    end
+
+    rect rgb(31, 111, 235, 0.15)
+    Note over Main,P: Round 2a — 收斂測試
+    loop 每模型 ≤5 次盲目重做
+        Main->>+O: 重做 (無 R1 反饋)
+        O-->>-Main: R2 結果
+        Main->>Main: 與上次比較
+    end
+    Main->>Main: 分類穩定度 (4 level)
+    alt Trigger 1: avg_level ≥ 2.0
+        Main->>Main: 🔴 r2_early_evolution
+    else Trigger 2: distance ≥ 2.0
+        Main->>+O: 反饋: 弱模型哪裡錯?
+        Main->>+G: 反饋: 弱模型哪裡錯?
+        O-->>-Main: 反饋意見
+        G-->>-Main: 反饋意見
+        Main->>+P: 讀取反饋 → 自寫 Patch
+        P-->>-Main: Patch 文件
+        Main->>Main: 🟣 r2_model_patch
+    end
+    end
+
+    rect rgb(31, 111, 235, 0.25)
+    Note over Main,P: Round 2b — 辯論
+    Main->>+O: 評判三者穩定輸出
+    Main->>+G: 評判三者穩定輸出
+    Main->>+P: 評判三者穩定輸出
+    O-->>-Main: 投票 (best: A/B/C)
+    G-->>-Main: 投票 (best: A/B/C)
+    P-->>-Main: 投票 (best: A/B/C)
+    Main->>Main: 2/3 多數決
+    alt 2/3 一致
+        Main->>Main: ✅ resolved_at: round2
+    end
+    end
+
+    rect rgb(240, 136, 62, 0.15)
+    Note over Main,P: Round 3 — 最終仲裁
+    Main->>+O: 最終判斷 (pick / all_wrong)
+    Main->>+G: 最終判斷 (pick / all_wrong)
+    Main->>+P: 最終判斷 (pick / all_wrong)
+    O-->>-Main: verdict + reasoning
+    G-->>-Main: verdict + reasoning
+    P-->>-Main: verdict + reasoning
+    Main->>Main: 統計裁決
+    alt 2/3 pick 同一贏家
+        Main->>Main: ✅ resolved_at: round3
+    else 2/3 all_wrong + error 對齊
+        Main->>Main: 🔄 prompt_evolution
+    else 無共識
+        Main->>Main: ⚠️ unresolved
+    end
+    end
+</pre>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2>圖 6 ─ 解決路徑總表 (Resolution Paths)</h2>
+
+<table>
+<tr>
+  <th>路徑</th>
+  <th>觸發條件</th>
+  <th>resolved_at</th>
+  <th>是否演化 Prompt</th>
+  <th>是否生成 Patch</th>
+</tr>
+<tr>
+  <td><span class="tag tag-r1">R1 Unanimous</span></td>
+  <td>三模型 R1 輸出完全一致</td>
+  <td><code>round1</code></td>
+  <td>否</td>
+  <td>否</td>
+</tr>
+<tr>
+  <td><span class="tag tag-t1">Trigger 1</span></td>
+  <td>avg_level ≥ 2.0 (全員掙扎)</td>
+  <td><code>r2_early_evolution</code></td>
+  <td>✅ 是</td>
+  <td>否</td>
+</tr>
+<tr>
+  <td><span class="tag tag-t2">Trigger 2</span></td>
+  <td>兩者一致 + 弱模型 distance ≥ 2.0</td>
+  <td><code>r2_model_patch</code></td>
+  <td>否</td>
+  <td>✅ 是 (弱模型)</td>
+</tr>
+<tr>
+  <td><span class="tag tag-r2">R2 Debate</span></td>
+  <td>2/3 辯論投票一致</td>
+  <td><code>round2</code></td>
+  <td>否</td>
+  <td>否</td>
+</tr>
+<tr>
+  <td><span class="tag tag-r3">R3 Pick</span></td>
+  <td>2/3 R3 投票選出同一贏家</td>
+  <td><code>round3</code></td>
+  <td>否</td>
+  <td>否</td>
+</tr>
+<tr>
+  <td><span class="tag tag-evo">R3 All Wrong</span></td>
+  <td>2/3 判定 all_wrong 且 error 對齊</td>
+  <td><code>prompt_evolution</code></td>
+  <td>✅ 是</td>
+  <td>否</td>
+</tr>
+<tr>
+  <td><span class="tag tag-unr">Unresolved</span></td>
+  <td>R3 無共識</td>
+  <td><code>unresolved</code></td>
+  <td>否</td>
+  <td>否</td>
+</tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2>圖 7 ─ 穩定度分級與反饋強度 (Stability Scale)</h2>
+
+<div class="diagram-container">
+<pre class="mermaid">
+flowchart LR
+    subgraph SCALE["4-Level Unified Stability Scale (AD-2)"]
+        direction TB
+        L0["Level 0: Easy\n≤2 unique outputs\nStable at R1 or R2a"]
+        L1["Level 1: Mild\n3 unique outputs\nStable at R2b"]
+        L2["Level 2: Moderate\n4 unique outputs\nStable at R2c-R2d"]
+        L3["Level 3: Strong\n5+ unique outputs\nStable at R2e+ or unstable"]
+    end
+
+    subgraph FEEDBACK["反饋強度對應"]
+        direction TB
+        F0["✅ 無需特殊處理"]
+        F1["📝 標準反饋\n標準 self-patch\n回測取樣 10%"]
+        F2["📋 完整歷史 + 根因分析\n根因 + 決策規則\n回測取樣 20%"]
+        F3["🔬 + 過去 trigger2 歷史\n規範性規則 + BEFORE→AFTER\n+ self-check\n回測取樣 30%"]
+    end
+
+    L0 --> F0
+    L1 --> F1
+    L2 --> F2
+    L3 --> F3
+
+    classDef lv0 fill:#238636,color:#fff
+    classDef lv1 fill:#f0883e,color:#000
+    classDef lv2 fill:#da3633,color:#fff
+    classDef lv3 fill:#8b0000,color:#fff
+
+    class L0 lv0
+    class L1 lv1
+    class L2 lv2
+    class L3 lv3
+</pre>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<h2>圖 8 ─ 架構元件關係 (Architecture Components)</h2>
+<p class="desc">程式碼層面的模組關係與資料流向。</p>
+
+<div class="diagram-container">
+<pre class="mermaid">
+flowchart TB
+    subgraph ENTRY["入口"]
+        RGS["run_gold_standard.py\n主迴圈 · CLI 介面"]
+    end
+
+    subgraph CORE["核心邏輯"]
+        JUDGE["judge.py\nR2 收斂 · R2 辯論\nR3 仲裁 · Trigger 處理\nPatch 生成 · Prompt 演化"]
+        CONS["consensus.py\nbuild_gold_standard()\n唯一解析權威 (AD-1)\nsave / print summary"]
+    end
+
+    subgraph IO["I/O"]
+        PROMPT["prompts/\nv1.x.md\nmodel-patch-*.md"]
+        GS["gold_standard/\nBook/chap/sec.json"]
+        R1DIR["round1_results/"]
+        R2DIR["round2_results/"]
+        R3DIR["round3_results/"]
+    end
+
+    subgraph MODELS["LLM 呼叫"]
+        API["各品牌 API\nClaude · Gemini · GPT"]
+    end
+
+    RGS --> JUDGE
+    RGS --> CONS
+    JUDGE --> API
+    JUDGE --> R1DIR & R2DIR & R3DIR
+    JUDGE --> PROMPT
+    CONS --> GS
+    RGS -- "收集資料" --> CONS
+    CONS -- "讀取所有 round 結果" --> R1DIR & R2DIR & R3DIR
+
+    classDef entry fill:#1f6feb,color:#fff
+    classDef core fill:#f0883e,color:#000
+    classDef io fill:#30363d,color:#c9d1d9
+    classDef model fill:#a371f7,color:#000
+
+    class RGS entry
+    class JUDGE,CONS core
+    class PROMPT,GS,R1DIR,R2DIR,R3DIR io
+    class API model
+</pre>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#1f6feb',
+      primaryTextColor: '#c9d1d9',
+      primaryBorderColor: '#388bfd',
+      lineColor: '#8b949e',
+      secondaryColor: '#161b22',
+      tertiaryColor: '#21262d',
+      fontFamily: '"Noto Sans TC", "PingFang TC", sans-serif',
+      fontSize: '14px',
+    },
+    flowchart: {
+      useMaxWidth: true,
+      htmlLabels: true,
+      curve: 'basis',
+    },
+    sequence: {
+      useMaxWidth: true,
+      actorMargin: 80,
+      messageMargin: 40,
+    }
+  });
+</script>
+
+</body>
+</html>
