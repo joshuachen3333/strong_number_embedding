@@ -204,7 +204,7 @@ from llm_direct_sn_unv2notyet import (
 )
 from shared.data.book_data_loader import load_books
 
-from cli_caller import call_llm, DEFAULT_MODELS
+from cli_caller import call_llm, DEFAULT_MODELS, MODEL_ALIASES, build_panel
 from comparator import compare_round1, summarize_disagreement
 from judge import run_r2_convergence, run_r2_debate, run_round3, tally_r2_debate
 from consensus import build_gold_standard, save_gold_standard, print_summary
@@ -507,6 +507,11 @@ def main():
                         help="Max R2 convergence retries after R2a (default: 0 = unlimited, hard cap 26)")
     parser.add_argument("--verse-count", type=int, default=None,
                         help="Process only N verses (from the start of the range)")
+    aliases_help = ", ".join(f"{k}={v['model']}" for k, v in MODEL_ALIASES.items() if len(k) <= 10)
+    parser.add_argument("--modelsABC", nargs="*", default=None,
+                        help=f"3 model slots (comma/space separated). "
+                             f"Aliases: {aliases_help}. "
+                             f"Example: --modelsABC opus opus opus")
     parser.add_argument("--force", action="store_true",
                         help="Re-run even if cached results exist (default: skip cached)")
     parser.add_argument("--round1-only", action="store_true",
@@ -534,6 +539,12 @@ def main():
 
     target_version = args.target_version
     sn_field = f"{target_version}_sn"
+
+    # Resolve model trio
+    if args.modelsABC:
+        model_trio = build_panel(args.modelsABC)
+    else:
+        model_trio = DEFAULT_MODELS
 
     # Show summary
     if args.show_summary:
@@ -639,7 +650,7 @@ def main():
     print(f"\n{'='*60}")
     print(f"  Gold Standard: {book_eng} chapters {args.chap}")
     print(f"  Target: {target_version.upper()}")
-    print(f"  Models: {', '.join(m['name'] for m in DEFAULT_MODELS)}")
+    print(f"  Models: {', '.join(m['name'] for m in model_trio)}")
     print(f"  Prompt: {args.prompt_version}")
     if args.prompt_file:
         print(f"  Prompt file: {args.prompt_file}")
@@ -655,7 +666,7 @@ def main():
     # before moving to the next. If R3 triggers prompt evolution, we stop.
 
     round1_dir = os.path.join(SURVEY_DIR, "round1_results")
-    round1_results = {m["name"]: {} for m in DEFAULT_MODELS}
+    round1_results = {m["name"]: {} for m in model_trio}
     verse_data = {}
     convergence_results = {}
     round2_judgments = {}
@@ -696,7 +707,7 @@ def main():
         user_prompt = build_user_prompt(
             unv_sn, target_text, target_version, book_chi, chap, sec)
 
-        for model_info in DEFAULT_MODELS:
+        for model_info in model_trio:
             model_name = model_info["name"]
             brand = model_info["brand"]
             model_id = model_info["model"]
@@ -765,7 +776,7 @@ def main():
             verses=[verse_key],
             round1_results=round1_results,
             verse_data=verse_data,
-            models=DEFAULT_MODELS,
+            models=model_trio,
             system_prompt=system_prompt,
             target_version=target_version,
             sn_field=sn_field,
@@ -777,7 +788,7 @@ def main():
             convergence_results.setdefault(m, {}).update(conv[m])
 
         # ── R2 Phase 1.5: Convergence Analysis (AD-2: Level + Distance) ──
-        models_list = [m["name"] for m in DEFAULT_MODELS]
+        models_list = [m["name"] for m in model_trio]
         model_levels = {}
         for m in models_list:
             conv_data = convergence_results.get(m, {}).get(verse_key, {})
@@ -840,7 +851,7 @@ def main():
                 current_version=args.prompt_version,
                 verse_ref=f"{book_eng} {chap}:{sec}",
                 judge_opinions=judge_opinions,
-                models=DEFAULT_MODELS,
+                models=model_trio,
                 target_version=target_version,
                 verbose=args.verbose,
             )
@@ -888,7 +899,7 @@ def main():
                     trigger_verse=verse_key,
                     book_chi=book_chi,
                     book_eng=book_eng,
-                    models=DEFAULT_MODELS,
+                    models=model_trio,
                     target_version=target_version,
                     sn_field=sn_field,
                     verbose=args.verbose,
@@ -952,7 +963,7 @@ def main():
                     stable_output=t1,
                     unv_sn=verse_data[verse_key]["unv_sn"],
                     lcc_original=verse_data[verse_key]["lcc_original"],
-                    models=DEFAULT_MODELS,
+                    models=model_trio,
                     target_version=target_version,
                     verbose=args.verbose,
                 )
@@ -970,7 +981,7 @@ def main():
                         stable_output=t1,
                         unv_sn=verse_data[verse_key]["unv_sn"],
                         stable_models=easy_models,
-                        models=DEFAULT_MODELS,
+                        models=model_trio,
                         target_version=target_version,
                         verse_key=verse_key,
                         book_eng=book_eng,
@@ -1023,7 +1034,7 @@ def main():
                     stable_output=t1,
                     unv_sn=verse_data[verse_key]["unv_sn"],
                     stable_models=easy_models,
-                    models=DEFAULT_MODELS,
+                    models=model_trio,
                     target_version=target_version,
                     verse_key=verse_key,
                     book_eng=book_eng,
@@ -1094,7 +1105,7 @@ def main():
                         unstable_model, args.prompt_version,
                         system_prompt, patch_text,
                         convergence_results, verse_data,
-                        DEFAULT_MODELS, target_version, sn_field,
+                        model_trio, target_version, sn_field,
                         args.verbose,
                         instability_level=patch_level)
 
@@ -1145,7 +1156,7 @@ def main():
             verses=[verse_key],
             convergence_results=convergence_results,
             verse_data=verse_data,
-            models=DEFAULT_MODELS,
+            models=model_trio,
             target_version=target_version,
             sn_field=sn_field,
             verbose=args.verbose,
@@ -1168,7 +1179,7 @@ def main():
             convergence_results=convergence_results,
             round2_judgments=round2_judgments,
             verse_data=verse_data,
-            models=DEFAULT_MODELS,
+            models=model_trio,
             target_version=target_version,
             sn_field=sn_field,
             verbose=args.verbose,
@@ -1233,7 +1244,7 @@ def main():
                         current_version=args.prompt_version,
                         verse_ref=f"{book_eng} {chap}:{sec}",
                         judge_opinions=judge_opinions,
-                        models=DEFAULT_MODELS,
+                        models=model_trio,
                         target_version=target_version,
                         verbose=args.verbose,
                     )
@@ -1291,7 +1302,7 @@ def main():
                             trigger_verse=verse_key,
                             book_chi=book_chi,
                             book_eng=book_eng,
-                            models=DEFAULT_MODELS,
+                            models=model_trio,
                             target_version=target_version,
                             sn_field=sn_field,
                             verbose=args.verbose,

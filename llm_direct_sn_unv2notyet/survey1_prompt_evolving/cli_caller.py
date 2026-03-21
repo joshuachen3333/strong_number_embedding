@@ -30,6 +30,79 @@ DEFAULT_MODELS = [
     {"name": "gpt-5.4",            "brand": "codex",  "model": "gpt-5.4"},
 ]
 
+# Short aliases → full model info
+MODEL_ALIASES = {
+    "opus":    {"name": "opus",                 "brand": "claude", "model": "opus"},
+    "gemini":  {"name": "gemini-3-pro-preview", "brand": "gemini", "model": "gemini-3-pro-preview"},
+    "gpt":     {"name": "gpt-5.4",             "brand": "codex",  "model": "gpt-5.4"},
+    # Full names also work as aliases to themselves
+    "gemini-3-pro-preview":  {"name": "gemini-3-pro-preview",  "brand": "gemini", "model": "gemini-3-pro-preview"},
+    "gemini-3-flash-preview": {"name": "gemini-3-flash-preview", "brand": "gemini", "model": "gemini-3-flash-preview"},
+    "gpt-5.4": {"name": "gpt-5.4", "brand": "codex", "model": "gpt-5.4"},
+}
+
+
+def resolve_model(alias_or_name):
+    """Resolve a model alias or full name to a model info dict.
+
+    Accepts: 'opus', 'gemini', 'gpt' (short aliases)
+             or full names like 'gemini-3-pro-preview'
+
+    Returns: {"name": ..., "brand": ..., "model": ...} or None if unknown.
+    """
+    alias = alias_or_name.strip().lower()
+    if alias in MODEL_ALIASES:
+        return dict(MODEL_ALIASES[alias])  # copy to avoid mutation
+    # Try as a claude model (unknown full name defaults to claude)
+    return None
+
+
+def build_panel(models_abc_args):
+    """Parse --modelsABC args into a list of 3 model dicts with A/B/C suffixes.
+
+    Args:
+        models_abc_args: list of strings (may contain commas)
+
+    Returns:
+        list of 3 model dicts with "name" suffixed if disambiguation needed.
+    """
+    import re
+    # Flatten: split each arg by commas
+    tokens = []
+    for arg in models_abc_args:
+        tokens.extend(re.split(r'[,\s]+', arg.strip()))
+    tokens = [t for t in tokens if t]  # remove empties
+
+    if len(tokens) != 3:
+        raise ValueError(
+            f"--modelsABC requires exactly 3 models, got {len(tokens)}: {tokens}\n"
+            f"Aliases: opus, gemini, gpt. Or use full names.\n"
+            f"Example: --modelsABC opus opus opus")
+
+    models = []
+    for t in tokens:
+        info = resolve_model(t)
+        if info is None:
+            raise ValueError(
+                f"Unknown model: '{t}'\n"
+                f"Available aliases: {', '.join(k for k in MODEL_ALIASES if len(k) <= 10)}\n"
+                f"Or use full model names.")
+        models.append(info)
+
+    # Add A/B/C suffix when names collide
+    names = [m["name"] for m in models]
+    from collections import Counter
+    name_counts = Counter(names)
+    suffixes = ["A", "B", "C"]
+
+    if any(c > 1 for c in name_counts.values()):
+        # At least one duplicate — suffix all slots
+        for i, m in enumerate(models):
+            m["name"] = f"{m['name']}-{suffixes[i]}"
+
+    return models
+
+
 DEFAULT_TIMEOUT = 300  # 5 min
 
 
