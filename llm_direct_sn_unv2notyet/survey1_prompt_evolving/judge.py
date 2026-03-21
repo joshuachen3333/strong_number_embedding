@@ -1084,6 +1084,73 @@ def _r2_label(i):
         return f"R2{chr(97 + i2 // 26)}{chr(97 + i2 % 26)}"
 
 
+TRIGGER2_VALIDATE_PROMPT = """\
+Two other models independently produced and stabilized on the same output \
+for this verse. You were unstable (could not converge easily).
+
+Their agreed output:
+{stable_output}
+
+UNV+SN (source of truth):
+{unv_sn}
+
+LCC original (unannotated):
+{lcc_original}
+
+Do you AGREE that their output is correct, or do you DISAGREE?
+If you disagree, explain specifically what they got wrong.
+
+Return ONLY a JSON object:
+{{
+  "agree": true or false,
+  "reasoning": "brief explanation"
+}}"""
+
+
+def validate_trigger2(unstable_model, stable_output, unv_sn, lcc_original,
+                       models, target_version="lcc", verbose=False):
+    """Ask the unstable model if it agrees with the stable pair's output.
+
+    Returns (agrees: bool, reasoning: str)
+    """
+    model_info = _find_model(unstable_model, models)
+    if not model_info:
+        return True, "model not found, defaulting to agree"
+
+    prompt = TRIGGER2_VALIDATE_PROMPT.format(
+        stable_output=stable_output,
+        unv_sn=unv_sn,
+        lcc_original=lcc_original,
+    )
+
+    print(f"    [{unstable_model}] validating...", end=" ", flush=True)
+    t_start = time.time()
+    result = call_llm(
+        brand=model_info["brand"], model=model_info["model"],
+        system_prompt="You are a biblical Hebrew and Chinese translation expert.",
+        user_prompt=prompt,
+        target_version=target_version,
+        verbose=verbose,
+        mode="judge",
+    )
+    elapsed_s = int(time.time() - t_start)
+
+    agrees = result.get("agree", True)
+    reasoning = result.get("reasoning", "")
+
+    # Handle string "true"/"false"
+    if isinstance(agrees, str):
+        agrees = agrees.lower() in ("true", "yes")
+
+    if agrees:
+        print(f"AGREES {elapsed_s}s", flush=True)
+    else:
+        print(f"DISAGREES {elapsed_s}s", flush=True)
+        print(f"      Reason: {reasoning[:150]}", flush=True)
+
+    return agrees, reasoning
+
+
 def _find_model(model_name, models):
     """Find model info dict by name."""
     for m in models:

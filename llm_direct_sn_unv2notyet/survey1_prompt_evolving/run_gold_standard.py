@@ -941,6 +941,60 @@ def main():
                 break
 
         if trigger2_fired:
+            # Distance-based validation (AD-2 / TRIGGER2_DESIGN_REVIEW)
+            # distance = 2.0 → ask weak model to validate
+            # distance ≥ 3.0 → skip validation, direct auto-resolve
+            if distance < 3.0:
+                from judge import validate_trigger2
+                print(f"\n  Distance={distance:.1f} < 3.0 — asking {unstable_model} to validate...")
+                agrees, val_reasoning = validate_trigger2(
+                    unstable_model=unstable_model,
+                    stable_output=t1,
+                    unv_sn=verse_data[verse_key]["unv_sn"],
+                    lcc_original=verse_data[verse_key]["lcc_original"],
+                    models=DEFAULT_MODELS,
+                    target_version=target_version,
+                    verbose=args.verbose,
+                )
+                if not agrees:
+                    print(f"  {unstable_model} DISAGREES — routing to normal R2 debate.")
+                    print(f"  (Patch still generated for future verses)")
+                    # Generate patch but don't auto-resolve — fall through to debate
+                    from judge import generate_model_patch
+                    unstable_conv = convergence_results[unstable_model][verse_key]
+                    current_patch, current_patch_ver = load_model_patch(
+                        unstable_model, args.prompt_version)
+                    patch_text, patch_record = generate_model_patch(
+                        unstable_model=unstable_model,
+                        unstable_attempts=unstable_conv.get("attempts", []),
+                        stable_output=t1,
+                        unv_sn=verse_data[verse_key]["unv_sn"],
+                        stable_models=easy_models,
+                        models=DEFAULT_MODELS,
+                        target_version=target_version,
+                        verse_key=verse_key,
+                        book_eng=book_eng,
+                        existing_patch=current_patch,
+                        verbose=args.verbose,
+                        converged=unstable_conv.get("converged", True),
+                    )
+                    if patch_text:
+                        patch_ver = next_patch_version(unstable_model, args.prompt_version)
+                        base_trigger = _get_base_prompt_trigger(args.prompt_version)
+                        patch_trigger = f"{book_eng}_{chap}_{sec}"
+                        patch_fname = f"{args.prompt_version}{base_trigger}.{unstable_model}-patch-{patch_ver}_{patch_trigger}.md"
+                        patch_path = os.path.join(SURVEY_DIR, "prompts", patch_fname)
+                        with open(patch_path, "w", encoding="utf-8") as f:
+                            f.write(patch_text)
+                        print(f"  Patch saved: {patch_fname} (for future verses)")
+                    # Don't auto-resolve — fall through to normal debate
+                    trigger2_fired = False
+                else:
+                    print(f"  {unstable_model} agrees — proceeding with auto-resolve (3/3 with reasoning)")
+            else:
+                print(f"\n  Distance={distance:.1f} ≥ 3.0 — direct auto-resolve (skip validation)")
+
+        if trigger2_fired:
 
                 # Generate model patch
                 from judge import generate_model_patch
