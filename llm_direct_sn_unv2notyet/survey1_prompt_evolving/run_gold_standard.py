@@ -826,6 +826,61 @@ def main():
                 json.dump(evo_record, f, indent=2, ensure_ascii=False)
             print(f"  Evolution record saved: {evo_path}")
 
+            # Auto-generate new prompt
+            print(f"\n  Auto-evolving prompt (Trigger 1)...")
+            from judge import auto_evolve_prompt
+            # Build judge opinions from convergence data
+            judge_opinions = [{
+                "error_identified": "All 3 models failed to converge — prompt is ambiguous for this verse type",
+                "prompt_improvement": f"Model {m} stable_at={convergence_results.get(m, {}).get(verse_key, {}).get('stable_at', '?')}"
+            } for m in models_list]
+
+            new_prompt, evolve_record = auto_evolve_prompt(
+                current_prompt=system_prompt,
+                current_version=args.prompt_version,
+                verse_ref=f"{book_eng} {chap}:{sec}",
+                judge_opinions=judge_opinions,
+                models=DEFAULT_MODELS,
+                target_version=target_version,
+                verbose=args.verbose,
+            )
+
+            # Save evolve record
+            evolve_record_path = os.path.join(evo_dir, f"{chap}_{sec}_auto_evolve_record.json")
+            with open(evolve_record_path, "w", encoding="utf-8") as f:
+                json.dump(evolve_record, f, indent=2, ensure_ascii=False)
+
+            if new_prompt:
+                import re as _re
+                m_ver = _re.match(r'v(\d+)\.(\d+)', args.prompt_version)
+                if m_ver:
+                    new_ver = f"v{m_ver.group(1)}.{int(m_ver.group(2)) + 1}"
+                else:
+                    new_ver = args.prompt_version + ".1"
+
+                new_trigger = f"{book_eng}_{chap}_{sec}"
+                new_fname = f"{new_ver}_{new_trigger}.md"
+                new_path = os.path.join(SURVEY_DIR, "prompts", new_fname)
+
+                header = (
+                    f"# Prompt {new_ver}\n"
+                    f"# Evolved from: {args.prompt_version}\n"
+                    f"# Triggered by: {book_eng} {chap}:{sec} (R2 Trigger 1 — all struggling)\n"
+                    f"# Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
+                    f"# Winner: {evolve_record.get('winner', {}).get('model', '?')}\n"
+                    f"# Average level: {avg_level:.1f}\n"
+                    f"\n"
+                )
+                with open(new_path, "w", encoding="utf-8") as f:
+                    f.write(header + new_prompt)
+                print(f"\n  NEW PROMPT SAVED: {new_fname}")
+
+                evo_record["prompt_to"] = new_ver
+                with open(evo_path, "w", encoding="utf-8") as f:
+                    json.dump(evo_record, f, indent=2, ensure_ascii=False)
+            else:
+                print(f"\n  Auto-evolve FAILED. Human review needed.")
+
             # Collect for build_gold_standard() — don't save directly (AD-1)
             conv_for_verse = {m: convergence_results.get(m, {}).get(verse_key, {})
                               for m in models_list}
@@ -1080,14 +1135,84 @@ def main():
                 print(f"  Evolution record saved: {evo_path}")
 
                 # Don't collect here — build_gold_standard() handles it (AD-1)
-                if details["aligned"]:
-                    print(f"  Models AGREE on the error. Auto-evolve possible.")
-                else:
-                    print(f"  Models DISAGREE on improvement direction. Human review needed.")
                 for i, (err, imp) in enumerate(zip(
                         details["error_descriptions"], details["improvements"])):
                     print(f"    Judge {i+1} error: {err[:150]}")
                     print(f"    Judge {i+1} fix:   {imp[:150]}")
+
+                if details["aligned"]:
+                    print(f"\n  Models AGREE on the error. Auto-evolving prompt...")
+
+                    # Auto-generate new prompt: 3 models draft → vote
+                    from judge import auto_evolve_prompt
+                    judge_opinions = [
+                        {"error_identified": err, "prompt_improvement": imp}
+                        for err, imp in zip(details["error_descriptions"],
+                                            details["improvements"])
+                    ]
+                    new_prompt, evolve_record = auto_evolve_prompt(
+                        current_prompt=system_prompt,
+                        current_version=args.prompt_version,
+                        verse_ref=f"{book_eng} {chap}:{sec}",
+                        judge_opinions=judge_opinions,
+                        models=DEFAULT_MODELS,
+                        target_version=target_version,
+                        verbose=args.verbose,
+                    )
+
+                    # Save evolution record
+                    evolve_record_path = os.path.join(
+                        evo_dir, f"{chap}_{sec}_auto_evolve_record.json")
+                    with open(evolve_record_path, "w", encoding="utf-8") as f:
+                        json.dump(evolve_record, f, indent=2, ensure_ascii=False)
+
+                    if new_prompt:
+                        # Determine new version
+                        import re as _re
+                        m = _re.match(r'v(\d+)\.(\d+)', args.prompt_version)
+                        if m:
+                            new_ver = f"v{m.group(1)}.{int(m.group(2)) + 1}"
+                        else:
+                            new_ver = args.prompt_version + ".1"
+
+                        # Save new prompt with story header
+                        new_trigger = f"{book_eng}_{chap}_{sec}"
+                        new_fname = f"{new_ver}_{new_trigger}.md"
+                        new_path = os.path.join(SURVEY_DIR, "prompts", new_fname)
+
+                        header = (
+                            f"# Prompt {new_ver}\n"
+                            f"# Evolved from: {args.prompt_version}\n"
+                            f"# Triggered by: {book_eng} {chap}:{sec} (R3 all_wrong)\n"
+                            f"# Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
+                            f"# Winner: {evolve_record.get('winner', {}).get('model', '?')}\n"
+                            f"#\n"
+                            f"# --- Evolution story ---\n"
+                            f"# R3 judges (2/3+) independently identified collective error.\n"
+                            f"# 3 models each drafted a new prompt → voted → winner selected.\n"
+                        )
+                        for i, op in enumerate(judge_opinions):
+                            header += f"# Judge {i+1} error: {op['error_identified'][:100]}\n"
+                        header += f"\n"
+
+                        with open(new_path, "w", encoding="utf-8") as f:
+                            f.write(header + new_prompt)
+                        print(f"\n  NEW PROMPT SAVED: {new_fname}")
+
+                        # Update evo_record with new version
+                        evo_record["prompt_to"] = new_ver
+                        with open(evo_path, "w", encoding="utf-8") as f:
+                            json.dump(evo_record, f, indent=2, ensure_ascii=False)
+
+                        # TODO: run 回測 against past gold standard before adopting
+                        print(f"  回測 not yet implemented for auto-evolved prompts.")
+                        print(f"  Manual review recommended before continuing.")
+                    else:
+                        print(f"\n  Auto-evolve FAILED (no 2/3 majority in vote).")
+                        print(f"  Human review needed.")
+                else:
+                    print(f"\n  Models DISAGREE on improvement direction. Human review needed.")
+
                 print(f"\n  STOPPING — fix prompt before processing more verses.")
                 # Still build gold standard for what we have so far
                 break

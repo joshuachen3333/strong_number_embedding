@@ -1092,6 +1092,205 @@ def _find_model(model_name, models):
     return None
 
 
+# ── Auto Prompt Evolution ────────────────────────────────────────────────────
+
+PROMPT_EVOLVE_GENERATE = """\
+You are improving a system prompt for Strong's Number annotation projection.
+
+The current prompt (v{current_version}) has a deficiency identified by multiple \
+judges on verse {verse_ref}:
+
+{judge_summaries}
+
+Current prompt:
+---
+{current_prompt}
+---
+
+Based on the judges' feedback, write a COMPLETE, improved replacement prompt. \
+This is v{new_version}. Include ALL existing content that is still valid, plus \
+fixes for the identified issues. Output ONLY the prompt text — no preamble, \
+no markdown fences, no commentary."""
+
+PROMPT_EVOLVE_VOTE = """\
+Three models each drafted a new version of the SN annotation prompt to fix \
+the deficiency identified in verse {verse_ref}.
+
+Current prompt version: v{current_version}
+Identified problem: {error_summary}
+
+Draft A ({model_a}):
+---
+{draft_a}
+---
+
+Draft B ({model_b}):
+---
+{draft_b}
+---
+
+Draft C ({model_c}):
+---
+{draft_c}
+---
+
+Which draft best addresses the identified problem while preserving all \
+existing functionality? Consider: completeness, clarity, actionability.
+
+Return ONLY a JSON object:
+{{
+  "best": "A" or "B" or "C",
+  "reasoning": "brief explanation"
+}}"""
+
+
+def auto_evolve_prompt(current_prompt, current_version, verse_ref,
+                       judge_opinions, models, target_version="lcc",
+                       verbose=False):
+    """Auto-generate new prompt via 3-model draft + vote.
+
+    1. Each model reads current prompt + judge feedback → generates new prompt
+    2. Each model votes on the 3 drafts (2/3 majority)
+
+    Args:
+        current_prompt: the current system prompt text
+        current_version: e.g., "v1.2"
+        verse_ref: e.g., "Gen 1:7"
+        judge_opinions: list of dicts with error_identified + prompt_improvement
+        models: list of model dicts
+        target_version: target Bible version
+
+    Returns:
+        (winning_prompt, record) or ("", record) if vote fails
+    """
+    # Parse version for new version number
+    import re
+    m = re.match(r'v(\d+)\.(\d+)', current_version)
+    if m:
+        new_version = f"{m.group(1)}.{int(m.group(2)) + 1}"
+    else:
+        new_version = current_version + ".1"
+
+    # Build judge summaries
+    judge_lines = []
+    for i, opinion in enumerate(judge_opinions):
+        judge_lines.append(f"Judge {i+1}:")
+        judge_lines.append(f"  Error: {opinion.get('error_identified', '')}")
+        judge_lines.append(f"  Fix: {opinion.get('prompt_improvement', '')}")
+    judge_summaries = '\n'.join(judge_lines)
+
+    error_summary = judge_opinions[0].get('error_identified', '') if judge_opinions else ''
+
+    generate_prompt = PROMPT_EVOLVE_GENERATE.format(
+        current_version=current_version,
+        new_version=new_version,
+        verse_ref=verse_ref,
+        judge_summaries=judge_summaries,
+        current_prompt=current_prompt,
+    )
+
+    # Step 1: Each model generates a draft
+    drafts = {}
+    record = {
+        "verse_ref": verse_ref,
+        "current_version": current_version,
+        "new_version": f"v{new_version}",
+        "judge_opinions": judge_opinions,
+        "drafts": {},
+        "votes": {},
+        "winner": None,
+    }
+
+    print(f"\n  ── Auto-Evolve: generating drafts ──")
+    for model_info in models:
+        model_name = model_info["name"]
+        brand = model_info["brand"]
+        model_id = model_info["model"]
+
+        print(f"    [{model_name}] drafting v{new_version}...", end=" ", flush=True)
+        t_start = time.time()
+        result = call_llm(
+            brand=brand, model=model_id,
+            system_prompt="You are an expert prompt engineer for biblical NLP tasks.",
+            user_prompt=generate_prompt,
+            target_version=target_version,
+            verbose=verbose,
+            mode="freeform",
+        )
+        elapsed_s = int(time.time() - t_start)
+
+        draft = result.get("text", "")
+        drafts[model_name] = draft
+        record["drafts"][model_name] = draft
+        print(f"{len(draft)} chars {elapsed_s}s", flush=True)
+
+    if len(drafts) < 3:
+        print(f"  Failed to get 3 drafts, aborting auto-evolve")
+        return "", record
+
+    # Step 2: Each model votes
+    model_names = [m["name"] for m in models]
+    vote_prompt = PROMPT_EVOLVE_VOTE.format(
+        verse_ref=verse_ref,
+        current_version=current_version,
+        error_summary=error_summary,
+        model_a=model_names[0], draft_a=drafts[model_names[0]],
+        model_b=model_names[1], draft_b=drafts[model_names[1]],
+        model_c=model_names[2], draft_c=drafts[model_names[2]],
+    )
+
+    print(f"\n  ── Auto-Evolve: voting ──")
+    votes = {}
+    for model_info in models:
+        model_name = model_info["name"]
+        brand = model_info["brand"]
+        model_id = model_info["model"]
+
+        print(f"    [{model_name}] voting...", end=" ", flush=True)
+        t_start = time.time()
+        result = call_llm(
+            brand=brand, model=model_id,
+            system_prompt="You are evaluating prompt quality for biblical NLP.",
+            user_prompt=vote_prompt,
+            target_version=target_version,
+            verbose=verbose,
+            mode="judge",
+        )
+        elapsed_s = int(time.time() - t_start)
+
+        best = result.get("best", "?").upper()
+        reasoning = result.get("reasoning", "")
+        votes[model_name] = {"best": best, "reasoning": reasoning}
+        record["votes"][model_name] = votes[model_name]
+        print(f"→ {best} {elapsed_s}s", flush=True)
+
+    # Tally votes (2/3 majority)
+    label_to_model = {"A": model_names[0], "B": model_names[1], "C": model_names[2]}
+    vote_counts = {}
+    for v in votes.values():
+        b = v["best"]
+        if b in ("A", "B", "C"):
+            vote_counts[b] = vote_counts.get(b, 0) + 1
+
+    winner_label = None
+    for label, count in vote_counts.items():
+        if count >= 2:
+            winner_label = label
+            break
+
+    if winner_label is None:
+        print(f"  No 2/3 majority in prompt vote — auto-evolve failed")
+        return "", record
+
+    winner_model = label_to_model[winner_label]
+    winning_prompt = drafts[winner_model]
+    record["winner"] = {"label": winner_label, "model": winner_model}
+
+    print(f"  → Winner: {winner_label} ({winner_model}) with {vote_counts[winner_label]}/3 votes")
+
+    return winning_prompt, record
+
+
 # ── Backward compat alias ────────────────────────────────────────────────────
 # Keep old name available for consensus.py imports during transition
 def tally_judgments(judgments_for_verse, round1_results_or_conv, sn_field="lcc_sn"):
