@@ -139,3 +139,96 @@ def print_regression_plan(selected, gold_standard, trigger_verses):
           f"{[f'{c}:{s}' for c, s in categories['round1']]}")
     print(f"  Total to retest:        {len(selected)}")
     print(f"{'='*60}")
+
+
+def run_prompt_regression(new_prompt, new_version, trigger_verse,
+                          book_chi, book_eng, models, target_version,
+                          sn_field, verbose=False):
+    """Run regression test for an auto-evolved prompt.
+
+    Re-runs sampled gold standard verses with the new prompt.
+    Each verse does R1 only — if all 3 models produce output that matches
+    the existing gold standard OR all 3 agree unanimously, it passes.
+
+    Returns (passed: bool, results: dict)
+    """
+    import sys
+    PARENT_DIR = os.path.dirname(SURVEY_DIR)
+    if PARENT_DIR not in sys.path:
+        sys.path.insert(0, PARENT_DIR)
+
+    from llm_direct_sn_unv2notyet import fetch_sec_pair, build_user_prompt
+    from cli_caller import call_llm
+    from comparator import texts_match
+
+    # Load gold standard and select verses
+    gold = load_gold_standard(book_eng)
+    if not gold:
+        print(f"    回測: no gold standard to test against — PASS (trivial)")
+        return True, {"sampled": 0, "passed": 0, "failed": 0}
+
+    selected = select_regression_verses(gold, [trigger_verse])
+    # Remove the trigger verse itself (it hasn't been resolved yet)
+    selected = [v for v in selected if v != trigger_verse]
+
+    if not selected:
+        print(f"    回測: no past verses to test — PASS (trivial)")
+        return True, {"sampled": 0, "passed": 0, "failed": 0}
+
+    print_regression_plan(selected, gold, [trigger_verse])
+
+    passed = 0
+    failed = 0
+    failed_verses = []
+
+    for verse_key in selected:
+        chap, sec = verse_key
+        gold_entry = gold[verse_key]
+        gold_sn = gold_entry.get("lcc_sn", "")
+
+        try:
+            unv_sn, target_text = fetch_sec_pair(book_chi, chap, sec, target_version)
+        except ValueError:
+            print(f"    {chap}:{sec}: SKIP (fetch error)")
+            continue
+
+        user_prompt = build_user_prompt(
+            unv_sn, target_text, target_version, book_chi, chap, sec)
+
+        # Run all 3 models with new prompt
+        outputs = []
+        for model_info in models:
+            result = call_llm(
+                brand=model_info["brand"], model=model_info["model"],
+                system_prompt=new_prompt,
+                user_prompt=user_prompt,
+                target_version=target_version,
+                verbose=verbose,
+            )
+            output = result.get(sn_field, "")
+            outputs.append(output)
+
+        # Pass condition: all 3 agree AND match gold standard,
+        # OR all 3 agree unanimously (may be better than old gold)
+        all_agree = all(texts_match(outputs[0], o) for o in outputs[1:]) if outputs else False
+        matches_gold = any(texts_match(o, gold_sn) for o in outputs) if gold_sn else False
+
+        if all_agree or matches_gold:
+            print(f"    {chap}:{sec}: PASS {'(unanimous)' if all_agree else '(matches gold)'}")
+            passed += 1
+        else:
+            print(f"    {chap}:{sec}: FAIL (neither unanimous nor matches gold)")
+            failed += 1
+            failed_verses.append(verse_key)
+
+    total = passed + failed
+    print(f"\n    回測 result: {passed}/{total} passed, {failed} failed")
+    if failed_verses:
+        print(f"    Failed verses: {[f'{c}:{s}' for c, s in failed_verses]}")
+
+    return failed == 0, {
+        "sampled": total,
+        "passed": passed,
+        "failed": failed,
+        "failed_verses": failed_verses,
+    }

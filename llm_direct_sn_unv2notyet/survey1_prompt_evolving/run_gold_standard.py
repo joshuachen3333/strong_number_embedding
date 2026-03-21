@@ -878,6 +878,30 @@ def main():
                 evo_record["prompt_to"] = new_ver
                 with open(evo_path, "w", encoding="utf-8") as f:
                     json.dump(evo_record, f, indent=2, ensure_ascii=False)
+
+                # 回測
+                from regression import run_prompt_regression
+                print(f"\n  Running 回測 for {new_fname}...")
+                regression_ok, regression_results = run_prompt_regression(
+                    new_prompt=new_prompt,
+                    new_version=new_ver,
+                    trigger_verse=verse_key,
+                    book_chi=book_chi,
+                    book_eng=book_eng,
+                    models=DEFAULT_MODELS,
+                    target_version=target_version,
+                    sn_field=sn_field,
+                    verbose=args.verbose,
+                )
+                if regression_ok:
+                    print(f"  回測 PASSED — {new_fname} is safe to adopt.")
+                else:
+                    print(f"  回測 FAILED — reverting {new_fname}.")
+                    os.remove(new_path)
+                    evo_record["prompt_to"] = None
+                    evo_record["regression_failed"] = True
+                    with open(evo_path, "w", encoding="utf-8") as f:
+                        json.dump(evo_record, f, indent=2, ensure_ascii=False)
             else:
                 print(f"\n  Auto-evolve FAILED. Human review needed.")
 
@@ -1204,9 +1228,29 @@ def main():
                         with open(evo_path, "w", encoding="utf-8") as f:
                             json.dump(evo_record, f, indent=2, ensure_ascii=False)
 
-                        # TODO: run 回測 against past gold standard before adopting
-                        print(f"  回測 not yet implemented for auto-evolved prompts.")
-                        print(f"  Manual review recommended before continuing.")
+                        # 回測: run past gold standard with new prompt
+                        from regression import run_prompt_regression
+                        print(f"\n  Running 回測 for {new_fname}...")
+                        regression_ok, regression_results = run_prompt_regression(
+                            new_prompt=winning_prompt,
+                            new_version=new_ver,
+                            trigger_verse=verse_key,
+                            book_chi=book_chi,
+                            book_eng=book_eng,
+                            models=DEFAULT_MODELS,
+                            target_version=target_version,
+                            sn_field=sn_field,
+                            verbose=args.verbose,
+                        )
+                        if regression_ok:
+                            print(f"  回測 PASSED — {new_fname} is safe to adopt.")
+                        else:
+                            print(f"  回測 FAILED — reverting {new_fname}.")
+                            os.remove(new_path)
+                            evo_record["prompt_to"] = None
+                            evo_record["regression_failed"] = True
+                            with open(evo_path, "w", encoding="utf-8") as f:
+                                json.dump(evo_record, f, indent=2, ensure_ascii=False)
                     else:
                         print(f"\n  Auto-evolve FAILED (no 2/3 majority in vote).")
                         print(f"  Human review needed.")
