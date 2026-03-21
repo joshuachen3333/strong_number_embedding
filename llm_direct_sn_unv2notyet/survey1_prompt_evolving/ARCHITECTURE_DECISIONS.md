@@ -98,13 +98,29 @@ Level 3: Strong   — stable at R2e+ or never converged (5+ unique outputs)
 | 1 ≤ avg < 2 | 全部偏難但不嚴重 | normal debate（不觸發 Trigger 1，讓 debate 解決）|
 | avg ≥ 2 | 全部嚴重掙扎 | **Trigger 1**（prompt +0.1）|
 
+### Trigger 2 — Weak Model Voice (Distance-Based)
+
+| Distance | Action |
+|----------|--------|
+| = 2.0 | Ask weak model to validate → if disagrees, route to debate |
+| ≥ 3.0 | Direct auto-resolve (no validation needed) |
+
+Patch is always generated regardless. See `TRIGGER2_DESIGN_REVIEW.md` for full rationale.
+
 ### Full Flow
 
 ```
 R1 → UNANIMOUS → done
 R1 → DISAGREED → R2 convergence → classify Level 0-3
-  → Trigger 1? (avg of all 3 ≥ 2 → +0.1, stop)
-  → Trigger 2? (2 agree + distance ≥ 2 → auto-resolve + patch)
+  → Trigger 1? (avg ≥ 2 → auto-evolve prompt +0.1 → 回測 → stop)
+  → Trigger 2? (2 agree + distance ≥ 2)
+    → distance ≥ 3? → direct auto-resolve + patch
+    → distance = 2? → ask weak model to validate
+      → agrees → auto-resolve + patch (3/3 with reasoning)
+      → disagrees → route to normal R2 debate (patch still generated)
   → Neither → normal R2 debate (2/3 majority)
-    → No 2/3 → R3
+    → No 2/3 → R3 (dual: pick OR all_wrong)
+      → pick 2/3 → gold standard
+      → all_wrong 2/3 → auto-evolve prompt +0.1 → 回測
+      → no consensus → unresolved (human)
 ```

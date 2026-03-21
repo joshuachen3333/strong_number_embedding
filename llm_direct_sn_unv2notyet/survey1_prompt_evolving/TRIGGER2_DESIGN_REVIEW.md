@@ -109,4 +109,24 @@ This is essentially Level 3 from above: **Trigger 2 fast-tracks the patch, not t
 Pros: simpler, aligns with AD-1 (let the consensus process do its job). No special logic.
 Cons: same cost as full R2 (3 debate calls), but only when unstable model disagrees.
 
-### Decision: TBD — revisit after more verses reveal how often unstable models have valid objections.
+### Decision: Distance-Based (AD-2 integration, 2026-03-21)
+
+Use distance to decide whether the weak model gets a voice:
+
+| Distance | 弱模型差距 | Action |
+|----------|----------|--------|
+| = 2.0 | 剛好過門檻（如 0,0,2） | **Option B**: ask weak model to validate → if disagrees, route to debate |
+| ≥ 3.0 | 很大（如 0,0,3） | **Direct auto-resolve**: weak model is clearly unstable, no validation needed |
+
+Rationale: distance = 2.0 means the weak model is only 2 levels worse — it might be "擇善固執" (stubbornly correct), not truly unstable. Give it a chance to defend itself. Distance ≥ 3.0 means the weak model is severely struggling — asking it to validate wastes API calls.
+
+**Flow:**
+```
+Trigger 2 fires (distance ≥ 2.0)
+  → distance ≥ 3.0? → direct auto-resolve + patch (current behavior)
+  → distance = 2.0? → ask weak model: "A and B agree on X. Do you agree?"
+    → agrees → auto-resolve (now 3/3 with reasoning)
+    → disagrees → route to normal R2 debate (patch still generated)
+```
+
+This uses Option B for close calls (distance = 2.0) and skips validation for clear cases (distance ≥ 3.0). The patch is always generated regardless — it improves the model for future verses either way.
