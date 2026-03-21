@@ -8,87 +8,105 @@
 
 Establish the "best" SN embedding result using 3 top models (opus, gemini-3-pro-preview, gpt-5.4) as a consensus panel. The prompt evolves live during the run, not after.
 
-## 3-Round Consensus
+## Full Flow
 
-| Round | What happens | Pass criteria | On fail |
-|-------|-------------|---------------|---------|
-| Round 1 | All 3 models produce output independently | **Unanimous only** (all 3 identical; no 2/3 shortcut — R1 tests if the task is "easy enough" that all 3 independently agree; if even one differs, we want R2 convergence + debate to figure out why) | → Round 2 |
-| Round 2 | Convergence (blind re-do) + Debate (judge stable outputs) | **2/3 majority** in debate | → Round 3 |
-| Round 3 | Dual-capability: pick winner OR identify collective error | **2/3 majority** or **prompt evolution** | → unresolved (human) |
+```
+R1 → UNANIMOUS → gold standard (done)
+R1 → DISAGREED → R2 convergence → classify Level 0-3
+  → avg ≥ 2.0? → TRIGGER 1 (prompt +0.1, stop)
+  → 2 agree + distance ≥ 2.0? → TRIGGER 2 (auto-resolve + model patch)
+  → neither → R2 debate (2/3 majority)
+    → resolved → gold standard
+    → no 2/3 → R3 (dual: pick OR all_wrong)
+      → pick 2/3 → gold standard
+      → all_wrong 2/3 → prompt +0.1
+      → no consensus → unresolved (human)
+```
 
-### Round 2 Detail — Convergence + Debate
+## R1 — Unanimous Check
 
-**Phase 1: Convergence** (per model, per verse)
-1. Model re-does the task **blindly** (same input as R1, no memory of R1 output)
-2. Compare R1 vs R2a:
-   - Identical → stable at R1
-   - Different → retry blindly: R2b, R2c, ... up to `--max-r2-retries` (default 3)
-3. Stability = two consecutive identical outputs
-4. If never converges → marked "unstable", carries last attempt
+All 3 models produce output independently. **Unanimous only** — no 2/3 shortcut.
+R1 tests if the task is "easy enough" that all 3 independently agree.
+If even one differs → R2.
 
-**Phase 1.5: Convergence Analysis** (before debate)
-After convergence, classify each model as "easy" (stable at R1/R2a) or "hard" (R2b+ or unstable):
+## R2 — Convergence + Triggers + Debate
 
-| Pattern | Action |
-|---------|--------|
-| All 3 hard/unstable | **Trigger 1**: early +0.1 prompt evolution. Skip debate & R3. |
-| 2 easy + agree, 1 hard | **Trigger 2**: auto-resolve with 2/3 output. Generate model-specific patch for the unstable model. |
-| Otherwise | Normal → proceed to debate |
+### Phase 1: Convergence
 
-**Trigger 2 — Model-specific patch generation:**
-1. Each of the 2 stable models independently gives feedback to the unstable model
-2. The unstable model writes its own patch from both feedbacks (self-improvement)
-3. Saved as `v1.1.{model}-patch-0.1.md`, version increments if flagged again
-4. Next verse loads: base prompt + latest model patch
+Each model re-does the task **blindly** (no memory of R1). R2a compared with R1 only.
+R2b+ compared with all previous R2 attempts (back-comparison, not R1).
+Unlimited retries by default (`--max-r2-retries 0`). Bail out after 3 consecutive errors.
 
-**Trigger 2 — Instability Score → Patch Intensity**:
-Patch intensity scales with instability (unique output count before convergence):
+### Phase 1.5: Stability Classification (AD-2)
 
-| Score | stable_at      | Level        | Feedback style                                    | 回測 sampling |
-|-------|----------------|--------------|---------------------------------------------------|---------------|
-| 3     | R2b            | **mild**     | Standard: identify mistakes                       | 10%           |
-| 4     | R2c            | **moderate** | + full attempt history + root cause analysis      | 20%           |
-| 5+    | R2d+/unstable  | **strong**   | + past trigger2 history + prescriptive rules      | 30%           |
+| Level | Name | Condition | Unique outputs |
+|-------|------|-----------|----------------|
+| 0 | Easy | stable at R1 or R2a | ≤2 |
+| 1 | Mild | stable at R2b | 3 |
+| 2 | Moderate | stable at R2c-R2d | 4 |
+| 3 | Strong | stable at R2e+ or never converged | 5+ |
 
-**Trigger 2 — Patch 回測 (minor, solo)**:
-After patch generation, re-run only the patched model on past gold standard verses.
-Sampling rate scales with instability level (mild=10%, moderate=20%, strong=30%).
-Compare to **its own previous stability** (not other models, not gold standard output).
-Pass: new stability ≤ old (R1 < R2a < R2b < ... < unstable). Any regression → revert patch.
+### Trigger 1 — 共通 Prompt +0.1 (全體掙扎)
 
-**Phase 2: Debate** (per verse, if no trigger fired)
-- Each model sees all 3 stable outputs + convergence info
-- Picks best (A/B/C) or provides corrected version
-- 2/3 majority → resolved
+| 條件 | 行動 |
+|------|------|
+| 三模型 avg level ≥ 2.0 | prompt +0.1，停止 pipeline |
 
-### Round 3 Detail — Dual Capability
+三模型各自生成新 prompt → 互評投票（2/3 多數決）→ 回測 → 部署。
 
-Each model independently submits one of:
+### Trigger 2 — Model-Specific Patch (一弱二強)
 
-**Option 1 — PICK**: One output is good enough → `{"verdict": "pick", "best": "A/B/C", ...}`
+| 條件 | 行動 |
+|------|------|
+| 2 模型 agree (`texts_match`) + distance ≥ 2.0 | auto-resolve + 弱模型 patch |
 
-**Option 2 — ALL WRONG**: ALL outputs share the same systematic error → `{"verdict": "all_wrong", "error_identified": "...", "prompt_improvement": "...", ...}`
+**Distance = 弱模型 level − 一致模型 avg level**
 
-Resolution:
-| R3 result | Next step |
-|-----------|-----------|
-| 2/3+ pick same winner | → gold standard |
-| 2/3+ all_wrong, aligned errors | → **auto prompt evolution (+0.1)** |
-| 2/3+ all_wrong, conflicting | → human review |
-| No consensus | → unresolved (human) |
+| Agreed | Weak | Distance | Trigger? |
+|--------|------|----------|----------|
+| 0, 0 | 2 | 2.0 | Yes |
+| 0, 0 | 3 | 3.0 | Yes |
+| 0, 1 | 3 | 2.5 | Yes |
+| 1, 1 | 3 | 2.0 | Yes |
+| 0, 0 | 1 | 1.0 | No |
+| 1, 1 | 2 | 1.0 | No |
+| 2, 2 | 3 | 1.0 | No |
 
-"Aligned" = keyword overlap check on `error_identified` fields (same SN tags or error category).
+Patch 生成：2 穩定模型各自給 feedback → 弱模型自己寫 patch（含已有 patch 的進化）。
+Patch 力度隨 level 調整（mild=標準, moderate=+root cause, strong=+prescriptive rules）。
+Patch 回測：solo self-comparison（mild=10%, moderate=20%, strong=30%）。
+
+### Phase 2: Debate
+
+No trigger fired → 三模型互評 stable outputs → 2/3 majority → gold standard。
+
+## R3 — Dual Capability
+
+進入 R3 = R2 debate 沒有 2/3 共識。每個模型獨立判斷：
+
+| 選項 | 條件 | 行動 |
+|------|------|------|
+| **pick** 2/3 同一個 | 多數選同一個 winner | → gold standard |
+| **all_wrong** 2/3 + errors aligned | 多數認為全錯 + 原因一致 | → prompt +0.1 |
+| **all_wrong** 2/3 + errors conflict | 多數認為全錯但原因不同 | → human review |
+| no consensus | 沒有任何 2/3 | → unresolved (human) |
+
+## 觸發共通 Prompt +0.1 的三種情形
+
+| 情形 | 觸發時機 | 條件 |
+|------|---------|------|
+| **R2 Trigger 1** | R2 convergence 之後 | 三模型 avg level ≥ 2.0 |
+| **R3 all_wrong** | R3 判決時 | 2/3 judge 說 all_wrong + error aligned |
+| **人類決定** | 任何時候 | 人類主動提出改進（如 v1.2 annotation projection）|
+
+三者都走同一流程：三模型各自生成新 prompt → 互評投票 → 回測 → 部署。
+差別只在檔名 trigger 標記（`_Gen_1_7` vs `_joshua`）。
 
 ## Live Prompt Evolution
 
-The prompt evolves **during** the gold standard run:
-
-1. Process a batch of verses with current prompt
-2. R3 judges identify collective error → prompt weakness found
-3. Auto-draft new prompt version (v1.x+1) from judge suggestions
-4. **回測 (regression test)** against all past gold standard
-5. Pass → switch to new prompt, continue forward
-6. Fail → revert, try different fix
+The prompt evolves **during** the gold standard run. Per-verse pipeline:
+each verse completes R1 → R2 → R3 before moving to the next.
+If any trigger fires prompt +0.1, pipeline stops immediately.
 
 **The prompt is alive. Never wait to finish before evolving.**
 
