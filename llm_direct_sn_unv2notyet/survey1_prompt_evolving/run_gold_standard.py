@@ -347,12 +347,29 @@ def _get_base_prompt_trigger(prompt_version):
     if not os.path.isdir(prompts_dir):
         return ""
     for fname in os.listdir(prompts_dir):
-        if "-patch-" in fname or "-exp" in fname:
+        if "-patch-" in fname or "-exp" in fname or "REGRESSION_FAILED" in fname:
             continue
         m = _re.match(rf'^{_re.escape(prompt_version)}(_[\w]+(?:_\d+_\d+)?)?\.md$', fname)
         if m and m.group(1):
             return m.group(1)  # e.g., "_Gen_1_1" or "_joshua"
     return ""
+
+
+def strip_prompt_comments(text):
+    """Strip leading # comment lines from prompt text.
+
+    Removes lines starting with '# ' or bare '#' at the top of the file.
+    Preserves '##' markdown headers that are part of the actual prompt.
+    Applied to both main prompt and model patches.
+    """
+    lines = text.split('\n')
+    start = 0
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped and not stripped.startswith('# ') and stripped != '#':
+            start = i
+            break
+    return '\n'.join(lines[start:]).strip()
 
 
 def load_prompt_file(prompt_file):
@@ -377,7 +394,7 @@ def detect_latest_prompt():
 
     version_files = []
     for fname in os.listdir(prompts_dir):
-        if "-patch-" in fname or "-exp" in fname:
+        if "-patch-" in fname or "-exp" in fname or "REGRESSION_FAILED" in fname:
             continue  # skip model patches and experiments
         m = re.match(r'^v(\d+(?:\.\d+)*)(?:_[\w]+(?:_\d+_\d+)?)?\.md$', fname)
         if m:
@@ -512,6 +529,8 @@ def main():
                         help=f"3 model slots (comma/space separated). "
                              f"Aliases: {aliases_help}. "
                              f"Example: --modelsABC opus opus opus")
+    parser.add_argument("--strip-prompt-comment", action="store_true",
+                        help="Strip # comment headers from prompt before feeding to models (survey3 experiment)")
     parser.add_argument("--force", action="store_true",
                         help="Re-run even if cached results exist (default: skip cached)")
     parser.add_argument("--round1-only", action="store_true",
@@ -625,6 +644,11 @@ def main():
             if args.prompt_version is None:
                 args.prompt_version = "unknown"
 
+    # Strip prompt comments if requested (survey3 experiment)
+    if args.strip_prompt_comment:
+        system_prompt = strip_prompt_comments(system_prompt)
+        print(f"  [--strip-prompt-comment] # comments stripped from prompt")
+
     # Get verse list
     verses = get_verse_list(book_chi, chapters, sec_range)
     if args.verse_count is not None:
@@ -717,6 +741,8 @@ def main():
 
             # Load model-specific patch info (for display, even when cached)
             model_patch, patch_ver = load_model_patch(model_name, args.prompt_version)
+            if model_patch and args.strip_prompt_comment:
+                model_patch = strip_prompt_comments(model_patch)
             model_label = f"{model_name} (patch {patch_ver})" if model_patch else model_name
 
             if not args.force and os.path.isfile(result_file):
