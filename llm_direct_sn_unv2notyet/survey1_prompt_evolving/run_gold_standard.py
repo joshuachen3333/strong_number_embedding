@@ -834,11 +834,10 @@ def main():
             print(f"    [{m}] Level {model_levels[m]} ({level_names.get(model_levels[m], '?')})")
 
         if unavailable_models:
-            print(f"    ⚠ UNAVAILABLE (rate-limited): {unavailable_models} — excluded from analysis")
-
-        if len(available_models) < 2:
-            print(f"    SKIP — fewer than 2 models available ({len(available_models)})")
-            continue
+            print(f"\n    ⚠ UNAVAILABLE (rate-limited): {unavailable_models}")
+            print(f"    STOPPING — one or more models rate-limited. Fix and retry.")
+            print(f"    (Use --modelsABC to exclude the unavailable model, or wait for rate limit reset)")
+            break
 
         # Compute avg only over available models
         avg_level = sum(model_levels[m] for m in available_models) / len(available_models)

@@ -340,3 +340,18 @@ let's give trigger2 a calculation: agreed models' average vs weak model's level,
 
 ### 53b. [2026-03-21 ~03:00] Trigger 1 average-based threshold
 "All struggling" defined by average of all 3 models' levels: avg < 1 = not struggling, 1 ≤ avg < 2 = normal debate, avg ≥ 2 = Trigger 1 (prompt +0.1). So 1,1,1 (avg=1) → debate, 2,2,2 (avg=2) → Trigger 1.
+
+### 54. [2026-03-22 ~02:00] --modelsABC — configurable model trio
+for token and budget issue, only claude opus has MAX resource. Introduced --modelsABC opus opus opus (or any mix). A/B/C suffix when disambiguation needed. Tested on Gen 1:1 (unanimous) and 1:21 (hardest verse).
+
+### 54a. [2026-03-22 ~05:00] Gen 1:21 opus x3 → Trigger 1 → v1.3 auto-generated → 回測 FAILED at 1:11
+opus x3 on hardest verse: all Level 3, avg=3.0. Trigger 1 fired. 3 opus instances drafted v1.3 (clause-level alignment rules). B won 3/3. 回測 17/18 passed but 1:11 FAILED → v1.3 reverted. Saved as v1.3_Gen_1_21_REGRESSION_FAILED_at_Gen_1_11.md.
+
+### 54b. [2026-03-22 ~08:00] Gen 1:21 re-run → all Level 0, R2 debate resolved
+Same verse, same prompt, same models — completely different result. All Level 0 (Easy). Proves Gen 1:21 instability is random, not systematic. v1.3 was a false alarm.
+
+### 55. [2026-03-22 ~20:30] survey3_whether_feeding_prompt_comment
+do you feed these # 附註資訊 (comment or story) to the LLM? → yes, load_prompt_file() sends everything. Designed A/B experiment: --strip-prompt-comment flag. 12 test verses, default trio.
+
+### 55a. [2026-03-22 ~21:00] Rate-limit protection — Level -1 (UNAVAILABLE)
+gemini rate-limited → bailed out → falsely classified as Level 3 → false Trigger 2 patch generated. Fix: bailed_out=True → Level -1 (UNAVAILABLE). Excluded from avg/distance/triggers. When detected → stop and quit with warning.
