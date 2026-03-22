@@ -276,11 +276,15 @@ def run_r2_convergence(verses, round1_results, verse_data, models=None,
             else:
                 stable_result = ""
 
+            # bailed_out = never produced any valid output (all errors)
+            bailed_out = not converged and not r2_valid and (r1_was_error or not r1_text.strip())
+
             conv_data = {
                 "stable_result": stable_result,
                 "converged": converged,
                 "attempts": attempts,
                 "stable_at": stable_at,
+                "bailed_out": bailed_out,
             }
             convergence_results[model_name][verse_key] = conv_data
 

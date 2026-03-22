@@ -122,11 +122,14 @@ TRIGGER1_MIN_AVG = 2.0
 def get_stability_level(conv_data):
     """Get unified stability level (0-3) for a model's convergence data.
 
+    Level -1: Unavailable — bailed out (all errors, rate-limited)
     Level 0: Easy     — stable at R1 or R2a (≤2 unique outputs)
     Level 1: Mild     — stable at R2b (3 unique outputs)
     Level 2: Moderate — stable at R2c-R2d (4 unique outputs)
     Level 3: Strong   — stable at R2e+ or never converged (5+ unique outputs)
     """
+    if conv_data.get("bailed_out", False):
+        return -1  # unavailable, not unstable
     from judge import _count_unique_attempts, _stability_level
     attempts = conv_data.get("attempts", [])
     converged = conv_data.get("converged", False)
@@ -820,20 +823,34 @@ def main():
             conv_data = convergence_results.get(m, {}).get(verse_key, {})
             model_levels[m] = get_stability_level(conv_data)
 
-        level_names = {0: "Easy", 1: "Mild", 2: "Moderate", 3: "Strong"}
-        avg_level = sum(model_levels.values()) / len(model_levels)
+        level_names = {-1: "UNAVAILABLE", 0: "Easy", 1: "Mild", 2: "Moderate", 3: "Strong"}
+
+        # Separate available from unavailable models
+        available_models = [m for m in models_list if model_levels[m] >= 0]
+        unavailable_models = [m for m in models_list if model_levels[m] == -1]
 
         print(f"\n  ── R2 Convergence Analysis [{ts()}] ──")
         for m in models_list:
-            print(f"    [{m}] Level {model_levels[m]} ({level_names[model_levels[m]]})")
-        print(f"    Average: {avg_level:.1f}")
+            print(f"    [{m}] Level {model_levels[m]} ({level_names.get(model_levels[m], '?')})")
 
-        # For backward compat (used later in Trigger 2 block)
-        easy_models = [m for m in models_list if model_levels[m] == 0]
-        hard_models = [m for m in models_list if model_levels[m] > 0]
+        if unavailable_models:
+            print(f"    ⚠ UNAVAILABLE (rate-limited): {unavailable_models} — excluded from analysis")
+
+        if len(available_models) < 2:
+            print(f"    SKIP — fewer than 2 models available ({len(available_models)})")
+            continue
+
+        # Compute avg only over available models
+        avg_level = sum(model_levels[m] for m in available_models) / len(available_models)
+        print(f"    Average (available only): {avg_level:.1f}")
+
+        # For trigger checks — only available models
+        easy_models = [m for m in available_models if model_levels[m] == 0]
+        hard_models = [m for m in available_models if model_levels[m] > 0]
 
         # TRIGGER 1: avg ≥ 2 → all struggling → early prompt evolution
-        if avg_level >= TRIGGER1_MIN_AVG:
+        # Only fires if ALL available models are struggling (not due to unavailability)
+        if len(unavailable_models) == 0 and avg_level >= TRIGGER1_MIN_AVG:
             print(f"\n  {'*'*60}")
             print(f"  [{ts()}] TRIGGER 1: ALL STRUGGLING (avg={avg_level:.1f} ≥ {TRIGGER1_MIN_AVG}) → early +0.1")
             print(f"  Prompt is ambiguous for this verse type.")
@@ -967,12 +984,15 @@ def main():
             break
 
         # TRIGGER 2: distance-based (AD-2)
-        # Find all pairs of agreeing models, check distance to the third
+        # Find all pairs of agreeing AVAILABLE models, check distance to the third
         trigger2_fired = False
         from comparator import texts_match
-        for i, m1 in enumerate(models_list):
-            for m2 in models_list[i+1:]:
-                m3 = [m for m in models_list if m != m1 and m != m2][0]
+        for i, m1 in enumerate(available_models):
+            for m2 in available_models[i+1:]:
+                others = [m for m in available_models if m != m1 and m != m2]
+                if not others:
+                    continue  # only 2 available models, no third to check
+                m3 = others[0]
                 t1 = convergence_results[m1].get(verse_key, {}).get("stable_result", "")
                 t2 = convergence_results[m2].get(verse_key, {}).get("stable_result", "")
                 if t1 and t2 and texts_match(t1, t2):
