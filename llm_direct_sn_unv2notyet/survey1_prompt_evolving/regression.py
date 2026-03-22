@@ -87,10 +87,11 @@ def select_regression_verses(gold_standard, trigger_verses, seed=42):
 
     # Sample according to rates (no minimum thresholds — always use %).
     # Original rule from prompt #44e: R3=80%, R2=50%, R1=20%.
+    import math
     def sample(verses, rate):
         if not verses:
             return []
-        n = max(1, int(len(verses) * rate))
+        n = math.ceil(len(verses) * rate)  # 無條件進位
         return random.sample(verses, min(n, len(verses)))
 
     selected = list(trigger_set)  # 100% of triggers — always all
