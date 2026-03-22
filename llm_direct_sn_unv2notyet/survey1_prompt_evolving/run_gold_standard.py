@@ -905,7 +905,7 @@ def main():
                     verbose=args.verbose,
                 )
                 if regression_ok:
-                    print(f"  回測 PASSED — {new_fname} is safe to adopt.")
+                    print(f"  REGRESSION TEST PASSED — {new_fname} is safe to adopt.")
                 else:
                     print(f"  回測 FAILED — marking {new_fname} as REGRESSION_FAILED.")
                     failed_verses = regression_results.get("failed_verses", [])
@@ -1129,7 +1129,7 @@ def main():
                         print(f"  PATCH REVERTED — made {unstable_model} less stable")
                         os.remove(patch_path)
                     else:
-                        print(f"  Patch 回測 PASSED for {unstable_model}")
+                        print(f"  Patch REGRESSION TEST PASSED for {unstable_model}")
 
                 # Use the 2 agreeing models' output as gold standard
                 # Mark as r2_model_patch resolved
@@ -1324,7 +1324,7 @@ def main():
                             verbose=args.verbose,
                         )
                         if regression_ok:
-                            print(f"  回測 PASSED — {new_fname} is safe to adopt.")
+                            print(f"  REGRESSION TEST PASSED — {new_fname} is safe to adopt.")
                         else:
                             print(f"  回測 FAILED — marking {new_fname} as REGRESSION_FAILED.")
                             failed_verses = regression_results.get("failed_verses", [])
