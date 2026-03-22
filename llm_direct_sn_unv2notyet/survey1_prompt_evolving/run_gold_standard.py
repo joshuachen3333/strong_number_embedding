@@ -907,10 +907,26 @@ def main():
                 if regression_ok:
                     print(f"  回測 PASSED — {new_fname} is safe to adopt.")
                 else:
-                    print(f"  回測 FAILED — reverting {new_fname}.")
+                    print(f"  回測 FAILED — marking {new_fname} as REGRESSION_FAILED.")
+                    failed_verses = regression_results.get("failed_verses", [])
+                    fail_verse_str = "_".join(f"{c}_{s}" for c, s in failed_verses) if failed_verses else "unknown"
+                    reverted_path = new_path.replace(".md", f"_REGRESSION_FAILED_at_{book_eng}_{fail_verse_str}.md")
+                    fail_header = (
+                        f"\n# *** REGRESSION FAILED ***\n"
+                        f"# Failed at: {', '.join(f'{book_eng} {c}:{s}' for c, s in failed_verses)}\n"
+                        f"# Passed: {regression_results.get('passed', 0)}/{regression_results.get('sampled', 0)}\n"
+                        f"# This prompt improved the trigger verse but broke the above.\n"
+                        f"# Kept for learning — do not auto-detect as active prompt.\n\n"
+                    )
+                    with open(new_path, "r", encoding="utf-8") as f:
+                        content = f.read()
+                    with open(reverted_path, "w", encoding="utf-8") as f:
+                        f.write(fail_header + content)
                     os.remove(new_path)
+                    print(f"  Saved as: {os.path.basename(reverted_path)}")
                     evo_record["prompt_to"] = None
                     evo_record["regression_failed"] = True
+                    evo_record["failed_verses"] = [f"{c}:{s}" for c, s in failed_verses]
                     with open(evo_path, "w", encoding="utf-8") as f:
                         json.dump(evo_record, f, indent=2, ensure_ascii=False)
             else:
@@ -1310,10 +1326,26 @@ def main():
                         if regression_ok:
                             print(f"  回測 PASSED — {new_fname} is safe to adopt.")
                         else:
-                            print(f"  回測 FAILED — reverting {new_fname}.")
+                            print(f"  回測 FAILED — marking {new_fname} as REGRESSION_FAILED.")
+                            failed_verses = regression_results.get("failed_verses", [])
+                            fail_verse_str = "_".join(f"{c}_{s}" for c, s in failed_verses) if failed_verses else "unknown"
+                            reverted_path = new_path.replace(".md", f"_REGRESSION_FAILED_at_{book_eng}_{fail_verse_str}.md")
+                            fail_header = (
+                                f"\n# *** REGRESSION FAILED ***\n"
+                                f"# Failed at: {', '.join(f'{book_eng} {c}:{s}' for c, s in failed_verses)}\n"
+                                f"# Passed: {regression_results.get('passed', 0)}/{regression_results.get('sampled', 0)}\n"
+                                f"# This prompt improved the trigger verse but broke the above.\n"
+                                f"# Kept for learning — do not auto-detect as active prompt.\n\n"
+                            )
+                            with open(new_path, "r", encoding="utf-8") as f:
+                                content = f.read()
+                            with open(reverted_path, "w", encoding="utf-8") as f:
+                                f.write(fail_header + content)
                             os.remove(new_path)
+                            print(f"  Saved as: {os.path.basename(reverted_path)}")
                             evo_record["prompt_to"] = None
                             evo_record["regression_failed"] = True
+                            evo_record["failed_verses"] = [f"{c}:{s}" for c, s in failed_verses]
                             with open(evo_path, "w", encoding="utf-8") as f:
                                 json.dump(evo_record, f, indent=2, ensure_ascii=False)
                     else:
