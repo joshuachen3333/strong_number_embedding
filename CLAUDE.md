@@ -4,7 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Shortcuts
 
-When the user says **`/ph`**, it means: **append meaningful prompts from this session onto `prompt.history`, then `git commit` and `git push`**. Follow the existing numbering and timestamp format in `prompt.history`. Only record milestone prompts — skip routine ones ("yes", "go ahead", "commit and push").
+When the user says **`/ph`**, it means: **append meaningful prompts from this session onto `prompt.history`, then `git commit` and `git push`**. Follow the existing numbering and timestamp format in `prompt.history`.
+
+**Record**: design decisions, new features, architecture changes, experiment results, bug discoveries, key insights.
+**Skip**: confirmations ("yes", "go ahead", "Option A"), off-topic ("pwd", "what time"), trivial fixes, routine operations ("commit and push", "/ph" itself).
 
 ## Project Overview
 
