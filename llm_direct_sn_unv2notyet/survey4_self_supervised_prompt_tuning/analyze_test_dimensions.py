@@ -223,6 +223,33 @@ def analyze_verse(text, tags):
     results[21] = has_21
     results[22] = has_22
 
+    # 23. Ketiv/Qere — consecutive morph tags with no core SN between them
+    # Pattern: <WTHxxxx><WTHxxxx> (two morph tags in a row)
+    # Caused by Hebrew Ketiv/Qere (寫型/讀型) dual encoding
+    double_morph = re.findall(r'<WTH\d+>\s*<WTH\d+>', text)
+    results[23] = len(double_morph) > 0
+
+    # 24. Number chain — 4+ consecutive pure WH core tags (no morph, no WAH)
+    # Hebrew numerals expressed word-by-word, compressed in Chinese translation
+    # e.g. 十五萬一千<WH03967><WH0505><WH02572><WH0259><WH0505>
+    num_chain = re.findall(
+        r'(<WH\d+>\s*<WH\d+>\s*<WH\d+>\s*<WH\d+>)', text)
+    # Filter: all tags must be pure WH (not WAH, not WTH)
+    has_24 = False
+    for chain in num_chain:
+        chain_tags = re.findall(r'<(W[ATH]*[HG]?)(\d+)>', chain)
+        if all(p == 'WH' for p, n in chain_tags):
+            # Exclude if any tag is morph (8xxx 4-digit)
+            if not any(n.startswith("8") and len(n) == 4 for p, n in chain_tags):
+                has_24 = True
+                break
+    results[24] = has_24
+
+    # 25. FHL data anomaly — SN number with 6+ digits (data corruption)
+    # e.g. <WAH019691> should be <WAH01961> (Josh 9:21)
+    anomaly_tags = [t for t in tags if len(t["number"]) >= 6]
+    results[25] = len(anomaly_tags) > 0
+
     return results
 
 
@@ -240,8 +267,8 @@ def find_uncovered(text, tags):
         # WAG (Greek prefix in OT?)
         if "AG" in t["prefix"]:
             uncovered.append(f"Greek prefix marker: {t['raw']}")
-        # Very long number (6+ digits?)
-        if len(t["number"]) >= 6:
+        # Very long number (7+ digits? — 6-digit is now dim #25)
+        if len(t["number"]) >= 7:
             uncovered.append(f"Unusually long number: {t['raw']}")
         # Empty or single-digit number
         if len(t["number"]) <= 1:
@@ -285,6 +312,9 @@ DIM_LABELS = {
     20: "四連續 — 雙動詞 morph 跨組 (v+m|v+m)",
     21: "四連續 — 動詞 morph+其他 跨組 (v+m|…)",
     22: "四連續 — 介系詞/prefix 連串跨組",
+    23: "Ketiv/Qere — 連續雙 morph 無 core SN",
+    24: "數目字 SN 連串 (≥4 純 WH core 連續)",
+    25: "FHL 資料異常 (6+ 位數 SN)",
 }
 
 
@@ -349,8 +379,8 @@ def main():
     sec_range = set(parse_sec_arg(args.sec)) if args.sec else None
 
     # Dimension counters
-    dim_counts = {i: 0 for i in range(1, 23)}
-    dim_verses = {i: [] for i in range(1, 23)}
+    dim_counts = {i: 0 for i in range(1, 26)}
+    dim_verses = {i: [] for i in range(1, 26)}
     all_uncovered = []
     total_verses = 0
 
@@ -370,11 +400,11 @@ def main():
             verse_ref = f"{book_eng} {chap}:{sec}"
 
             if not args.summary and not args.uncovered:
-                triggered = [i for i in range(1, 23) if dims[i]]
+                triggered = [i for i in range(1, 26) if dims[i]]
                 print(f"{verse_ref:15s} [{len(tags):2d} tags] "
                       f"dims: {','.join(str(d) for d in triggered)}")
 
-            for i in range(1, 23):
+            for i in range(1, 26):
                 if dims[i]:
                     dim_counts[i] += 1
                     dim_verses[i].append(verse_ref)
@@ -390,7 +420,7 @@ def main():
     print(f"\n{'='*60}")
     print(f"  Dimension Coverage Summary — {book_eng} ({total_verses} verses)")
     print(f"{'='*60}")
-    for i in range(1, 23):
+    for i in range(1, 26):
         pct = dim_counts[i] / total_verses * 100 if total_verses > 0 else 0
         examples = dim_verses[i][:3]
         example_str = ", ".join(examples) if examples else "none"
