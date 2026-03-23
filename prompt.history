@@ -355,3 +355,15 @@ do you feed these # 附註資訊 (comment or story) to the LLM? → yes, load_pr
 
 ### 55a. [2026-03-22 ~21:00] Rate-limit protection — Level -1 (UNAVAILABLE)
 gemini rate-limited → bailed out → falsely classified as Level 3 → false Trigger 2 patch generated. Fix: bailed_out=True → Level -1 (UNAVAILABLE). Excluded from avg/distance/triggers. When detected → stop and quit with warning.
+
+### 55b. [2026-03-23 ~01:00] Survey3 results — comments slightly help
+Group A (with #comments): 5/12 unanimous. Group B (stripped): 3/12 unanimous. 1:7 and 1:16 unanimous with comments but needed R2 without. Conclusion: keep default with comments. --strip-prompt-comment available as experiment flag.
+
+### 55c. [2026-03-23 ~02:00] GPT-5.4 rate limited until Mar 26
+codex exec returned "You've hit your usage limit. Try again at Mar 26th, 2026 9:51 PM." Options discussed: opus x3, opus+gemini+opus, or wait.
+
+### 56. [2026-03-23 ~03:00] 深度思考 → DEEP_INSIGHTS.md
+進入深度思考模式。9 observations from Gen 1:1-28: (1) task framing > rules, (2) instability is random not systematic, (3) regression gate proved value, (4) comments slightly help, (5) same-model trio limited value, (6) rate-limit ≠ instability, (7) system sophistication, (8) production stats, (9) pending decisions.
+
+### 56a. [2026-03-23 ~03:30] AD-3: Trigger 1 同節確認跑
+Trigger 1 應該要求連續兩次都 all struggling 才觸發. 方案 A (同節確認跑) 選定: Trigger 1 偵測到後立刻重跑同一節 convergence. 確認仍 ≥ 2.0 → 觸發. 下降 → 隨機噪音, 跳過. 省 ~60 API calls per false alarm.
