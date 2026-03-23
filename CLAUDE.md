@@ -2,13 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Shortcuts
-
-When the user says **`/ph`**, it means: **append meaningful prompts from this session onto `prompt.history`, then `git commit` and `git push`**. Follow the existing numbering and timestamp format in `prompt.history`.
-
-**Record**: design decisions, new features, architecture changes, experiment results, bug discoveries, key insights.
-**Skip**: confirmations ("yes", "go ahead", "Option A"), off-topic ("pwd", "what time"), trivial fixes, routine operations ("commit and push", "/ph" itself).
-
 ## Project Overview
 
 **Strong's Number Embedding Project** — A system using AI/LLMs to (semi)automate the insertion of Strong's Numbers into Bible translations. Strong's Numbers are unique identifiers for Hebrew (OT) and Greek (NT) root words. UNV (Chinese Union Version) and KJV already have Strong's annotations from FHL (bible.fhl.net) and serve as reference data. All bible.fhl.net API usage is authorized for this project.
