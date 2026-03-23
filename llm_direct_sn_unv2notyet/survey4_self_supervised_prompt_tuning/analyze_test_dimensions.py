@@ -156,11 +156,72 @@ def analyze_verse(text, tags):
     same_num_diff_prefix = {n: ps for n, ps in number_prefixes.items() if len(ps) >= 2}
     results[17] = len(same_num_diff_prefix) > 0
 
-    # 18. Position — triple consecutive tags (no Chinese between 3+ tags)
-    # Common pattern: <WAH09xxx><WHxxxxx><WTHxxxx> (900x + core + morph)
-    triple_consecutive = re.findall(
-        r'(<W[ATH]*[HG]?\d+>)\s*(<W[ATH]*[HG]?\d+>)\s*(<W[ATH]*[HG]?\d+>)', text)
-    results[18] = len(triple_consecutive) > 0
+    # ── Consecutive tag analysis (3+ tags with no Chinese between them) ──
+    # Parse all consecutive runs of tags
+    TAG_PAT = r'<(W[ATH]*[HG]?)(\d+)>'
+    TAG_RAW = r'<W[ATH]*[HG]?\d+>'
+
+    def is_morph(num):
+        return num.startswith("8") and len(num) == 4
+
+    def is_900x(num):
+        return num.startswith("09") and len(num) == 5
+
+    def is_wah(prefix):
+        return "A" in prefix
+
+    # Classify each triple: same-group vs cross-boundary
+    # Same-group triple: <WAH09xxx><WHxxxx><WTHxxxx> (900x prefix + core + morph)
+    #   All three describe one verbal unit with inseparable preposition
+    # Cross-boundary: anything else (tail of group A + head of group B)
+    triple_re = re.compile(
+        TAG_PAT + r'\s*' + TAG_PAT + r'\s*' + TAG_PAT)
+    triples = triple_re.findall(text)
+
+    has_18 = False  # same-group triple (900x + core + morph)
+    has_19 = False  # cross-boundary triple
+
+    for t3 in triples:
+        p1, n1, p2, n2, p3, n3 = t3
+        # Same-group: 900x prefix + non-morph core + morph
+        if is_900x(n1) and is_wah(p1) and not is_morph(n2) and is_morph(n3):
+            has_18 = True
+        else:
+            has_19 = True
+
+    results[18] = has_18
+    results[19] = has_19
+
+    # ── Quad consecutive sub-types (#20-#22) — always cross-boundary ──
+    quad_re = re.compile(
+        TAG_PAT + r'\s*' + TAG_PAT + r'\s*' + TAG_PAT + r'\s*' + TAG_PAT)
+    quads = quad_re.findall(text)
+
+    has_20 = False  # 雙動詞 morph: verb+morph+verb+morph (groupA|groupB)
+    has_21 = False  # 動詞 morph 後接其他: verb+morph|prefix/core (groupA|groupB)
+    has_22 = False  # 介系詞/prefix 連串: multiple WAH (groupA tail|groupB head)
+
+    for q in quads:
+        p1, n1, p2, n2, p3, n3, p4, n4 = q
+        m = [is_morph(n) for n in [n1, n2, n3, n4]]
+        w = [is_wah(p) for p in [p1, p2, p3, p4]]
+
+        # #20: verb+morph+verb+morph (positions 2,4 are morph)
+        if m[1] and m[3] and not m[0] and not m[2]:
+            has_20 = True
+        # #22: 3+ WAH-prefix tags among the 4 (preposition/prefix chain)
+        elif sum(w) >= 3:
+            has_22 = True
+        # #21: contains a verb+morph pair + other tags
+        else:
+            for i in range(3):
+                if not m[i] and m[i+1]:
+                    has_21 = True
+                    break
+
+    results[20] = has_20
+    results[21] = has_21
+    results[22] = has_22
 
     return results
 
@@ -190,11 +251,11 @@ def find_uncovered(text, tags):
     if "{{" in text or "}}" in text:
         uncovered.append("Double braces found")
 
-    # Check for 4+ consecutive tags (triple is now dim #18)
-    quad_consecutive = re.findall(
-        r'(<W[ATH]*[HG]?\d+>)\s*(<W[ATH]*[HG]?\d+>)\s*(<W[ATH]*[HG]?\d+>)\s*(<W[ATH]*[HG]?\d+>)', text)
-    if quad_consecutive:
-        uncovered.append(f"Quad consecutive tags: {quad_consecutive[0]}")
+    # Check for 5+ consecutive tags (quad is now dims #19-21)
+    quint_consecutive = re.findall(
+        r'(<W[ATH]*[HG]?\d+>)\s*(<W[ATH]*[HG]?\d+>)\s*(<W[ATH]*[HG]?\d+>)\s*(<W[ATH]*[HG]?\d+>)\s*(<W[ATH]*[HG]?\d+>)', text)
+    if quint_consecutive:
+        uncovered.append(f"Quint consecutive tags: {quint_consecutive[0]}")
 
     return uncovered
 
@@ -219,7 +280,11 @@ DIM_LABELS = {
     15: "位置 — 900x prefix 在 core 前",
     16: "邊界 — 4位 09 陷阱",
     17: "格式 — 同號不同 prefix",
-    18: "位置 — 三連續 tag (900x+core+morph)",
+    18: "三連續 — 同組 (900x+core+morph)",
+    19: "三連續 — 跨組邊界 (前組尾+後組頭)",
+    20: "四連續 — 雙動詞 morph 跨組 (v+m|v+m)",
+    21: "四連續 — 動詞 morph+其他 跨組 (v+m|…)",
+    22: "四連續 — 介系詞/prefix 連串跨組",
 }
 
 
@@ -284,8 +349,8 @@ def main():
     sec_range = set(parse_sec_arg(args.sec)) if args.sec else None
 
     # Dimension counters
-    dim_counts = {i: 0 for i in range(1, 19)}
-    dim_verses = {i: [] for i in range(1, 19)}
+    dim_counts = {i: 0 for i in range(1, 23)}
+    dim_verses = {i: [] for i in range(1, 23)}
     all_uncovered = []
     total_verses = 0
 
@@ -305,11 +370,11 @@ def main():
             verse_ref = f"{book_eng} {chap}:{sec}"
 
             if not args.summary and not args.uncovered:
-                triggered = [i for i in range(1, 19) if dims[i]]
+                triggered = [i for i in range(1, 23) if dims[i]]
                 print(f"{verse_ref:15s} [{len(tags):2d} tags] "
                       f"dims: {','.join(str(d) for d in triggered)}")
 
-            for i in range(1, 19):
+            for i in range(1, 23):
                 if dims[i]:
                     dim_counts[i] += 1
                     dim_verses[i].append(verse_ref)
@@ -325,7 +390,7 @@ def main():
     print(f"\n{'='*60}")
     print(f"  Dimension Coverage Summary — {book_eng} ({total_verses} verses)")
     print(f"{'='*60}")
-    for i in range(1, 19):
+    for i in range(1, 23):
         pct = dim_counts[i] / total_verses * 100 if total_verses > 0 else 0
         examples = dim_verses[i][:3]
         example_str = ", ".join(examples) if examples else "none"
