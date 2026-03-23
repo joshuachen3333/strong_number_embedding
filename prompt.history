@@ -375,4 +375,7 @@ Trigger 1 應該要求連續兩次都 all struggling 才觸發. 方案 A (同節
 建立 /ph 快捷鍵 (append prompt.history + commit + push), 放在 ~/.claude/CLAUDE.md 使所有專案通用. 定義 Record vs Skip 規則.
 
 ### 57. [2026-03-24 ~00:30] survey4 — Annotation Consistency Test 概念
-給定 input1: UNV+SN (v1) + input2: UNV (v1) 作為 few-shot, 要求模型對 v2 的 UNV 產出 UNV+SN, 然後與 FHL 已知標準答案比對評分. 核心洞見: FHL 有所有 UNV+SN ground truth, 可做 self-supervised evaluation. 測試 prompt 的標注機械能力 (format, implicit markers, morphology), 但不測 cross-lingual alignment. 主要應用: prompt regression accelerator — 用 100 節 × 1 model 預篩, 過濾掉明顯差的 prompt 改動, 再進入昂貴的 3-model 回測. 學術定位: Annotation Consistency Test. 開立 survey4_annotation_consistency_test/.
+給定 input1: UNV+SN (v1) + input2: UNV (v1) 作為 few-shot, 要求模型對 v2 的 UNV 產出 UNV+SN, 然後與 FHL 已知標準答案比對評分. 核心洞見: FHL 有所有 UNV+SN ground truth, 可做 self-supervised evaluation. 測試 prompt 的標注機械能力 (format, implicit markers, morphology), 但不測 cross-lingual alignment. 主要應用: prompt regression accelerator — 用 100 節 × 1 model 預篩, 過濾掉明顯差的 prompt 改動, 再進入昂貴的 3-model 回測. 學術定位: Annotation Consistency Test.
+
+### 57a. [2026-03-24 ~01:00] survey4 完整藍圖 — 便宜模型迭代 + 向上 transfer
+Stage 2a: 逐模型優化 (haiku, gemini-flash, gpt-4o-mini, ollama) → 每個模型有自己的最佳 prompt. Stage 2b: 跨模型提煉 → 共通改進 = 通用 prompt 升級, 模型專屬改進 = model patch. Stage 2c: 向上試探 → 測 opus/gemini-pro/gpt-5.4, 有些 transfer 有些不. 核心洞見: 便宜模型是 prompt 的「試金石」, 瑕疵在弱模型上暴露更快. 與 survey1 系統同構 (main prompt ↔ 通用改進, model patch ↔ 專屬改進). Renamed to survey4_self_supervised_prompt_tuning/.
