@@ -1289,7 +1289,9 @@ def main():
         if r2:
             winner, _ = tally_r2_debate(r2, convergence_results, sn_field)
             if winner is not None:
-                print(f"  → R2 RESOLVED [{ts()}] (winner={winner})", flush=True)
+                votes_str = ",".join(
+                    j.get("best", "?") for j in r2.values())
+                print(f"  → R2 RESOLVED [{ts()}] (winner={winner} {votes_str})", flush=True)
                 continue
 
         # ── R3: Dual-capability ──
@@ -1313,7 +1315,10 @@ def main():
         if r3:
             outcome, details = tally_r3_judgments(r3, convergence_results)
             if outcome == "resolved":
-                print(f"  → R3 RESOLVED [{ts()}]", flush=True)
+                winner_label, _ = details
+                r3_votes_str = ",".join(
+                    j.get("best", j.get("verdict", "?")) for j in r3.values())
+                print(f"  → R3 RESOLVED [{ts()}] (winner={winner_label} {r3_votes_str})", flush=True)
             elif outcome == "prompt_evolution":
                 print(f"\n  {'*'*60}")
                 print(f"  PROMPT EVOLUTION TRIGGERED at {chap}:{sec}")
