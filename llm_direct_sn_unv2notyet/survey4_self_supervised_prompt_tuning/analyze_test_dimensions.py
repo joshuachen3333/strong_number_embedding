@@ -156,6 +156,12 @@ def analyze_verse(text, tags):
     same_num_diff_prefix = {n: ps for n, ps in number_prefixes.items() if len(ps) >= 2}
     results[17] = len(same_num_diff_prefix) > 0
 
+    # 18. Position — triple consecutive tags (no Chinese between 3+ tags)
+    # Common pattern: <WAH09xxx><WHxxxxx><WTHxxxx> (900x + core + morph)
+    triple_consecutive = re.findall(
+        r'(<W[ATH]*[HG]?\d+>)\s*(<W[ATH]*[HG]?\d+>)\s*(<W[ATH]*[HG]?\d+>)', text)
+    results[18] = len(triple_consecutive) > 0
+
     return results
 
 
@@ -184,11 +190,11 @@ def find_uncovered(text, tags):
     if "{{" in text or "}}" in text:
         uncovered.append("Double braces found")
 
-    # Check for tags with no Chinese between them (more than 2 consecutive)
-    triple_consecutive = re.findall(
-        r'(<W[ATH]*[HG]?\d+>)\s*(<W[ATH]*[HG]?\d+>)\s*(<W[ATH]*[HG]?\d+>)', text)
-    if triple_consecutive:
-        uncovered.append(f"Triple consecutive tags: {triple_consecutive[0]}")
+    # Check for 4+ consecutive tags (triple is now dim #18)
+    quad_consecutive = re.findall(
+        r'(<W[ATH]*[HG]?\d+>)\s*(<W[ATH]*[HG]?\d+>)\s*(<W[ATH]*[HG]?\d+>)\s*(<W[ATH]*[HG]?\d+>)', text)
+    if quad_consecutive:
+        uncovered.append(f"Quad consecutive tags: {quad_consecutive[0]}")
 
     return uncovered
 
@@ -213,6 +219,7 @@ DIM_LABELS = {
     15: "位置 — 900x prefix 在 core 前",
     16: "邊界 — 4位 09 陷阱",
     17: "格式 — 同號不同 prefix",
+    18: "位置 — 三連續 tag (900x+core+morph)",
 }
 
 
@@ -229,24 +236,56 @@ def parse_range(s):
     return result
 
 
+def parse_sec_arg(sec_args):
+    """Parse flexible --sec format: 1 2 3, 1,2,3, 1-10, 1,2,5-13,17,19."""
+    result = []
+    for arg in sec_args:
+        for part in re.split(r'[,\s]+', arg.strip()):
+            if not part:
+                continue
+            if "-" in part:
+                a, b = part.split("-", 1)
+                result.extend(range(int(a), int(b) + 1))
+            else:
+                result.append(int(part))
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Analyze UNV+SN verses for 17 test dimensions (no LLM calls)")
-    parser.add_argument("--book", default="創", help="Chinese book abbreviation")
-    parser.add_argument("--chap", default="1", help="Chapter range: '1' or '1-3'")
-    parser.add_argument("--sec", default=None, help="Verse range (optional)")
-    parser.add_argument("--summary", action="store_true", help="Show dimension summary only")
-    parser.add_argument("--uncovered", action="store_true", help="Show uncovered patterns only")
+    # Same CLI args as llm_direct_sn_unv2notyet.py
+    parser.add_argument("--chineses", "--book", default="創", dest="book",
+                        help="Chinese book abbreviation (e.g., 創 出 詩)")
+    parser.add_argument("--chap", default="1",
+                        help="Chapter: single (1), range (1-10), or 'all'")
+    parser.add_argument("--sec", nargs="*", default=None,
+                        help="Verse(s): 1 2 3, 1,2,3, 1-10, 1,2,5-13,17,19")
+    parser.add_argument("--summary", action="store_true",
+                        help="Show dimension summary only")
+    parser.add_argument("--uncovered", action="store_true",
+                        help="Show uncovered patterns only")
     args = parser.parse_args()
 
     book_chi = args.book
     book_eng = CHI_TO_ENG.get(book_chi, book_chi)
-    chapters = parse_range(args.chap)
-    sec_range = set(parse_range(args.sec)) if args.sec else None
+    if args.chap.lower() == "all":
+        # Fetch chap 1 to discover max chapter (rough heuristic: try up to 150)
+        chapters = []
+        for c in range(1, 151):
+            try:
+                d = fetch_chap_cached(book_chi, c, "unv", strong=1)
+                if d:
+                    chapters.append(c)
+            except Exception:
+                break
+    else:
+        chapters = parse_range(args.chap)
+    sec_range = set(parse_sec_arg(args.sec)) if args.sec else None
 
     # Dimension counters
-    dim_counts = {i: 0 for i in range(1, 18)}
-    dim_verses = {i: [] for i in range(1, 18)}
+    dim_counts = {i: 0 for i in range(1, 19)}
+    dim_verses = {i: [] for i in range(1, 19)}
     all_uncovered = []
     total_verses = 0
 
@@ -266,11 +305,11 @@ def main():
             verse_ref = f"{book_eng} {chap}:{sec}"
 
             if not args.summary and not args.uncovered:
-                triggered = [i for i in range(1, 18) if dims[i]]
+                triggered = [i for i in range(1, 19) if dims[i]]
                 print(f"{verse_ref:15s} [{len(tags):2d} tags] "
                       f"dims: {','.join(str(d) for d in triggered)}")
 
-            for i in range(1, 18):
+            for i in range(1, 19):
                 if dims[i]:
                     dim_counts[i] += 1
                     dim_verses[i].append(verse_ref)
@@ -286,7 +325,7 @@ def main():
     print(f"\n{'='*60}")
     print(f"  Dimension Coverage Summary — {book_eng} ({total_verses} verses)")
     print(f"{'='*60}")
-    for i in range(1, 18):
+    for i in range(1, 19):
         pct = dim_counts[i] / total_verses * 100 if total_verses > 0 else 0
         examples = dim_verses[i][:3]
         example_str = ", ".join(examples) if examples else "none"

@@ -379,3 +379,9 @@ Trigger 1 應該要求連續兩次都 all struggling 才觸發. 方案 A (同節
 
 ### 57a. [2026-03-24 ~01:00] survey4 完整藍圖 — 便宜模型迭代 + 向上 transfer
 Stage 2a: 逐模型優化 (haiku, gemini-flash, gpt-4o-mini, ollama) → 每個模型有自己的最佳 prompt. Stage 2b: 跨模型提煉 → 共通改進 = 通用 prompt 升級, 模型專屬改進 = model patch. Stage 2c: 向上試探 → 測 opus/gemini-pro/gpt-5.4, 有些 transfer 有些不. 核心洞見: 便宜模型是 prompt 的「試金石」, 瑕疵在弱模型上暴露更快. 與 survey1 系統同構 (main prompt ↔ 通用改進, model patch ↔ 專屬改進). Renamed to survey4_self_supervised_prompt_tuning/.
+
+### 57b. [2026-03-24 ~02:00] analyze_test_dimensions.py — 17 維度 + CLI 標準化
+能否寫一個簡單腳本讓我不花 token 情形下 parse 所有經文看看觸發了哪個規則. 17 個測試維度 (SN count, implicit markers, morphology, format, position, edge cases). CLI 參數統一: --book/--chineses, --chap, --sec 與 llm_direct_sn_unv2notyet.py 共用格式. 含 uncovered pattern 偵測 (候選 rule 18+).
+
+### 57c. [2026-03-24 ~03:00] Dim #18 — 三連續 tag (900x+core+morph)
+Gen 1-50 掃描 (1533 verses): 387 個 uncovered 全是 triple consecutive tags. 主要模式 <WAH09xxx><WHxxxxx><WTHxxxx> (900x prefix + core SN + morphology, 三個 tag 連續無中文). 約 25% 經節觸發. 升格為正式 dim #18, uncovered 偵測改為監視 quad (4+) consecutive.
