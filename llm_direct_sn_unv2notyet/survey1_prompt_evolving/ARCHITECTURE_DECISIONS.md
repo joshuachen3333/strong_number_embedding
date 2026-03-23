@@ -124,3 +124,30 @@ R1 → DISAGREED → R2 convergence → classify Level 0-3
       → all_wrong 2/3 → auto-evolve prompt +0.1 → 回測
       → no consensus → unresolved (human)
 ```
+
+---
+
+## AD-3: Trigger 1 Confirmation Run (同節確認跑)
+
+**日期**: 2026-03-23
+**狀態**: 已實作
+
+### 問題
+
+Gen 1:21 在 opus x3 測試中：第一次全部 Level 3 (Trigger 1 觸發) → v1.3 自動生成。第二次全部 Level 0 → R2 debate 輕鬆解決。同一節、同一 prompt、同一模型 — 結果完全不同。
+
+Trigger 1 被隨機噪音觸發，啟動了一次無意義的 auto-evolve pipeline（3 draft + 3 vote + 18 節回測），浪費大量 API calls，且生成的 v1.3 在回測中失敗被撤回。
+
+### 修法
+
+Trigger 1 偵測到 avg ≥ 2.0 後，**不立刻觸發**。先刪除 convergence cache，重新跑一次 R2 convergence（confirmation run）。
+
+- 確認 avg 仍 ≥ 2.0 → 確認是系統性問題 → 正式觸發 prompt evolution
+- 確認 avg < 2.0 → 是隨機噪音 → 跳過 Trigger 1，繼續正常 debate
+
+### 成本分析
+
+| 路徑 | 不確認（舊） | 有確認（新） |
+|------|------------|------------|
+| 真正的系統性問題 | 直接 evolve | +1 次 convergence → evolve |
+| 隨機噪音 | evolve + 回測 + revert（~60+ API calls 浪費） | +1 次 convergence → 跳過（省 ~60 calls） |

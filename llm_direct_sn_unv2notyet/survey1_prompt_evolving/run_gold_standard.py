@@ -848,12 +848,71 @@ def main():
         hard_models = [m for m in available_models if model_levels[m] > 0]
 
         # TRIGGER 1: avg ≥ 2 → all struggling → early prompt evolution
+        # AD-3: confirmation run — re-run convergence once to filter random noise
         # Only fires if ALL available models are struggling (not due to unavailability)
         if len(unavailable_models) == 0 and avg_level >= TRIGGER1_MIN_AVG:
             print(f"\n  {'*'*60}")
-            print(f"  [{ts()}] TRIGGER 1: ALL STRUGGLING (avg={avg_level:.1f} ≥ {TRIGGER1_MIN_AVG}) → early +0.1")
-            print(f"  Prompt is ambiguous for this verse type.")
+            print(f"  [{ts()}] TRIGGER 1 CANDIDATE: ALL STRUGGLING (avg={avg_level:.1f} ≥ {TRIGGER1_MIN_AVG})")
+            print(f"  AD-3: Running confirmation re-run to filter random noise...")
             print(f"  {'*'*60}")
+
+            # Confirmation run: re-do R2 convergence for all models on same verse
+            # Delete cached convergence for this verse first
+            for m_name in models_list:
+                conv_file = os.path.join(SURVEY_DIR, "round2_results",
+                                        m_name, book_eng, f"{chap}_{sec}_convergence.json")
+                if os.path.isfile(conv_file):
+                    os.remove(conv_file)
+
+            print(f"\n  ── Confirmation R2 Convergence [{ts()}] ──")
+            conv2 = run_r2_convergence(
+                verses=[verse_key],
+                round1_results=round1_results,
+                verse_data=verse_data,
+                models=model_trio,
+                system_prompt=system_prompt,
+                target_version=target_version,
+                sn_field=sn_field,
+                max_retries=args.max_r2_retries,
+                verbose=args.verbose,
+                force=True,
+            )
+            for m in conv2:
+                convergence_results.setdefault(m, {}).update(conv2[m])
+
+            # Re-classify levels after confirmation run
+            confirm_levels = {}
+            for m in models_list:
+                conv_data = convergence_results.get(m, {}).get(verse_key, {})
+                confirm_levels[m] = get_stability_level(conv_data)
+
+            confirm_available = [m for m in models_list if confirm_levels[m] >= 0]
+            if confirm_available:
+                confirm_avg = sum(confirm_levels[m] for m in confirm_available) / len(confirm_available)
+            else:
+                confirm_avg = 0
+
+            print(f"\n  ── Confirmation Analysis [{ts()}] ──")
+            for m in models_list:
+                print(f"    [{m}] Level {confirm_levels[m]} ({level_names.get(confirm_levels[m], '?')})")
+            print(f"    Confirmation avg: {confirm_avg:.1f}")
+
+            if confirm_avg >= TRIGGER1_MIN_AVG:
+                print(f"\n  ✅ CONFIRMED: still all struggling (avg={confirm_avg:.1f})")
+                print(f"  Trigger 1 confirmed — proceeding with prompt evolution.")
+            else:
+                print(f"\n  ❌ NOT CONFIRMED: avg dropped to {confirm_avg:.1f} (was {avg_level:.1f})")
+                print(f"  Random noise — skipping Trigger 1. Proceeding to normal debate.")
+                # Update model_levels with confirmation results
+                model_levels = confirm_levels
+                avg_level = confirm_avg
+                easy_models = [m for m in confirm_available if confirm_levels[m] == 0]
+                hard_models = [m for m in confirm_available if confirm_levels[m] > 0]
+                # Fall through to Trigger 2 check / debate
+                pass  # don't enter the evolution block below
+
+        if len(unavailable_models) == 0 and avg_level >= TRIGGER1_MIN_AVG:
+            # Trigger 1 confirmed (or first detection that survived confirmation)
             for m in models_list:
                 c = convergence_results.get(m, {}).get(verse_key, {})
                 print(f"    [{m}] stable_at={c.get('stable_at','?')} "
