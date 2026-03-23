@@ -6,6 +6,8 @@
 
 **Visual overview**: [`SYSTEM_DIAGRAMS.html`](SYSTEM_DIAGRAMS.html) — 8 interactive diagrams (Mermaid) covering the full R1→R2→R3 pipeline, trigger mechanisms, prompt evolution, and architecture components. Open in browser.
 
+**Lessons learned**: [`DEEP_INSIGHTS.md`](DEEP_INSIGHTS.md) — 9 deep observations from Gen 1:1-28 production (task framing > rules, random instability, regression gate value, etc.).
+
 ## Purpose
 
 Establish the "best" SN embedding result using 3 top models (opus, gemini-3-pro-preview, gpt-5.4) as a consensus panel. The prompt evolves live during the run, not after.
