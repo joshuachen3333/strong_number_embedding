@@ -313,12 +313,14 @@ auto_score.py → 比對 FHL ground truth → 4 項分數
 改 prompt → 重跑 → 分數有進步？
 ```
 
-### dmfs_select.py（待實作）
+### dmfs_select.py
 
 ```bash
-python3 dmfs_select.py --test-set test_set_10pct.json --out dmfs_pairs.json
-python3 dmfs_select.py --test-set test_set_10pct.json --strategy superset
+python3 dmfs_select.py --pct 10 --out dmfs_pairs.json
+python3 dmfs_select.py --test-set test_set_10pct.json --strategy superset --same-book
 ```
+
+實測結果（10%）：avg Jaccard 0.96, 52.3% exact match, 最差 0.78。
 
 輸出格式：
 ```json
@@ -335,7 +337,7 @@ python3 dmfs_select.py --test-set test_set_10pct.json --strategy superset
 }
 ```
 
-### auto_score.py（待實作）
+### auto_score.py
 
 4 項評分指標：
 1. **Exact match** — 整節完全一致（最嚴格）
@@ -343,17 +345,89 @@ python3 dmfs_select.py --test-set test_set_10pct.json --strategy superset
 3. **Placement accuracy** — SN 存在但放錯位置
 4. **Format compliance** — zero-padding, braces, prefix markers
 
-Ground truth：FHL API (`fetch_chap_cached` with `strong=1`)
+Ground truth：FHL API (`fetch_chap_cached` with `strong=1`)。
+Self-test verified: Gen 1 + Matt 1 + Ps 119 全部 100%。
+
+```bash
+python3 auto_score.py --self-test --book 創 --chap 1
+python3 auto_score.py --input model_results.json
+```
+
+### run_benchmark.py（待實作）
+
+**做什麼**：整個 survey4 pipeline 到目前為止都是「準備工作」— 分維度、選測試集、配對 example、寫評分器。`run_benchmark.py` 是「讓模型動手」的環節。
+
+對每一組 DMFS pair：
+1. 從 FHL 取 example verse (v1) 的 UNV+SN ← 有標注的範例
+2. 把 v1 的 SN 去掉，得到純 UNV (v1) ← 展示 input 長什麼樣
+3. 從 FHL 取 test verse (v2) 的純 UNV ← 去掉 SN 的測試題
+4. 組成 prompt：「這是標注範例... 現在請對以下經文做同樣的標注...」
+5. 呼叫 cheap model (haiku / gemini-flash / ollama)
+6. 收到模型輸出的 UNV+SN
+7. 存檔 → `auto_score.py` 自動打分
+
+**為什麼用 cheap model**：
+
+| | survey1（生產） | survey4 benchmark |
+|---|---|---|
+| 模型 | opus + gemini-pro + gpt-5.4 | haiku / gemini-flash / ollama |
+| 每節成本 | 高 | 幾乎免費 |
+| 評分方式 | 3-model consensus（主觀） | FHL ground truth（客觀） |
+| 用途 | 生產 gold standard | **迭代 prompt** |
+
+便宜模型跑得快、不花錢，可以大量迭代：改 prompt → 跑 benchmark → 分數變高了嗎？→ 再改 → 再跑。找到最好的 prompt 後，才交給昂貴模型做正式生產。
+
+### 便宜模型迭代邏輯 (Prompt Iteration Loop)
+
+```
+Round 0: 拿現有 prompt v1.2 跑 benchmark → baseline 分數
+         例如 haiku: exact 30%, coverage 0.75, placement 0.80
+
+Round 1: 看哪些維度的經節分數最差
+         → 例如 #23 Ketiv/Qere exact 0%, #18 三連續 exact 15%
+         → 針對弱項改 prompt（加規則、加範例說明）
+         → 重跑 benchmark → 分數有進步 ✓
+
+Round 2: 再看新的弱項 → 再改 → 再跑 → ...
+
+Round N: 分數趨於穩定 → 這個 prompt 對 haiku 的極限到了
+```
+
+每個 cheap model 各自迭代：
+
+```
+haiku        → prompt-haiku-best
+gemini-flash → prompt-flash-best
+ollama       → prompt-ollama-best
+```
+
+然後 **Stage 2b 跨模型提煉**：
+- 三個 best prompt 的**共通改進** → 通用 prompt 升級（可能 transfer 到 opus）
+- 各自特有的改進 → model-specific patch（只對那個弱模型有效）
+
+這跟 survey1 的 `main prompt + model patch` 完全同構。
+
+**26 維度在迭代中的角色**：不只看「整體分數」，還看「**哪些維度的經節失分**」。因為 dim_verse_map 記錄了每節觸發哪些 dims，可以做按維度分組的分數分析：
+
+```
+auto_score 結果 + dim_verse_map → 按維度分組
+
+  #1 短節:     exact 50%, coverage 0.90  ← 簡單，模型做得好
+  #23 K/Q:    exact  0%, coverage 0.40  ← 難，模型完全不會
+  #18 三連續:  exact 10%, coverage 0.60  ← 中等，可改善
+```
+
+這告訴你 prompt 該加什麼規則 — 針對弱維度補強。
 
 ## Status
 
 - [x] 26 維度定義 (Option 1.5 分層架構)
 - [x] OT 39 卷全掃 + OT_DIMENSION_REPORT.md
-- [x] NT 27 卷全掃
-- [x] dim_verse_map.json 全量資料 (66 卷 31,103 節)
+- [x] NT 27 卷全掃 (66 卷 31,103 節)
+- [x] dim_verse_map.json 全量資料
 - [x] sample_test_set.py 取樣腳本
 - [x] OT 回測 PASS (NT 擴展未破壞舊約結果)
-- [ ] dmfs_select.py — DMFS 配對腳本
-- [ ] auto_score.py — 自動評分腳本
+- [x] dmfs_select.py — DMFS 配對（avg Jaccard 0.96）
+- [x] auto_score.py — 自動評分（self-test 100%）
 - [ ] run_benchmark.py — cheap model benchmark
 - [ ] 用 cheap models 大量迭代 prompt (Stage 2)
