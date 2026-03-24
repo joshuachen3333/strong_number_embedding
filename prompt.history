@@ -403,3 +403,9 @@ Gen 1-50 掃描 (1533 verses): 387 個 uncovered 全是 triple consecutive tags.
 
 ### 58a. [2026-03-24 ~11:00] dim_verse_map.json — 全量 verse↔dim 對照表
 OT 39 卷 + NT 四福音, 共 26,923 節全掃. 輸出格式 C (兩者都存): verses[] 每節記錄觸發哪些 dims, by_dimension{} 每個 dim 記錄包含哪些 verses. 10.4 MB JSON. 用途: 測試集篩選的資料基礎.
+
+### 58b. [2026-03-24 ~12:00] sample_test_set.py — 策略 B greedy coverage 取樣
+從 dim_verse_map.json 取樣最小測試集, 使每個 dim 覆蓋 ≥ N%. Phase 1 稀有 dim (≤20節) 全選, Phase 2 貪婪選觸發最多未達標 dim 的經節. 10% → 2,677 節, 全 26 dims 達標.
+
+### 58c. [2026-03-25 ~01:00] OT 回測 — NT 擴展未破壞舊約結果
+8 個維度因 NT 擴展而改動 (#5,6,7,10,18,19,20,21). 窮舉 417,592 個 OT tags: morph 偵測分歧 8 個, 全是新版更正確 (WTH08763 等零填充 morph, 舊版 len==4 漏抓, 新版 prefix WT 正確判). lang 檢查零分歧. REGRESSION PASS — 無退化.
