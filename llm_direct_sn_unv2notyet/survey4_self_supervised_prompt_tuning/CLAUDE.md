@@ -106,29 +106,89 @@ qwen3:32b    → qwen3 最佳 prompt
 
 **Core insight**: 便宜模型是 prompt 的「試金石」— 它們更脆弱，所以 prompt 的瑕疵在它們身上暴露得更快。修好弱模型的問題，有一部分會自然 transfer 到強模型。但不是全部。
 
-## Test Set Coverage
+## Dimension Architecture
 
-17 個測試維度（合併能力 × 類別 × survey2 edge cases）：
+### OT vs NT Tag Format
 
-| # | 測試維度 | 代表經節 | 測什麼 |
-|---|---------|---------|--------|
-| 1 | SN count — 簡單短節 | Gen 1:5, 1:19 | 基本 SN 放置，數量不多不少 |
-| 2 | SN count — 長節多 SN | Gen 1:21, 1:28 | 大量 tag 不漏不亂 |
-| 3 | SN count — 重複平行結構 | Gen 1:11, 1:12 | 各從其類 ×2，不重複不遺漏 |
-| 4 | Implicit markers — 基本 | Gen 1:1, 1:4 | {<WH0853>} 保留 |
-| 5 | Implicit markers — 900x 組合 | Gen 1:2 | {<WAH05921>} implicit + prefix 合體 |
-| 6 | Morphology — 單動詞 | Gen 1:1, 1:3 | <WTH8804> 附著在動詞上 |
-| 7 | Morphology — 多動詞 | Gen 1:21, 1:28 | 多個 <WTH> 各附著正確動詞 |
-| 8 | 格式 — zero-padding | Gen 1:1 | <WH07225> not <WH7225> |
-| 9 | 格式 — leading zeros 規則 | Gen 1:1 | FHL 一律補零至 4-5 位，模型不得刪除 |
-| 10 | 格式 — 900x prefixes | Gen 1:5, 1:6 | <WAH09002> 保留不丟 |
-| 11 | 格式 — 複合介系詞 | Gen 1:7 | <WAH04480><WH05921> 連續 tag |
-| 12 | 格式 — WAH 非 900x | Gen 1:7, 1:21 | <WAH0853>, <WAH0834> — WAH 不只用於 900x |
-| 13 | 位置 — SN 在對應中文字後 | Gen 1:1 | 神<WH0430> 不是 <WH0430>神 |
-| 14 | 位置 — Morphology 緊跟動詞 SN | Gen 1:1, 1:3 | 創造<WH01254><WTH8804> 不是 創造<WTH8804><WH01254> |
-| 15 | 位置 — 900x prefix 在對應字前 | Gen 1:1 | 起初<WAH09002><WH07225> prefix 先於 core |
-| 16 | 邊界 — 4位 vs 5位 900x 陷阱 | (含 <WH0914> 的經節) | <WH0914> 是 core 不是 900x，不能誤判 |
-| 17 | 格式 — 同號不同意（WH vs WAH） | Gen 1:3 | <WH01961> vs <WAH01961> 同號碼不同 prefix |
+| 特徵 | OT (Hebrew) | NT (Greek) |
+|------|-------------|------------|
+| Core SN | `<WH1234>` | `<WG1234>` |
+| Morph | `<WTH8804>` | `<WTG5656>` |
+| Prefix | `<WAH0853>` | `<WAG3588>` |
+| Implicit | `{<WH0853>}` | `{<WG3767>}` |
+| 900x system | `<WAH09001>` (ל,ב,כ) | 不存在 |
+| Ketiv/Qere | `<WTH8675>` 雙型 | 不存在 |
+| SN 帶字母 | 無 | `<WG3608a>` (variant SN) |
+| SN 範圍 | H1–H8999 | G1–G5624 |
+| Morph 範圍 | WTH 8xxx (4位) | WTG 5xxx (4位) |
+| Prefix 數量 | WAH 大量 | WAG 極少 (Matt 全書 5 個) |
+
+### Option 1.5 — 分層擴展 (Hybrid)
+
+**A. 共用核心** (regex 擴展支援 `[HG]`)：
+- #1-3 SN 計數 — 語言無關
+- #4 Implicit 基本 — `{<...>}` 語法相同
+- #8-9 Zero-padding / leading zeros — 格式問題通用
+- #13 SN 在中文字後 — 位置問題通用
+- #17 同號不同 prefix — 概念通用
+- #19 三連續跨組 — 結構通用
+- #25 FHL 異常 — 通用
+
+**B. OT 專有** (保持原樣，只在 OT 書卷觸發)：
+- #5 Implicit 900x 組合 — 希伯來不可分介詞
+- #10 900x prefixes
+- #15 900x prefix 在 core 前
+- #16 4位 09 陷阱
+- #18 三連續同組 (900x+core+morph)
+- #23 Ketiv/Qere — 希伯來文本傳統特有
+- #24 數目字 SN 連串
+
+**C. 通用擴展** (morph/prefix 概念通用，regex 擴展)：
+- #6, #7 Morphology — WTH/WTG 統一用 prefix-based 偵測
+- #11 複合介系詞/prefix 連續
+- #12 WA[HG] 非 900x
+- #14 Morphology 緊跟 core SN
+- #20-22 四連續子類型
+
+**D. NT 專有** (新維度)：
+- #26 字母後綴 SN (`<WG3608a>`) — variant lemma 系統
+
+### 26 Dimensions Summary
+
+| # | 分類 | 維度 | OT 節數 | NT 節數 |
+|---|------|------|---------|---------|
+| 1 | 共用 | SN count — 簡單短節 (≤8) | 1,996 | 157 |
+| 2 | 共用 | SN count — 長節多 SN (>15) | 12,920 | 2,469 |
+| 3 | 共用 | SN count — 重複平行結構 | 18,655 | 3,015 |
+| 4 | 共用 | Implicit markers — 基本 | 12,687 | 3,352 |
+| 5 | OT | Implicit — 900x 組合 | 11,455 | 0 |
+| 6 | 通用 | Morphology — 單動詞 | 2,740 | 180 |
+| 7 | 通用 | Morphology — 多動詞 | 18,606 | 3,564 |
+| 8 | 通用 | 格式 — zero-padding (5位 core) | 23,077 | 1 |
+| 9 | 通用 | 格式 — leading zeros | 23,081 | 1 |
+| 10 | OT | 格式 — 900x prefixes | 17,488 | 0 |
+| 11 | 通用 | 格式 — 複合介系詞/prefix 連續 | 17,766 | 0 |
+| 12 | 通用 | 格式 — WA[HG] 非 900x | 20,202 | 118 |
+| 13 | 共用 | 位置 — SN 在中文字後 (正常) | 23,138 | 3,623 |
+| 14 | 通用 | 位置 — Morphology 緊跟 core SN | 21,294 | 3,728 |
+| 15 | OT | 位置 — 900x prefix 在 core 前 | 15,365 | 0 |
+| 16 | OT | 邊界 — 4位 09 陷阱 | 3,942 | 0 |
+| 17 | 共用 | 格式 — 同號不同 prefix | 385 | 10 |
+| 18 | OT | 三連續 — 同組 (900x+core+morph) | 4,564 | 0 |
+| 19 | 共用 | 三連續 — 跨組邊界 | 1,922 | 290 |
+| 20 | 通用 | 四連續 — 雙 morph 跨組 | 91 | 6 |
+| 21 | 通用 | 四連續 — morph+其他 跨組 | 271 | 20 |
+| 22 | 通用 | 四連續 — prefix 連串跨組 | 14 | 0 |
+| 23 | OT | Ketiv/Qere — 連續雙 morph | 142 | 0 |
+| 24 | OT | 數目字 SN 連串 (≥4 純 WH) | 11 | 0 |
+| 25 | 共用 | FHL 資料異常 (6+ 位數 SN) | 2 | 0 |
+| 26 | NT | 字母後綴 SN (variant lemma) | 0 | 183 |
+
+### Data Files
+
+- `dim_verse_map.json` — 全量 verse↔dim 對照 (26,923 verses, 10.4 MB)
+- `OT_DIMENSION_REPORT.md` — OT 39 卷跨卷對比表
+- `BUG_2_report_FHL.md` — FHL 資料異常 3 筆 (Josh 9:21, 1Sam 14:32, 2Chr 27:8)
 
 ## Cheap Model Candidates
 
