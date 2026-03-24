@@ -209,7 +209,7 @@ qwen3:32b    → qwen3 最佳 prompt
 }
 ```
 
-來源：OT 39 卷全部 + NT 四福音（太可路約）。尚缺 NT 23 卷。
+來源：全聖經 66 卷 (OT 39 + NT 27), 31,103 verses。
 
 ### sample_test_set.py 取樣策略
 
@@ -251,20 +251,109 @@ This is a form of **Annotation Consistency Test** (自我一致性標注測試):
 
 To be documented in `AI_PROBLEM_CLASSIFICATION.md` when finalized.
 
-## Scoring Metrics (proposed)
+## Dimension-Matched Few-Shot (DMFS) — 同維度配對示範
 
-1. **Exact match rate**: output == FHL ground truth (strictest)
-2. **SN coverage score**: missing + extra SNs / total SNs
-3. **Placement accuracy**: SN present but wrong position
-4. **Format compliance**: zero-padding, braces, prefix markers
+### 概念
+
+學術命名：**exemplar selection by feature-profile matching**。
+
+不隨機挑 few-shot example，而是挑一個 dim profile 最接近 test verse 的經節作為示範。這確保模型看到的 example 包含了它即將面對的所有 SN 模式。
+
+### 核心邏輯
+
+```
+Task 定義：
+  Few-shot example:
+    Input1: UNV+SN (v1)  ← 已標注的經節作為範例
+    Input2: UNV (v1)      ← 同一節去掉標注（展示 input→output 模式）
+  Task:
+    Input:  UNV (v2)      ← 不同的經節，無標注
+    Output: UNV+SN (v2)   ← 模型的嘗試
+  Evaluation:
+    Compare output vs FHL's actual UNV+SN (v2) ← ground truth
+
+DMFS 配對：
+  v2 (test): Gen 2:18 → dims = {2,3,4,7,8,9,10,11,12,13,14,16,18}
+
+  從 dim_verse_map.json 找 v1 (example):
+    1. 計算所有候選經節的 dim profile 與 v2 的 Jaccard similarity
+    2. Jaccard(v1.dims, v2.dims) = |交集| / |聯集|
+    3. 選 Jaccard 最高的經節作為 v1
+    4. v1 ≠ v2（不能自己示範自己）
+```
+
+### 匹配策略
+
+| 策略 | 說明 | 適用 |
+|------|------|------|
+| **Exact match** | v1.dims == v2.dims | 理想，但可能找不到 |
+| **Jaccard top-1** | 最高 Jaccard similarity | 預設 |
+| **Superset** | v1.dims ⊇ v2.dims | v1 涵蓋 v2 所有模式 |
+| **Same-book preference** | 同書卷優先（語境更接近） | 可選 tiebreak |
+
+### 為什麼有效
+
+- **對照組**（隨機選 v1）：example 可能示範 v2 不需要的模式、遺漏 v2 需要的模式
+- **DMFS**（配對選 v1）：example 精準示範 v2 即將面對的所有 SN 標注模式
+- 26 維度覆蓋了 SN 計數、implicit markers、morphology、格式、位置、邊界、Ketiv/Qere、數目字、FHL 異常、variant lemma — 幾乎所有 LLM 需要處理的 pattern
+
+## Full Pipeline — 資料流
+
+```
+dim_verse_map.json (31,103 verses × 26 dims)
+        ↓
+sample_test_set.py --pct 10 → test_set (≈2,700 verses)
+        ↓
+dmfs_select.py → 為每個 test verse 配對一個 dim-matched example verse
+        ↓
+run_benchmark.py → cheap model 跑 UNV → UNV+SN (用 DMFS pairs)
+        ↓
+auto_score.py → 比對 FHL ground truth → 4 項分數
+        ↓
+改 prompt → 重跑 → 分數有進步？
+```
+
+### dmfs_select.py（待實作）
+
+```bash
+python3 dmfs_select.py --test-set test_set_10pct.json --out dmfs_pairs.json
+python3 dmfs_select.py --test-set test_set_10pct.json --strategy superset
+```
+
+輸出格式：
+```json
+{
+  "pairs": [
+    {
+      "test": {"ref": "Gen 2:18", "dims": [2,3,4,7,...]},
+      "example": {"ref": "Gen 1:6", "dims": [2,3,4,5,7,...], "jaccard": 0.85},
+      "shared_dims": [2,3,4,7,...],
+      "test_only_dims": [16],
+      "example_only_dims": [5,15]
+    }
+  ]
+}
+```
+
+### auto_score.py（待實作）
+
+4 項評分指標：
+1. **Exact match** — 整節完全一致（最嚴格）
+2. **SN coverage** — (missing + extra) / total SNs
+3. **Placement accuracy** — SN 存在但放錯位置
+4. **Format compliance** — zero-padding, braces, prefix markers
+
+Ground truth：FHL API (`fetch_chap_cached` with `strong=1`)
 
 ## Status
 
 - [x] 26 維度定義 (Option 1.5 分層架構)
 - [x] OT 39 卷全掃 + OT_DIMENSION_REPORT.md
-- [x] NT 四福音掃描 (太可路約)
-- [x] dim_verse_map.json 全量資料
+- [x] NT 27 卷全掃
+- [x] dim_verse_map.json 全量資料 (66 卷 31,103 節)
 - [x] sample_test_set.py 取樣腳本
-- [ ] NT 剩餘 23 卷掃描
-- [ ] 自動評分腳本 (compare vs FHL ground truth)
-- [ ] 用 cheap models 跑 benchmark baseline
+- [x] OT 回測 PASS (NT 擴展未破壞舊約結果)
+- [ ] dmfs_select.py — DMFS 配對腳本
+- [ ] auto_score.py — 自動評分腳本
+- [ ] run_benchmark.py — cheap model benchmark
+- [ ] 用 cheap models 大量迭代 prompt (Stage 2)
