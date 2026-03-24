@@ -419,6 +419,79 @@ auto_score 結果 + dim_verse_map → 按維度分組
 
 這告訴你 prompt 該加什麼規則 — 針對弱維度補強。
 
+### Survey4 vs Survey1 — 根本區別
+
+| | Survey1（生產線） | Survey4（prompt 試金石） |
+|---|---|---|
+| 模型數量 | 3 個昂貴模型投票 consensus | **1 個便宜模型就夠** |
+| 任務 | UNV+SN → LCC+SN（跨語言） | UNV → UNV+SN（同語言，有標準答案） |
+| 評分 | 主觀 consensus | 客觀 FHL ground truth |
+| Prompt | v1.2 + model patches | v1.2 作 baseline → 迭代改進 |
+| 產出 | gold standard | **更好的 prompt** |
+
+**不需要 ABC 三模型。** 一個模型就是一面鏡子：同一個模型反覆跑不同 prompt，分數差異 = prompt 品質差異。
+
+**Model patch 不在 survey4 裡用。** Patch 是 survey1 的「某個模型專用補丁」。Survey4 改的是**主 prompt 本身**。
+
+### 具體操作流程（以 qwen-32b 為例）
+
+```bash
+# Step 1: 產生測試集
+python3 sample_test_set.py --pct 1 --out test_set.json          # ~310 節
+
+# Step 2: DMFS 配對
+python3 dmfs_select.py --test-set test_set.json --out pairs.json
+
+# Step 3: 跑 benchmark（用 prompt v1.2 作 baseline）
+python3 run_benchmark.py --pairs pairs.json \
+  --prompt ../survey1_prompt_evolving/prompts/v1.2_joshua.md \
+  --model qwen3:32b --ollama-url http://sai.fhl.net:11434 \
+  --out results_qwen_v1.2.json
+
+# Step 4: 自動評分
+python3 auto_score.py --input results_qwen_v1.2.json
+# → exact 25%, coverage 0.70, placement 0.75, format 0.80
+
+# Step 5: 按維度分析弱項 → #23 K/Q 0%, #18 三連續 10%
+
+# Step 6: 改 prompt → v1.2-exp-a.md（加 Ketiv/Qere 規則）
+
+# Step 7: 重跑 Step 3-4 用新 prompt
+python3 run_benchmark.py --pairs pairs.json \
+  --prompt prompts/v1.2-exp-a.md \
+  --model qwen3:32b --ollama-url http://sai.fhl.net:11434 \
+  --out results_qwen_v1.2-exp-a.json
+# → exact 30% → 進步！
+
+# Step 8: 繼續迭代 → v1.2-exp-b → v1.2-exp-c → ...
+```
+
+### 跟 prompt v1.2 和 patch 的關係
+
+```
+prompt v1.2（現有 survey1 主 prompt）
+    ↓
+作為 baseline 在 survey4 跑一輪 → baseline 分數
+    ↓
+根據弱維度改善 → v1.2-exp-a, v1.2-exp-b, ...
+    ↓
+分數穩定 → 最佳版本可能成為 v1.3
+```
+
+### 多模型提煉（後期）
+
+先用一個模型跑通 pipeline。之後可以換模型驗證：
+
+```
+qwen-32b  迭代完 → prompt-best-from-qwen
+haiku     迭代完 → prompt-best-from-haiku
+flash     迭代完 → prompt-best-from-flash
+
+Stage 2b: 比較三個 best prompt
+  共通改進 → 合併到主 prompt（大概率 transfer 到 opus）
+  各自特有 → 只在那個弱模型有用，不合併
+```
+
 ## Status
 
 - [x] 26 維度定義 (Option 1.5 分層架構)
