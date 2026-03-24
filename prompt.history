@@ -394,3 +394,6 @@ Gen 1-50 掃描 (1533 verses): 387 個 uncovered 全是 triple consecutive tags.
 
 ### 57f. [2026-03-24 ~06:00] #25 FHL 資料異常 + BUG_2_report_FHL.md
 約書亞記 Josh 9:21 發現 `<WAH019691>` — 6 位數 SN, 不符合格式規範. qp.php 交叉驗證確認正確值為 01961 (הָיָה). 多了一個 9, 是資料損毀. 升格 #25 (FHL 資料異常偵測). 建立 BUG_2_report_FHL.md 供回報 FHL.
+
+### 57g. [2026-03-24 ~08:00] 舊約 39 卷全掃完 — 25 維度定案 + OT_DIMENSION_REPORT.md
+五經→歷史→智慧→先知全部掃完 (23,145 verses). 25 維度穩定無新增. 3 個 FHL bugs (Josh 9:21, 1Sam 14:32 WAH08675, 2Chr 27:8). 文體特徵明顯: 族譜書卷(代上/拉/尼)短節高動詞低, 詩歌智慧書(伯/詩/箴)長節低implicit低, 但以理書混合語言特異, 傳道書虛空重複#17最高6.8%. OT_DIMENSION_REPORT.md 完整存檔含跨卷對比表+文體分析.

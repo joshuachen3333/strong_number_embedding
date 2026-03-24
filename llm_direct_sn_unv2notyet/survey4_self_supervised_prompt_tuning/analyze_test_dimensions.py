@@ -225,9 +225,12 @@ def analyze_verse(text, tags):
 
     # 23. Ketiv/Qere — consecutive morph tags with no core SN between them
     # Pattern: <WTHxxxx><WTHxxxx> (two morph tags in a row)
+    # Variant: <WTHxxxx><WAH08675> (morph code with WAH prefix, FHL inconsistency)
     # Caused by Hebrew Ketiv/Qere (寫型/讀型) dual encoding
     double_morph = re.findall(r'<WTH\d+>\s*<WTH\d+>', text)
-    results[23] = len(double_morph) > 0
+    # Also catch WAH-prefixed morph codes (08675, 08676 = inf. abs. markers)
+    wah_morph_variant = re.findall(r'<WTH\d+>\s*<WAH0867[56]>', text)
+    results[23] = len(double_morph) > 0 or len(wah_morph_variant) > 0
 
     # 24. Number chain — 4+ consecutive pure WH core tags (no morph, no WAH)
     # Hebrew numerals expressed word-by-word, compressed in Chinese translation
