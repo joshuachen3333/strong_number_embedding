@@ -397,3 +397,6 @@ Gen 1-50 掃描 (1533 verses): 387 個 uncovered 全是 triple consecutive tags.
 
 ### 57g. [2026-03-24 ~08:00] 舊約 39 卷全掃完 — 25 維度定案 + OT_DIMENSION_REPORT.md
 五經→歷史→智慧→先知全部掃完 (23,145 verses). 25 維度穩定無新增. 3 個 FHL bugs (Josh 9:21, 1Sam 14:32 WAH08675, 2Chr 27:8). 文體特徵明顯: 族譜書卷(代上/拉/尼)短節高動詞低, 詩歌智慧書(伯/詩/箴)長節低implicit低, 但以理書混合語言特異, 傳道書虛空重複#17最高6.8%. OT_DIMENSION_REPORT.md 完整存檔含跨卷對比表+文體分析.
+
+### 58. [2026-03-24 ~10:00] 新約支援 — Option 1.5 分層架構 + #26 字母後綴 SN
+新約四福音掃描發現 OT 25 維度完全不適用: WG/WTG/WAG prefix, 無 900x, 無 Ketiv/Qere, 有字母後綴 SN (如 `<WG3608a>`). 深度分析後選擇 Option 1.5 分層架構: (A) 共用核心 #1-4 語言無關; (B) OT 專有 #5,10,15,16,18,23,24 保持原樣; (C) 通用擴展 #6-9,11-14,17,19-22,25 regex 改支援 [HG]; (D) NT 專有 #26 字母後綴. 核心改動: extract_tags 改用 prefix-based morph 偵測 (is_morph=prefix.startswith("WT")) 取代 number-based (8xxx), tag regex 支援 letter suffix `\d+[a-z]?`. 四福音結果: uncovered 從 4060 驟降至 15. 約翰福音 #13 SN後中文只 82.8% (全聖經最低), #19 跨組三連續 18.2% (全聖經最高), #26 字母後綴 8.8%.
