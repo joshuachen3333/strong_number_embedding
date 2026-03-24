@@ -184,11 +184,53 @@ qwen3:32b    → qwen3 最佳 prompt
 | 25 | 共用 | FHL 資料異常 (6+ 位數 SN) | 2 | 0 |
 | 26 | NT | 字母後綴 SN (variant lemma) | 0 | 183 |
 
-### Data Files
+### Data Files & Tools
 
-- `dim_verse_map.json` — 全量 verse↔dim 對照 (26,923 verses, 10.4 MB)
-- `OT_DIMENSION_REPORT.md` — OT 39 卷跨卷對比表
-- `BUG_2_report_FHL.md` — FHL 資料異常 3 筆 (Josh 9:21, 1Sam 14:32, 2Chr 27:8)
+| 檔案 | 用途 | 備註 |
+|------|------|------|
+| `analyze_test_dimensions.py` | 掃描經文觸發哪些維度 | `--book --chap --summary` |
+| `dim_verse_map.json` | 全量 verse↔dim 對照表 | 26,923 verses, 10.4 MB |
+| `sample_test_set.py` | 從 dim_verse_map.json 取樣測試集 | `--pct 10 --out test_set.json` |
+| `OT_DIMENSION_REPORT.md` | OT 39 卷跨卷對比表 | 含文體分析、極值統計 |
+| `BUG_2_report_FHL.md` | FHL 資料異常回報 | 3 筆 (Josh 9:21, 1Sam 14:32, 2Chr 27:8) |
+
+### dim_verse_map.json 格式
+
+```json
+{
+  "meta": { "total_verses": 26923, "ot_verses": 23145, "nt_verses": 3778 },
+  "verses": [
+    {"ref": "Gen 1:1", "book": "Gen", "book_chi": "創", "chap": 1, "sec": 1,
+     "testament": "OT", "tag_count": 12, "dims": [3,4,5,6,8,9,...]}
+  ],
+  "by_dimension": {
+    "18": {"label": "...", "count": 4564, "verses": ["Gen 1:14", ...]}
+  }
+}
+```
+
+來源：OT 39 卷全部 + NT 四福音（太可路約）。尚缺 NT 23 卷。
+
+### sample_test_set.py 取樣策略
+
+**策略 B (greedy coverage)**：目標是最小集合使每個 dim 覆蓋 ≥ N%。
+
+1. **Phase 1 — 稀有 dim 全選**：節數 ≤ `--rare-threshold` (預設 20) 的 dim 全部選入
+2. **Phase 2 — 貪婪填充**：每輪選觸發最多「尚未達標 dim」的經節，直到所有 dim 達標
+
+```bash
+# 10% 覆蓋率（預設 seed=42）
+python3 sample_test_set.py --pct 10
+# → 2,677 verses (9.9%), all 26 dims ≥10% ✓
+
+# 只取 OT，輸出 JSON
+python3 sample_test_set.py --pct 10 --testament OT --out test_set_ot_10pct.json
+
+# 更小的測試集
+python3 sample_test_set.py --pct 1
+```
+
+稀有 dim 自動全選：#22 (14節), #24 (11節), #25 (2節)。
 
 ## Cheap Model Candidates
 
@@ -218,4 +260,11 @@ To be documented in `AI_PROBLEM_CLASSIFICATION.md` when finalized.
 
 ## Status
 
-Concept stage. Implementation pending.
+- [x] 26 維度定義 (Option 1.5 分層架構)
+- [x] OT 39 卷全掃 + OT_DIMENSION_REPORT.md
+- [x] NT 四福音掃描 (太可路約)
+- [x] dim_verse_map.json 全量資料
+- [x] sample_test_set.py 取樣腳本
+- [ ] NT 剩餘 23 卷掃描
+- [ ] 自動評分腳本 (compare vs FHL ground truth)
+- [ ] 用 cheap models 跑 benchmark baseline
