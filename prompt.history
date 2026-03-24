@@ -415,3 +415,6 @@ NT 27 卷全部掃完 (OT 39 + NT 27 = 66 卷). 26 維度穩定無新增. NT unc
 
 ### 60. [2026-03-25 ~04:00] DMFS — Dimension-Matched Few-Shot 同維度配對示範
 核心洞見: few-shot example (v1) 不應隨機選, 而應與 test verse (v2) 共享相同的 26 維度 profile. 學術命名 exemplar selection by feature-profile matching. 用 Jaccard(v1.dims, v2.dims) 計算相似度, 選最高的作為 example. 確保 example 精準示範 v2 即將面對的所有 SN 標注模式. 完整 pipeline: dim_verse_map → sample_test_set → dmfs_select → run_benchmark → auto_score → 改 prompt → 重跑. 寫入 CLAUDE.md 含概念、匹配策略、資料流、輸出格式.
+
+### 60a. [2026-03-25 ~05:00] dmfs_select.py + auto_score.py 實作完成
+dmfs_select.py: 10% sample → 3,091 pairs, avg Jaccard 0.96, 52.3% exact match, 最差 0.78. 支援 --strategy jaccard/exact/superset, --same-book tiebreak. auto_score.py: 4 指標 (exact match, SN coverage, placement, format). Self-test Gen 1 + Matt 1 + Ps 119 全部 100%. Pipeline 核心完成, 剩 run_benchmark.py 串接 cheap models.
