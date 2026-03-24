@@ -400,3 +400,6 @@ Gen 1-50 掃描 (1533 verses): 387 個 uncovered 全是 triple consecutive tags.
 
 ### 58. [2026-03-24 ~10:00] 新約支援 — Option 1.5 分層架構 + #26 字母後綴 SN
 新約四福音掃描發現 OT 25 維度完全不適用: WG/WTG/WAG prefix, 無 900x, 無 Ketiv/Qere, 有字母後綴 SN (如 `<WG3608a>`). 深度分析後選擇 Option 1.5 分層架構: (A) 共用核心 #1-4 語言無關; (B) OT 專有 #5,10,15,16,18,23,24 保持原樣; (C) 通用擴展 #6-9,11-14,17,19-22,25 regex 改支援 [HG]; (D) NT 專有 #26 字母後綴. 核心改動: extract_tags 改用 prefix-based morph 偵測 (is_morph=prefix.startswith("WT")) 取代 number-based (8xxx), tag regex 支援 letter suffix `\d+[a-z]?`. 四福音結果: uncovered 從 4060 驟降至 15. 約翰福音 #13 SN後中文只 82.8% (全聖經最低), #19 跨組三連續 18.2% (全聖經最高), #26 字母後綴 8.8%.
+
+### 58a. [2026-03-24 ~11:00] dim_verse_map.json — 全量 verse↔dim 對照表
+OT 39 卷 + NT 四福音, 共 26,923 節全掃. 輸出格式 C (兩者都存): verses[] 每節記錄觸發哪些 dims, by_dimension{} 每個 dim 記錄包含哪些 verses. 10.4 MB JSON. 用途: 測試集篩選的資料基礎.
