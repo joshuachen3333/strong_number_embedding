@@ -119,7 +119,7 @@ def call_ollama(model, system_prompt, user_prompt, ollama_url, timeout=600):
     return body.get("response", "").strip()
 
 
-def call_claude_cli(model, system_prompt, user_prompt, timeout=120):
+def call_claude_cli(model, system_prompt, user_prompt, timeout=300):
     """Call Claude via CLI. Returns raw response text."""
     model_map = {"haiku": "haiku", "sonnet": "sonnet", "opus": "opus"}
     cli_model = model_map.get(model, model)
@@ -179,8 +179,21 @@ def main():
                         help="Show prompts without calling model")
     parser.add_argument("--limit", type=int, default=None,
                         help="Only run first N pairs")
+    parser.add_argument("--till", default=None,
+                        help="Stop before this time (e.g., 7:50, 08:00)")
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
+
+    # Parse --till into a deadline
+    deadline = None
+    if args.till:
+        import datetime
+        hm = args.till.split(":")
+        now = datetime.datetime.now()
+        deadline = now.replace(hour=int(hm[0]), minute=int(hm[1]), second=0, microsecond=0)
+        if deadline <= now:
+            deadline += datetime.timedelta(days=1)
+        print(f"Deadline: stop before {deadline.strftime('%H:%M')}")
 
     # Load or generate pairs
     if args.pairs:
@@ -228,6 +241,13 @@ def main():
     t0 = time.time()
 
     for i, pair in enumerate(pairs):
+        # Check deadline
+        if deadline:
+            import datetime
+            if datetime.datetime.now() >= deadline:
+                print(f"\n  ⏰ Deadline reached ({args.till}). Stopping with {i}/{len(pairs)} done.")
+                break
+
         test_ref = pair["test"]["ref"]
         example_ref = pair["example"]["ref"]
 
