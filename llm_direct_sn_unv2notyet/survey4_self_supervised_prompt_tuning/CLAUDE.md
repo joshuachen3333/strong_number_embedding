@@ -297,20 +297,150 @@ DMFS 配對：
 - **DMFS**（配對選 v1）：example 精準示範 v2 即將面對的所有 SN 標注模式
 - 26 維度覆蓋了 SN 計數、implicit markers、morphology、格式、位置、邊界、Ketiv/Qere、數目字、FHL 異常、variant lemma — 幾乎所有 LLM 需要處理的 pattern
 
-## Full Pipeline — 資料流
+## Exemplar Library — 維度範例庫
+
+### 為什麼需要 Exemplar Library
+
+DMFS 的 Jaccard matching 從 31,103 節中挑 v1，但：
+- **品質不可控**：Jaccard 高不代表模型看了這個 example 就能學好
+- **沒有實測驗證**：理論上 dim profile 相似 ≠ 實際上當 example 有效
+- **每次重新掃描 31,103 節**：浪費計算
+
+解法：**預先建一個經過實測驗證的小型 exemplar 候選庫**（每個 dim ~10-20 個），之後配對只從庫裡挑。
+
+### 候選挑選：四維矩陣
+
+每個 dim 的候選按四個維度挑選，確保多樣性：
+
+**1. 梯度**：tag 數量分級（短→中→長→極長），涵蓋不同複雜度
+**2. 新舊約**：OT (Hebrew WH/WTH/WAH) vs NT (Greek WG/WTG/WAG)
+**3. 純度**：觸發最少其他 dim 的優先（避免引入無關干擾）
+**4. 文體**：確保不同文學體裁都有代表
+
+文體分類（13 種）：
+
+| 約 | 文體 | 書卷 |
+|---|---|---|
+| OT | 律法 | 創出利民申 |
+| OT | 歷史 | 書士得撒王代拉尼斯 |
+| OT | 詩歌智慧 | 伯詩箴傳歌 |
+| OT | 先知 | 賽耶哀結但何珥摩俄拿彌鴻哈番該亞瑪 |
+| NT | 福音 | 太可路約 |
+| NT | 敘事 | 徒 |
+| NT | 保羅書信 | 羅林前林後加弗腓西帖前帖後門 |
+| NT | 教牧書信 | 提前提後多 |
+| NT | 書信-彼得 | 彼前彼後 |
+| NT | 書信-約翰 | 約一約二約三 |
+| NT | 書信-雅各 | 雅 |
+| NT | 書信-其他 | 來猶 |
+| NT | 啟示 | 啟 |
+
+### 同門循環賽（Round-Robin Validation）
+
+四維矩陣只能挑出「理論上好的候選」，但**誰真的當好 example** 要靠實測。
+
+同一個 dim 的候選們是「同門兄弟」，用 round-robin 循環賽決定誰最適合當 example：
+
+```
+Dim #4 的 16 個兄弟：A B C D E F G H I J K L M N O P
+
+Round 1:  A 當 example → B C D E F ... P 各跑一次 → 15 個分數
+Round 2:  B 當 example → A C D E F ... P 各跑一次 → 15 個分數
+Round 3:  C 當 example → A B D E F ... P 各跑一次 → 15 個分數
+...
+Round 16: P 當 example → A B C D E ... O 各跑一次 → 15 個分數
+```
+
+每個兄弟有**兩個角色**的分數：
+
+- **Example 品質分**（我當 example 時，別人被我教得多好）→ 越高 = 越好的 v1
+- **Test 難度分**（別人當 example 時，我被教得多好）→ 越低 = 越難的 v2
+
+產出**兩張排行榜**：
+
+```
+最佳 Example 排名（誰教得最好 → Library 首選 v1）：
+  #1 Rom 16:27    教別人平均 cov=0.74  ★ 首選
+  #2 Rev 18:12    教別人平均 cov=0.71  ★ 備選
+  #3 1Pet 1:19    教別人平均 cov=0.68  ★ 備選
+  ...
+  #14 Deut 4:49   教別人平均 cov=0.25  ✗ 淘汰
+
+最難 Test 排名（誰最難被教會 → 測試集重點關注）：
+  #1 Eccl 4:8     被教後平均 cov=0.30  ← 最硬骨頭
+  #2 Num 22:6     被教後平均 cov=0.35
+  ...
+```
+
+**一石二鳥：Library 存「最佳 Example」，測試集收「最難 Test」。**
+
+### 全軍覆沒 = Prompt 的問題
+
+如果某個 dim 的 round-robin 結果**全部不及格**（所有人當 example 都教不好別人）：
+
+```
+Dim #23 (Ketiv/Qere) round-robin:
+  A 教別人 avg_cov=0.10
+  B 教別人 avg_cov=0.08
+  C 教別人 avg_cov=0.12
+  → 全軍覆沒！
+```
+
+這**不是 exemplar 的問題，是 prompt 的問題** — prompt 對這個 dim 無能為力。
+
+回到 survey4 迭代迴圈：
+
+```
+prompt v0.1 → 建庫 round-robin → dim #23 全軍覆沒
+  → prompt 不懂 Ketiv/Qere
+  → 改 prompt v0.2（加 Ketiv/Qere 規則）
+  → 重跑 round-robin → dim #23 有 5 個及格了
+  → Library 建成
+```
+
+**Library 建不起來 = prompt 還不夠好。Library 穩定建成 = prompt 可以畢業。**
+
+### 成本估算
+
+每個 dim ~16 候選 × 15 對手 = 240 次 model call。
+精簡版：top-8 候選 × 8 對手 = 64 次。
+26 dims × 64 = ~1,664 次。用 cheap model (haiku/ollama) 可接受。
+
+### 上線使用：Library 查詢
+
+Library 建好後，給定任一 v2：
+
+```
+v2: Gen 2:18 → dims = {2,3,4,7,8,9,10,11,12,13,14,16,18}
+
+1. 從 v2 的每個 dim 的 Library 收集候選 exemplars（去重）
+2. 對候選做 Jaccard matching，選 top-1
+3. 如果最高 Jaccard < 0.6 → fallback 到全量 31,103 池
+```
+
+候選池從 31,103 縮到 ~200-300 個預驗證 exemplars，又快又穩。
+
+## Full Pipeline — 資料流（更新版）
 
 ```
 dim_verse_map.json (31,103 verses × 26 dims)
         ↓
-sample_test_set.py --pct 10 → test_set (≈2,700 verses)
+四維矩陣挑選 → 每 dim ~16 候選
         ↓
-dmfs_select.py → 為每個 test verse 配對一個 dim-matched example verse
+round-robin 循環賽（cheap model）→ 淘汰不及格
+        ↓                           ↓
+Exemplar Library（最佳 example）   Hard Test Set（最難 test）
+        ↓                           ↓
+sample_test_set.py → test_set      （合併 hard cases）
         ↓
-run_benchmark.py → cheap model 跑 UNV → UNV+SN (用 DMFS pairs)
+dmfs_select.py → 從 Library 配對 v1（Jaccard matching）
+        ↓
+run_benchmark.py → model 跑 UNV → UNV+SN
         ↓
 auto_score.py → 比對 FHL ground truth → 4 項分數
         ↓
-改 prompt → 重跑 → 分數有進步？
+分數不夠 → 改 prompt → 重跑 round-robin → Library 更新
+分數穩定 → prompt 畢業 → 交給昂貴模型生產
 ```
 
 ### dmfs_select.py
