@@ -423,7 +423,7 @@ dmfs_select.py: 10% sample → 3,091 pairs, avg Jaccard 0.96, 52.3% exact match,
 run_benchmark.py 完成: 支援 ollama/claude/gemini, --till 時間限制, --dry-run. 發現 v1.2 prompt 不適用 survey4 (UNV→LCC 任務 ≠ UNV→UNV+SN), 模型輸出 JSON 且被 cross-lingual framing 誤導. 建立 survey4 專用 prompt v0.1 (2,950 chars). Sonnet 1% baseline (built-in prompt): exact 0%, cov 0.42, place 0.84, fmt 0.87. v0.1 初跑結果未明顯改善, 需進一步迭代.
 
 ### 61. [2026-03-25 ~10:00] Exemplar Library — 從理論配對到實測驗證
-核心洞見: Jaccard dim matching 是理論, 實際 example 品質要靠實測. 設計四維矩陣候選挑選: 梯度(tag數) × 新舊約 × 純度(觸發最少其他dim) × 文體(13種). 文體分類: OT 4種(律法/歷史/詩歌智慧/先知) + NT 9種(福音/敘事/保羅書信/教牧書信/書信-彼得/書信-約翰/書信-雅各/書信-其他/啟示). 同門 round-robin 循環賽: 同dim兄弟輪流當example測別人, 產出雙排行榜(最佳example→Library, 最難test→重點關注). 全軍覆沒=prompt問題不是exemplar問題→改prompt→重跑. Library建不起來=prompt還不夠好, Library穩定建成=prompt可以畢業.
+核心洞見: Jaccard dim matching 是理論, 實際 example 品質要靠實測. 設計四維矩陣候選挑選: 梯度(tag數) × 新舊約 × 純度(觸發最少其他dim) × 文體(13種). 文體分類: OT 4種(律法/歷史/詩歌智慧/先知) + NT 9種(福音/敘事/保羅書信/教牧書信/彼得書信/約翰書信/雅各書信/其他書信/啟示). 同門 round-robin 循環賽: 同dim兄弟輪流當example測別人, 產出雙排行榜(最佳example→Library, 最難test→重點關注). 全軍覆沒=prompt問題不是exemplar問題→改prompt→重跑. Library建不起來=prompt還不夠好, Library穩定建成=prompt可以畢業.
 
 ### 62. [2026-03-25 ~14:00] 26 dims Exemplar Library 候選全部挑選完畢
 逐 dim 用四維矩陣 (梯度×文體×純度×新舊約) 挑選候選 exemplar. 常見 dim (#1-16) 各 12-20 個, 稀有 dim (#22=14節, #24=11節, #25=2節) 全選. 共約 350+ 候選. 各 dim 特色: #1 NT 純度極高(2d), #8/#9 高度重疊(99.98%), #13 反面(198節異常)78%集中約翰福音, #17稀有(405節)但涵蓋OT+NT, #18純度天花板9d(伴隨6個OT dims), #22全選14節含全聖經最滿的2Sam13:5(17d), #26 NT-only Luke3:26最純(3d). 下一步: round-robin 循環賽實測驗證.
