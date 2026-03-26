@@ -427,3 +427,15 @@ run_benchmark.py 完成: 支援 ollama/claude/gemini, --till 時間限制, --dry
 
 ### 62. [2026-03-25 ~14:00] 26 dims Exemplar Library 候選全部挑選完畢
 逐 dim 用四維矩陣 (梯度×文體×純度×新舊約) 挑選候選 exemplar. 常見 dim (#1-16) 各 12-20 個, 稀有 dim (#22=14節, #24=11節, #25=2節) 全選. 共約 350+ 候選. 各 dim 特色: #1 NT 純度極高(2d), #8/#9 高度重疊(99.98%), #13 反面(198節異常)78%集中約翰福音, #17稀有(405節)但涵蓋OT+NT, #18純度天花板9d(伴隨6個OT dims), #22全選14節含全聖經最滿的2Sam13:5(17d), #26 NT-only Luke3:26最純(3d). 下一步: round-robin 循環賽實測驗證.
+
+### 63. [2026-03-26 ~01:00] build_exemplar_library.py + round_robin.py + exemplar_library.json
+build_exemplar_library.py: 程式化四維矩陣選取, 產出 exemplar_library.json (710 候選, 551 unique verses). round_robin.py: 同門循環賽, 每個候選輪流當 example 測其他人. 支援 --max-opponents 8 (減少 call 數), --till 時間限制. 成本: 全量 25,516 calls, --max-opponents 8 → 5,668 calls.
+
+### 63a. [2026-03-26 ~02:00] Dim #1 sonnet 首跑 — rate limit 問題暴露
+Sonnet 跑 dim #1 (32 candidates × 8 opponents = 256 calls, 33min). 結果: 262 calls 中 218 次 < 2 秒 (rate limited 空回應), 僅 44 次有效. 93% 數據被污染成假零分. 有效數據中 Luke 3:38 avg_cov=0.465 最佳, 兩個 exact=True (Luke 3:38→Gen 25:14, Rom 1:31→2Tim 3:3).
+
+### 63b. [2026-03-26 ~08:30] round_robin.py rate-limit 偵測 + 跳過/補跑機制
+問題: rate limit 時模型 2 秒回空→score 計為 cov=0.00→污染統計. 解法: <5s + 空內容→判定 rate limited→跳過不計分→記錄 skipped_pairs→全部 rounds 完成後自動補跑. 連續 3+ 次 rate limit→暫停 3-10 分鐘→繼續下一個 opponent. 統計只含真實分數, 不含假零分.
+
+### 63c. [2026-03-26 ~09:00] model_shootout.py — 多模型公平比較
+同一組 pairs 跑多個模型, 輸出比較表. 支援 --auto-discover (自動偵測 ollama 模型), 混合 ollama+claude+gemini. 用途: 在 full round-robin 之前, 用 3-5 pairs 快速比較模型品質, 選最適合的.
