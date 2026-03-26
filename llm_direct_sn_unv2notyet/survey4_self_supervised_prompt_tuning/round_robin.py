@@ -81,10 +81,12 @@ def run_dim_tournament(dim, candidates, system_prompt, model, brand,
     # test_scores[ref] = list of scores when this ref is the test
     example_scores = {v["ref"]: [] for v in candidates}
     test_scores = {v["ref"]: [] for v in candidates}
+    skipped_pairs = []  # (example_ref, opp_ref) pairs skipped due to rate limit
 
     total_rounds = n
     t0 = time.time()
     call_count = 0
+    consecutive_rl = 0  # rate-limit streak counter
 
     for i, example_v in enumerate(candidates):
         ex_ref = example_v["ref"]
@@ -112,15 +114,34 @@ def run_dim_tournament(dim, candidates, system_prompt, model, brand,
                 continue
 
             try:
+                t_call = time.time()
                 output = call_model(model, brand, ollama_url, sys_p, user_p)
+                dt = time.time() - t_call
+                dt_str = f"{int(dt)//60}m{int(dt)%60:02d}s"
+
+                # Rate-limit detection: <5s response + empty/useless output
+                if dt < 5 and (not output or len(output.strip()) < 10):
+                    consecutive_rl += 1
+                    skipped_pairs.append((ex_ref, opp_ref))
+                    print(f"      ⚠ SKIPPED (rate limited {dt_str}) "
+                          f"{ex_ref} → {opp_ref}  streak={consecutive_rl}")
+                    if consecutive_rl >= 3:
+                        wait = min(60 * consecutive_rl, 600)
+                        print(f"      ⏸ Pausing {wait}s before continuing...")
+                        time.sleep(wait)
+                    continue  # skip to next opponent
+
+                consecutive_rl = 0  # reset on normal response
+
                 score = score_verse(output, opp_annotated)
                 example_scores[ex_ref].append(score["coverage"])
                 test_scores[opp_ref].append(score["coverage"])
                 call_count += 1
 
-                # Brief progress
-                if call_count % 10 == 0:
-                    print(f"      ...{call_count} calls done", end="\r")
+                print(f"      {ex_ref:15s} → {opp_ref:15s}  "
+                      f"cov={score['coverage']:.2f} place={score['placement']:.2f} "
+                      f"fmt={score['format']:.2f} exact={score['exact_match']}  "
+                      f"({dt_str})")
 
             except Exception as e:
                 print(f"      ERROR: {ex_ref}→{opp_ref}: {e}")
@@ -128,7 +149,50 @@ def run_dim_tournament(dim, candidates, system_prompt, model, brand,
     if dry_run:
         return None
 
-    # Compute averages
+    # Retry skipped pairs
+    if skipped_pairs:
+        print(f"\n    ── Retrying {len(skipped_pairs)} skipped pairs ──")
+        retry_ok = 0
+        retry_fail = 0
+        for ex_ref, opp_ref in skipped_pairs:
+            ex_annotated, ex_plain = verse_texts[ex_ref]
+            opp_annotated, opp_plain = verse_texts[opp_ref]
+            sys_p, user_p = build_task_prompt(
+                system_prompt, ex_annotated, ex_plain, opp_plain)
+            try:
+                t_call = time.time()
+                output = call_model(model, brand, ollama_url, sys_p, user_p)
+                dt = time.time() - t_call
+                dt_str = f"{int(dt)//60}m{int(dt)%60:02d}s"
+
+                if dt < 5 and (not output or len(output.strip()) < 10):
+                    print(f"      ⚠ STILL LIMITED {ex_ref} → {opp_ref} ({dt_str})")
+                    retry_fail += 1
+                    # Pause longer on continued rate limit
+                    time.sleep(min(180, 60 * (retry_fail + 2)))
+                    continue
+
+                score = score_verse(output, opp_annotated)
+                example_scores[ex_ref].append(score["coverage"])
+                test_scores[opp_ref].append(score["coverage"])
+                call_count += 1
+                retry_ok += 1
+
+                print(f"      {ex_ref:15s} → {opp_ref:15s}  "
+                      f"cov={score['coverage']:.2f} place={score['placement']:.2f} "
+                      f"fmt={score['format']:.2f} exact={score['exact_match']}  "
+                      f"({dt_str}) [RETRY OK]")
+
+            except Exception as e:
+                print(f"      ERROR retry: {ex_ref}→{opp_ref}: {e}")
+                retry_fail += 1
+
+        print(f"    Retry results: {retry_ok} OK, {retry_fail} still failed")
+        skipped_pairs = [(ex, opp) for ex, opp in skipped_pairs
+                         if not any(s == opp for s in test_scores[opp]
+                                   if test_scores[opp])]
+
+    # Compute averages (only from real scores, skipped pairs excluded)
     def avg(lst):
         return sum(lst) / len(lst) if lst else 0.0
 
@@ -142,10 +206,15 @@ def run_dim_tournament(dim, candidates, system_prompt, model, brand,
          for ref, scores in test_scores.items() if scores],
         key=lambda x: x[1])  # hardest first (lowest score)
 
+    # Count still-skipped
+    final_skipped = [p for p in skipped_pairs
+                     if not example_scores[p[0]] or not test_scores[p[1]]]
+
     return {
         "dim": dim,
         "candidates": n,
         "total_calls": call_count,
+        "skipped_count": len(skipped_pairs),
         "time_minutes": round((time.time() - t0) / 60, 1),
         "example_ranking": [
             {"ref": ref, "avg_cov": round(score, 4), "rounds": count}
