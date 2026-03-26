@@ -439,3 +439,12 @@ Sonnet 跑 dim #1 (32 candidates × 8 opponents = 256 calls, 33min). 結果: 262
 
 ### 63c. [2026-03-26 ~09:00] model_shootout.py — 多模型公平比較
 同一組 pairs 跑多個模型, 輸出比較表. 支援 --auto-discover (自動偵測 ollama 模型), 混合 ollama+claude+gemini. 用途: 在 full round-robin 之前, 用 3-5 pairs 快速比較模型品質, 選最適合的.
+
+### 64. [2026-03-26 ~10:00] 擂台賽結果 — 43 模型只有 2 個存活
+全自動淘汰賽 4 rounds, 43 模型 (sai ollama auto-discover). 存活: deepseek-v3.1:671b-cloud (cov=0.120) 和 llama3.3:70b (cov=0.092). 全部 exact=0%. 1-2B/3-4B/7-8B/12-14B/30-35B 全軍覆沒. 結論: 不是模型問題, 是 prompt 問題 — survey4 v0.1 要求模型「背字典」(13,000+ SN), 這不可能.
+
+### 65. [2026-03-26 ~11:00] 深度分析 — 為什麼 survey4 失敗而 survey1 成功
+核心洞見: survey1 成功是因為 SN 號碼已在 UNV+SN 輸入裡 (模型只管搬運), survey4 失敗是因為要模型從純文字「生出」SN 號碼 (等於背字典). 模型對 SN 的語義一無所知 — SN tags 只是跟著走的「行李」, 模型做的是中文↔中文語義配對.
+
+### 66. [2026-03-26 ~12:00] Survey5 — 雙語 SN 基準測試 (bilingual_sn_benchmark)
+設計: 主任務 KJV+SN → UNV+SN (同節跨語言), 輔助任務 UNV+SN → KJV+SN (反向驗證). 兩個方向都有 FHL ground truth 可自動評分. 是 survey1 的鏡像測試: 同樣技能 (跨語言 placement), 但有標準答案. 關鍵前置: KJV/UNV 同節 SN 數量不一致問題, 必須預分類 (一致/接近/差異), exemplar library 選一致組. 26 dims 部分沿用, survey4 的 auto_score/compare_models 直接複用.
