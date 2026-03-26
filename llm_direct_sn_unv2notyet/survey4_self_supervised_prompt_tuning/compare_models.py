@@ -11,26 +11,26 @@ Pair sources (pick one):
 
 Usage:
     # Quick: 5 pairs from dim #1, compare ollama models on sai
-    python3 compare_models.py --dim 1 --limit 5 \
+    python3 compare_models.py --dim 1 --verse-pair-count 5 \
         --models qwen3:8b qwen3:32b deepseek-v3.1:671b-cloud \
         --ollama-url http://localhost:11434
 
     # Auto-discover all ollama models on server
-    python3 compare_models.py --dim 1 --limit 5 \
+    python3 compare_models.py --dim 1 --verse-pair-count 5 \
         --auto-discover --ollama-url http://localhost:11434
 
     # 1% DMFS test set
-    python3 compare_models.py --pct 1 --limit 20 \
+    python3 compare_models.py --pct 1 --verse-pair-count 20 \
         --models qwen3:8b qwen3:32b \
         --ollama-url http://localhost:11434
 
     # Mix ollama + claude
-    python3 compare_models.py --dim 1 --limit 5 \
+    python3 compare_models.py --dim 1 --verse-pair-count 5 \
         --models qwen3:32b sonnet haiku \
         --ollama-url http://sai.fhl.net:11434
 
     # Pre-built pairs
-    python3 compare_models.py --pairs dmfs_pairs.json --limit 10 \
+    python3 compare_models.py --pairs dmfs_pairs.json --verse-pair-count 10 \
         --models qwen3:8b qwen3:32b \
         --ollama-url http://localhost:11434
 """
@@ -275,7 +275,7 @@ def main():
     parser.add_argument("--pairs", default=None,
                         help="Pre-built pairs JSON file")
     # Limits
-    parser.add_argument("--limit", type=int, default=None,
+    parser.add_argument("--verse-pair-count", type=int, default=None,
                         help="Max pairs to use")
     parser.add_argument("--seed", type=int, default=42)
     # Prompt
@@ -300,7 +300,7 @@ def main():
 
     # Build pairs
     if args.dim is not None:
-        limit = args.limit or 10
+        limit = args.verse_pair_count or 10
         pairs, source_label = build_pairs_from_dim(
             args.dim, DEFAULT_LIBRARY, limit, args.seed)
     elif args.pct:
@@ -318,8 +318,8 @@ def main():
         print("Error: provide --dim, --pct, or --pairs")
         sys.exit(1)
 
-    if args.limit and len(pairs) > args.limit:
-        pairs = pairs[:args.limit]
+    if args.verse_pair_count and len(pairs) > args.verse_pair_count:
+        pairs = pairs[:args.verse_pair_count]
 
     # Load prompt
     if args.prompt:

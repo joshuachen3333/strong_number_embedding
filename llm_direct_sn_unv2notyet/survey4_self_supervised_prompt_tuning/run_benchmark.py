@@ -21,7 +21,7 @@ Usage:
     python3 run_benchmark.py --pct 1 --model haiku --out results.json
 
     # Dry run (just show prompt, don't call model)
-    python3 run_benchmark.py --pct 1 --dry-run --limit 3
+    python3 run_benchmark.py --pct 1 --dry-run --verse-pair-count 3
 """
 
 import argparse
@@ -177,7 +177,7 @@ def main():
                         help="Output JSON file")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show prompts without calling model")
-    parser.add_argument("--limit", type=int, default=None,
+    parser.add_argument("--verse-pair-count", type=int, default=None,
                         help="Only run first N pairs")
     parser.add_argument("--till", default=None,
                         help="Stop before this time (e.g., 7:50, 08:00)")
@@ -211,8 +211,8 @@ def main():
         print("Error: provide --pairs or --pct", file=sys.stderr)
         sys.exit(1)
 
-    if args.limit:
-        pairs = pairs[:args.limit]
+    if args.verse_pair_count:
+        pairs = pairs[:args.verse_pair_count]
 
     # Load prompt
     system_prompt = DEFAULT_PROMPT
