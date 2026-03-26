@@ -60,25 +60,8 @@ def load_prompt(path):
 
 
 def model_short_name(model):
-    """Convert full model name to short filename-safe identifier."""
-    m = model.lower()
-    if "671b" in m or "v3.1" in m:
-        return "ds671b"
-    if "deepseek-r1:70b" in m:
-        return "dsr1_70b"
-    if "deepseek-r1:32b" in m:
-        return "dsr1_32b"
-    if "qwen3:32b" in m:
-        return "qwen32b"
-    if "opus" in m:
-        return "opus"
-    if "sonnet" in m:
-        return "sonnet"
-    if "haiku" in m:
-        return "haiku"
-    if "gemini" in m:
-        return re.sub(r'[^a-z0-9]', '', m)[:12]
-    return re.sub(r'[^a-z0-9]', '', m)[:12]
+    """Sanitize model name for use in filenames (replace : and / with -)."""
+    return re.sub(r'[:/\\]', '-', model)
 
 
 def prompt_version(prompt_path):
