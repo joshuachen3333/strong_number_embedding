@@ -33,6 +33,9 @@ Usage:
     python3 compare_models.py --pairs dmfs_pairs.json --verse-pair-count 10 \
         --models qwen3:8b qwen3:32b \
         --ollama-url http://localhost:11434
+
+    # Merge results from different days (same --dim --seed --verse-pair-count)
+    python3 compare_models.py --merge day1.json day2.json --out merged.json
 """
 
 import argparse
@@ -285,7 +288,48 @@ def main():
     parser.add_argument("--error-budget", type=int, default=5,
                         help="Max errors before skipping a model (default: 5)")
     parser.add_argument("--out", default=None)
+    # Merge mode
+    parser.add_argument("--merge", nargs="+", default=None,
+                        help="Merge multiple result JSONs and print combined table")
     args = parser.parse_args()
+
+    # ── Merge mode ──
+    if args.merge:
+        all_results = []
+        seen_models = set()
+        source_label = None
+        n_pairs = 0
+        for path in args.merge:
+            with open(path, encoding="utf-8") as f:
+                data = json.load(f)
+            if source_label is None:
+                source_label = data["meta"].get("source", "merged")
+                n_pairs = data["meta"].get("pairs", 0)
+            for r in data["results"]:
+                if r["model"] not in seen_models:
+                    all_results.append(r)
+                    seen_models.add(r["model"])
+                else:
+                    print(f"  ⚠ Duplicate model {r['model']} in {path}, skipped")
+
+        print_comparison_table(all_results, f"{source_label} (merged)", n_pairs)
+
+        if args.out:
+            output = {
+                "meta": {
+                    "merged_from": args.merge,
+                    "source": source_label,
+                    "pairs": n_pairs,
+                    "models": [r["model"] for r in all_results],
+                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                },
+                "results": all_results,
+            }
+            out_path = os.path.join(SCRIPT_DIR, args.out) if not os.path.isabs(args.out) else args.out
+            with open(out_path, "w", encoding="utf-8") as f:
+                json.dump(output, f, ensure_ascii=False, indent=1)
+            print(f"Saved merged to {out_path}")
+        return
 
     # Get models
     models = args.models or []
