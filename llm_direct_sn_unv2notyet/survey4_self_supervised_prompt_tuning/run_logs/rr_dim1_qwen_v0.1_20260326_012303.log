@@ -1,0 +1,30 @@
+Model: qwen3:8b (ollama)
+Prompt: /home/joshuachen/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey4_self_supervised_prompt_tuning/prompts/survey4_v0.1.md (2884 chars)
+Dims to run: [1]
+
+  Dim #1 — SN count — 簡單短節 (≤8) (32 candidates)
+    Round 1/32: Gen 25:14 as example → 8 opponents [0.0m]
+    Round 2/32: 2Sam 5:16 as example → 8 opponents [0.2m]
+      ...10 calls done    Round 3/32: Isa 3:19 as example → 8 opponents [0.5m]
+      ...20 calls done    Round 4/32: Luke 3:38 as example → 8 opponents [0.7m]
+      ...30 calls done    Round 5/32: Rom 1:31 as example → 8 opponents [0.9m]
+      ...40 calls done    Round 6/32: Heb 13:25 as example → 8 opponents [1.1m]
+    Round 7/32: Gen 10:3 as example → 8 opponents [1.3m]
+      ...50 calls done    Round 8/32: 2Sam 23:32 as example → 8 opponents [1.6m]
+      ...60 calls done    Round 9/32: Ps 83:6 as example → 8 opponents [1.9m]
+      ...70 calls done    Round 10/32: Isa 3:20 as example → 8 opponents [2.1m]
+      ...80 calls done    Round 11/32: Luke 3:24 as example → 8 opponents [2.4m]
+    Round 12/32: Acts 15:15 as example → 8 opponents [2.7m]
+      ...90 calls done    Round 13/32: 1Cor 16:23 as example → 8 opponents [3.0m]
+      ...100 calls done    Round 14/32: 2Tim 3:3 as example → 8 opponents [3.3m]
+      ...110 calls done    Round 15/32: 1Pet 4:9 as example → 8 opponents [3.5m]
+      ...120 calls done    Round 16/32: 1John 5:21 as example → 8 opponents [3.7m]
+    Round 17/32: Jas 1:16 as example → 8 opponents [4.0m]
+      ...130 calls done    Round 18/32: Heb 10:21 as example → 8 opponents [4.4m]
+      ...140 calls done    Round 19/32: Rev 22:21 as example → 8 opponents [4.6m]
+      ...150 calls done    Round 20/32: Gen 10:22 as example → 8 opponents [4.8m]
+      ...160 calls done    Round 21/32: Josh 15:51 as example → 8 opponents [5.1m]
+    Round 22/32: Ps 97:2 as example → 8 opponents [5.4m]
+      ...170 calls done    Round 23/32: Ezek 38:5 as example → 8 opponents [5.6m]
+      ...180 calls done    Round 24/32: Luke 5:38 as example → 8 opponents [5.9m]
+      ...190 calls done    Round 25/32: Acts 7:50 as example → 8 opponents [6.3m]

@@ -169,6 +169,28 @@ auto_score.py → 比對 FHL KJV+SN ground truth
 | `exemplar_library.json` | 🔄 擴展加 KJV 欄位 |
 | `prompts/survey4_v0.1.md` | ❌ 需重寫（任務不同） |
 
+## run_logs/ 命名格式
+
+統一格式：`{task}_{scope}_{model}_{prompt}_{YYYYMMDD_HHMMSS}.{ext}`
+
+| 欄位 | 說明 | 範例 |
+|------|------|------|
+| task | fwd (KJV→UNV) / rev (UNV→KJV) | `fwd`, `rev` |
+| scope | 書卷+章節 | `gen1`, `gen1_3` |
+| model | 短名 | `ds671b`, `sonnet`, `qwen32b` |
+| prompt | 版本號 | `v0.1`, `v0.2` |
+| timestamp | YYYYMMDD_HHMMSS | `20260327_002205` |
+| ext | log (stdout) / json (結果) | `log`, `json` |
+
+範例：
+- `fwd_gen1_ds671b_v0.1_20260327_002205.log`
+- `rev_gen1_sonnet_v0.1_20260327_010000.json`
+
+`--out` 用法：
+- `--out` (無值) → 自動生成檔名
+- `--out path/to/file.json` → 指定路徑
+- 不加 `--out` → 不存檔
+
 ## Status
 
 - [x] 概念設計

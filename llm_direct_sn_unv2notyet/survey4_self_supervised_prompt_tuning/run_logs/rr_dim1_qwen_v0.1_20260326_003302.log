@@ -1,0 +1,6 @@
+Model: qwen3:8b (ollama)
+Prompt: /home/joshuachen/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey4_self_supervised_prompt_tuning/prompts/survey4_v0.1.md (2884 chars)
+Dims to run: [1]
+
+  Dim #1 — SN count — 簡單短節 (≤8) (32 candidates)
+    Round 1/32: Gen 25:14 as example → 8 opponents [0.0m]

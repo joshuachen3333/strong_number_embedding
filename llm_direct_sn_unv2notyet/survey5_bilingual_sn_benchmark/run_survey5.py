@@ -31,6 +31,7 @@ Usage:
 import argparse
 import json
 import os
+import re
 import sys
 import time
 
@@ -56,6 +57,43 @@ DEFAULT_REVERSE_PROMPT_FILE = os.path.join(SCRIPT_DIR, "prompts", "survey5_rever
 def load_prompt(path):
     with open(path, encoding="utf-8") as f:
         return f.read().strip()
+
+
+def model_short_name(model):
+    """Convert full model name to short filename-safe identifier."""
+    m = model.lower()
+    if "671b" in m or "v3.1" in m:
+        return "ds671b"
+    if "deepseek-r1:70b" in m:
+        return "dsr1_70b"
+    if "deepseek-r1:32b" in m:
+        return "dsr1_32b"
+    if "qwen3:32b" in m:
+        return "qwen32b"
+    if "opus" in m:
+        return "opus"
+    if "sonnet" in m:
+        return "sonnet"
+    if "haiku" in m:
+        return "haiku"
+    if "gemini" in m:
+        return re.sub(r'[^a-z0-9]', '', m)[:12]
+    return re.sub(r'[^a-z0-9]', '', m)[:12]
+
+
+def prompt_version(prompt_path):
+    """Extract version string from prompt filename, e.g. survey5_v0.2.md → v0.2"""
+    m = re.search(r'(v\d+\.\d+)', os.path.basename(prompt_path))
+    return m.group(1) if m else "vunk"
+
+
+def make_out_path(task, book_eng, chap_str, model, pversion, ext):
+    """Generate filename: {task}_{scope}_{model}_{prompt}_{YYYYMMDD_HHMMSS}.{ext}"""
+    scope = f"{book_eng.lower()}{chap_str.replace('-', '_')}"
+    mshort = model_short_name(model)
+    ts = time.strftime("%Y%m%d_%H%M%S")
+    fname = f"{task}_{scope}_{mshort}_{pversion}_{ts}.{ext}"
+    return os.path.join(SCRIPT_DIR, "run_logs", fname)
 
 
 def detect_brand(model, ollama_url):
@@ -151,7 +189,8 @@ def main():
     parser.add_argument("--max-diff", type=int, default=None,
                         help="Max SN count diff to include (e.g., 2)")
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--out", default=None)
+    parser.add_argument("--out", nargs="?", const="", default=None,
+                        help="Save results JSON. No value = auto-generate filename.")
     args = parser.parse_args()
 
     book_chi = args.book
@@ -160,16 +199,20 @@ def main():
 
     # Load prompt
     if args.prompt:
-        system_prompt = load_prompt(args.prompt)
-    elif args.reverse and os.path.exists(DEFAULT_REVERSE_PROMPT_FILE):
-        system_prompt = load_prompt(DEFAULT_REVERSE_PROMPT_FILE)
-    elif not args.reverse and os.path.exists(DEFAULT_PROMPT_FILE):
-        system_prompt = load_prompt(DEFAULT_PROMPT_FILE)
+        prompt_file = args.prompt
+    elif args.reverse:
+        prompt_file = DEFAULT_REVERSE_PROMPT_FILE
     else:
-        if args.reverse:
-            system_prompt = "Transfer Strong's Number tags from UNV to KJV."
-        else:
-            system_prompt = "Transfer Strong's Number tags from KJV to UNV."
+        prompt_file = DEFAULT_PROMPT_FILE
+
+    if os.path.exists(prompt_file):
+        system_prompt = load_prompt(prompt_file)
+    else:
+        system_prompt = "Transfer Strong's Number tags from UNV to KJV." if args.reverse \
+            else "Transfer Strong's Number tags from KJV to UNV."
+        prompt_file = None
+
+    pver = prompt_version(prompt_file) if prompt_file else "vunk"
 
     # Parse chapters
     if args.chap.lower() == "all":
@@ -293,7 +336,15 @@ def main():
     print_summary(results, book_eng, args.model, t0, task_label)
 
     # Save
-    if args.out:
+    if args.out is not None:
+        task_short = "rev" if args.reverse else "fwd"
+        if args.out == "":
+            # auto-generate filename
+            out_path = make_out_path(task_short, book_eng, args.chap,
+                                     args.model, pver, "json")
+        else:
+            out_path = os.path.join(SCRIPT_DIR, args.out) if not os.path.isabs(args.out) else args.out
+
         scored = [r for r in results if "score" in r]
         out_data = {
             "meta": {
@@ -301,6 +352,7 @@ def main():
                 "book": book_eng,
                 "model": args.model,
                 "brand": brand,
+                "prompt_version": pver,
                 "reverse": args.reverse,
                 "match_only": args.match_only,
                 "max_diff": args.max_diff,
@@ -309,7 +361,7 @@ def main():
             },
             "verses": results,
         }
-        out_path = os.path.join(SCRIPT_DIR, args.out) if not os.path.isabs(args.out) else args.out
+        os.makedirs(os.path.dirname(out_path), exist_ok=True)
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(out_data, f, ensure_ascii=False, indent=1)
         print(f"\n  Saved to {out_path}")
