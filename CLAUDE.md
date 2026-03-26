@@ -81,6 +81,16 @@ python3 llm_direct_sn_unv2notyet.py --model --help
 
 **Output path**: `output/{version}/{brand}/{Book}/{Chapter}/{verse}.json` (e.g., `output/lcc/claude/Gen/1/1.json`).
 
+**Shared utility — `parse_sec_arg()`** in `llm_direct_sn_unv2notyet.py`: flexible verse range parser used across all survey scripts. Handles single verse, comma list, range, and mixed forms:
+```python
+from llm_direct_sn_unv2notyet import parse_sec_arg
+parse_sec_arg(["1"])          # → [1]
+parse_sec_arg(["1-5"])        # → [1, 2, 3, 4, 5]
+parse_sec_arg(["1,3,5-8"])    # → [1, 3, 5, 6, 7, 8]
+parse_sec_arg(["1", "2,5-7"]) # → [1, 2, 5, 6, 7]
+```
+Any script that accepts `--sec` should wire through this function.
+
 **Key docs**:
 - [CONFIDENCE_BASIS.md](llm_direct_sn_unv2notyet/CONFIDENCE_BASIS.md) — How confidence scores work (LLM self-reported vs objective SN coverage check)
 - [OSS_MODEL.md](llm_direct_sn_unv2notyet/OSS_MODEL.md) — Open-source/local model benchmark results on sai.fhl.net

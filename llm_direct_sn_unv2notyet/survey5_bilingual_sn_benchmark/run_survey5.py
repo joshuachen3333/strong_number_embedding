@@ -40,7 +40,7 @@ PARENT_DIR = os.path.dirname(SCRIPT_DIR)
 if PARENT_DIR not in sys.path:
     sys.path.insert(0, PARENT_DIR)
 
-from llm_direct_sn_unv2notyet import fetch_chap_cached, CHI_TO_ENG
+from llm_direct_sn_unv2notyet import fetch_chap_cached, CHI_TO_ENG, parse_sec_arg as parse_sec_spec
 
 # Reuse from survey4
 S4_DIR = os.path.join(PARENT_DIR, "survey4_self_supervised_prompt_tuning")
@@ -176,8 +176,8 @@ def main():
         description="Survey5: KJV↔UNV cross-lingual SN benchmark")
     parser.add_argument("--book", default="創")
     parser.add_argument("--chap", default="1")
-    parser.add_argument("--sec", type=int, default=None,
-                        help="Single verse (default: all in chapter)")
+    parser.add_argument("--sec", nargs="+", default=None,
+                        help="Verse(s) to run, e.g. 1 or 1-5 or 1,3,5-8")
     parser.add_argument("--model", default="sonnet")
     parser.add_argument("--ollama-url", default=None)
     parser.add_argument("--prompt", default=None,
@@ -252,7 +252,8 @@ def main():
 
         secs = sorted(set(kjv_data.keys()) & set(unv_data.keys()))
         if args.sec:
-            secs = [args.sec] if args.sec in secs else []
+            wanted = set(parse_sec_spec(args.sec))
+            secs = [s for s in secs if s in wanted]
 
         for sec in secs:
             kjv_sn = kjv_data[sec]
