@@ -29,7 +29,8 @@ Survey5（測試）: KJV+SN → UNV+SN    ← 有標準答案！
 ### 主任務：KJV+SN → UNV+SN
 
 ```
-Input:
+Input (same verse, all three):
+  KJV:    In the beginning God created the heaven and the earth.
   KJV+SN: In the beginning<WH07225> God<WH0430> created<WH01254><WTH8804>
           {<WH0853>}the heaven<WH08064>{<WH0853>}and the earth<WH0776>.
   UNV:    起初，神創造天地。
@@ -43,15 +44,18 @@ Expected output:
 Ground truth: FHL 的 UNV+SN（自動評分）
 ```
 
+KJV plain + KJV+SN 是這一節的「標注鑰匙」— 讓模型看到哪個英文詞對應哪個 SN，再搬到 UNV。
+
 模型的思考：
-- `beginning<WH07225>` → 起初 → `起初<WH07225>` ✓
-- `God<WH0430>` → 神 → `神<WH0430>` ✓
-- `created<WH01254><WTH8804>` → 創造 → `創造<WH01254><WTH8804>` ✓
+- KJV: `beginning` → KJV+SN: `beginning<WH07225>` → UNV: 起初 → `起初<WH07225>` ✓
+- KJV: `God` → KJV+SN: `God<WH0430>` → UNV: 神 → `神<WH0430>` ✓
+- KJV: `created` → KJV+SN: `created<WH01254><WTH8804>` → UNV: 創造 → `創造<WH01254><WTH8804>` ✓
 
 ### 輔助任務：UNV+SN → KJV+SN（反向）
 
 ```
-Input:
+Input (same verse, all three):
+  UNV:    起初，神創造天地。
   UNV+SN: 起初<WAH09002><WH07225>，神<WH0430>創造<WH01254><WTH8804>...
   KJV:    In the beginning God created the heaven and the earth.
 
@@ -127,12 +131,12 @@ Survey4 的 Exemplar Library 是 UNV-only 的。Survey5 需要：
 
 | | Survey1 | Survey4 | Survey5 |
 |---|---|---|---|
-| 輸入 | UNV+SN | UNV (純文字) | KJV+SN + UNV (純文字) |
-| 輸出 | LCC+SN | UNV+SN | UNV+SN |
-| SN 來源 | UNV (給了) | 無 (要背字典) | KJV (給了) |
-| Ground truth | 無 | FHL UNV+SN | FHL UNV+SN |
+| 輸入 | UNV+SN + LCC(plain) | UNV+SN(v1) + UNV(v1) + UNV(v2, plain) | KJV(plain) + KJV+SN + UNV(plain) |
+| 輸出 | LCC+SN | UNV+SN(v2) | UNV+SN |
+| SN 來源 | UNV (給了) | UNV(v1) (給了，但 v2 要自己推) | KJV+SN (給了，同節) |
+| Ground truth | 無 | FHL UNV+SN(v2) | FHL UNV+SN |
 | 評分 | 3-model consensus | 自動 | 自動 |
-| 測的能力 | 跨語言放置 | 背字典 (失敗) | **跨語言放置** |
+| 測的能力 | 跨語言放置 | 格式學習 + SN 推斷 | **跨語言放置** |
 | 成本 | 昂貴 (3 model) | 便宜 | 便宜 |
 
 **Survey5 = Survey1 的廉價鏡像測試。** 同樣的能力，有標準答案，自動評分。

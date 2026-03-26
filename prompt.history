@@ -448,3 +448,12 @@ Sonnet 跑 dim #1 (32 candidates × 8 opponents = 256 calls, 33min). 結果: 262
 
 ### 66. [2026-03-26 ~12:00] Survey5 — 雙語 SN 基準測試 (bilingual_sn_benchmark)
 設計: 主任務 KJV+SN → UNV+SN (同節跨語言), 輔助任務 UNV+SN → KJV+SN (反向驗證). 兩個方向都有 FHL ground truth 可自動評分. 是 survey1 的鏡像測試: 同樣技能 (跨語言 placement), 但有標準答案. 關鍵前置: KJV/UNV 同節 SN 數量不一致問題, 必須預分類 (一致/接近/差異), exemplar library 選一致組. 26 dims 部分沿用, survey4 的 auto_score/compare_models 直接複用.
+
+### 67. [2026-03-27 ~00:00] Survey5 首跑 — deepseek-v3.1:671b-cloud, Gen 1, v0.1 vs v0.2
+建立 run_logs/ 目錄. 使用 deepseek-v3.1:671b-cloud (via sai.fhl.net ollama) 跑 Gen 1 全 31 節. v0.1 vs v0.2 比較結果: coverage v0.1=0.60 / v0.2=0.59 (相近), placement v0.1=0.44 / v0.2=0.51 (+6.8pp), format v0.1=0.94 / v0.2=0.93. v0.2 的 Annotation Projection framing 改善了 placement, 與 survey1 v1.1→v1.2 升級效果一致. 結構性天花板: 多數節次 KJV SN 數 < UNV SN 數 (diff>0), coverage 無法達滿. 兩個方向各耗時約 3-4 分鐘.
+
+### 67a. [2026-03-27 ~01:00] Survey5 設計修正 — KJV plain + KJV+SN + UNV → UNV+SN
+發現並修正 survey5 設計錯誤: 原設計只給 KJV+SN + UNV (直接搬運), 正確設計應給 KJV plain + KJV+SN pair 作為「標注鑰匙」, 再給 UNV plain 作為目標. 同構於 survey4 的 v1 pair (UNV+SN(v1) + UNV(v1)) 設計. 更新 CLAUDE.md 主任務/輔助任務範例及同構對比表. 修正 run_survey5.py build_survey5_prompt() 加入 kjv_plain 參數.
+
+### 67b. [2026-03-27 ~01:30] Survey5 輔助任務實作 — --reverse: UNV plain + UNV+SN + KJV → KJV+SN
+在 run_survey5.py 加入 --reverse flag, 實作輔助任務 (UNV+SN → KJV+SN). build_reverse_prompt() 獨立函數, 以 FHL KJV+SN 為 ground truth 評分. 新增 prompts/survey5_reverse_v0.1.md (含 Annotation Projection framing, 英文輸出規則). meta.task 區分 survey5_kjv_to_unv / survey5_unv_to_kjv. 兩方向 dry-run 驗證通過.

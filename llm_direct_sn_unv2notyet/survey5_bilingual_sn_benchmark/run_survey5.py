@@ -1,22 +1,28 @@
 #!/usr/bin/env python3
-"""Survey5: KJV+SN → UNV+SN cross-lingual benchmark.
+"""Survey5: cross-lingual SN transfer benchmark (KJV ↔ UNV).
 
-Given KJV+SN (English with tags) and plain UNV (Chinese without tags),
-model transfers SN tags to UNV. Scored against FHL's UNV+SN ground truth.
+主任務 (default): KJV plain + KJV+SN + UNV plain → UNV+SN
+  Scored against FHL UNV+SN ground truth.
+
+輔助任務 (--reverse): UNV plain + UNV+SN + KJV plain → KJV+SN
+  Scored against FHL KJV+SN ground truth.
 
 Usage:
-    # Quick proof-of-concept: Gen 1:1
+    # Main task: Gen 1:1
     python3 run_survey5.py --book 創 --chap 1 --sec 1 --model sonnet
 
-    # Run a chapter
-    python3 run_survey5.py --book 約 --chap 1 --model sonnet
+    # Main task: full chapter
+    python3 run_survey5.py --book 創 --chap 1 --model sonnet
+
+    # Reverse task: UNV+SN → KJV+SN
+    python3 run_survey5.py --book 創 --chap 1 --model sonnet --reverse
 
     # Only matched verses (KJV SN count = UNV SN count)
-    python3 run_survey5.py --book 約 --chap 1 --model sonnet --match-only
+    python3 run_survey5.py --book 創 --chap 1 --model sonnet --match-only
 
     # Ollama
-    python3 run_survey5.py --book 約 --chap 1 \
-        --model qwen3:32b --ollama-url http://sai.fhl.net:11434
+    python3 run_survey5.py --book 創 --chap 1 \\
+        --model deepseek-v3.1:671b-cloud --ollama-url http://sai.fhl.net:11434
 
     # Dry run
     python3 run_survey5.py --book 創 --chap 1 --sec 1 --dry-run
@@ -25,7 +31,6 @@ Usage:
 import argparse
 import json
 import os
-import re
 import sys
 import time
 
@@ -45,6 +50,7 @@ from run_benchmark import (call_ollama, call_claude_cli, call_gemini_cli,
                            parse_ref)
 
 DEFAULT_PROMPT_FILE = os.path.join(SCRIPT_DIR, "prompts", "survey5_v0.1.md")
+DEFAULT_REVERSE_PROMPT_FILE = os.path.join(SCRIPT_DIR, "prompts", "survey5_reverse_v0.1.md")
 
 
 def load_prompt(path):
@@ -72,31 +78,74 @@ def call_model(model, brand, ollama_url, sys_p, user_p):
     return ""
 
 
-def build_survey5_prompt(system_prompt, kjv_sn, unv_plain, book_eng, chap, sec):
-    """Build prompt for KJV→UNV transfer."""
-    user = f"""Here is the KJV text with Strong's Number annotations for {book_eng} {chap}:{sec}:
+def build_main_prompt(system_prompt, kjv_plain, kjv_sn, unv_plain, book_eng, chap, sec):
+    """主任務: KJV plain + KJV+SN + UNV plain → UNV+SN."""
+    user = f"""Here is {book_eng} {chap}:{sec} in KJV (plain, no tags):
+
+{kjv_plain}
+
+Here is the same verse in KJV with Strong's Number annotations:
 
 {kjv_sn}
 
-Here is the corresponding UNV (和合本) text without annotations:
+Here is the same verse in UNV (和合本), plain, no annotations:
 
 {unv_plain}
 
-Please insert the Strong's Number tags from the KJV into the correct positions in the UNV text. Output only the annotated UNV text."""
-
+Using the KJV annotation pair above as your reference, insert the Strong's Number tags into the correct positions in the UNV text. Output only the annotated UNV text."""
     return system_prompt, user
+
+
+def build_reverse_prompt(system_prompt, unv_plain, unv_sn, kjv_plain, book_eng, chap, sec):
+    """輔助任務: UNV plain + UNV+SN + KJV plain → KJV+SN."""
+    user = f"""Here is {book_eng} {chap}:{sec} in UNV (和合本), plain, no tags:
+
+{unv_plain}
+
+Here is the same verse in UNV with Strong's Number annotations:
+
+{unv_sn}
+
+Here is the same verse in KJV (King James Version), plain, no annotations:
+
+{kjv_plain}
+
+Using the UNV annotation pair above as your reference, insert the Strong's Number tags into the correct positions in the KJV text. Output only the annotated KJV text."""
+    return system_prompt, user
+
+
+def print_summary(results, book_eng, model, t0, task_label):
+    scored = [r for r in results if "score" in r]
+    if not scored:
+        return
+    print(f"\n{'='*60}")
+    print(f"  Survey5 {task_label} — {book_eng}, {model}")
+    print(f"{'='*60}")
+    print(f"  Verses scored: {len(scored)}")
+    avg_cov = sum(r["score"]["coverage"] for r in scored) / len(scored)
+    avg_place = sum(r["score"]["placement"] for r in scored) / len(scored)
+    avg_fmt = sum(r["score"]["format"] for r in scored) / len(scored)
+    exact_count = sum(1 for r in scored if r["score"]["exact_match"])
+    print(f"  Exact match: {exact_count}/{len(scored)} ({exact_count/len(scored)*100:.1f}%)")
+    print(f"  Avg coverage:  {avg_cov:.4f}")
+    print(f"  Avg placement: {avg_place:.4f}")
+    print(f"  Avg format:    {avg_fmt:.4f}")
+    print(f"  Time: {(time.time()-t0)/60:.1f} minutes")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Survey5: KJV+SN → UNV+SN cross-lingual benchmark")
+        description="Survey5: KJV↔UNV cross-lingual SN benchmark")
     parser.add_argument("--book", default="創")
     parser.add_argument("--chap", default="1")
     parser.add_argument("--sec", type=int, default=None,
                         help="Single verse (default: all in chapter)")
     parser.add_argument("--model", default="sonnet")
     parser.add_argument("--ollama-url", default=None)
-    parser.add_argument("--prompt", default=None)
+    parser.add_argument("--prompt", default=None,
+                        help="Override system prompt file")
+    parser.add_argument("--reverse", action="store_true",
+                        help="輔助任務: UNV plain + UNV+SN + KJV plain → KJV+SN")
     parser.add_argument("--match-only", action="store_true",
                         help="Only run verses where KJV SN count = UNV SN count")
     parser.add_argument("--max-diff", type=int, default=None,
@@ -112,10 +161,15 @@ def main():
     # Load prompt
     if args.prompt:
         system_prompt = load_prompt(args.prompt)
-    elif os.path.exists(DEFAULT_PROMPT_FILE):
+    elif args.reverse and os.path.exists(DEFAULT_REVERSE_PROMPT_FILE):
+        system_prompt = load_prompt(DEFAULT_REVERSE_PROMPT_FILE)
+    elif not args.reverse and os.path.exists(DEFAULT_PROMPT_FILE):
         system_prompt = load_prompt(DEFAULT_PROMPT_FILE)
     else:
-        system_prompt = "Transfer Strong's Number tags from KJV to UNV."
+        if args.reverse:
+            system_prompt = "Transfer Strong's Number tags from UNV to KJV."
+        else:
+            system_prompt = "Transfer Strong's Number tags from KJV to UNV."
 
     # Parse chapters
     if args.chap.lower() == "all":
@@ -135,7 +189,8 @@ def main():
     else:
         chapters = [int(args.chap)]
 
-    print(f"Survey5: KJV+SN → UNV+SN")
+    task_label = "輔助任務 UNV→KJV" if args.reverse else "主任務 KJV→UNV"
+    print(f"Survey5: {task_label}")
     print(f"Book: {book_eng} ({book_chi})")
     print(f"Model: {args.model} ({brand})")
     print(f"Prompt: {len(system_prompt)} chars")
@@ -158,10 +213,10 @@ def main():
 
         for sec in secs:
             kjv_sn = kjv_data[sec]
-            unv_sn = unv_data[sec]  # ground truth
+            kjv_plain = strip_sn(kjv_sn)
+            unv_sn = unv_data[sec]
             unv_plain = strip_sn(unv_sn)
 
-            # SN count filter
             kjv_count = len(extract_tags(kjv_sn))
             unv_count = len(extract_tags(unv_sn))
             diff = abs(kjv_count - unv_count)
@@ -173,18 +228,31 @@ def main():
 
             ref = f"{book_eng} {chap}:{sec}"
 
-            if args.dry_run:
-                sys_p, user_p = build_survey5_prompt(
-                    system_prompt, kjv_sn, unv_plain, book_eng, chap, sec)
-                print(f"{'─'*60}")
-                print(f"{ref}  KJV={kjv_count} UNV={unv_count} diff={diff}")
-                print(f"  KJV+SN: {kjv_sn[:100]}...")
-                print(f"  UNV:    {unv_plain[:100]}...")
-                continue
+            if args.reverse:
+                ground_truth = kjv_sn
+                sys_p, user_p = build_reverse_prompt(
+                    system_prompt, unv_plain, unv_sn, kjv_plain, book_eng, chap, sec)
+                src_count, tgt_count = unv_count, kjv_count
+                src_label, tgt_label = "UNV", "KJV"
+            else:
+                ground_truth = unv_sn
+                sys_p, user_p = build_main_prompt(
+                    system_prompt, kjv_plain, kjv_sn, unv_plain, book_eng, chap, sec)
+                src_count, tgt_count = kjv_count, unv_count
+                src_label, tgt_label = "KJV", "UNV"
 
-            # Call model
-            sys_p, user_p = build_survey5_prompt(
-                system_prompt, kjv_sn, unv_plain, book_eng, chap, sec)
+            if args.dry_run:
+                print(f"{'─'*60}")
+                print(f"{ref}  {src_label}={src_count} {tgt_label}={tgt_count} diff={diff}")
+                if args.reverse:
+                    print(f"  UNV:    {unv_plain[:100]}...")
+                    print(f"  UNV+SN: {unv_sn[:100]}...")
+                    print(f"  KJV:    {kjv_plain[:100]}...")
+                else:
+                    print(f"  KJV:    {kjv_plain[:100]}...")
+                    print(f"  KJV+SN: {kjv_sn[:100]}...")
+                    print(f"  UNV:    {unv_plain[:100]}...")
+                continue
 
             t_call = time.time()
             try:
@@ -193,18 +261,17 @@ def main():
                 dt = time.time() - t_call
                 dt_str = f"{int(dt)//60}m{int(dt)%60:02d}s"
 
-                # Rate limit check
                 if dt < 5 and (not output or len(output.strip()) < 10):
                     print(f"  {ref:15s} ⚠ RATE LIMITED ({dt_str})")
                     continue
 
-                score = score_verse(output, unv_sn)
+                score = score_verse(output, ground_truth)
 
                 print(f"  {ref:15s} cov={score['coverage']:.2f} "
                       f"place={score['placement']:.2f} "
                       f"fmt={score['format']:.2f} "
                       f"exact={score['exact_match']}  "
-                      f"KJV={kjv_count} UNV={unv_count} diff={diff}  "
+                      f"{src_label}={src_count} {tgt_label}={tgt_count} diff={diff}  "
                       f"({dt_str})")
 
                 results.append({
@@ -223,31 +290,18 @@ def main():
     if args.dry_run:
         return
 
-    # Summary
-    scored = [r for r in results if "score" in r]
-    if scored:
-        print(f"\n{'='*60}")
-        print(f"  Survey5 Results — {book_eng}, {args.model}")
-        print(f"{'='*60}")
-        print(f"  Verses scored: {len(scored)}")
-        avg_cov = sum(r["score"]["coverage"] for r in scored) / len(scored)
-        avg_place = sum(r["score"]["placement"] for r in scored) / len(scored)
-        avg_fmt = sum(r["score"]["format"] for r in scored) / len(scored)
-        exact_count = sum(1 for r in scored if r["score"]["exact_match"])
-        print(f"  Exact match: {exact_count}/{len(scored)} ({exact_count/len(scored)*100:.1f}%)")
-        print(f"  Avg coverage:  {avg_cov:.4f}")
-        print(f"  Avg placement: {avg_place:.4f}")
-        print(f"  Avg format:    {avg_fmt:.4f}")
-        print(f"  Time: {(time.time()-t0)/60:.1f} minutes")
+    print_summary(results, book_eng, args.model, t0, task_label)
 
     # Save
     if args.out:
-        output = {
+        scored = [r for r in results if "score" in r]
+        out_data = {
             "meta": {
-                "task": "survey5_kjv_to_unv",
+                "task": "survey5_unv_to_kjv" if args.reverse else "survey5_kjv_to_unv",
                 "book": book_eng,
                 "model": args.model,
                 "brand": brand,
+                "reverse": args.reverse,
                 "match_only": args.match_only,
                 "max_diff": args.max_diff,
                 "total_scored": len(scored),
@@ -257,7 +311,7 @@ def main():
         }
         out_path = os.path.join(SCRIPT_DIR, args.out) if not os.path.isabs(args.out) else args.out
         with open(out_path, "w", encoding="utf-8") as f:
-            json.dump(output, f, ensure_ascii=False, indent=1)
+            json.dump(out_data, f, ensure_ascii=False, indent=1)
         print(f"\n  Saved to {out_path}")
 
 

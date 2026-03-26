@@ -1,0 +1,1052 @@
+{
+ "meta": {
+  "task": "survey5_kjv_to_unv",
+  "book": "Gen",
+  "model": "deepseek-v3.1:671b-cloud",
+  "brand": "ollama",
+  "match_only": false,
+  "max_diff": null,
+  "total_scored": 31,
+  "timestamp": "2026-03-27 00:22:05"
+ },
+ "verses": [
+  {
+   "ref": "Gen 1:1",
+   "kjv_sn_count": 8,
+   "unv_sn_count": 9,
+   "diff": 1,
+   "model_output": "起初`<WH07225>`，　神`<WH0430>`創造`<WH01254><WTH8804>`{<WH0853>}天`<WH08064>`{<WH0853>}地`<WH0776>`。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.8889,
+    "placement": 0.1111,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 9,
+     "total_model_tags": 8,
+     "missing": [
+      "<WAH09002>"
+     ],
+     "extra": [],
+     "misplaced": 8,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 6.4
+  },
+  {
+   "ref": "Gen 1:2",
+   "kjv_sn_count": 18,
+   "unv_sn_count": 16,
+   "diff": 2,
+   "model_output": "地<WH0776>是<WH01961><WTH8804>空虛<WH08414>混沌<WH0922>，淵<WH08415>面<WH06440>黑暗<WH02822>；　神<WH0430>的靈<WH07307>運行<WH07363><WTH8764>在水<WH04325>面<WH06440>上<WAH09001>。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.8125,
+    "placement": 1.0,
+    "format": 0.9375,
+    "details": {
+     "total_truth_tags": 16,
+     "total_model_tags": 15,
+     "missing": [
+      "{<WAH05921>}",
+      "<WH05921>"
+     ],
+     "extra": [
+      "<WAH09001>"
+     ],
+     "misplaced": 0,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH05921"
+     ]
+    }
+   },
+   "time": 8.7
+  },
+  {
+   "ref": "Gen 1:3",
+   "kjv_sn_count": 7,
+   "unv_sn_count": 9,
+   "diff": 2,
+   "model_output": "神<WH0430>說<WH0559><WTH8799>：「要<WH01961><WTH8799>有光<WH0216>」，就有了光<WH0216>。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.7778,
+    "placement": 0.2222,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 9,
+     "total_model_tags": 7,
+     "missing": [
+      "<WAH01961>",
+      "<WTH8799>"
+     ],
+     "extra": [],
+     "misplaced": 7,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 3.5
+  },
+  {
+   "ref": "Gen 1:4",
+   "kjv_sn_count": 18,
+   "unv_sn_count": 14,
+   "diff": 4,
+   "model_output": "神<WH0430>看<WH07200><WTH8799><WH0853>光<WH0216>是<WH03588>好<WH02896>的，就<WH0996>把光<WH0216>暗<WH02822>分開<WH0914><WTH8686>了。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.4286,
+    "placement": 0.3571,
+    "format": 0.7143,
+    "details": {
+     "total_truth_tags": 14,
+     "total_model_tags": 12,
+     "missing": [
+      "{<WH0430>}",
+      "{<WH0996>}",
+      "{<WH0996>}",
+      "{<WH0853>}",
+      "{<WH03588>}"
+     ],
+     "extra": [
+      "<WH0853>",
+      "<WH03588>",
+      "<WH0996>"
+     ],
+     "misplaced": 9,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WH0996",
+      "WH03588",
+      "WH0853",
+      "WH0430"
+     ]
+    }
+   },
+   "time": 4.0
+  },
+  {
+   "ref": "Gen 1:5",
+   "kjv_sn_count": 16,
+   "unv_sn_count": 19,
+   "diff": 3,
+   "model_output": "神<WH0430>稱<WH07121><WTH8799>光<WH0216>為「晝<WH03117>」，稱<WH07121><WTH8804>暗<WH02822>為「夜<WH03915>」。有晚上<WH06153>，有早晨<WH01242>，這是頭<WH0259>一日<WH03117>。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.6842,
+    "placement": 0.3158,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 19,
+     "total_model_tags": 13,
+     "missing": [
+      "<WAH01961>",
+      "<WAH01961>",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WTH8799>",
+      "<WTH8799>"
+     ],
+     "extra": [],
+     "misplaced": 13,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 4.5
+  },
+  {
+   "ref": "Gen 1:6",
+   "kjv_sn_count": 12,
+   "unv_sn_count": 17,
+   "diff": 5,
+   "model_output": "神`<WH0430>`說`<WH0559><WTH8799>`：「諸水`<WH04325>`之間`<WH08432>`要有空氣`<WH07549>`，將水`<WH04325>`分`<WH0914><WTH8688>`為上下`<WH04325>`。」",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.4706,
+    "placement": 0.5294,
+    "format": 0.7647,
+    "details": {
+     "total_truth_tags": 17,
+     "total_model_tags": 10,
+     "missing": [
+      "<WAH01961>",
+      "{<WAH09001>}",
+      "{<WAH01961>}",
+      "{<WH04325>}",
+      "<WAH09002>",
+      "{<WTH8799>}",
+      "<WTH8799>",
+      "<WAH0996>"
+     ],
+     "extra": [
+      "<WH04325>"
+     ],
+     "misplaced": 8,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH01961",
+      "WH04325",
+      "WTH8799",
+      "WAH09001"
+     ]
+    }
+   },
+   "time": 4.2
+  },
+  {
+   "ref": "Gen 1:7",
+   "kjv_sn_count": 19,
+   "unv_sn_count": 24,
+   "diff": 5,
+   "model_output": "神<WH0430>就造出<WH06213><WTH8799>空氣<WH07549>，將空氣<WH07549>以下<WH08478>的水<WH04325>、空氣<WH07549>以上<WH05921>的水<WH04325>分開<WH0914><WTH8686>了。事就這樣<WH03651>成了。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.5417,
+    "placement": 0.4583,
+    "format": 0.9167,
+    "details": {
+     "total_truth_tags": 24,
+     "total_model_tags": 13,
+     "missing": [
+      "{<WAH0853>}",
+      "<WAH01961>",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WAH0834>",
+      "<WAH04480>",
+      "<WAH04480>",
+      "<WAH0996>",
+      "<WAH0996>",
+      "<WTH8799>"
+     ],
+     "extra": [],
+     "misplaced": 13,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH0853",
+      "WH0834"
+     ]
+    }
+   },
+   "time": 16.2
+  },
+  {
+   "ref": "Gen 1:8",
+   "kjv_sn_count": 12,
+   "unv_sn_count": 14,
+   "diff": 2,
+   "model_output": "神<WH0430>稱<WH07121><WTH8799>空氣<WH07549>為「天<WH08064>」。有<WH06153>晚上，有<WH01242>早晨，是第二<WH08145>日<WH03117>。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.6429,
+    "placement": 0.3571,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 14,
+     "total_model_tags": 9,
+     "missing": [
+      "<WAH01961>",
+      "<WAH01961>",
+      "<WAH09001>",
+      "<WTH8799>",
+      "<WTH8799>"
+     ],
+     "extra": [],
+     "misplaced": 9,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 17.8
+  },
+  {
+   "ref": "Gen 1:9",
+   "kjv_sn_count": 15,
+   "unv_sn_count": 18,
+   "diff": 3,
+   "model_output": "神`<WH0430>`說`<WH0559><WTH8799>`：「天下`<WH08064>`的水`<WH04325>`要聚`<WH06960><WTH8735>`在一處`<WH04725>`，使旱地`<WH03004>`露`<WH07200><WTH8735>`出來。」事就這樣成了。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.6111,
+    "placement": 0.4444,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 18,
+     "total_model_tags": 11,
+     "missing": [
+      "<WAH08478>",
+      "<WAH01961>",
+      "<WH0259>",
+      "<WAH03651>",
+      "<WAH04480>",
+      "<WH0413>",
+      "<WTH8799>"
+     ],
+     "extra": [],
+     "misplaced": 10,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 11.5
+  },
+  {
+   "ref": "Gen 1:10",
+   "kjv_sn_count": 18,
+   "unv_sn_count": 17,
+   "diff": 1,
+   "model_output": "神<WH0430>稱<WH07121><WTH8799>旱地<WH03004>為「地<WH0776>」，稱<WH07121><WTH8804>水的聚處<WH04723>為「海<WH03220>」。　神<WH0430>看著<WH07200><WTH8799>是好的<WH02896>。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.7647,
+    "placement": 0.2353,
+    "format": 0.9412,
+    "details": {
+     "total_truth_tags": 17,
+     "total_model_tags": 13,
+     "missing": [
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WH04325>",
+      "{<WAH03588>}"
+     ],
+     "extra": [],
+     "misplaced": 13,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH03588"
+     ]
+    }
+   },
+   "time": 8.9
+  },
+  {
+   "ref": "Gen 1:11",
+   "kjv_sn_count": 26,
+   "unv_sn_count": 26,
+   "diff": 0,
+   "model_output": "神`<WH0430>`說`<WH0559><WTH8799>`：「地`<WH0776>`要發生`<WH01876><WTH8686>`青草`<WH01877>`和結`<WH02232><WTH8688>`種子`<WH02233>`的菜蔬`<WH06212>`，並結果子`<WH06529>`的樹木`<WH06086>`，各`<WH0834>`從其類`<WH04327>`，果子`<WH06529>`都包著核`<WH02233>`。」事就這樣成了。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.5769,
+    "placement": 0.4231,
+    "format": 0.8462,
+    "details": {
+     "total_truth_tags": 26,
+     "total_model_tags": 17,
+     "missing": [
+      "{<WAH09002>}",
+      "<WAH01961>",
+      "<WH06213>",
+      "<WAH09001>",
+      "{<WAH05921>}",
+      "<WTH8799>",
+      "{<WH0834>}",
+      "<WTH8802>",
+      "<WAH03651>",
+      "{<WH0776>}"
+     ],
+     "extra": [
+      "<WH0834>"
+     ],
+     "misplaced": 15,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WH0776",
+      "WH0834",
+      "WAH09002",
+      "WAH05921"
+     ]
+    }
+   },
+   "time": 7.9
+  },
+  {
+   "ref": "Gen 1:12",
+   "kjv_sn_count": 25,
+   "unv_sn_count": 24,
+   "diff": 1,
+   "model_output": "於是地<WH0776>發生<WH03318><WTH8686>了青草<WH01877>和結<WH02232><WTH8688>種子<WH02233>的菜蔬<WH06212>，各從其類<WH04327>；並結果子<WH06529>的樹木<WH06086>，各從其類<WH04327>；果子<WH06529>都包著核<WH02233>。　神<WH0430>看著<WH07200><WTH8799>是好的<WH02896>。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.6667,
+    "placement": 0.9167,
+    "format": 0.875,
+    "details": {
+     "total_truth_tags": 24,
+     "total_model_tags": 18,
+     "missing": [
+      "{<WAH09002>}",
+      "{<WAH0834>}",
+      "<WH06213>",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WTH8802>",
+      "{<WAH03588>}"
+     ],
+     "extra": [
+      "<WH06529>"
+     ],
+     "misplaced": 2,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH0834",
+      "WAH09002",
+      "WAH03588"
+     ]
+    }
+   },
+   "time": 17.4
+  },
+  {
+   "ref": "Gen 1:13",
+   "kjv_sn_count": 7,
+   "unv_sn_count": 8,
+   "diff": 1,
+   "model_output": "有晚上`<WH06153>`，有早晨`<WH01242>`，是第三`<WH07992>`日`<WH03117>`。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.5,
+    "placement": 0.5,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 8,
+     "total_model_tags": 4,
+     "missing": [
+      "<WAH01961>",
+      "<WAH01961>",
+      "<WTH8799>",
+      "<WTH8799>"
+     ],
+     "extra": [],
+     "misplaced": 4,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 10.7
+  },
+  {
+   "ref": "Gen 1:14",
+   "kjv_sn_count": 16,
+   "unv_sn_count": 25,
+   "diff": 9,
+   "model_output": "神<WH0430>說<WH0559><WTH8799>：「天上<WH08064>要有光體<WH03974>，可以分<WH0914><WTH8687>晝夜<WH03117><WH03915>，作記號<WH0226>，定節令<WH04150>、日子<WH03117>、年歲<WH08141>，",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.52,
+    "placement": 0.52,
+    "format": 0.88,
+    "details": {
+     "total_truth_tags": 25,
+     "total_model_tags": 13,
+     "missing": [
+      "<WAH01961>",
+      "{<WTH8804>}",
+      "{<WAH01961>}",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WAH09001>",
+      "{<WAH0996>}",
+      "{<WAH0996>}",
+      "<WAH09002>"
+     ],
+     "extra": [],
+     "misplaced": 12,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH0996",
+      "WAH01961",
+      "WTH8804"
+     ]
+    }
+   },
+   "time": 5.4
+  },
+  {
+   "ref": "Gen 1:15",
+   "kjv_sn_count": 6,
+   "unv_sn_count": 15,
+   "diff": 9,
+   "model_output": "並要發光`<WH03974>`在天空`<WH07549>`，普照`<WH0215><WTH8687>`在地上`<WH0776>`。」事就這樣成了。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.3333,
+    "placement": 0.6667,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 15,
+     "total_model_tags": 5,
+     "missing": [
+      "<WAH01961>",
+      "<WAH01961>",
+      "<WAH05921>",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WAH03651>",
+      "<WAH09002>",
+      "<WTH8804>",
+      "<WH08064>",
+      "<WTH8799>"
+     ],
+     "extra": [],
+     "misplaced": 5,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 3.4
+  },
+  {
+   "ref": "Gen 1:16",
+   "kjv_sn_count": 19,
+   "unv_sn_count": 21,
+   "diff": 2,
+   "model_output": "於是　神<WH0430>造了<WH06213><WTH8799>兩個<WH08147>大<WH01419>光<WH03974>，大<WH01419>的<WH03974>管<WH04475>晝<WH03117>，小<WH06996>的<WH03974>管<WH04475>夜<WH03915>，又造<WH06213>眾星<WH03556>，",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.4762,
+    "placement": 0.9048,
+    "format": 0.9048,
+    "details": {
+     "total_truth_tags": 21,
+     "total_model_tags": 16,
+     "missing": [
+      "{<WAH0853>}",
+      "{<WAH0853>}",
+      "{<WAH0853>}",
+      "{<WAH0853>}",
+      "{<WH03974>}",
+      "{<WH03974>}",
+      "<WAH09001>",
+      "<WAH09001>"
+     ],
+     "extra": [
+      "<WH06213>",
+      "<WH03974>",
+      "<WH03974>"
+     ],
+     "misplaced": 2,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH0853",
+      "WH03974"
+     ]
+    }
+   },
+   "time": 5.2
+  },
+  {
+   "ref": "Gen 1:17",
+   "kjv_sn_count": 8,
+   "unv_sn_count": 12,
+   "diff": 4,
+   "model_output": "就把這些光擺列`<WH05414><WTH8799>`在天空`<WH07549>`，普照`<WH0215><WTH8687>`在地上`<WH0776>`，",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.5,
+    "placement": 0.5,
+    "format": 0.9167,
+    "details": {
+     "total_truth_tags": 12,
+     "total_model_tags": 6,
+     "missing": [
+      "<WAH05921>",
+      "{<WAH0430>}",
+      "<WAH09001>",
+      "<WAH09002>",
+      "<WAH0853>",
+      "<WH08064>"
+     ],
+     "extra": [],
+     "misplaced": 6,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH0430"
+     ]
+    }
+   },
+   "time": 6.1
+  },
+  {
+   "ref": "Gen 1:18",
+   "kjv_sn_count": 14,
+   "unv_sn_count": 19,
+   "diff": 5,
+   "model_output": "管理<WH04910><WTH8800>晝<WH03117>夜<WH03915>，分別<WH0914><WTH8687>明<WH0216>暗<WH02822>。　神<WH0430>看著<WH07200><WTH8799>是好的<WH02896>。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.6316,
+    "placement": 1.0,
+    "format": 0.8947,
+    "details": {
+     "total_truth_tags": 19,
+     "total_model_tags": 12,
+     "missing": [
+      "<WAH09001>",
+      "<WAH09001>",
+      "{<WAH0996>}",
+      "{<WAH0996>}",
+      "<WAH09002>",
+      "<WAH09002>",
+      "{<WAH03588>}"
+     ],
+     "extra": [],
+     "misplaced": 0,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH0996",
+      "WAH03588"
+     ]
+    }
+   },
+   "time": 3.1
+  },
+  {
+   "ref": "Gen 1:19",
+   "kjv_sn_count": 7,
+   "unv_sn_count": 8,
+   "diff": 1,
+   "model_output": "有晚上`<WH06153>`，有早晨`<WH01242>`，是第四`<WH07243>`日`<WH03117>`。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.5,
+    "placement": 0.5,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 8,
+     "total_model_tags": 4,
+     "missing": [
+      "<WAH01961>",
+      "<WAH01961>",
+      "<WTH8799>",
+      "<WTH8799>"
+     ],
+     "extra": [],
+     "misplaced": 4,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 10.8
+  },
+  {
+   "ref": "Gen 1:20",
+   "kjv_sn_count": 27,
+   "unv_sn_count": 18,
+   "diff": 9,
+   "model_output": "神`<WH0430>`說`<WH0559><WTH8799>`：「水`<WH04325>`要多多滋生`<WH08317><WTH8799>`有`<WH05315>`生命`<WH02416>`的物`<WH08318>`；要有雀鳥`<WH05775>`飛`<WH05774><WTH8787>`在地面`<WH0776>`以上`<WH05921>`，天空`<WH07549>`之中`<WH08064>`。」",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.8889,
+    "placement": 0.1667,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 18,
+     "total_model_tags": 16,
+     "missing": [
+      "<WAH05921>",
+      "<WH06440>"
+     ],
+     "extra": [],
+     "misplaced": 15,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 5.4
+  },
+  {
+   "ref": "Gen 1:21",
+   "kjv_sn_count": 22,
+   "unv_sn_count": 29,
+   "diff": 7,
+   "model_output": "神<WH0430>就造出<WH01254><WTH8799>大<WH01419>魚<WH08577>和水中<WH04325>所滋生<WH08317><WTH8804>各樣有生命<WH02416>的動物<WH05315>，各從其類<WH04327>；又造出<WH01254><WTH8799>各樣飛<WH03671>鳥<WH05775>，各從其類<WH04327>。　神<WH0430>看著<WH07200><WTH8799>是好的<WH02896>。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.5517,
+    "placement": 0.4138,
+    "format": 0.931,
+    "details": {
+     "total_truth_tags": 29,
+     "total_model_tags": 20,
+     "missing": [
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WAH0834>",
+      "{<WAH0853>}",
+      "{<WAH0853>}",
+      "<WTH8802>",
+      "<WAH03605>",
+      "<WAH03605>",
+      "<WAH0853>",
+      "<WH07430>"
+     ],
+     "extra": [
+      "<WH01254>",
+      "<WTH8799>"
+     ],
+     "misplaced": 17,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH0853",
+      "WAH03588"
+     ]
+    }
+   },
+   "time": 6.3
+  },
+  {
+   "ref": "Gen 1:22",
+   "kjv_sn_count": 17,
+   "unv_sn_count": 22,
+   "diff": 5,
+   "model_output": "神<WH0430>就賜福<WH01288><WTH8762>給這一切，說<WH0559><WTH8800>：「滋生<WH06509><WTH8798>繁多<WH07235><WTH8798>，充滿<WH04390><WTH8798>海<WH03220>中的水<WH04325>；雀鳥<WH05775>也要多生<WH07235><WTH8799>在地上<WH0776>。」",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.7727,
+    "placement": 0.2273,
+    "format": 0.9545,
+    "details": {
+     "total_truth_tags": 22,
+     "total_model_tags": 17,
+     "missing": [
+      "{<WAH0853>}",
+      "{<WAH0853>}",
+      "<WAH09001>",
+      "<WAH09002>",
+      "<WAH09002>"
+     ],
+     "extra": [],
+     "misplaced": 17,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH0853"
+     ]
+    }
+   },
+   "time": 5.1
+  },
+  {
+   "ref": "Gen 1:23",
+   "kjv_sn_count": 7,
+   "unv_sn_count": 8,
+   "diff": 1,
+   "model_output": "有晚上`<WH06153>`，有早晨`<WH01242>`，是第五`<WH02549>`日`<WH03117>`。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.5,
+    "placement": 0.5,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 8,
+     "total_model_tags": 4,
+     "missing": [
+      "<WAH01961>",
+      "<WAH01961>",
+      "<WTH8799>",
+      "<WTH8799>"
+     ],
+     "extra": [],
+     "misplaced": 4,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 2.1
+  },
+  {
+   "ref": "Gen 1:24",
+   "kjv_sn_count": 14,
+   "unv_sn_count": 19,
+   "diff": 5,
+   "model_output": "神`<WH0430>`說`<WH0559><WTH8799>`：「地`<WH0776>`要生出`<WH03318><WTH8686>`活物`<WH02416>`來，各從其類`<WH04327>`；牲畜`<WH0929>`、昆蟲`<WH07431>`、野獸`<WH02416>`，各從其類`<WH04327>`。」事就這樣成了。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.6316,
+    "placement": 0.4211,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 19,
+     "total_model_tags": 12,
+     "missing": [
+      "<WAH01961>",
+      "<WH0776>",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WAH03651>",
+      "<WTH8799>",
+      "<WH05315>"
+     ],
+     "extra": [],
+     "misplaced": 11,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 75.9
+  },
+  {
+   "ref": "Gen 1:25",
+   "kjv_sn_count": 18,
+   "unv_sn_count": 23,
+   "diff": 5,
+   "model_output": "於是　神<WH0430>造出<WH06213><WTH8799>野獸<WH02416>，各從其類<WH04327>；牲畜<WH0929>，各從其類<WH04327>；地上<WH0776>一切昆蟲<WH07431>，各從其類<WH04327>。　神<WH0430>看著<WH07200><WTH8799>是好的<WH02896>。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.6087,
+    "placement": 0.9565,
+    "format": 0.913,
+    "details": {
+     "total_truth_tags": 23,
+     "total_model_tags": 14,
+     "missing": [
+      "{<WAH0853>}",
+      "{<WAH0853>}",
+      "{<WAH0853>}",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WH0127>",
+      "{<WAH03588>}",
+      "<WAH03605>"
+     ],
+     "extra": [],
+     "misplaced": 1,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH0853",
+      "WAH03588"
+     ]
+    }
+   },
+   "time": 21.2
+  },
+  {
+   "ref": "Gen 1:26",
+   "kjv_sn_count": 20,
+   "unv_sn_count": 30,
+   "diff": 10,
+   "model_output": "神<WH0430>說<WH0559><WTH8799>：「我們要照著我們的形像<WH06754>、按著我們的樣式<WH01823>造<WH06213><WTH8799>人<WH0120>，使他們管理<WH07287><WTH8799>海<WH03220>裡的魚<WH01710>、空中<WH08064>的鳥<WH05775>、地上<WH0776>的牲畜<WH0929>，和全地<WH0776>，並地上<WH0776>所爬<WH07430><WTH8802>的一切昆蟲<WH07431>。」",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.6333,
+    "placement": 0.3667,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 30,
+     "total_model_tags": 21,
+     "missing": [
+      "<WAH09003>",
+      "<WAH05921>",
+      "<WAH03605>",
+      "<WAH03605>",
+      "<WAH09002>",
+      "<WAH09002>",
+      "<WAH09002>",
+      "<WAH09002>",
+      "<WAH09002>",
+      "<WAH09002>"
+     ],
+     "extra": [
+      "<WH0776>"
+     ],
+     "misplaced": 19,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 7.9
+  },
+  {
+   "ref": "Gen 1:27",
+   "kjv_sn_count": 15,
+   "unv_sn_count": 18,
+   "diff": 3,
+   "model_output": "神<WH0430>就照著自己的形像<WH06754>造<WH01254><WTH8804>人<WH0120>，乃是照著他的形像<WH06754>造<WH01254><WTH8804>男<WH02145>造<WH01254><WTH8804>女<WH05347>。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.5556,
+    "placement": 0.3889,
+    "format": 0.9444,
+    "details": {
+     "total_truth_tags": 18,
+     "total_model_tags": 12,
+     "missing": [
+      "{<WAH0853>}",
+      "{<WAH0853>}",
+      "{<WAH0853>}",
+      "<WH0430>",
+      "<WAH09002>",
+      "<WAH09002>",
+      "<WTH8799>"
+     ],
+     "extra": [
+      "<WTH8804>"
+     ],
+     "misplaced": 11,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH0853"
+     ]
+    }
+   },
+   "time": 4.3
+  },
+  {
+   "ref": "Gen 1:28",
+   "kjv_sn_count": 28,
+   "unv_sn_count": 33,
+   "diff": 5,
+   "model_output": "神<WH0430>就賜福<WH01288><WTH8762>給他們，又對他們說<WH0559><WTH8799>：「要生養<WH06509><WTH8798>眾多<WH07235><WTH8798>，遍滿<WH04390><WTH8798>地面<WH0776>，治理<WH03533><WTH8798>這地<WH0776>，也要管理<WH07287><WTH8798>海裡的魚<WH01710>、空中的鳥<WH05775>，和地上各樣行動<WH07430><WTH8802>的活物<WH02416>。」",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.6667,
+    "placement": 0.3333,
+    "format": 0.9394,
+    "details": {
+     "total_truth_tags": 33,
+     "total_model_tags": 22,
+     "missing": [
+      "<WH03220>",
+      "{<WH0430>}",
+      "<WAH09001>",
+      "<WH08064>",
+      "{<WAH0853>}",
+      "<WAH05921>",
+      "<WAH03605>",
+      "<WAH09002>",
+      "<WAH09002>",
+      "<WAH09002>"
+     ],
+     "extra": [],
+     "misplaced": 22,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH0853",
+      "WH0430"
+     ]
+    }
+   },
+   "time": 35.5
+  },
+  {
+   "ref": "Gen 1:29",
+   "kjv_sn_count": 29,
+   "unv_sn_count": 31,
+   "diff": 2,
+   "model_output": "神<WH0430>說<WH0559><WTH8799>：「看哪<WH02009>，我將遍地上一切結<WH02232><WTH8802>種子<WH02233>的菜蔬<WH06212>和一切樹<WH06086>上所結有核<WH02232><WTH8802>的果子<WH06529>全賜<WH05414><WTH8804>給你們作食物<WH0402>。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.4839,
+    "placement": 0.5161,
+    "format": 0.9677,
+    "details": {
+     "total_truth_tags": 31,
+     "total_model_tags": 15,
+     "missing": [
+      "{<WAH0834>}",
+      "<WH0776>",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WAH0834>",
+      "<WTH8799>",
+      "<WH02233>",
+      "<WAH05921>",
+      "<WAH03605>",
+      "<WAH03605>"
+     ],
+     "extra": [],
+     "misplaced": 15,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH0834"
+     ]
+    }
+   },
+   "time": 5.1
+  },
+  {
+   "ref": "Gen 1:30",
+   "kjv_sn_count": 19,
+   "unv_sn_count": 27,
+   "diff": 8,
+   "model_output": "至於地上的<WH0776>走獸<WH02416>和空中的<WH08064>飛鳥<WH05775>，並各樣爬<WH07430><WTH8802>在地上有<WH02416><WH05315>生命的物，我將青<WH03418>草<WH06212>賜給牠們作食物<WH0402>。」事就這樣成了。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.4074,
+    "placement": 0.8519,
+    "format": 0.8519,
+    "details": {
+     "total_truth_tags": 27,
+     "total_model_tags": 11,
+     "missing": [
+      "{<WAH09002>}",
+      "<WAH01961>",
+      "{<WAH09001>}",
+      "{<WAH09001>}",
+      "<WAH05921>",
+      "{<WAH0834>}",
+      "<WH0776>",
+      "<WAH09001>",
+      "<WAH09001>",
+      "{<WAH03605>}"
+     ],
+     "extra": [],
+     "misplaced": 4,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH0834",
+      "WAH03605",
+      "WAH09001",
+      "WAH09002"
+     ]
+    }
+   },
+   "time": 6.2
+  },
+  {
+   "ref": "Gen 1:31",
+   "kjv_sn_count": 17,
+   "unv_sn_count": 19,
+   "diff": 2,
+   "model_output": "神<WH0430>看著<WH07200><WTH8799>一切<WH0834>所造<WH06213><WTH8804>的都甚<WH03966>好<WH02896>。有晚上<WH06153>，有早晨<WH01242>，是第六<WH08345>日<WH03117>。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.5263,
+    "placement": 0.4211,
+    "format": 0.8947,
+    "details": {
+     "total_truth_tags": 19,
+     "total_model_tags": 12,
+     "missing": [
+      "{<WAH0853>}",
+      "{<WAH02009>}",
+      "<WAH01961>",
+      "<WAH01961>",
+      "<WAH0834>",
+      "<WAH03605>",
+      "<WTH8799>",
+      "<WTH8799>"
+     ],
+     "extra": [
+      "<WH0834>"
+     ],
+     "misplaced": 11,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH02009",
+      "WAH0853"
+     ]
+    }
+   },
+   "time": 18.9
+  }
+ ]
+}
