@@ -457,3 +457,6 @@ Sonnet 跑 dim #1 (32 candidates × 8 opponents = 256 calls, 33min). 結果: 262
 
 ### 67b. [2026-03-27 ~01:30] Survey5 輔助任務實作 — --reverse: UNV plain + UNV+SN + KJV → KJV+SN
 在 run_survey5.py 加入 --reverse flag, 實作輔助任務 (UNV+SN → KJV+SN). build_reverse_prompt() 獨立函數, 以 FHL KJV+SN 為 ground truth 評分. 新增 prompts/survey5_reverse_v0.1.md (含 Annotation Projection framing, 英文輸出規則). meta.task 區分 survey5_kjv_to_unv / survey5_unv_to_kjv. 兩方向 dry-run 驗證通過.
+
+### 67c. [2026-03-27 ~02:00] run_logs/ 統一命名格式決定
+Survey4 格式 (rr_dim1_qwen_20260326_000712.log) 與 survey5 格式 (v0.1_gen1.log) 不一致. 決定統一為: {task}_{scope}_{model}_{prompt}_{YYYYMMDD_HHMMSS}.{ext}. 範例: fwd_gen1_ds671b_v0.1_20260327_000000.log (survey5 正向), rev_gen1_ds671b_v0.1_20260327_000000.log (反向), rr_dim1_qwen_v0.1_20260326_000712.log (survey4). task=fwd/rev/rr, scope=gen1/dim1 等, model=短名 (ds671b/qwen/sonnet), prompt=v0.1/v0.2. 待實作: 重新命名現有檔案 + run_survey5.py 自動生成 --out, 並記錄於 survey5/CLAUDE.md.
