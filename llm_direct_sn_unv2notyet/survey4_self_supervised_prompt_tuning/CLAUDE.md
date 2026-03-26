@@ -184,6 +184,25 @@ qwen3:32b    → qwen3 最佳 prompt
 | 25 | 共用 | FHL 資料異常 (6+ 位數 SN) | 2 | 0 |
 | 26 | NT | 字母後綴 SN (variant lemma) | 0 | 183 |
 
+### Random Seed Convention
+
+所有 survey4 腳本的 `--seed` 預設為 **42**。
+
+**用途**：控制 pairs 取樣的隨機順序。同一個 `--seed` + `--dim` + `--verse-pair-count` 組合永遠產出相同的 pairs，確保不同模型、不同天的跑分結果可以公平合併比較。
+
+**首次採用**：`sample_test_set.py` 建立時（2026-03-24），之後統一套用到 `dmfs_select.py`、`run_benchmark.py`、`compare_models.py`、`round_robin.py`。
+
+**42 的來源**：程式慣例（源自 Douglas Adams《乘客一把銀河指南》中「生命、宇宙及一切的終極答案」= 42），無特殊數學意義，僅作為固定錨點。
+
+**使用的腳本**：
+- `sample_test_set.py --seed 42`
+- `dmfs_select.py --seed 42`
+- `run_benchmark.py --seed 42`
+- `compare_models.py --seed 42`
+- `round_robin.py`（內部 `random.seed(42 + i)` per round）
+
+**合併規則**：不同天跑的結果，只要 `--seed`、`--dim`、`--verse-pair-count` 三者相同，就能用 `compare_models.py --merge day1.json day2.json` 合併排名。
+
 ### Data Files & Tools
 
 | 檔案 | 用途 | 備註 |
