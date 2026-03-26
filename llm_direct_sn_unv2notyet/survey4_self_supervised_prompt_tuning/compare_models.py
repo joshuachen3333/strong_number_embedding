@@ -36,6 +36,11 @@ Usage:
 
     # Merge results from different days (same --dim --seed --verse-pair-count)
     python3 compare_models.py --merge day1.json day2.json --out merged.json
+
+    # Tournament mode: multi-round auto-elimination
+    python3 compare_models.py --tournament --auto-discover \
+        --ollama-url http://localhost:11434 --dim 1 \
+        --out tournament_result.json
 """
 
 import argparse
@@ -62,6 +67,30 @@ DEFAULT_LIBRARY = os.path.join(SCRIPT_DIR, "exemplar_library.json")
 DEFAULT_PROMPT_FILE = os.path.join(SCRIPT_DIR, "prompts", "survey4_v0.1.md")
 
 CLAUDE_MODELS = {"haiku", "sonnet", "opus"}
+
+# Size tier grouping for tournament mode
+SIZE_TIERS = {
+    "1-2B": ["llama3.2:1b", "smollm2:1.7b"],
+    "3-4B": ["llama3.2:3b", "phi4-mini:3.8b", "ministral-3:3b", "qwen3:4b", "gemma3:4b"],
+    "7-8B": ["mistral:7b", "deepseek-r1:7b", "aya:8b", "llama3.1:8b", "qwen3:8b", "ministral-3:8b"],
+    "12-14B": ["mistral-nemo:12b", "gemma3:12b", "ministral-3:14b", "phi4:14b", "deepseek-r1:14b", "qwen3:14b"],
+    "30-35B": ["qwen3:30b", "qwen3:32b", "aya:35b"],
+    "70B+": ["llama3.3:70b", "qwen2.5:72b"],
+    "cloud": ["deepseek-v3.1:671b-cloud", "devstral-2:123b-cloud"],
+}
+
+
+def get_tier(model):
+    """Get size tier for a model."""
+    for tier, models in SIZE_TIERS.items():
+        if model in models:
+            return tier
+    # Guess by name
+    for tier, models in SIZE_TIERS.items():
+        for m in models:
+            if model.split(":")[0] == m.split(":")[0]:
+                return tier
+    return "unknown"
 
 
 def detect_brand(model, ollama_url):
@@ -260,6 +289,164 @@ def print_comparison_table(results, source_label, n_pairs):
     print()
 
 
+def run_tournament(models, ollama_url, dim, system_prompt, seed,
+                   initial_pairs=3, error_budget=5, max_pairs=50):
+    """Multi-round tournament with condition-driven elimination.
+
+    Returns (survivors, eliminated, all_round_results).
+    """
+    # Group models by tier
+    tier_models = {}
+    for model in models:
+        tier = get_tier(model)
+        tier_models.setdefault(tier, []).append(model)
+
+    print(f"\n{'='*70}")
+    print(f"  TOURNAMENT — {len(models)} models in {len(tier_models)} tiers")
+    print(f"{'='*70}")
+    for tier in sorted(tier_models.keys()):
+        print(f"  {tier}: {tier_models[tier]}")
+    print()
+
+    active_models = list(models)
+    eliminated = []  # (model, tier, round, reason, best_cov)
+    all_round_results = []
+    n_pairs = initial_pairs
+    round_num = 0
+    prev_scores = {}
+
+    while active_models and n_pairs <= max_pairs:
+        round_num += 1
+        print(f"\n{'─'*70}")
+        print(f"  ROUND {round_num}: {len(active_models)} models × {n_pairs} pairs")
+        print(f"{'─'*70}")
+
+        # Build pairs
+        pairs, source_label = build_pairs_from_dim(dim, DEFAULT_LIBRARY, n_pairs, seed)
+        verse_cache = build_verse_cache(pairs)
+
+        # Run all active models
+        round_results = {}
+        for model in active_models:
+            brand = detect_brand(model, ollama_url)
+            result = run_one_model(
+                model, brand, ollama_url,
+                pairs, verse_cache, system_prompt, error_budget)
+            if result:
+                round_results[model] = result
+            else:
+                tier = get_tier(model)
+                eliminated.append((model, tier, round_num, "no valid scores", 0))
+
+        all_round_results.append({
+            "round": round_num,
+            "pairs": n_pairs,
+            "results": list(round_results.values()),
+        })
+
+        # Elimination within each tier
+        new_active = []
+        all_decided = True
+
+        for tier in sorted(tier_models.keys()):
+            tier_active = [m for m in tier_models[tier] if m in round_results]
+            if not tier_active:
+                continue
+
+            tier_scores = [(m, round_results[m]["coverage"]) for m in tier_active]
+            tier_scores.sort(key=lambda x: -x[1])
+            best_model, best_cov = tier_scores[0]
+
+            print(f"\n  Tier {tier}:")
+            for m, cov in tier_scores:
+                print(f"    {m:<30s} cov={cov:.3f}")
+
+            # Rule: entire tier too weak
+            if best_cov < 0.05:
+                print(f"    → TIER ELIMINATED (best cov={best_cov:.3f} < 0.05)")
+                for m, cov in tier_scores:
+                    eliminated.append((m, tier, round_num, "tier too weak", cov))
+                continue
+
+            # Rule: eliminate bottom (> 50% behind tier best)
+            for m, cov in tier_scores:
+                if best_cov > 0 and cov < best_cov * 0.5:
+                    print(f"    → {m} ELIMINATED (cov={cov:.3f} < 50% of best)")
+                    eliminated.append((m, tier, round_num, "bottom 50%", cov))
+                else:
+                    new_active.append(m)
+
+            # Check if tier is decided
+            tier_survivors = [m for m in new_active if get_tier(m) == tier]
+            if len(tier_survivors) > 1:
+                top_cov = max(round_results[m]["coverage"] for m in tier_survivors)
+                second_cov = sorted(
+                    [round_results[m]["coverage"] for m in tier_survivors],
+                    reverse=True)[1]
+                gap = (top_cov - second_cov) / top_cov if top_cov > 0 else 0
+
+                if gap > 0.10:
+                    print(f"    → Gap {gap:.0%} > 10%: tier DECIDED")
+                else:
+                    print(f"    → Gap {gap:.0%} ≤ 10%: need more pairs")
+                    all_decided = False
+
+                # Check stability (compare with previous round)
+                if round_num > 1:
+                    stable = True
+                    for m in tier_survivors:
+                        if m in prev_scores:
+                            change = abs(round_results[m]["coverage"] - prev_scores[m])
+                            if change > 0.02:
+                                stable = False
+                    if stable:
+                        print(f"    → Scores stable (change < 2%): tier DECIDED")
+
+        active_models = new_active
+        prev_scores = {m: round_results[m]["coverage"] for m in round_results}
+
+        # Check global stop
+        if all_decided:
+            print(f"\n  All tiers decided. Tournament complete.")
+            break
+
+        # Double pairs for next round
+        n_pairs = min(n_pairs * 2, max_pairs)
+        if n_pairs >= max_pairs:
+            print(f"\n  Max pairs ({max_pairs}) reached. Tournament complete.")
+            break
+
+    # Final summary
+    survivors = []
+    if active_models and round_results:
+        for model in active_models:
+            if model in round_results:
+                r = round_results[model]
+                r["tier"] = get_tier(model)
+                survivors.append(r)
+
+    print(f"\n{'='*70}")
+    print(f"  TOURNAMENT RESULTS")
+    print(f"{'='*70}")
+
+    if survivors:
+        survivors.sort(key=lambda r: (-r["coverage"], r["sec_per_verse"]))
+        print(f"\n  SURVIVORS ({len(survivors)}):")
+        print(f"  {'Model':<30} {'Tier':<8} {'Cov':>6} {'Exact':>6} {'s/v':>5}")
+        print(f"  {'─'*30} {'─'*8} {'─'*6} {'─'*6} {'─'*5}")
+        for r in survivors:
+            print(f"  {r['model']:<30} {r['tier']:<8} "
+                  f"{r['coverage']:6.3f} {r['exact']*100:5.1f}% "
+                  f"{r['sec_per_verse']:5.1f}")
+
+    if eliminated:
+        print(f"\n  ELIMINATED ({len(eliminated)}):")
+        for m, tier, rnd, reason, cov in eliminated:
+            print(f"    R{rnd} {m:<30} {tier:<8} cov={cov:.3f}  ({reason})")
+
+    return survivors, eliminated, all_round_results
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Compare multiple models on the survey4 SN annotation benchmark")
@@ -287,6 +474,8 @@ def main():
     # Behaviour
     parser.add_argument("--error-budget", type=int, default=5,
                         help="Max errors before skipping a model (default: 5)")
+    parser.add_argument("--tournament", action="store_true",
+                        help="Multi-round tournament with auto-elimination")
     parser.add_argument("--out", default=None)
     # Merge mode
     parser.add_argument("--merge", nargs="+", default=None,
@@ -341,6 +530,46 @@ def main():
     if not models:
         print("Error: provide --models or --auto-discover with --ollama-url")
         sys.exit(1)
+
+    # ── Tournament mode ──
+    if args.tournament:
+        if args.dim is None:
+            args.dim = 1  # default dim for tournament
+        # Load prompt
+        if args.prompt:
+            system_prompt = load_prompt(args.prompt)
+        elif os.path.exists(DEFAULT_PROMPT_FILE):
+            system_prompt = load_prompt(DEFAULT_PROMPT_FILE)
+        else:
+            system_prompt = DEFAULT_PROMPT
+
+        initial = args.verse_pair_count or 3
+        survivors, elim, rounds = run_tournament(
+            models, args.ollama_url, args.dim, system_prompt,
+            args.seed, initial_pairs=initial, error_budget=args.error_budget)
+
+        if args.out:
+            output = {
+                "meta": {
+                    "mode": "tournament",
+                    "dim": args.dim,
+                    "seed": args.seed,
+                    "initial_pairs": initial,
+                    "total_rounds": len(rounds),
+                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                },
+                "survivors": survivors,
+                "eliminated": [
+                    {"model": m, "tier": t, "round": r, "reason": reason, "cov": cov}
+                    for m, t, r, reason, cov in elim
+                ],
+                "rounds": rounds,
+            }
+            out_path = os.path.join(SCRIPT_DIR, args.out) if not os.path.isabs(args.out) else args.out
+            with open(out_path, "w", encoding="utf-8") as f:
+                json.dump(output, f, ensure_ascii=False, indent=1)
+            print(f"\nSaved to {out_path}")
+        return
 
     # Build pairs
     if args.dim is not None:

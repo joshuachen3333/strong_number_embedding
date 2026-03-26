@@ -486,6 +486,77 @@ python3 dmfs_select.py --test-set test_set_10pct.json --strategy superset --same
 }
 ```
 
+### compare_models.py — 模型海選淘汰賽
+
+**目的**：從 20+ 個 ollama 模型中，用最少 API calls 選出最適合 survey4 任務的模型。
+
+**分組**（按參數量級距）：
+
+| 級距 | 代表模型 |
+|------|---------|
+| 1-2B | llama3.2:1b, smollm2:1.7b |
+| 3-4B | qwen3:4b, gemma3:4b, phi4-mini:3.8b |
+| 7-8B | qwen3:8b, llama3.1:8b, mistral:7b |
+| 12-14B | gemma3:12b, qwen3:14b, phi4:14b |
+| 30-35B | qwen3:32b, aya:35b |
+| 70B+ | llama3.3:70b, qwen2.5:72b |
+| cloud | deepseek-v3.1:671b-cloud, devstral-2:123b-cloud |
+
+**淘汰規則 — 條件驅動，不寫死輪數**：
+
+```
+Round 1: 全部模型 × 3 pairs（快篩）
+  → 組內排名
+  → 整組最佳 cov < 0.05 → 整組剔除（記錄到淘汰名單）
+  → 組內吊車尾（落後組內最佳 > 50%）→ 淘汰
+
+Round 2+: 存活者 × pairs 加倍（上輪的 2 倍）
+  → 組內差距 > 10% → 直接決出冠軍，不用下一輪
+  → 組內差距 ≤ 10% → 加倍 pairs 再跑一輪
+  → 分數穩定不再變化 → 停止
+
+最終: 每個存活組至少保留 1 個首選
+      前 3 差距 ≤ 10% → 都保留
+```
+
+**停止條件**：
+1. 組內差距 > 10% → 該組決出，不再加輪
+2. 連續兩輪分數變化 < 2% → 穩定，停止
+3. pairs 達到 50 → 上限，強制停止
+
+**最終輸出**：
+
+```
+存活模型（每組至少 1 個）:
+  4B 冠軍:   qwen3:4b     cov=0.30  5s/v   ← 最快最便宜
+  14B 冠軍:  gemma3:12b   cov=0.55  15s/v  ← 甜蜜點
+  32B 冠軍:  qwen3:32b    cov=0.65  45s/v  ← 高品質
+  cloud 冠軍: deepseek-671b cov=0.80  90s/v ← 天花板
+
+淘汰紀錄:
+  1-2B 組: 全軍覆沒 (best cov=0.05)，整組剔除
+  7-8B 組: qwen3:8b 留，其餘淘汰
+```
+
+**耗時→性價比權衡**：最終表格附帶 `s/v`（秒/節），讓使用者在品質和速度之間選擇。
+
+**合併不同天的結果**：
+
+```bash
+# 今天跑 6 個
+python3 compare_models.py --dim 1 --verse-pair-count 3 --seed 42 \
+  --models model1 model2 ... --out day1.json
+
+# 明天新模型下載完，補跑同組 pairs
+python3 compare_models.py --dim 1 --verse-pair-count 3 --seed 42 \
+  --models new_model --out day2.json
+
+# 合併排名
+python3 compare_models.py --merge day1.json day2.json --out merged.json
+```
+
+關鍵：`--seed 42 --dim 1 --verse-pair-count 3` 三者相同 → 同一組 pairs → 公平合併。
+
 ### auto_score.py
 
 4 項評分指標：
