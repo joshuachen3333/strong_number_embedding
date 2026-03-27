@@ -5,12 +5,19 @@
   Original text and SN:word dict are fetched from FHL qp.php.
   Scored against FHL UNV+SN ground truth.
 
+Two-pass mode (--two-pass):
+  Pass 1: S5-style (KJV plain + KJV+SN + UNV plain → UNV+SN draft) — strong coverage
+  Pass 2: Refine (draft + Original + SN:word dict + KJV+SN → UNV+SN) — fix placement
+
 Usage:
     # Gen 1:1
     python3 run_survey6.py --book 創 --chap 1 --sec 1 --model sonnet
 
     # Full chapter
     python3 run_survey6.py --book 創 --chap 1 --model sonnet
+
+    # Two-pass mode
+    python3 run_survey6.py --book 創 --chap 1 --model sonnet --two-pass
 
     # Ollama
     python3 run_survey6.py --book 創 --chap 1 \\
@@ -64,6 +71,11 @@ from analyze_test_dimensions import extract_tags
 from run_benchmark import (call_ollama, call_claude_cli, call_gemini_cli)
 
 DEFAULT_PROMPT_FILE = os.path.join(SCRIPT_DIR, "prompts", "survey6_v0.1.md")
+DEFAULT_REFINE_PROMPT_FILE = os.path.join(SCRIPT_DIR, "prompts", "survey6_refine_v0.1.md")
+
+# S5 prompt for two-pass Pass 1
+S5_DIR = os.path.join(PARENT_DIR, "survey5_bilingual_sn_benchmark")
+DEFAULT_S5_PROMPT_FILE = os.path.join(S5_DIR, "prompts", "survey5_v0.2.md")
 
 FHL_QP_API = "https://bible.fhl.net/json/qp.php"
 
@@ -253,6 +265,47 @@ Using the KJV annotation pair, the SN:word dictionary, and the tag inventory abo
     return system_prompt, user
 
 
+def build_pass1_prompt(system_prompt, kjv_plain, kjv_sn, unv_plain, book_eng, chap, sec):
+    """Pass 1 (S5-style): KJV plain + KJV+SN + UNV plain → UNV+SN draft."""
+    user = f"""Here is {book_eng} {chap}:{sec} in KJV (plain, no tags):
+
+{kjv_plain}
+
+Here is the same verse in KJV with Strong's Number annotations:
+
+{kjv_sn}
+
+Here is the same verse in UNV (和合本), plain, no annotations:
+
+{unv_plain}
+
+Using the KJV annotation pair above as your reference, insert the Strong's Number tags into the correct positions in the UNV text. Output only the annotated UNV text."""
+    return system_prompt, user
+
+
+def build_refine_prompt(system_prompt, draft, orig_text, sn_word_dict, kjv_sn,
+                        book_eng, chap, sec):
+    """Pass 2 (refine): UNV+SN draft + Original + dict + KJV+SN → corrected UNV+SN."""
+    user = f"""Here is a draft of {book_eng} {chap}:{sec} in UNV (和合本) with SN tags already inserted (some may be misplaced):
+
+{draft}
+
+Here is the same verse in the original language (Hebrew/Greek):
+
+{orig_text}
+
+Strong's Number to original word dictionary (tells you which original word each SN represents):
+
+{sn_word_dict}
+
+Here is the same verse in KJV with Strong's Number annotations (for cross-reference):
+
+{kjv_sn}
+
+Correct the placement of SN tags in the draft. Move any misplaced tags to their correct positions. Do NOT remove or add any tags — only reposition them. Output only the corrected UNV text with tags."""
+    return system_prompt, user
+
+
 def print_summary(results, book_eng, model, t0):
     scored = [r for r in results if "score" in r]
     if not scored:
@@ -283,6 +336,8 @@ def main():
     parser.add_argument("--ollama-url", default=None)
     parser.add_argument("--prompt", default=None,
                         help="Override system prompt file")
+    parser.add_argument("--single-pass", action="store_true",
+                        help="Single-pass mode (S6 v0.1 style). Default is two-pass.")
     parser.add_argument("--match-only", action="store_true",
                         help="Only run verses where KJV SN count = UNV SN count")
     parser.add_argument("--max-diff", type=int, default=None,
@@ -291,25 +346,45 @@ def main():
     parser.add_argument("--out", nargs="?", const="", default=None,
                         help="Save results JSON. No value = auto-generate filename.")
     args = parser.parse_args()
+    two_pass = not args.single_pass
 
     book_chi = args.book
     book_eng = CHI_TO_ENG.get(book_chi, book_chi)
     brand = detect_brand(args.model, args.ollama_url)
 
-    prompt_file = args.prompt if args.prompt else DEFAULT_PROMPT_FILE
-    if os.path.exists(prompt_file):
-        system_prompt = load_prompt(prompt_file)
-    else:
-        system_prompt = "Transfer Strong's Number tags from KJV to UNV using the original language dictionary."
-        prompt_file = None
+    if two_pass:
+        # Pass 1: S5 prompt, Pass 2: refine prompt
+        s5_prompt_file = args.prompt if args.prompt else DEFAULT_S5_PROMPT_FILE
+        if os.path.exists(s5_prompt_file):
+            pass1_prompt = load_prompt(s5_prompt_file)
+        else:
+            pass1_prompt = "Transfer Strong's Number tags from KJV to UNV."
+            s5_prompt_file = None
 
-    pver = prompt_version(prompt_file) if prompt_file else "vunk"
+        refine_prompt_file = DEFAULT_REFINE_PROMPT_FILE
+        if os.path.exists(refine_prompt_file):
+            pass2_prompt = load_prompt(refine_prompt_file)
+        else:
+            pass2_prompt = "Correct SN tag placement using original language reference."
+
+        pver = "2pass"
+        prompt_file = s5_prompt_file  # for header display
+        system_prompt = pass1_prompt  # for header display
+    else:
+        prompt_file = args.prompt if args.prompt else DEFAULT_PROMPT_FILE
+        if os.path.exists(prompt_file):
+            system_prompt = load_prompt(prompt_file)
+        else:
+            system_prompt = "Transfer Strong's Number tags from KJV to UNV using the original language dictionary."
+            prompt_file = None
+
+        pver = prompt_version(prompt_file) if prompt_file else "vunk"
 
     # Start tee logging if --out requested
     tee = None
     json_path = None
     if args.out is not None and not args.dry_run:
-        json_path = make_out_path("s6fwd", book_eng, args.chap, args.model, pver, "json") \
+        json_path = make_out_path("s6-2p" if two_pass else "s6fwd", book_eng, args.chap, args.model, pver, "json") \
             if args.out == "" else \
             (os.path.join(SCRIPT_DIR, args.out) if not os.path.isabs(args.out) else args.out)
         log_path = re.sub(r'\.json$', '.log', json_path)
@@ -336,10 +411,15 @@ def main():
     else:
         chapters = [int(args.chap)]
 
-    print(f"Survey6: KJV+Orig+Dict → UNV (主任務)")
+    mode_label = "Two-pass (S5→Refine)" if two_pass else "Single-pass (S6)"
+    print(f"Survey6: {mode_label}")
     print(f"Book: {book_eng} ({book_chi})  OT={'Yes' if is_ot_book(book_eng) else 'No'}")
     print(f"Model: {args.model} ({brand})")
-    print(f"Prompt: {len(system_prompt)} chars")
+    if two_pass:
+        print(f"Pass 1 prompt: {len(pass1_prompt)} chars (S5)")
+        print(f"Pass 2 prompt: {len(pass2_prompt)} chars (refine)")
+    else:
+        print(f"Prompt: {len(system_prompt)} chars")
     print()
 
     results = []
@@ -393,43 +473,98 @@ def main():
                 print(f"  Orig:   {orig_text[:80]}...")
                 print(f"  KJV+SN: {kjv_sn[:80]}...")
                 print(f"  Dict:   {sn_word_dict[:120]}...")
-                print(f"  Inv:    {tag_inventory[:120]}...")
                 print(f"  UNV:    {unv_plain[:80]}...")
+                if two_pass:
+                    print(f"  Mode:   two-pass (S5 → refine)")
                 continue
-
-            sys_p, user_p = build_survey6_prompt(
-                system_prompt, kjv_plain, orig_text, kjv_sn,
-                sn_word_dict, tag_inventory, unv_plain, book_eng, chap, sec)
 
             t_call = time.time()
             try:
-                output = call_model(args.model, brand, args.ollama_url, sys_p, user_p)
-                dt = time.time() - t_call
-                dt_str = f"{int(dt)//60}m{int(dt)%60:02d}s"
+                if two_pass:
+                    # Pass 1: S5-style (good coverage)
+                    sys_p1, user_p1 = build_pass1_prompt(
+                        pass1_prompt, kjv_plain, kjv_sn, unv_plain,
+                        book_eng, chap, sec)
+                    draft = call_model(args.model, brand, args.ollama_url,
+                                       sys_p1, user_p1)
 
-                if dt < 5 and (not output or len(output.strip()) < 10):
-                    print(f"  {ref:15s} ⚠ RATE LIMITED ({dt_str})")
-                    continue
+                    if not draft or len(draft.strip()) < 10:
+                        dt = time.time() - t_call
+                        print(f"  {ref:15s} ⚠ Pass 1 empty ({int(dt)}s)")
+                        continue
 
-                score = score_verse(output, unv_sn)
+                    p1_score = score_verse(draft, unv_sn)
 
-                print(f"  {ref:15s} cov={score['coverage']:.2f} "
-                      f"place={score['placement']:.2f} "
-                      f"fmt={score['format']:.2f} "
-                      f"exact={score['exact_match']}  "
-                      f"KJV={kjv_count} UNV={unv_count} diff={diff}  "
-                      f"({dt_str})")
+                    # Pass 2: Refine placement with original text
+                    sys_p2, user_p2 = build_refine_prompt(
+                        pass2_prompt, draft, orig_text, sn_word_dict,
+                        kjv_sn, book_eng, chap, sec)
+                    output = call_model(args.model, brand, args.ollama_url,
+                                        sys_p2, user_p2)
 
-                results.append({
-                    "ref": ref,
-                    "kjv_sn_count": kjv_count,
-                    "unv_sn_count": unv_count,
-                    "diff": diff,
-                    "qp_word_count": len(qp_records),
-                    "model_output": output,
-                    "score": score,
-                    "time": round(dt, 1),
-                })
+                    if not output or len(output.strip()) < 10:
+                        # Fall back to pass 1 draft
+                        output = draft
+
+                    dt = time.time() - t_call
+                    dt_str = f"{int(dt)//60}m{int(dt)%60:02d}s"
+
+                    score = score_verse(output, unv_sn)
+
+                    # Show both passes
+                    print(f"  {ref:15s} "
+                          f"P1 c={p1_score['coverage']:.2f}/p={p1_score['placement']:.2f}  "
+                          f"P2 c={score['coverage']:.2f}/p={score['placement']:.2f}  "
+                          f"fmt={score['format']:.2f}  "
+                          f"KJV={kjv_count} UNV={unv_count} diff={diff}  "
+                          f"({dt_str})")
+
+                    results.append({
+                        "ref": ref,
+                        "kjv_sn_count": kjv_count,
+                        "unv_sn_count": unv_count,
+                        "diff": diff,
+                        "qp_word_count": len(qp_records),
+                        "pass1_output": draft,
+                        "pass1_score": p1_score,
+                        "model_output": output,
+                        "score": score,
+                        "time": round(dt, 1),
+                    })
+                else:
+                    # Single-pass (original S6 v0.1 style)
+                    sys_p, user_p = build_survey6_prompt(
+                        system_prompt, kjv_plain, orig_text, kjv_sn,
+                        sn_word_dict, tag_inventory, unv_plain,
+                        book_eng, chap, sec)
+                    output = call_model(args.model, brand, args.ollama_url,
+                                        sys_p, user_p)
+                    dt = time.time() - t_call
+                    dt_str = f"{int(dt)//60}m{int(dt)%60:02d}s"
+
+                    if dt < 5 and (not output or len(output.strip()) < 10):
+                        print(f"  {ref:15s} ⚠ RATE LIMITED ({dt_str})")
+                        continue
+
+                    score = score_verse(output, unv_sn)
+
+                    print(f"  {ref:15s} cov={score['coverage']:.2f} "
+                          f"place={score['placement']:.2f} "
+                          f"fmt={score['format']:.2f} "
+                          f"exact={score['exact_match']}  "
+                          f"KJV={kjv_count} UNV={unv_count} diff={diff}  "
+                          f"({dt_str})")
+
+                    results.append({
+                        "ref": ref,
+                        "kjv_sn_count": kjv_count,
+                        "unv_sn_count": unv_count,
+                        "diff": diff,
+                        "qp_word_count": len(qp_records),
+                        "model_output": output,
+                        "score": score,
+                        "time": round(dt, 1),
+                    })
 
             except Exception as e:
                 print(f"  {ref:15s} ERROR: {e}")
@@ -451,7 +586,7 @@ def main():
         scored = [r for r in results if "score" in r]
         out_data = {
             "meta": {
-                "task": "survey6_kjv_orig_to_unv",
+                "task": "survey6_two_pass" if two_pass else "survey6_kjv_orig_to_unv",
                 "book": book_eng,
                 "model": args.model,
                 "brand": brand,
