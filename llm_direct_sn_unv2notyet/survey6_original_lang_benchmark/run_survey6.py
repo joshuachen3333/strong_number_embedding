@@ -161,6 +161,23 @@ def build_original_text(qp_records: list) -> str:
     return " ".join(r["word"] for r in qp_records)
 
 
+def build_tag_inventory(kjv_sn: str) -> str:
+    """Extract all SN tags from KJV+SN as a numbered checklist.
+
+    Gives the model an explicit list of every tag that must appear in the output,
+    with exact format (braces, prefix, zero-padding) preserved.
+    """
+    tags = extract_tags(kjv_sn)
+    lines = []
+    for i, t in enumerate(tags, 1):
+        lines.append(f"  {i}. {t['raw']}")
+    count = len(tags)
+    return (f"Tag inventory ({count} tags — every one MUST appear in your output):\n"
+            + "\n".join(lines)
+            + f"\n\nTotal: {count} tags. Your output must contain at least {count} SN tags"
+            + " (plus any 900x prefixes UNV needs).")
+
+
 def load_prompt(path):
     with open(path, encoding="utf-8") as f:
         return f.read().strip()
@@ -207,8 +224,9 @@ def call_model(model, brand, ollama_url, sys_p, user_p):
 
 
 def build_survey6_prompt(system_prompt, kjv_plain, orig_text, kjv_sn,
-                         sn_word_dict, unv_plain, book_eng, chap, sec):
-    """主任務: KJV plain + Original + KJV+SN + SN:word dict + UNV plain → UNV+SN."""
+                         sn_word_dict, tag_inventory, unv_plain,
+                         book_eng, chap, sec):
+    """主任務: KJV plain + Original + KJV+SN + SN:word dict + Tag inventory + UNV plain → UNV+SN."""
     user = f"""Here is {book_eng} {chap}:{sec} in KJV (plain, no tags):
 
 {kjv_plain}
@@ -225,11 +243,13 @@ Strong's Number to original word dictionary (for embedding reference — use thi
 
 {sn_word_dict}
 
+{tag_inventory}
+
 Here is the same verse in UNV (和合本), plain, no annotations:
 
 {unv_plain}
 
-Using the KJV annotation pair and the SN:word dictionary above as your reference, insert the Strong's Number tags into the correct positions in the UNV text. Output only the annotated UNV text."""
+Using the KJV annotation pair, the SN:word dictionary, and the tag inventory above as your reference, embed every tag from the inventory into the correct positions in the UNV text. Output only the annotated UNV text."""
     return system_prompt, user
 
 
@@ -364,6 +384,7 @@ def main():
 
             orig_text = build_original_text(qp_records)
             sn_word_dict = build_sn_word_dict(qp_records)
+            tag_inventory = build_tag_inventory(kjv_sn)
 
             if args.dry_run:
                 print(f"{'─'*60}")
@@ -372,12 +393,13 @@ def main():
                 print(f"  Orig:   {orig_text[:80]}...")
                 print(f"  KJV+SN: {kjv_sn[:80]}...")
                 print(f"  Dict:   {sn_word_dict[:120]}...")
+                print(f"  Inv:    {tag_inventory[:120]}...")
                 print(f"  UNV:    {unv_plain[:80]}...")
                 continue
 
             sys_p, user_p = build_survey6_prompt(
                 system_prompt, kjv_plain, orig_text, kjv_sn,
-                sn_word_dict, unv_plain, book_eng, chap, sec)
+                sn_word_dict, tag_inventory, unv_plain, book_eng, chap, sec)
 
             t_call = time.time()
             try:
