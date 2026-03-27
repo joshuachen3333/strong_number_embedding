@@ -466,3 +466,6 @@ Survey4 格式 (rr_dim1_qwen_20260326_000712.log) 與 survey5 格式 (v0.1_gen1.
 
 ### 68a. [2026-03-27 ~14:30] Survey6 設計分析 — 改進原理與預期結果
 討論 survey6 相較 survey5 的改進邏輯. 核心: 加入原文 (Heb/Grk) 和 SN:word 字典作第三條確認線索, 解決英中詞序/詞粒度差異造成的 placement 錯誤. 三角對齊鏈: SN → dict:原文字 → 原文位置 → UNV 對應詞 → 放置. 預期 placement 提升, coverage 不變 (SN 數量由 KJV+SN 決定). 保守估計: 大模型 (sonnet/deepseek-671b) 改善有限 (survey5 語義對齊已夠強), 弱模型改善較明顯. 潛在風險: qp.php vs qb.php SN 不一致 (compound preposition) 可能造成字典干擾. 最有價值的驗證實驗: 同模型同節 survey5 vs survey6 score 比較 (placement delta).
+
+### 69. [2026-03-27 ~17:00] Survey6 v0.1 首跑結果 + Coverage 下降根因分析
+DeepSeek-671B Gen 1 跑 survey6 v0.1, 結果: cov=0.49 place=0.58 fmt=0.93. 與 survey5 v0.2 比: placement +7pp ✅ 但 coverage -10pp ❌. 逐節比較發現: (1) refrain 短節 (1:13/19/23, KJV=7) coverage 暴跌 0.50→0.12, 但 placement 1.00 — 模型放 1 個 tag 完美但跳過其餘; (2) 根因不是「漏 tag」而是「格式錯誤」: WH01961 vs WAH01961 (缺 prefix A), 漏 WTH8799 morphology, 缺 {} implicit braces. auto_score coverage = 1-(missing+extra)/total, 一個錯格式 tag 扣雙倍. 設計 v0.2 方案: Tag Inventory Checklist — 從 KJV+SN 程式化提取所有 tag 的 exact raw string 作為編號清單, 加入 prompt 第 6 個輸入. 模型看到完整格式+數量, 預期恢復 coverage 同時保持 placement. Survey5 不需同步修正: survey6⊃survey5, 且 survey5 瓶頸在 placement 非 coverage.
