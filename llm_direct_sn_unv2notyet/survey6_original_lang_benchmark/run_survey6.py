@@ -71,7 +71,7 @@ from analyze_test_dimensions import extract_tags
 from run_benchmark import (call_ollama, call_claude_cli, call_gemini_cli)
 
 DEFAULT_PROMPT_FILE = os.path.join(SCRIPT_DIR, "prompts", "survey6_v0.1.md")
-DEFAULT_REFINE_PROMPT_FILE = os.path.join(SCRIPT_DIR, "prompts", "survey6_refine_v0.4.md")
+DEFAULT_REFINE_PROMPT_FILE = os.path.join(SCRIPT_DIR, "prompts", "survey6_refine_v0.5.md")
 
 # S5 prompt for two-pass Pass 1
 S5_DIR = os.path.join(PARENT_DIR, "survey5_bilingual_sn_benchmark")
