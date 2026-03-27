@@ -460,3 +460,6 @@ Sonnet 跑 dim #1 (32 candidates × 8 opponents = 256 calls, 33min). 結果: 262
 
 ### 67c. [2026-03-27 ~02:00] run_logs/ 統一命名格式決定
 Survey4 格式 (rr_dim1_qwen_20260326_000712.log) 與 survey5 格式 (v0.1_gen1.log) 不一致. 決定統一為: {task}_{scope}_{model}_{prompt}_{YYYYMMDD_HHMMSS}.{ext}. 範例: fwd_gen1_ds671b_v0.1_20260327_000000.log (survey5 正向), rev_gen1_ds671b_v0.1_20260327_000000.log (反向), rr_dim1_qwen_v0.1_20260326_000712.log (survey4). task=fwd/rev/rr, scope=gen1/dim1 等, model=短名 (ds671b/qwen/sonnet), prompt=v0.1/v0.2. 待實作: 重新命名現有檔案 + run_survey5.py 自動生成 --out, 並記錄於 survey5/CLAUDE.md.
+
+### 68. [2026-03-27 ~14:00] Survey6 實作 — 原文錨定 5-input SN Transfer
+新增 survey6_original_lang_benchmark/. 主任務: KJV plain + Original (Heb/Grk) + KJV+SN + SN:word dict + UNV plain → UNV+SN. 原文與 SN:word 字典均從 FHL qp.php 拉取, 只取 word+sn 欄位. qp.php SN 正規化: startswith('00') → 去除一個前導零, 再加 WH (OT) 或 WG (NT) prefix. OT/NT 判斷: books.json index 0-38 = OT (Gen-Mal), 39-65 = NT. 新增 prompts/survey6_v0.1.md (標注投射 framing, SN:word 為 embedding reference), run_survey6.py (fetch_qp_verse, build_survey6_prompt), CLAUDE.md. Dry-run Gen 1:1-3 驗證通過: 原文、字典、5 inputs 格式正確.
