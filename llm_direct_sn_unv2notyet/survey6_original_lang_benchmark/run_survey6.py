@@ -148,23 +148,39 @@ def fetch_qp_verse(book_eng: str, chap: int, sec: int) -> list:
         if not word or not sn_raw:
             continue
         sn_tag = normalize_qp_sn(sn_raw, ot)
-        records.append({"wid": entry["wid"], "word": word, "sn": sn_tag})
+        rec = {"wid": entry["wid"], "word": word, "sn": sn_tag}
+        # Preserve extra fields for --enrich-dict
+        exp = entry.get("exp", "").strip()
+        wform = entry.get("wform", "").strip()
+        if exp:
+            rec["exp"] = exp
+        if wform:
+            rec["wform"] = wform
+        records.append(rec)
 
     _qp_cache[key] = records
     return records
 
 
-def build_sn_word_dict(qp_records: list) -> str:
+def build_sn_word_dict(qp_records: list, enrich: bool = False) -> str:
     """Build the SN:word dictionary string from qp records.
 
-    Format:
+    Basic format:
         WH07225: בְּרֵאשִׁית
-        WH01254: בָּרָא
-        WH0430: אֱלֹהִים
+    Enriched format (enrich=True):
+        WH07225: בְּרֵאשִׁית | 開始、首要 | 介系詞 בְּ + 名詞，陰性單數
     """
     lines = []
     for r in qp_records:
-        lines.append(f"{r['sn']}: {r['word']}")
+        if enrich:
+            parts = [r['sn'] + ": " + r['word']]
+            if r.get('exp'):
+                parts.append(r['exp'])
+            if r.get('wform'):
+                parts.append(r['wform'])
+            lines.append(" | ".join(parts))
+        else:
+            lines.append(f"{r['sn']}: {r['word']}")
     return "\n".join(lines)
 
 
@@ -371,6 +387,8 @@ def main():
                         help="Override system prompt file")
     parser.add_argument("--single-pass", action="store_true",
                         help="Single-pass mode (S6 v0.1 style). Default is two-pass.")
+    parser.add_argument("--enrich-dict", action="store_true",
+                        help="Include exp (字義) and wform (詞形) from qp.php in SN:word dict")
     parser.add_argument("--match-only", action="store_true",
                         help="Only run verses where KJV SN count = UNV SN count")
     parser.add_argument("--max-diff", type=int, default=None,
@@ -445,7 +463,8 @@ def main():
         chapters = [int(args.chap)]
 
     mode_label = "Two-pass (S5→Refine)" if two_pass else "Single-pass (S6)"
-    print(f"Survey6: {mode_label}")
+    enrich_label = " + enriched dict" if args.enrich_dict else ""
+    print(f"Survey6: {mode_label}{enrich_label}")
     print(f"Book: {book_eng} ({book_chi})  OT={'Yes' if is_ot_book(book_eng) else 'No'}")
     print(f"Model: {args.model} ({brand})")
     if two_pass:
@@ -496,7 +515,7 @@ def main():
                 continue
 
             orig_text = build_original_text(qp_records)
-            sn_word_dict = build_sn_word_dict(qp_records)
+            sn_word_dict = build_sn_word_dict(qp_records, enrich=args.enrich_dict)
             tag_inventory = build_tag_inventory(kjv_sn)
 
             if args.dry_run:
@@ -628,6 +647,7 @@ def main():
                 "model": args.model,
                 "brand": brand,
                 "prompt_version": pver,
+                "enrich_dict": args.enrich_dict,
                 "match_only": args.match_only,
                 "max_diff": args.max_diff,
                 "total_scored": len(scored),
