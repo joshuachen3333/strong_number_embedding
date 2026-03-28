@@ -1,0 +1,1039 @@
+{
+ "meta": {
+  "source": "survey4 exemplar_library.json",
+  "selection": "2 per dim, skip tag_count=0, no duplicates",
+  "total": 52,
+  "purpose": "S5 prompt iteration set (26 dims x 2 = 52 verses)",
+  "generated": "2026-03-28"
+ },
+ "verses": [
+  {
+   "dim": 1,
+   "label": "SN count — 簡單短節 (≤8)",
+   "ref": "Gen 25:14",
+   "book": "Gen",
+   "book_chi": "創",
+   "chap": 25,
+   "sec": 14,
+   "testament": "OT",
+   "tag_count": 3,
+   "dims": [
+    1,
+    8,
+    9,
+    13
+   ]
+  },
+  {
+   "dim": 1,
+   "label": "SN count — 簡單短節 (≤8)",
+   "ref": "2Sam 5:16",
+   "book": "2Sam",
+   "book_chi": "撒下",
+   "chap": 5,
+   "sec": 16,
+   "testament": "OT",
+   "tag_count": 3,
+   "dims": [
+    1,
+    9,
+    13
+   ]
+  },
+  {
+   "dim": 2,
+   "label": "SN count — 長節多 SN (>15)",
+   "ref": "Gen 36:15",
+   "book": "Gen",
+   "book_chi": "創",
+   "chap": 36,
+   "sec": 15,
+   "testament": "OT",
+   "tag_count": 16,
+   "dims": [
+    2,
+    3,
+    8,
+    9,
+    12,
+    13
+   ]
+  },
+  {
+   "dim": 2,
+   "label": "SN count — 長節多 SN (>15)",
+   "ref": "Neh 7:45",
+   "book": "Neh",
+   "book_chi": "尼",
+   "chap": 7,
+   "sec": 45,
+   "testament": "OT",
+   "tag_count": 16,
+   "dims": [
+    2,
+    3,
+    8,
+    9,
+    13
+   ]
+  },
+  {
+   "dim": 3,
+   "label": "SN count — 重複平行結構",
+   "ref": "Exod 27:10",
+   "book": "Exod",
+   "book_chi": "出",
+   "chap": 27,
+   "sec": 10,
+   "testament": "OT",
+   "tag_count": 9,
+   "dims": [
+    3,
+    8,
+    9,
+    13
+   ]
+  },
+  {
+   "dim": 3,
+   "label": "SN count — 重複平行結構",
+   "ref": "1Chr 1:41",
+   "book": "1Chr",
+   "book_chi": "代上",
+   "chap": 1,
+   "sec": 41,
+   "testament": "OT",
+   "tag_count": 9,
+   "dims": [
+    3,
+    8,
+    9,
+    13
+   ]
+  },
+  {
+   "dim": 4,
+   "label": "Implicit markers — 基本",
+   "ref": "Gen 35:23",
+   "book": "Gen",
+   "book_chi": "創",
+   "chap": 35,
+   "sec": 23,
+   "testament": "OT",
+   "tag_count": 10,
+   "dims": [
+    4,
+    8,
+    9,
+    13
+   ]
+  },
+  {
+   "dim": 4,
+   "label": "Implicit markers — 基本",
+   "ref": "1Chr 8:39",
+   "book": "1Chr",
+   "book_chi": "代上",
+   "chap": 8,
+   "sec": 39,
+   "testament": "OT",
+   "tag_count": 9,
+   "dims": [
+    4,
+    8,
+    9,
+    13
+   ]
+  },
+  {
+   "dim": 5,
+   "label": "[OT] Implicit — 900x 組合",
+   "ref": "Num 3:2",
+   "book": "Num",
+   "book_chi": "民",
+   "chap": 3,
+   "sec": 2,
+   "testament": "OT",
+   "tag_count": 9,
+   "dims": [
+    4,
+    5,
+    8,
+    9,
+    12,
+    13
+   ]
+  },
+  {
+   "dim": 5,
+   "label": "[OT] Implicit — 900x 組合",
+   "ref": "1Chr 4:3",
+   "book": "1Chr",
+   "book_chi": "代上",
+   "chap": 4,
+   "sec": 3,
+   "testament": "OT",
+   "tag_count": 9,
+   "dims": [
+    4,
+    5,
+    8,
+    9,
+    12,
+    13
+   ]
+  },
+  {
+   "dim": 6,
+   "label": "Morphology — 單動詞",
+   "ref": "Exod 28:13",
+   "book": "Exod",
+   "book_chi": "出",
+   "chap": 28,
+   "sec": 13,
+   "testament": "OT",
+   "tag_count": 4,
+   "dims": [
+    1,
+    6,
+    8,
+    9,
+    13,
+    14
+   ]
+  },
+  {
+   "dim": 6,
+   "label": "Morphology — 單動詞",
+   "ref": "Josh 16:4",
+   "book": "Josh",
+   "book_chi": "書",
+   "chap": 16,
+   "sec": 4,
+   "testament": "OT",
+   "tag_count": 6,
+   "dims": [
+    1,
+    6,
+    8,
+    9,
+    13,
+    14
+   ]
+  },
+  {
+   "dim": 7,
+   "label": "Morphology — 多動詞",
+   "ref": "Deut 32:1",
+   "book": "Deut",
+   "book_chi": "申",
+   "chap": 32,
+   "sec": 1,
+   "testament": "OT",
+   "tag_count": 10,
+   "dims": [
+    7,
+    8,
+    9,
+    13,
+    14
+   ]
+  },
+  {
+   "dim": 7,
+   "label": "Morphology — 多動詞",
+   "ref": "2Chr 12:6",
+   "book": "2Chr",
+   "book_chi": "代下",
+   "chap": 12,
+   "sec": 6,
+   "testament": "OT",
+   "tag_count": 9,
+   "dims": [
+    7,
+    8,
+    9,
+    13,
+    14
+   ]
+  },
+  {
+   "dim": 8,
+   "label": "格式 — zero-padding (5位 core)",
+   "ref": "Gen 10:2",
+   "book": "Gen",
+   "book_chi": "創",
+   "chap": 10,
+   "sec": 2,
+   "testament": "OT",
+   "tag_count": 9,
+   "dims": [
+    8,
+    9,
+    13
+   ]
+  },
+  {
+   "dim": 8,
+   "label": "格式 — zero-padding (5位 core)",
+   "ref": "Josh 19:15",
+   "book": "Josh",
+   "book_chi": "書",
+   "chap": 19,
+   "sec": 15,
+   "testament": "OT",
+   "tag_count": 9,
+   "dims": [
+    8,
+    9,
+    13
+   ]
+  },
+  {
+   "dim": 9,
+   "label": "格式 — leading zeros",
+   "ref": "Ps 83:6",
+   "book": "Ps",
+   "book_chi": "詩",
+   "chap": 83,
+   "sec": 6,
+   "testament": "OT",
+   "tag_count": 5,
+   "dims": [
+    1,
+    8,
+    9,
+    13
+   ]
+  },
+  {
+   "dim": 9,
+   "label": "格式 — leading zeros",
+   "ref": "Isa 3:19",
+   "book": "Isa",
+   "book_chi": "賽",
+   "chap": 3,
+   "sec": 19,
+   "testament": "OT",
+   "tag_count": 3,
+   "dims": [
+    1,
+    8,
+    9,
+    13
+   ]
+  },
+  {
+   "dim": 10,
+   "label": "[OT] 格式 — 900x prefixes",
+   "ref": "Exod 30:24",
+   "book": "Exod",
+   "book_chi": "出",
+   "chap": 30,
+   "sec": 24,
+   "testament": "OT",
+   "tag_count": 9,
+   "dims": [
+    8,
+    9,
+    10,
+    11,
+    13,
+    15
+   ]
+  },
+  {
+   "dim": 10,
+   "label": "[OT] 格式 — 900x prefixes",
+   "ref": "2Sam 23:24",
+   "book": "2Sam",
+   "book_chi": "撒下",
+   "chap": 23,
+   "sec": 24,
+   "testament": "OT",
+   "tag_count": 9,
+   "dims": [
+    8,
+    9,
+    10,
+    11,
+    13,
+    15
+   ]
+  },
+  {
+   "dim": 11,
+   "label": "格式 — 複合介系詞/prefix 連續",
+   "ref": "Deut 1:2",
+   "book": "Deut",
+   "book_chi": "申",
+   "chap": 1,
+   "sec": 2,
+   "testament": "OT",
+   "tag_count": 10,
+   "dims": [
+    8,
+    9,
+    11,
+    12,
+    13
+   ]
+  },
+  {
+   "dim": 11,
+   "label": "格式 — 複合介系詞/prefix 連續",
+   "ref": "Josh 15:46",
+   "book": "Josh",
+   "book_chi": "書",
+   "chap": 15,
+   "sec": 46,
+   "testament": "OT",
+   "tag_count": 9,
+   "dims": [
+    8,
+    9,
+    11,
+    12,
+    13
+   ]
+  },
+  {
+   "dim": 12,
+   "label": "格式 — WA[HG] 非 900x",
+   "ref": "Exod 16:36",
+   "book": "Exod",
+   "book_chi": "出",
+   "chap": 16,
+   "sec": 36,
+   "testament": "OT",
+   "tag_count": 4,
+   "dims": [
+    1,
+    8,
+    9,
+    12,
+    13
+   ]
+  },
+  {
+   "dim": 12,
+   "label": "格式 — WA[HG] 非 900x",
+   "ref": "Josh 15:32",
+   "book": "Josh",
+   "book_chi": "書",
+   "chap": 15,
+   "sec": 32,
+   "testament": "OT",
+   "tag_count": 9,
+   "dims": [
+    8,
+    9,
+    12,
+    13
+   ]
+  },
+  {
+   "dim": 13,
+   "label": "位置 — SN 在中文字後 (正常)",
+   "ref": "Mark 7:22",
+   "book": "Mark",
+   "book_chi": "可",
+   "chap": 7,
+   "sec": 22,
+   "testament": "NT",
+   "tag_count": 12,
+   "dims": [
+    13
+   ]
+  },
+  {
+   "dim": 13,
+   "label": "位置 — SN 在中文字後 (正常)",
+   "ref": "Gal 5:20",
+   "book": "Gal",
+   "book_chi": "加",
+   "chap": 5,
+   "sec": 20,
+   "testament": "NT",
+   "tag_count": 9,
+   "dims": [
+    13
+   ]
+  },
+  {
+   "dim": 14,
+   "label": "位置 — Morphology 緊跟 core SN",
+   "ref": "2Sam 22:12",
+   "book": "2Sam",
+   "book_chi": "撒下",
+   "chap": 22,
+   "sec": 12,
+   "testament": "OT",
+   "tag_count": 9,
+   "dims": [
+    6,
+    8,
+    9,
+    13,
+    14
+   ]
+  },
+  {
+   "dim": 14,
+   "label": "位置 — Morphology 緊跟 core SN",
+   "ref": "Job 3:8",
+   "book": "Job",
+   "book_chi": "伯",
+   "chap": 3,
+   "sec": 8,
+   "testament": "OT",
+   "tag_count": 9,
+   "dims": [
+    7,
+    8,
+    9,
+    13,
+    14
+   ]
+  },
+  {
+   "dim": 15,
+   "label": "[OT] 位置 — 900x prefix 在 core 前",
+   "ref": "Ps 87:1",
+   "book": "Ps",
+   "book_chi": "詩",
+   "chap": 87,
+   "sec": 1,
+   "testament": "OT",
+   "tag_count": 9,
+   "dims": [
+    8,
+    9,
+    10,
+    11,
+    13,
+    15
+   ]
+  },
+  {
+   "dim": 15,
+   "label": "[OT] 位置 — 900x prefix 在 core 前",
+   "ref": "Lam 3:23",
+   "book": "Lam",
+   "book_chi": "哀",
+   "chap": 3,
+   "sec": 23,
+   "testament": "OT",
+   "tag_count": 5,
+   "dims": [
+    1,
+    8,
+    9,
+    10,
+    11,
+    13,
+    15
+   ]
+  },
+  {
+   "dim": 16,
+   "label": "[OT] 邊界 — 4位 09 陷阱",
+   "ref": "Gen 2:12",
+   "book": "Gen",
+   "book_chi": "創",
+   "chap": 2,
+   "sec": 12,
+   "testament": "OT",
+   "tag_count": 8,
+   "dims": [
+    1,
+    8,
+    9,
+    12,
+    13,
+    16
+   ]
+  },
+  {
+   "dim": 16,
+   "label": "[OT] 邊界 — 4位 09 陷阱",
+   "ref": "Josh 15:28",
+   "book": "Josh",
+   "book_chi": "書",
+   "chap": 15,
+   "sec": 28,
+   "testament": "OT",
+   "tag_count": 3,
+   "dims": [
+    1,
+    8,
+    9,
+    13,
+    16
+   ]
+  },
+  {
+   "dim": 17,
+   "label": "格式 — 同號不同 prefix",
+   "ref": "Exod 26:16",
+   "book": "Exod",
+   "book_chi": "出",
+   "chap": 26,
+   "sec": 16,
+   "testament": "OT",
+   "tag_count": 10,
+   "dims": [
+    3,
+    4,
+    5,
+    8,
+    9,
+    12,
+    13,
+    17
+   ]
+  },
+  {
+   "dim": 17,
+   "label": "格式 — 同號不同 prefix",
+   "ref": "Exod 39:37",
+   "book": "Exod",
+   "book_chi": "出",
+   "chap": 39,
+   "sec": 37,
+   "testament": "OT",
+   "tag_count": 14,
+   "dims": [
+    3,
+    4,
+    5,
+    8,
+    9,
+    12,
+    13,
+    17
+   ]
+  },
+  {
+   "dim": 18,
+   "label": "[OT] 三連續 — 同組 (900x+core+morph)",
+   "ref": "Num 10:36",
+   "book": "Num",
+   "book_chi": "民",
+   "chap": 10,
+   "sec": 36,
+   "testament": "OT",
+   "tag_count": 11,
+   "dims": [
+    7,
+    8,
+    9,
+    10,
+    11,
+    13,
+    14,
+    15,
+    18
+   ]
+  },
+  {
+   "dim": 18,
+   "label": "[OT] 三連續 — 同組 (900x+core+morph)",
+   "ref": "2Chr 35:26",
+   "book": "2Chr",
+   "book_chi": "代下",
+   "chap": 35,
+   "sec": 26,
+   "testament": "OT",
+   "tag_count": 10,
+   "dims": [
+    6,
+    8,
+    9,
+    10,
+    11,
+    13,
+    14,
+    15,
+    18
+   ]
+  },
+  {
+   "dim": 19,
+   "label": "三連續 — 跨組邊界 (前組尾+後組頭)",
+   "ref": "Num 2:15",
+   "book": "Num",
+   "book_chi": "民",
+   "chap": 2,
+   "sec": 15,
+   "testament": "OT",
+   "tag_count": 9,
+   "dims": [
+    6,
+    8,
+    9,
+    13,
+    14,
+    19
+   ]
+  },
+  {
+   "dim": 19,
+   "label": "三連續 — 跨組邊界 (前組尾+後組頭)",
+   "ref": "2Sam 20:25",
+   "book": "2Sam",
+   "book_chi": "撒下",
+   "chap": 20,
+   "sec": 25,
+   "testament": "OT",
+   "tag_count": 8,
+   "dims": [
+    1,
+    7,
+    8,
+    9,
+    13,
+    14,
+    19
+   ]
+  },
+  {
+   "dim": 20,
+   "label": "四連續 — 雙 morph 跨組 (c+m|c+m)",
+   "ref": "Deut 27:8",
+   "book": "Deut",
+   "book_chi": "申",
+   "chap": 27,
+   "sec": 8,
+   "testament": "OT",
+   "tag_count": 13,
+   "dims": [
+    7,
+    8,
+    9,
+    12,
+    13,
+    14,
+    19,
+    20
+   ]
+  },
+  {
+   "dim": 20,
+   "label": "四連續 — 雙 morph 跨組 (c+m|c+m)",
+   "ref": "Gen 26:13",
+   "book": "Gen",
+   "book_chi": "創",
+   "chap": 26,
+   "sec": 13,
+   "testament": "OT",
+   "tag_count": 13,
+   "dims": [
+    3,
+    4,
+    5,
+    7,
+    8,
+    9,
+    12,
+    13,
+    14,
+    19,
+    20
+   ]
+  },
+  {
+   "dim": 21,
+   "label": "四連續 — morph+其他 跨組 (c+m|…)",
+   "ref": "Num 31:35",
+   "book": "Num",
+   "book_chi": "民",
+   "chap": 31,
+   "sec": 35,
+   "testament": "OT",
+   "tag_count": 15,
+   "dims": [
+    3,
+    4,
+    5,
+    6,
+    8,
+    9,
+    12,
+    13,
+    14,
+    19,
+    21
+   ]
+  },
+  {
+   "dim": 21,
+   "label": "四連續 — morph+其他 跨組 (c+m|…)",
+   "ref": "Num 36:11",
+   "book": "Num",
+   "book_chi": "民",
+   "chap": 36,
+   "sec": 11,
+   "testament": "OT",
+   "tag_count": 14,
+   "dims": [
+    3,
+    6,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    19,
+    21
+   ]
+  },
+  {
+   "dim": 22,
+   "label": "四連續 — prefix 連串跨組",
+   "ref": "Gen 32:16",
+   "book": "Gen",
+   "book_chi": "創",
+   "chap": 32,
+   "sec": 16,
+   "testament": "OT",
+   "tag_count": 24,
+   "dims": [
+    2,
+    3,
+    4,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    19,
+    22
+   ]
+  },
+  {
+   "dim": 22,
+   "label": "四連續 — prefix 連串跨組",
+   "ref": "Lev 27:28",
+   "book": "Lev",
+   "book_chi": "利",
+   "chap": 27,
+   "sec": 28,
+   "testament": "OT",
+   "tag_count": 32,
+   "dims": [
+    2,
+    3,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    19,
+    22
+   ]
+  },
+  {
+   "dim": 23,
+   "label": "[OT] Ketiv/Qere — 連續雙 morph",
+   "ref": "Deut 28:30",
+   "book": "Deut",
+   "book_chi": "申",
+   "chap": 28,
+   "sec": 30,
+   "testament": "OT",
+   "tag_count": 23,
+   "dims": [
+    2,
+    3,
+    7,
+    8,
+    9,
+    10,
+    12,
+    13,
+    14,
+    19,
+    21,
+    23
+   ]
+  },
+  {
+   "dim": 23,
+   "label": "[OT] Ketiv/Qere — 連續雙 morph",
+   "ref": "Num 32:7",
+   "book": "Num",
+   "book_chi": "民",
+   "chap": 32,
+   "sec": 7,
+   "testament": "OT",
+   "tag_count": 21,
+   "dims": [
+    2,
+    3,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    19,
+    21,
+    23
+   ]
+  },
+  {
+   "dim": 24,
+   "label": "[OT] 數目字 SN 連串 (≥4 純 WH)",
+   "ref": "Num 2:9",
+   "book": "Num",
+   "book_chi": "民",
+   "chap": 2,
+   "sec": 9,
+   "testament": "OT",
+   "tag_count": 19,
+   "dims": [
+    2,
+    3,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    19,
+    24
+   ]
+  },
+  {
+   "dim": 24,
+   "label": "[OT] 數目字 SN 連串 (≥4 純 WH)",
+   "ref": "Num 2:16",
+   "book": "Num",
+   "book_chi": "民",
+   "chap": 2,
+   "sec": 16,
+   "testament": "OT",
+   "tag_count": 19,
+   "dims": [
+    2,
+    3,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    19,
+    24
+   ]
+  },
+  {
+   "dim": 25,
+   "label": "FHL 資料異常 (6+ 位數 SN)",
+   "ref": "Josh 9:21",
+   "book": "Josh",
+   "book_chi": "書",
+   "chap": 9,
+   "sec": 21,
+   "testament": "OT",
+   "tag_count": 22,
+   "dims": [
+    2,
+    3,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    25
+   ]
+  },
+  {
+   "dim": 25,
+   "label": "FHL 資料異常 (6+ 位數 SN)",
+   "ref": "2Chr 27:8",
+   "book": "2Chr",
+   "book_chi": "代下",
+   "chap": 27,
+   "sec": 8,
+   "testament": "OT",
+   "tag_count": 15,
+   "dims": [
+    3,
+    4,
+    5,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    18,
+    25
+   ]
+  },
+  {
+   "dim": 26,
+   "label": "[NT] 字母後綴 SN (variant lemma)",
+   "ref": "Luke 3:26",
+   "book": "Luke",
+   "book_chi": "路",
+   "chap": 3,
+   "sec": 26,
+   "testament": "NT",
+   "tag_count": 6,
+   "dims": [
+    1,
+    13,
+    26
+   ]
+  },
+  {
+   "dim": 26,
+   "label": "[NT] 字母後綴 SN (variant lemma)",
+   "ref": "Acts 21:15",
+   "book": "Acts",
+   "book_chi": "徒",
+   "chap": 21,
+   "sec": 15,
+   "testament": "NT",
+   "tag_count": 10,
+   "dims": [
+    4,
+    7,
+    13,
+    14,
+    26
+   ]
+  }
+ ]
+}
