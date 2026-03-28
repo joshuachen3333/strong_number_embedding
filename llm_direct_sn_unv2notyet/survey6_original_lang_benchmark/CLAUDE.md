@@ -111,10 +111,37 @@ python3 run_survey6.py --book 創 --chap 1 --sec 1 --dry-run
 python3 run_survey6.py --book 創 --chap 1 --match-only --out
 ```
 
+## Benchmark 結果（2026-03-28）
+
+### DeepSeek-671B, Gen 1 比較
+
+| 方案 | Coverage | Placement | Sum | 備註 |
+|------|----------|-----------|-----|------|
+| **S5 v0.2（單次）** | **0.5904** | 0.5127 | 1.1031 | baseline |
+| S6 v0.1（single-pass, 5-input） | 0.4944 | **0.5838** | 1.0782 | placement +7pp, coverage -10pp |
+| S6 v0.2（+ tag inventory） | 0.3939 | 0.5698 | 0.9637 | 更多輸入 → 更差 |
+| S6 two-pass refine v0.4 | 0.5744 | 0.5665 | **1.1409** | 最高 sum，但不穩定 |
+
+### 關鍵發現
+
+1. **原文字典確實提升 placement**（+7pp），但 single-pass 5-input 導致 coverage 崩潰（-10pp）。
+   模型被資訊量壓垮，放出更少 tag。
+2. **加更多輸入（tag inventory）反而更差**（cov 0.49→0.39），證實「資訊過載」是根本問題。
+3. **Two-pass 架構**（P1=S5 coverage, P2=refine placement）在 Gen 1 上 sum 最高，
+   但大規模測試（Gen 2-10, 236 節）不退步率僅 68%，遠低於 90% production 門檻。
+   → 詳見 survey7_two_pass_benchmark/background.md
+
+### 結論
+
+- 原文資訊有價值（placement 改善），但目前無法在不犧牲 coverage 的前提下使用
+- Two-pass 無法達到 production 所需的穩定性
+- **回到 S5 單次 prompt 作為主力改進方向**
+
 ## Status
 
 - [x] 概念設計
 - [x] `survey6_v0.1.md` — 5-input prompt（標注投射 framing）
 - [x] `run_survey6.py` — fetch_qp_verse(), SN 正規化, build_survey6_prompt()
-- [ ] 基準測試結果（Gen 1，各模型）
-- [ ] 與 survey5 對比分析（加原文是否有幫助）
+- [x] 基準測試結果（Gen 1，DeepSeek-671B + Sonnet）
+- [x] 與 survey5 對比分析 → 原文提升 placement 但犧牲 coverage
+- [x] Two-pass 實驗 → 移交 survey7，結論：放棄（不退步率 68%）
