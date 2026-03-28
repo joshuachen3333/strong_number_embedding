@@ -71,7 +71,7 @@ from analyze_test_dimensions import extract_tags
 from run_benchmark import (call_ollama, call_claude_cli, call_gemini_cli)
 
 DEFAULT_PROMPT_FILE = os.path.join(SCRIPT_DIR, "prompts", "survey6_v0.1.md")
-DEFAULT_REFINE_PROMPT_FILE = os.path.join(SCRIPT_DIR, "prompts", "survey6_refine_v0.5.md")
+DEFAULT_REFINE_PROMPT_FILE = os.path.join(SCRIPT_DIR, "prompts", "survey6_refine_v0.1.md")
 
 # S5 prompt for two-pass Pass 1
 S5_DIR = os.path.join(PARENT_DIR, "survey5_bilingual_sn_benchmark")
@@ -225,14 +225,47 @@ def detect_brand(model, ollama_url):
     return "claude"
 
 
+def strip_explanation(text):
+    """Keep only the first block of annotated text, discard trailing explanation.
+
+    Models (especially sonnet) sometimes append notes/explanations after the
+    annotated verse. We take everything up to the first blank line or markdown
+    separator (---, **, ##) that follows actual content.
+    """
+    lines = text.strip().split("\n")
+    result = []
+    for line in lines:
+        stripped = line.strip()
+        # Stop at blank line or any non-verse content
+        if result and (stripped == ""
+                       or stripped.startswith("---")
+                       or stripped.startswith("**")
+                       or stripped.startswith("##")
+                       or stripped.startswith("```")
+                       or stripped.startswith("Projection")
+                       or stripped.startswith("Correction")
+                       or stripped.startswith("Note")
+                       or stripped.startswith("I ")
+                       or stripped.startswith("The ")
+                       or stripped.startswith("Here")
+                       or stripped.startswith("Tag")
+                       or stripped.startswith("Changes")
+                       or re.match(r'^[A-Z][a-z]', stripped)):
+            break
+        result.append(line)
+    return "\n".join(result).strip()
+
+
 def call_model(model, brand, ollama_url, sys_p, user_p):
     if brand == "ollama":
-        return call_ollama(model, sys_p, user_p, ollama_url)
+        raw = call_ollama(model, sys_p, user_p, ollama_url)
     elif brand == "claude":
-        return call_claude_cli(model, sys_p, user_p)
+        raw = call_claude_cli(model, sys_p, user_p)
     elif brand == "gemini":
-        return call_gemini_cli(model, sys_p, user_p)
-    return ""
+        raw = call_gemini_cli(model, sys_p, user_p)
+    else:
+        raw = ""
+    return strip_explanation(raw)
 
 
 def build_survey6_prompt(system_prompt, kjv_plain, orig_text, kjv_sn,
@@ -502,8 +535,12 @@ def main():
                     output = call_model(args.model, brand, args.ollama_url,
                                         sys_p2, user_p2)
 
-                    if not output or len(output.strip()) < 10:
-                        # Fall back to pass 1 draft
+                    # Fallback: if P2 output is empty or tag count diverges
+                    # too much from P1, P2 probably corrupted — use P1
+                    p1_tags = len(extract_tags(draft))
+                    p2_tags = len(extract_tags(output)) if output else 0
+                    if not output or len(output.strip()) < 10 or \
+                       (p1_tags > 0 and abs(p2_tags - p1_tags) > p1_tags * 0.5):
                         output = draft
 
                     dt = time.time() - t_call

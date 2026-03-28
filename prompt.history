@@ -469,3 +469,9 @@ Survey4 格式 (rr_dim1_qwen_20260326_000712.log) 與 survey5 格式 (v0.1_gen1.
 
 ### 69. [2026-03-27 ~17:00] Survey6 v0.1 首跑結果 + Coverage 下降根因分析
 DeepSeek-671B Gen 1 跑 survey6 v0.1, 結果: cov=0.49 place=0.58 fmt=0.93. 與 survey5 v0.2 比: placement +7pp ✅ 但 coverage -10pp ❌. 逐節比較發現: (1) refrain 短節 (1:13/19/23, KJV=7) coverage 暴跌 0.50→0.12, 但 placement 1.00 — 模型放 1 個 tag 完美但跳過其餘; (2) 根因不是「漏 tag」而是「格式錯誤」: WH01961 vs WAH01961 (缺 prefix A), 漏 WTH8799 morphology, 缺 {} implicit braces. auto_score coverage = 1-(missing+extra)/total, 一個錯格式 tag 扣雙倍. 設計 v0.2 方案: Tag Inventory Checklist — 從 KJV+SN 程式化提取所有 tag 的 exact raw string 作為編號清單, 加入 prompt 第 6 個輸入. 模型看到完整格式+數量, 預期恢復 coverage 同時保持 placement. Survey5 不需同步修正: survey6⊃survey5, 且 survey5 瓶頸在 placement 非 coverage.
+
+### 70. [2026-03-27 ~19:00] Survey6 Two-pass 架構 — S5 coverage + 原文 refine placement
+單次 S6 (5-input) 的根本問題: 輸入太多導致模型崩潰, coverage 越加越差 (v0.1=0.49, v0.2 tag inventory=0.39). 改為 two-pass 流水線: Pass 1 用 S5 v0.2 prompt (3-input, coverage 強), Pass 2 用 refine prompt + 原文字典修正位置. DeepSeek-671B Gen 1 結果: refine v0.4 最佳 (cov=0.57 place=0.57, sum=1.14 vs S5 的 1.10). 但 Gen 2 上 two-pass 不如 S5 (1.25 vs 1.33) — P2 有時破壞 P1 的好結果. 迭代了 refine v0.1→v0.5, 發現 v0.2 太保守 (不動), v0.4 最平衡, v0.5 退步.
+
+### 71. [2026-03-28 ~02:00] Sonnet two-pass 測試 + strip_explanation + tag count guard
+用 sonnet (claude CLI) 跑 Gen 1:1-5 two-pass. 發現兩個致命問題: (1) sonnet 在 P2 輸出中夾帶解釋文字 ("Projection notes:", "Correction made:"), 導致 score 全亂 → 加 strip_explanation() 後處理, 只取第一段中文+tag; (2) sonnet P2 非確定性極高, 有時整段重寫導致 tag 全丟 (cov=0.00) → 加 tag count guard: 若 P2 tag 數偏離 P1 超過 50% 則自動 fallback 回 P1. 修正後 Gen 1:1-5 結果: 5/5 不退步, 1:1 exact match 穩定保住, avg cov=0.79. Two-pass 最壞情況 = P1 (S5), 最好情況 = P2 改善 placement.
