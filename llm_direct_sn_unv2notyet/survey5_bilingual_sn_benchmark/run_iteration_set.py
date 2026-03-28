@@ -65,6 +65,23 @@ def call_model(model, brand, ollama_url, sys_p, user_p):
     return ""
 
 
+def clean_output(text):
+    """Strip backticks and trailing explanation from model output."""
+    # Remove backticks (DeepSeek sometimes wraps tags in `)
+    text = text.replace("`", "")
+    # Strip trailing explanation (stop at first blank line after content)
+    lines = text.strip().split("\n")
+    result = []
+    for line in lines:
+        stripped = line.strip()
+        if result and (stripped == "" or re.match(r'^[A-Z][a-z]', stripped)
+                       or stripped.startswith("---") or stripped.startswith("**")
+                       or stripped.startswith("Note") or stripped.startswith("##")):
+            break
+        result.append(line)
+    return "\n".join(result).strip()
+
+
 def build_prompt(system_prompt, kjv_plain, kjv_sn, unv_plain, book_eng, chap, sec):
     user = f"""Here is {book_eng} {chap}:{sec} in KJV (plain, no tags):
 
@@ -162,7 +179,8 @@ def main():
 
         t_call = time.time()
         try:
-            output = call_model(args.model, brand, args.ollama_url, sys_p, user_p)
+            raw_output = call_model(args.model, brand, args.ollama_url, sys_p, user_p)
+            output = clean_output(raw_output) if raw_output else ""
             dt = time.time() - t_call
             dt_str = f"{int(dt)//60}m{int(dt)%60:02d}s"
 
