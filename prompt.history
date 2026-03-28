@@ -475,3 +475,6 @@ DeepSeek-671B Gen 1 跑 survey6 v0.1, 結果: cov=0.49 place=0.58 fmt=0.93. 與 
 
 ### 71. [2026-03-28 ~02:00] Sonnet two-pass 測試 + strip_explanation + tag count guard
 用 sonnet (claude CLI) 跑 Gen 1:1-5 two-pass. 發現兩個致命問題: (1) sonnet 在 P2 輸出中夾帶解釋文字 ("Projection notes:", "Correction made:"), 導致 score 全亂 → 加 strip_explanation() 後處理, 只取第一段中文+tag; (2) sonnet P2 非確定性極高, 有時整段重寫導致 tag 全丟 (cov=0.00) → 加 tag count guard: 若 P2 tag 數偏離 P1 超過 50% 則自動 fallback 回 P1. 修正後 Gen 1:1-5 結果: 5/5 不退步, 1:1 exact match 穩定保住, avg cov=0.79. Two-pass 最壞情況 = P1 (S5), 最好情況 = P2 改善 placement.
+
+### 72. [2026-03-28 ~10:00] Survey7 大規模 benchmark 結論 — Two-pass 不退步率 68%, 放棄
+DeepSeek-671B Gen 2-10 (236 節) refine v0.4 結果: improved=46 (19.5%), unchanged=115 (48.7%), degraded=75 (31.8%), 不退步率 68.2%. Per-chapter 變異大: Gen 2/4 ~80%, Gen 5/9 ~50%. 族譜章節 (Gen 5/9/10) 退步最嚴重. 同時測試 --enrich-dict (加 qp.php 字義+詞形), Gen 1 上無顯著差異. 結論: two-pass 不退步率遠低於 90% production 門檻, 決定放棄 two-pass 路線, 回到 S5 單次 prompt 改進.

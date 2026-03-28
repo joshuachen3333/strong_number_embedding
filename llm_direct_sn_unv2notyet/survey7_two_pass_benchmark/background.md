@@ -156,3 +156,38 @@ Survey1 部署 (UNV→LCC, 沒答案):
 
 跨語言 SN placement 是同一種能力，KJV↔UNV 的 benchmark 結果
 可以推廣到 UNV→LCC 的 production。
+
+## 大規模 Benchmark 結果（2026-03-28）
+
+### Gen 1-10, DeepSeek-671B, refine v0.4
+
+| 範圍 | 節數 | 改善 | 不動 | 退步 | 不退步率 |
+|------|------|------|------|------|---------|
+| Gen 1 | 31 | ~7 | ~17 | ~7 | 77% |
+| Gen 2-10 | 236 | 46 (19.5%) | 115 (48.7%) | 75 (31.8%) | **68.2%** |
+
+Per-chapter 不退步率（Gen 2-10）：
+- 最好：Gen 2 (80%), Gen 4 (81%)
+- 最差：Gen 5 (50%), Gen 9 (52%)
+- Gen 10（族譜）：0 improved, 8 degraded
+
+### Enriched dict (--enrich-dict) 實驗
+
+Gen 1 加入 qp.php 的 `exp`（中文字義）和 `wform`（詞形分析）：
+- 無 enrich: cov=0.5632 place=0.5846 sum=1.1478
+- 有 enrich: cov=0.5679 place=0.5646 sum=1.1325
+- 差異不顯著，enriched dict 沒有明顯幫助
+
+### 結論
+
+**Two-pass 不退步率 68% 遠低於 90% production 門檻。**
+
+P2 (refine) 對約 20% 的節有改善，但對約 32% 的節造成退步。
+重複性章節（族譜 Gen 5/9/10）退步尤其嚴重。
+
+**決定：放棄 two-pass 路線，回到 S5 單次 prompt 改進。**
+
+Two-pass 的價值發現保留作為參考：
+- 原文字典確實能改善 placement（S6 v0.1 證實）
+- 但無法同時維持 coverage（資訊過載問題未解）
+- refine pass 的「不亂動」約束對 LLM 太難遵守
