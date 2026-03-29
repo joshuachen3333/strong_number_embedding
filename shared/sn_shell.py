@@ -43,32 +43,29 @@ def strip_shell(text):
         if not num_match:
             return tag
         num = num_match.group(1)
-        # Strip leading zeros from number
-        num_stripped = num.lstrip('0') or '0'
-        # Keep letter suffix
-        if num_stripped[-1:].isalpha():
-            pass  # already has suffix
 
-        # Determine marker
+        # Determine marker from tag structure (before stripping zeros)
         is_braced = tag.startswith('{')
         is_morph = 'WT' in tag          # WTH or WTG
         is_wah = 'WAH' in tag or 'WAG' in tag
-        raw_num = int(num_stripped.rstrip('abcdefghijklmnopqrstuvwxyz') or '0')
+        raw_num = int(num.rstrip('abcdefghijklmnopqrstuvwxyz') or '0')
 
-        if is_braced and is_wah and 9000 <= raw_num <= 9999:
-            return f"<IP{num_stripped}>"
+        if is_braced and is_morph:
+            return f"<IM{num}>"
+        elif is_braced and is_wah and 9000 <= raw_num <= 9999:
+            return f"<IP{num}>"
         elif is_braced and is_wah:
-            return f"<IA{num_stripped}>"
+            return f"<IA{num}>"
         elif is_braced:
-            return f"<I{num_stripped}>"
+            return f"<I{num}>"
         elif is_morph:
-            return f"<M{num_stripped}>"
+            return f"<M{num}>"
         elif is_wah and 9000 <= raw_num <= 9999:
-            return f"<P{num_stripped}>"
+            return f"<P{num}>"
         elif is_wah:
-            return f"<A{num_stripped}>"
+            return f"<A{num}>"
         else:
-            return f"<{num_stripped}>"
+            return f"<{num}>"
 
     return _TAG_RE.sub(_replace, text)
 
@@ -79,17 +76,21 @@ def extract_bare_numbers(text):
     Returns list of strings: ['7225', '430', '1254', '8804', '853', ...]
     """
     # After strip_shell, numbers are in <number>, <Mnumber>, <IAnumber> etc.
-    return re.findall(r'<((?:IA|IP|[MPIA])?\d+[a-z]?)>', text)
+    return re.findall(r'<((?:IA|IP|IM|[MPIA])?\d+[a-z]?)>', text)
 
 
-def _zero_pad(num_int, testament="OT"):
+def _zero_pad(num_int, testament="OT", orig_digits=None):
     """Apply FHL zero-padding rule.
 
-    OT: < 1000 → 4 digits (0430, 0776), >= 1000 → 5 digits (01254, 07225)
+    OT: preserve original digit count from FHL tag.
+        Common patterns: 0430 (4-digit), 07225 (5-digit), 00 (2-digit), 068 (3-digit)
+        Fallback: < 1000 → 4 digits, >= 1000 → 5 digits
     NT: no padding (746, 1722, 3056)
     """
     if testament == "NT":
         return str(num_int)
+    if orig_digits is not None:
+        return f"{num_int:0{orig_digits}d}"
     if num_int < 1000:
         return f"{num_int:04d}"
     else:
@@ -115,8 +116,8 @@ def restore_tag(tagged_num, testament="OT"):
     """
     marker = ""
     num_str = tagged_num
-    # Check for two-letter markers first (IA, IP)
-    if tagged_num[:2] in ("IA", "IP"):
+    # Check for two-letter markers first (IA, IP, IM)
+    if tagged_num[:2] in ("IA", "IP", "IM"):
         marker = tagged_num[:2]
         num_str = tagged_num[2:]
     elif tagged_num and tagged_num[0] in "MPIA":
@@ -137,36 +138,32 @@ def restore_tag(tagged_num, testament="OT"):
 
     lang = "H" if testament == "OT" else "G"
 
-    if marker == "IP":
-        # Implicit + 900x prefix
-        return "{" + f"<WAH0{num}>" + "}"
-    elif marker == "IA":
-        # Implicit + WAH non-900x
-        prefix = f"WA{lang}"
-        padded = _zero_pad(num, testament)
-        return "{" + f"<{prefix}{padded}{suffix}>" + "}"
-    elif marker == "P":
-        # 900x prefix
-        return f"<WAH0{num}>"
-    elif marker == "M":
-        # Morphology
+    # For restore, use the original digit string (preserves leading zeros)
+    # num_str still has the original form (e.g. '07225', '0430', '00', '068')
+    num_orig = f"{clean}{suffix}"  # recombine digits + optional letter suffix
+
+    if marker == "IM":
         prefix = f"WT{lang}"
-        return f"<{prefix}{num}>"
-    elif marker == "I":
-        # Implicit (plain WH/WG)
-        prefix = f"W{lang}"
-        padded = _zero_pad(num, testament)
-        return "{" + f"<{prefix}{padded}{suffix}>" + "}"
-    elif marker == "A":
-        # WAH non-900x
+        return "{" + f"<{prefix}{clean}>" + "}"
+    elif marker == "IP":
+        return "{" + f"<WAH{num_orig}>" + "}"
+    elif marker == "IA":
         prefix = f"WA{lang}"
-        padded = _zero_pad(num, testament)
-        return f"<{prefix}{padded}{suffix}>"
-    else:
-        # Core SN
+        return "{" + f"<{prefix}{num_orig}>" + "}"
+    elif marker == "P":
+        return f"<WAH{num_orig}>"
+    elif marker == "M":
+        prefix = f"WT{lang}"
+        return f"<{prefix}{clean}>"
+    elif marker == "I":
         prefix = f"W{lang}"
-        padded = _zero_pad(num, testament)
-        return f"<{prefix}{padded}{suffix}>"
+        return "{" + f"<{prefix}{num_orig}>" + "}"
+    elif marker == "A":
+        prefix = f"WA{lang}"
+        return f"<{prefix}{num_orig}>"
+    else:
+        prefix = f"W{lang}"
+        return f"<{prefix}{num_orig}>"
 
 
 def restore_shell(stripped_text, testament="OT"):
@@ -188,8 +185,8 @@ def restore_shell(stripped_text, testament="OT"):
         num_str = m.group(1)
         return restore_tag(num_str, testament)
 
-    # Match <number>, <Mnumber>, <IAnumber>, <IPnumber>, etc.
-    return re.sub(r'<((?:IA|IP|[MPIA])?\d+[a-z]?)>', _replace, stripped_text)
+    # Match <number>, <Mnumber>, <IAnumber>, <IPnumber>, <IMnumber>, etc.
+    return re.sub(r'<((?:IA|IP|IM|[MPIA])?\d+[a-z]?)>', _replace, stripped_text)
 
 
 # --- Scoring helpers ---
