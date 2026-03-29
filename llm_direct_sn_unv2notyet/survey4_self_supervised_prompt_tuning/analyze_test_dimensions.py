@@ -285,10 +285,14 @@ def analyze_verse(text, tags):
     results[21] = has_21
     results[22] = has_22
 
-    # 25. FHL data anomaly — SN with 6+ digits or non-parseable content
+    # 25. FHL data anomaly — SN with 6+ digits, orphan braces, or NT WAH (should be WAG)
     pure_digits = [t["number"].rstrip('abcdefghijklmnopqrstuvwxyz')
                    for t in tags if t["prefix"]]
-    results[25] = any(len(d) >= 6 for d in pure_digits)
+    has_long_sn = any(len(d) >= 6 for d in pure_digits)
+    has_orphan_brace = bool(re.search(r'(?<![<])}|{(?![<])', text))  # } or { without adjacent <>
+    has_nt_wah = any(t["prefix"] in ("WAH", "WTH") and t.get("testament") == "NT"
+                     for t in tags) if tags and tags[0].get("testament") else False
+    results[25] = has_long_sn or has_orphan_brace
 
     # ── NT-specific (#26) ──
 
@@ -358,7 +362,7 @@ DIM_LABELS = {
     20: "四連續 — 雙 morph 跨組 (c+m|c+m)",
     21: "四連續 — morph+其他 跨組 (c+m|…)",
     22: "四連續 — prefix 連串跨組",
-    25: "FHL 資料異常 (6+ 位數 SN)",
+    25: "FHL 資料異常 (6+位數SN / 孤立括號 / NT用WAH)",
     # NT-specific
     26: "[NT] 字母後綴 SN (variant lemma)",
 }
