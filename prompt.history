@@ -493,3 +493,6 @@ DeepSeek-671B Gen 2-10 (236 節) refine v0.4 結果: improved=46 (19.5%), unchan
 
 ### 77. [2026-03-30 ~01:00] sn_shell.py 去殼加殼 全聖經 roundtrip 99.99% + Survey8 方案 A/B
 shared/sn_shell.py 實作完成: strip_shell() 去殼 + restore_shell() 加殼. 迭代修正: (1) WAH+implicit 組合 → IA marker; (2) morphology+implicit → IM marker; (3) 保留原始 digit string 避免 zero-padding 錯誤. 全聖經 31103 節 roundtrip 測試: 31100 通過 (99.99%), 3 節失敗皆為 FHL 資料異常. 方案 A (commit 93f4063): LLM 輸出帶 markers (P/M/I/A), 加殼完美但 S1=S2 無差異. 方案 B: LLM 只輸出裸數字 <number>, script 用 restore_shell_guess() 猜 marker, S1 vs S2 差異可定位 script 猜錯處. 8xxx 歧義: 8064=天是 core SN 但會被猜成 morphology. Prompt 精簡至 989 chars. DeepSeek/sonnet/qwen 初步測試中.
+
+### 78. [2026-03-30 ~03:00] S5 摩西五經完成 + S8 pipeline 三重評分 + Production 洞見
+S5 v0.4 摩西五經全完成 (5835 節): Gen cov=0.62/place=0.55, Exod 0.61/0.57, Lev 0.57/0.61, Num 0.62/0.56, Deut 0.59/0.56. 總計 cov=0.607 place=0.566 exact=16. S8 加入 fix_placement() 規則校正 (morphology 跟 core, 900x prefix 在 core 前) + 三重評分 S0/S1/S2 pipeline. Gen 1 跑分: fix_placement 貢獻=0 (DeepSeek 順序本來就對). 全聖經 implicit 統計: 無任何 SN 超過 90% braced rate (最高 1161=65%, 853=59%), 放棄 KNOWN_IMPLICIT 策略. 關鍵 production 洞見: UNV+SN 提供所有數字 → coverage/format 送分題, LLM 只考 placement; 加殼查表不用猜 → restore_shell_guess 的改進在 production 不需要. S8 prompt v0.1 (989 chars) 從 production 角度確認為最終版.
