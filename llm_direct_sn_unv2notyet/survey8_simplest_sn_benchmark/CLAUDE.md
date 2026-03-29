@@ -23,6 +23,28 @@
 - **S2**：加殼後比（FHL 格式 vs FHL 格式）→ 量 LLM + script 組合
 - **S1 − S2 差距** = restore_shell_guess 猜錯造成的損失
 
+## fix_placement() — 規則校正 LLM 放置錯誤
+
+`shared/sn_shell.py` 中的 `fix_placement()` 用結構性規則修正 LLM 輸出中明顯的順序錯誤。這不是湊答案——這兩條規則是希伯來/希臘 SN 系統的語法結構，適用於任何經節任何語言。
+
+### Rule 1: Morphology 跟在 core SN 後面
+
+```
+LLM 輸出: 創造<8804><1254>    ← morphology(8804) 跑到 core(1254) 前面
+修正後:   創造<1254><8804>    ← 正確：core 在前，morphology 在後
+```
+
+### Rule 2: 900x prefix 在 core SN 前面
+
+```
+LLM 輸出: 起初<7225><9002>    ← core(7225) 跑到 prefix(9002) 前面
+修正後:   起初<9002><7225>    ← 正確：prefix 在前，core 在後
+```
+
+### Production 時更準
+
+Production 有 UNV+SN 的映射表，能精確知道哪個是 morphology、哪個是 core。Benchmark 時靠 `core_sns`（qp.php）區分。
+
 ## 核心想法
 
 **分離 LLM 的語義能力和格式規則。**

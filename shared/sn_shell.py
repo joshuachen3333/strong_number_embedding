@@ -253,6 +253,92 @@ def restore_shell_guess(stripped_text, testament="OT", core_sns=None):
     return re.sub(r'<(\d+[a-z]?)>', _replace, stripped_text)
 
 
+def fix_placement(text, core_sns=None):
+    """Fix obvious placement errors in stripped SN output.
+
+    Rule-based corrections that are structurally universal (not verse-specific):
+
+    1. Morphology after core SN:
+       8xxx (not in core_sns) must follow a core SN, never precede it.
+       <8804><1254> → <1254><8804>
+
+    2. 900x prefix before core SN:
+       9xxx must precede a core SN, never follow it.
+       <7225><9002> → <9002><7225>
+
+    Args:
+        text: stripped text with <number> tags
+        core_sns: set of core SN numbers (int) from qp.php. If None,
+            8000-8999 are assumed morphology, 9000-9999 are prefix.
+
+    Returns:
+        text with corrected tag order
+    """
+    def _is_morph(num_str):
+        clean = num_str.rstrip('abcdefghijklmnopqrstuvwxyz')
+        try:
+            n = int(clean)
+        except ValueError:
+            return False
+        if 8000 <= n <= 8999:
+            return not (core_sns and n in core_sns)
+        return False
+
+    def _is_prefix(num_str):
+        clean = num_str.rstrip('abcdefghijklmnopqrstuvwxyz')
+        try:
+            n = int(clean)
+        except ValueError:
+            return False
+        return 9000 <= n <= 9999
+
+    def _is_core(num_str):
+        return not _is_morph(num_str) and not _is_prefix(num_str)
+
+    # Find all tag positions
+    tag_pattern = re.compile(r'<(\d+[a-z]?)>')
+    result = text
+    changed = True
+
+    # Iterate until no more swaps (max 5 passes to avoid infinite loop)
+    for _ in range(5):
+        changed = False
+        tags = list(tag_pattern.finditer(result))
+
+        for i in range(len(tags) - 1):
+            t1 = tags[i]
+            t2 = tags[i + 1]
+
+            # Check adjacency (no Chinese chars between them)
+            between = result[t1.end():t2.start()]
+            if between.strip():
+                continue  # there's text between, not adjacent tags
+
+            n1 = t1.group(1)
+            n2 = t2.group(1)
+
+            swap = False
+
+            # Rule 1: morphology should follow core, not precede
+            if _is_morph(n1) and _is_core(n2):
+                swap = True
+
+            # Rule 2: prefix should precede core, not follow
+            if _is_core(n1) and _is_prefix(n2):
+                swap = True
+
+            if swap:
+                # Swap the two tags
+                result = result[:t1.start()] + t2.group(0) + t1.group(0) + result[t2.end():]
+                changed = True
+                break  # restart scan after swap
+
+        if not changed:
+            break
+
+    return result
+
+
 def strip_for_comparison(text):
     """Strip FHL tags to bare numbers for Score 1 comparison.
 
