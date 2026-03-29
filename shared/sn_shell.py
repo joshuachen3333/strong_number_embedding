@@ -188,20 +188,33 @@ def restore_shell(stripped_text, testament="OT"):
 
 # --- Scoring helpers ---
 
-def restore_shell_guess(stripped_text, testament="OT"):
+# Common implicit SNs (Hebrew object marker, etc.)
+# These SN numbers are almost always wrapped in {} in UNV
+KNOWN_IMPLICIT_OT = {853}   # את (object marker)
+KNOWN_IMPLICIT_NT = set()
+
+
+def restore_shell_guess(stripped_text, testament="OT", core_sns=None):
     """Restore bare numbers (no markers) to FHL format by guessing type.
 
     Used in 方案 B where LLM outputs only <number> without markers.
+
+    Args:
+        stripped_text: text with <number> tags from LLM
+        testament: 'OT' or 'NT'
+        core_sns: set of SN numbers (int) from qp.php for this verse.
+            If provided, any 8xxx number IN this set is core SN,
+            any 8xxx number NOT in this set is morphology.
+            Without this, all 8xxx are guessed as morphology (lossy).
+
     Guessing rules:
         9000-9999 → <WAH09xxx> (900x prefix)
-        8000-8999 → <WTH8xxx> or <WTG5xxx> (morphology) — AMBIGUOUS with core SN
-        others    → <WHxxxx> or <WGxxxx> (core SN)
-        No way to guess implicit {} — all output as bare tags
-
-    Note: 8xxx ambiguity (e.g. 8064=天 is core, 8804 is morphology) means
-    Score 2 will be lower than Score 1. This gap measures the cost of
-    not having markers.
+        8000-8999 → core if in core_sns, else morphology
+        in KNOWN_IMPLICIT → {<WHxxxx>} (implicit)
+        others → <WHxxxx> or <WGxxxx> (core SN)
     """
+    known_implicit = KNOWN_IMPLICIT_OT if testament == "OT" else KNOWN_IMPLICIT_NT
+
     def _replace(m):
         num_str = m.group(1)
         clean = num_str.rstrip('abcdefghijklmnopqrstuvwxyz')
@@ -213,15 +226,29 @@ def restore_shell_guess(stripped_text, testament="OT"):
 
         lang = "H" if testament == "OT" else "G"
 
+        # 900x prefix
         if 9000 <= num <= 9999:
             return f"<WAH{num_str}>"
-        elif 8000 <= num <= 8999:
-            # Guess morphology (most 8xxx in practice are morphology)
-            prefix = f"WT{lang}"
-            return f"<{prefix}{clean}>"
-        else:
+
+        # 8xxx: use core_sns to disambiguate
+        if 8000 <= num <= 8999:
+            if core_sns and num in core_sns:
+                # It's a core SN (e.g. 8064=heaven), not morphology
+                prefix = f"W{lang}"
+                return f"<{prefix}{num_str}>"
+            else:
+                # Morphology
+                prefix = f"WT{lang}"
+                return f"<{prefix}{clean}>"
+
+        # Known implicit
+        if num in known_implicit:
             prefix = f"W{lang}"
-            return f"<{prefix}{num_str}>"
+            return "{" + f"<{prefix}{num_str}>" + "}"
+
+        # Core SN
+        prefix = f"W{lang}"
+        return f"<{prefix}{num_str}>"
 
     return re.sub(r'<(\d+[a-z]?)>', _replace, stripped_text)
 

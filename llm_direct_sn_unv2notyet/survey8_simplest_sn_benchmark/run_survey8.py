@@ -310,7 +310,15 @@ def main():
                 score1 = score_verse(output, gt_stripped)
 
                 # Score 2: guess-restore shell then compare with original GT
-                output_shelled = restore_shell_guess(output, testament)
+                # Build core_sns set from qp.php for this verse
+                core_sns = set()
+                for r in qp_records:
+                    sn_clean = r['sn'].lstrip('WH').lstrip('WG').lstrip('0') or '0'
+                    try:
+                        core_sns.add(int(sn_clean.rstrip('abcdefghijklmnopqrstuvwxyz')))
+                    except ValueError:
+                        pass
+                output_shelled = restore_shell_guess(output, testament, core_sns=core_sns)
                 score2 = score_verse(output_shelled, unv_sn)
 
                 print(f"  {ref:15s} "
