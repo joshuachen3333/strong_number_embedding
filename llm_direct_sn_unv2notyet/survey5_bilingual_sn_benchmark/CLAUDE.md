@@ -1,5 +1,15 @@
 # survey5_bilingual_sn_benchmark/ — 雙語 SN 基準測試
 
+## 一句話摘要
+
+**不同語言（英→中）、不同版本（KJV→UNV）；範例節與工作節同一節。**
+KJV+SN 的 tag 搬到同節 UNV 對應位置，FHL 的 UNV+SN 是 ground truth。
+
+- 模型不需要背 SN 號碼 — **號碼已在 KJV+SN 輸入中**，只需搬到正確的中文字後面
+- 瓶頸：格式錯誤（WH vs WAH、braces）+ KJV/UNV 的 SN 數量不一致
+- v0.4 prompt（精簡 1607 chars）是目前最佳："less is more"
+- → survey8 用去殼解決格式問題，用 qp.php 字典取代 KJV 避免 SN 不一致
+
 ## 概念起源
 
 ### Survey4 的問題
