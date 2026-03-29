@@ -10,6 +10,14 @@ KJV+SN 的 tag 搬到同節 UNV 對應位置，FHL 的 UNV+SN 是 ground truth�
 - v0.4 prompt（精簡 1607 chars）是目前最佳："less is more"
 - → survey8 用去殼解決格式問題，用 qp.php 字典取代 KJV 避免 SN 不一致
 
+## 評分指標
+
+| 指標 | 量什麼 | 白話 |
+|------|--------|------|
+| **cov** (coverage) | 該有的數字有沒有出現 | 「漏了幾個？多了幾個？」 |
+| **place** (placement) | 數字出現了，位置對不對 | 「放對地方了嗎？」 |
+| **fmt** (format) | 格式對不對（zero-padding、braces、prefix） | 「殼穿對了嗎？」 |
+
 ## 概念起源
 
 ### Survey4 的問題

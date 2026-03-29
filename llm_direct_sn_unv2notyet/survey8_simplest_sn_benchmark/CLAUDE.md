@@ -7,7 +7,21 @@
 - LLM 只插裸數字（7225, 430, 853），不處理任何格式（WH, WAH, braces, zero-padding）
 - 原文字典（qp.php）提供 SN 號碼 → 模型不需要背 13,000+ 條字典
 - Script 後處理加殼：裸數字 → FHL 完整格式
-- 雙重評分：Score 1（去殼比對，量 LLM 放置能力）vs Score 2（加殼比對，量 script 還原品質）
+- 雙重評分：Score 1（去殼比對，量 LLM 放置能力）vs Score 2（加殼比對，量 LLM + script 組合）
+
+## 評分指標
+
+| 指標 | 量什麼 | 白話 |
+|------|--------|------|
+| **cov** (coverage) | 該有的數字有沒有出現 | 「漏了幾個？多了幾個？」 |
+| **place** (placement) | 數字出現了，位置對不對 | 「放對地方了嗎？」 |
+| **fmt** (format) | 格式對不對（zero-padding、braces、prefix） | 「殼穿對了嗎？」 |
+
+### S8 方案 B 雙重分數
+
+- **S1**：去殼比（裸數字 vs 裸數字）→ 量 LLM 純放置能力
+- **S2**：加殼後比（FHL 格式 vs FHL 格式）→ 量 LLM + script 組合
+- **S1 − S2 差距** = restore_shell_guess 猜錯造成的損失
 
 ## 核心想法
 

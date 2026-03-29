@@ -11,6 +11,14 @@
 - 這就是 survey4 coverage 極低的根因：模型要背 13,000+ 條 Strong's Dictionary
 - → survey8 在此基礎上加 qp.php 字典 + 去殼，解決這兩個問題
 
+## 評分指標
+
+| 指標 | 量什麼 | 白話 |
+|------|--------|------|
+| **cov** (coverage) | 該有的數字有沒有出現 | 「漏了幾個？多了幾個？」 |
+| **place** (placement) | 數字出現了，位置對不對 | 「放對地方了嗎？」 |
+| **fmt** (format) | 格式對不對（zero-padding、braces、prefix） | 「殼穿對了嗎？」 |
+
 ## Concept
 
 Use FHL's existing UNV+SN annotations as ground truth to objectively evaluate prompt quality — without needing 3-model consensus.
