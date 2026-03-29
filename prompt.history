@@ -481,3 +481,9 @@ DeepSeek-671B Gen 2-10 (236 節) refine v0.4 結果: improved=46 (19.5%), unchan
 
 ### 73. [2026-03-28 ~11:00] Survey5/6/7 收尾 — 完整比較表 + 回歸 S5 單次路線
 整理 survey6 CLAUDE.md 寫入完整比較表: S5 v0.2 (cov=0.59 place=0.51 sum=1.10) vs S6 v0.1 single-pass (cov=0.49 place=0.58 sum=1.08) vs S6 v0.2 tag-inventory (cov=0.39 更差) vs S6 two-pass v0.4 (cov=0.57 place=0.57 sum=1.14 但不穩定). 三個關鍵結論: (1) 原文字典確實提升 placement (+7pp), 但 single-pass 5-input 資訊過載導致 coverage 崩潰; (2) 加更多輸入 (tag inventory) 反而更差, 證實資訊過載是根本問題; (3) two-pass 在 Gen 1 sum 最高但大規模 (Gen 2-10) 不退步率僅 68%. P2 的核心困難: 「只移動不增刪」對 LLM 太難遵守. 決定: 回到 S5 單次 prompt 作為主力改進方向.
+
+### 74. [2026-03-28 ~14:00] S5 prompt 迭代 v0.2→v0.4 + 52 節迭代框架
+建立 52 節迭代組 (survey4 exemplar library, 26 dims × 2), 跨 18 卷書. 用 DeepSeek-671B 迭代: v0.2 baseline (cov=0.79 place=0.79 exact=10/52) → v0.3 加 no-backtick/tag-after-word 規則 (place +4pp 但 cov -4pp, prompt 太長) → v0.4 精簡 prompt 1607 chars (v0.2 的 40%, cov=0.78 place=0.86 exact=13/52). 關鍵發現: "less is more" — prompt 越短模型表現越好. v0.4 驗證: Gen 1-3 (cov=0.59 place=0.48), Num 1-3 (cov=0.68 place=0.55). 弱點分析: dim 11/22 (WAH prefix, UNV-only tags), dim 26 (NT SN 不一致) 是結構性天花板. Acts 21:15 替換為 Rev 18:13 (KJV/UNV SN 編號不同是資料問題非模型問題).
+
+### 75. [2026-03-29 ~10:00] run_survey5.py --resume + incremental save + Tee logging
+加入 --resume flag: 讀取已有 JSON, 跳過 done refs, 接續跑新節. Incremental save: 每節完成後即寫 JSON (中斷不丟進度). Tee class: stdout 同時寫 terminal + .log 檔, resume 時 append 模式. 解決多次中斷重跑產生重複檔案的問題. 用法: 先跑 --out, 中斷後 --resume 同一檔案繼續; 或 --resume 已有檔案 + 不同 --book 接續跨書卷.

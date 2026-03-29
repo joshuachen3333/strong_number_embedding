@@ -35,6 +35,26 @@ import re
 import sys
 import time
 
+
+class Tee:
+    """Write stdout to both terminal and a log file simultaneously."""
+    def __init__(self, log_path, mode="w"):
+        self._terminal = sys.stdout
+        self._log = open(log_path, mode, encoding="utf-8", buffering=1)
+
+    def write(self, msg):
+        self._terminal.write(msg)
+        self._log.write(msg)
+
+    def flush(self):
+        self._terminal.flush()
+        self._log.flush()
+
+    def close(self):
+        sys.stdout = self._terminal
+        self._log.close()
+
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.dirname(SCRIPT_DIR)
 if PARENT_DIR not in sys.path:
@@ -287,6 +307,18 @@ def main():
     if _out_path:
         os.makedirs(os.path.dirname(_out_path), exist_ok=True)
 
+    # Start Tee logging (append if resuming, write if new)
+    tee = None
+    if _out_path:
+        log_path = re.sub(r'\.json$', '.log', _out_path)
+        tee_mode = "a" if resume_path else "w"
+        tee = Tee(log_path, mode=tee_mode)
+        sys.stdout = tee
+        if resume_path:
+            print(f"\n{'─'*60}")
+            print(f"Resume: {len(done_refs)} done, continuing with {book_eng} {args.chap}")
+            print(f"{'─'*60}")
+
     t0 = time.time()
 
     for chap in chapters:
@@ -394,6 +426,9 @@ def main():
     if args.out is not None and _out_path:
         _save_results(results, _out_path, book_eng, args, brand, pver, task_label)
         print(f"\n  Saved to {_out_path}")
+
+    if tee:
+        tee.close()
 
 
 if __name__ == "__main__":
