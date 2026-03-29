@@ -1,5 +1,14 @@
 # survey6_original_lang_benchmark/ — 原文錨定 SN 基準測試
 
+## 一句話摘要
+
+**不同語言（英→中）、不同版本（KJV→UNV）；同一節。在 survey5 基礎上加入原文（希伯來/希臘原文）+ SN:word 原文與 SN 對照。**
+
+- Single-pass 5-input 導致資訊過載：placement +7pp 但 coverage -10pp
+- Two-pass 嘗試（P1=S5 coverage, P2=refine placement）移交 survey7 驗證
+- 結論：原文字典對 placement 有價值，但無法在不犧牲 coverage 下使用
+- → survey8 用去殼解決資訊過載，只保留字典的數字部分
+
 ## 概念
 
 Survey5 的問題：KJV 和 UNV 的 SN 數量常常不一致（因 900x prefix 等），模型只能依賴英中語義配對。
