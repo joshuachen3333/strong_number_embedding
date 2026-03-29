@@ -154,6 +154,28 @@ def print_summary(results, book_eng, model, t0, task_label):
     print(f"  Time: {(time.time()-t0)/60:.1f} minutes")
 
 
+def _save_results(results, out_path, book_eng, args, brand, pver, task_label):
+    """Save results JSON (used for both incremental and final save)."""
+    scored = [r for r in results if "score" in r]
+    out_data = {
+        "meta": {
+            "task": "survey5_unv_to_kjv" if args.reverse else "survey5_kjv_to_unv",
+            "book": book_eng,
+            "model": args.model,
+            "brand": brand,
+            "prompt_version": pver,
+            "reverse": args.reverse,
+            "match_only": args.match_only,
+            "max_diff": args.max_diff,
+            "total_scored": len(scored),
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+        },
+        "verses": results,
+    }
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(out_data, f, ensure_ascii=False, indent=1)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Survey5: KJV↔UNV cross-lingual SN benchmark")
@@ -174,6 +196,8 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--out", nargs="?", const="", default=None,
                         help="Save results JSON. No value = auto-generate filename.")
+    parser.add_argument("--resume", default=None,
+                        help="Resume from existing JSON output file, skip already-done verses")
     args = parser.parse_args()
 
     book_chi = args.book
@@ -215,14 +239,41 @@ def main():
     else:
         chapters = [int(args.chap)]
 
+    # Resume: load existing results and determine which refs to skip
+    done_refs = set()
+    results = []
+    resume_path = None
+    if args.resume:
+        resume_path = os.path.join(SCRIPT_DIR, args.resume) if not os.path.isabs(args.resume) else args.resume
+        if os.path.exists(resume_path):
+            with open(resume_path, encoding="utf-8") as f:
+                prev = json.load(f)
+            results = prev.get("verses", [])
+            done_refs = {r["ref"] for r in results}
+            # If --out not specified, write back to same file
+            if args.out is None:
+                args.out = resume_path
+
     task_label = "輔助任務 UNV→KJV" if args.reverse else "主任務 KJV→UNV"
     print(f"Survey5: {task_label}")
     print(f"Book: {book_eng} ({book_chi})")
     print(f"Model: {args.model} ({brand})")
     print(f"Prompt: {len(system_prompt)} chars")
+    if done_refs:
+        print(f"Resume: {len(done_refs)} verses already done, skipping")
     print()
 
-    results = []
+    # Determine output path early (for incremental save)
+    _out_path = None
+    if args.out is not None:
+        task_short = "rev" if args.reverse else "fwd"
+        if isinstance(args.out, str) and args.out == "":
+            _out_path = make_out_path(task_short, book_eng, args.chap,
+                                      args.model, pver, "json")
+        else:
+            _out_path = os.path.join(SCRIPT_DIR, args.out) if not os.path.isabs(args.out) else args.out
+        os.makedirs(os.path.dirname(_out_path), exist_ok=True)
+
     t0 = time.time()
 
     for chap in chapters:
@@ -254,6 +305,9 @@ def main():
                 continue
 
             ref = f"{book_eng} {chap}:{sec}"
+
+            if ref in done_refs:
+                continue
 
             if args.reverse:
                 ground_truth = kjv_sn
@@ -311,6 +365,10 @@ def main():
                     "time": round(dt, 1),
                 })
 
+                # Incremental save (so --resume works if interrupted)
+                if args.out is not None and _out_path:
+                    _save_results(results, _out_path, book_eng, args, brand, pver, task_label)
+
             except Exception as e:
                 print(f"  {ref:15s} ERROR: {e}")
 
@@ -319,36 +377,10 @@ def main():
 
     print_summary(results, book_eng, args.model, t0, task_label)
 
-    # Save
-    if args.out is not None:
-        task_short = "rev" if args.reverse else "fwd"
-        if args.out == "":
-            # auto-generate filename
-            out_path = make_out_path(task_short, book_eng, args.chap,
-                                     args.model, pver, "json")
-        else:
-            out_path = os.path.join(SCRIPT_DIR, args.out) if not os.path.isabs(args.out) else args.out
-
-        scored = [r for r in results if "score" in r]
-        out_data = {
-            "meta": {
-                "task": "survey5_unv_to_kjv" if args.reverse else "survey5_kjv_to_unv",
-                "book": book_eng,
-                "model": args.model,
-                "brand": brand,
-                "prompt_version": pver,
-                "reverse": args.reverse,
-                "match_only": args.match_only,
-                "max_diff": args.max_diff,
-                "total_scored": len(scored),
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-            },
-            "verses": results,
-        }
-        os.makedirs(os.path.dirname(out_path), exist_ok=True)
-        with open(out_path, "w", encoding="utf-8") as f:
-            json.dump(out_data, f, ensure_ascii=False, indent=1)
-        print(f"\n  Saved to {out_path}")
+    # Final save
+    if args.out is not None and _out_path:
+        _save_results(results, _out_path, book_eng, args, brand, pver, task_label)
+        print(f"\n  Saved to {_out_path}")
 
 
 if __name__ == "__main__":
