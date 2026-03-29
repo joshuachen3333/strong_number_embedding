@@ -1,5 +1,16 @@
 # survey4_annotation_consistency_test/ — Self-Supervised Prompt Evaluation
 
+## 一句話摘要
+
+**同語文（中文）、同譯本（UNV）、不同節。**
+範例節（v1）已有 SN 標注，工作節（v2）沒有。
+模型從 v1 學放置模式，對 v2 執行標注，跟 FHL ground truth 比對評分。
+
+- v1 從 **exemplar library**（26 dims 分類篩選）選出
+- v2 的 SN 號碼跟 v1 完全不同 — **模型需要自己知道每個中文字對應哪個 SN**
+- 這就是 survey4 coverage 極低的根因：模型要背 13,000+ 條 Strong's Dictionary
+- → survey8 在此基礎上加 qp.php 字典 + 去殼，解決這兩個問題
+
 ## Concept
 
 Use FHL's existing UNV+SN annotations as ground truth to objectively evaluate prompt quality — without needing 3-model consensus.
