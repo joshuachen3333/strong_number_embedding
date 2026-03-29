@@ -103,7 +103,18 @@
       "Bash(GEMINI_API_KEY=AIzaSyAsO-kt8kUu0CSaTThwoVSXm5_pJwWy6eY python3 run_gold_standard.py --book 創 --chap 1 --sec 1-5 --prompt-file prompts/v1.1-exp-annotation-projection.md --prompt-version v1.1-exp --force 2>&1)",
       "Bash(GEMINI_API_KEY=AIzaSyAsO-kt8kUu0CSaTThwoVSXm5_pJwWy6eY python3 run_gold_standard.py --book 創 --chap 1 --sec 7,11,16,21 --prompt-file prompts/v1.1-exp-annotation-projection.md --prompt-version v1.1-exp --force 2>&1)",
       "Bash(GEMINI_API_KEY=AIzaSyAsO-kt8kUu0CSaTThwoVSXm5_pJwWy6eY python3 run_gold_standard.py --book 創 --chap 1 --sec 1-5)",
-      "Bash(GEMINI_API_KEY=AIzaSyAsO-kt8kUu0CSaTThwoVSXm5_pJwWy6eY python3 run_gold_standard.py --book 創 --chap 1 --sec 24-28)"
+      "Bash(GEMINI_API_KEY=AIzaSyAsO-kt8kUu0CSaTThwoVSXm5_pJwWy6eY python3 run_gold_standard.py --book 創 --chap 1 --sec 24-28)",
+      "Bash(GEMINI_API_KEY=AIzaSyAsO-kt8kUu0CSaTThwoVSXm5_pJwWy6eY python3 run_gold_standard.py --book 創 --chap 1 --sec 1,2,4,5,7,9,11,12,16,21,25,28 --force --strip-prompt-comment)",
+      "Bash(GEMINI_API_KEY=invalid_key_for_testing python3 run_gold_standard.py --book 創 --chap 1 --sec 1 --force)",
+      "Bash(for book:*)",
+      "Bash(for code:*)",
+      "Bash(do python3:*)",
+      "Bash(tail -8 /Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey4_self_supervised_prompt_tuning/run_logs/opus_1pct_*.log)",
+      "Bash(kill 85261 85298 85047)",
+      "Bash(tail:*)",
+      "Bash(ps -p 7839,7991 -o pid,command)",
+      "Bash(cat run_logs/rr_dim1_qwen_*.log)",
+      "Bash(kill 16595)"
     ],
     "deny": []
   }
