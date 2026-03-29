@@ -29,7 +29,7 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from llm_direct_sn_unv2notyet import fetch_chap_cached, CHI_TO_ENG, parse_sec_arg as parse_sec_spec
-from shared.sn_shell import strip_shell, restore_shell, restore_shell_guess, extract_bare_numbers
+from shared.sn_shell import strip_shell, restore_shell, restore_shell_guess, extract_bare_numbers, fix_placement
 
 # Reuse from survey4
 S4_DIR = os.path.join(PARENT_DIR, "survey4_self_supervised_prompt_tuning")
@@ -306,10 +306,6 @@ def main():
                     print(f"  {ref:15s} ⚠ RATE LIMITED ({dt_str})")
                     continue
 
-                # Score 1: stripped comparison (LLM placement)
-                score1 = score_verse(output, gt_stripped)
-
-                # Score 2: guess-restore shell then compare with original GT
                 # Build core_sns set from qp.php for this verse
                 core_sns = set()
                 for r in qp_records:
@@ -318,13 +314,30 @@ def main():
                         core_sns.add(int(sn_clean.rstrip('abcdefghijklmnopqrstuvwxyz')))
                     except ValueError:
                         pass
-                output_shelled = restore_shell_guess(output, testament, core_sns=core_sns)
+
+                # S0: LLM raw output vs GT stripped
+                score0 = score_verse(output, gt_stripped)
+
+                # fix_placement: rule-based order correction
+                fixed = fix_placement(output, core_sns)
+
+                # S1: after fix_placement vs GT stripped
+                score1 = score_verse(fixed, gt_stripped)
+
+                # S2: after fix + restore_shell_guess vs original GT
+                output_shelled = restore_shell_guess(fixed, testament, core_sns=core_sns)
                 score2 = score_verse(output_shelled, unv_sn)
 
+                # Show fix_placement delta
+                fix_delta = (score1['coverage'] + score1['placement']) - \
+                            (score0['coverage'] + score0['placement'])
+                fix_mark = " ★" if fix_delta > 0.01 else ""
+
                 print(f"  {ref:15s} "
+                      f"S0 c={score0['coverage']:.2f}/p={score0['placement']:.2f}  "
                       f"S1 c={score1['coverage']:.2f}/p={score1['placement']:.2f}  "
                       f"S2 c={score2['coverage']:.2f}/p={score2['placement']:.2f}  "
-                      f"fmt={score2['format']:.2f}  "
+                      f"fmt={score2['format']:.2f}{fix_mark}  "
                       f"({dt_str})")
 
                 results.append({
@@ -332,8 +345,10 @@ def main():
                     "unv_sn_count": len(extract_tags(unv_sn)),
                     "qp_word_count": len(qp_records),
                     "model_output": output,
+                    "output_fixed": fixed,
                     "output_shelled": output_shelled,
-                    "score1_stripped": score1,
+                    "score0_raw": score0,
+                    "score1_fixed": score1,
                     "score2_shelled": score2,
                     "time": round(dt, 1),
                 })
@@ -351,19 +366,29 @@ def main():
         return
 
     # Summary
-    scored = [r for r in results if "score1_stripped" in r]
+    scored = [r for r in results if "score0_raw" in r]
     if scored:
         print(f"\n{'='*60}")
         print(f"  Survey8 Simplest SN — {book_eng}, {args.model}")
         print(f"{'='*60}")
         print(f"  Verses scored: {len(scored)}")
-        for label, key in [("Score 1 (stripped)", "score1_stripped"),
-                           ("Score 2 (shelled)", "score2_shelled")]:
+        for label, key in [("S0 (LLM raw)",      "score0_raw"),
+                           ("S1 (fix_placement)", "score1_fixed"),
+                           ("S2 (shelled)",       "score2_shelled")]:
             avg_c = sum(r[key]["coverage"] for r in scored) / len(scored)
             avg_p = sum(r[key]["placement"] for r in scored) / len(scored)
             exact = sum(1 for r in scored if r[key]["exact_match"])
             print(f"  {label}:")
             print(f"    cov={avg_c:.4f}  place={avg_p:.4f}  exact={exact}/{len(scored)}")
+        # fix_placement contribution
+        s0c = sum(r["score0_raw"]["coverage"] for r in scored) / len(scored)
+        s1c = sum(r["score1_fixed"]["coverage"] for r in scored) / len(scored)
+        s0p = sum(r["score0_raw"]["placement"] for r in scored) / len(scored)
+        s1p = sum(r["score1_fixed"]["placement"] for r in scored) / len(scored)
+        fix_count = sum(1 for r in scored if
+            (r["score1_fixed"]["coverage"] + r["score1_fixed"]["placement"]) >
+            (r["score0_raw"]["coverage"] + r["score0_raw"]["placement"]) + 0.01)
+        print(f"  fix_placement: cov {s1c-s0c:+.4f}  place {s1p-s0p:+.4f}  ({fix_count} verses fixed)")
         print(f"  Time: {(time.time()-t0)/60:.1f} minutes")
 
     if _out_path:
