@@ -487,3 +487,6 @@ DeepSeek-671B Gen 2-10 (236 節) refine v0.4 結果: improved=46 (19.5%), unchan
 
 ### 75. [2026-03-29 ~10:00] run_survey5.py --resume + incremental save + Tee logging
 加入 --resume flag: 讀取已有 JSON, 跳過 done refs, 接續跑新節. Incremental save: 每節完成後即寫 JSON (中斷不丟進度). Tee class: stdout 同時寫 terminal + .log 檔, resume 時 append 模式. 解決多次中斷重跑產生重複檔案的問題. 用法: 先跑 --out, 中斷後 --resume 同一檔案繼續; 或 --resume 已有檔案 + 不同 --book 接續跨書卷.
+
+### 76. [2026-03-29 ~12:00] S5 v0.4 摩西五經 production run + Survey8 設計
+開始用 DeepSeek-671B 跑摩西五經 (Gen+Exod+Lev+Num+Deut) S5 v0.4 production run, 用 --resume 跨書卷接續在同一 JSON. Gen 全卷 1531 節 (cov=0.62 place=0.55 exact=10), Exod 完成, Lev 完成, Num/Deut 進行中. 同時構思 Survey8 設計: 去殼 simplestSN — LLM 只插裸數字 (7225, 430), 格式殼 (WH/WAH/braces/zero-padding) 交給 script 後處理. 結合 survey4 架構 (同版本不同節) + survey6 原文字典 (qp.php SN:原文字對照). 雙重評分: Score 1 去殼比對 (LLM 放置能力) vs Score 2 加殼比對 (script 還原品質). 各 survey 加入一句話摘要: survey4 同語文同版本不同節, survey5 不同語言不同版本同一節, survey6 同 survey5+原文字典, survey8 survey4架構+survey6字典+去殼.
