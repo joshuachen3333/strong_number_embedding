@@ -188,9 +188,11 @@ def restore_shell(stripped_text, testament="OT"):
 
 # --- Scoring helpers ---
 
-# Common implicit SNs (Hebrew object marker, etc.)
-# These SN numbers are almost always wrapped in {} in UNV
-KNOWN_IMPLICIT_OT = {853}   # את (object marker)
+# Implicit SN analysis (2026-03-30, full Bible 31103 verses):
+# No SN exceeds 90% braced rate. Highest: 1161(δέ)=65%, 853(את)=59%.
+# Implicit braces depend on CONTEXT, not SN number alone.
+# → KNOWN_IMPLICIT strategy abandoned. Production uses UNV+SN lookup instead.
+KNOWN_IMPLICIT_OT = set()
 KNOWN_IMPLICIT_NT = set()
 
 
