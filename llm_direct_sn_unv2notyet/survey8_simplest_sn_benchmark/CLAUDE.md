@@ -1,4 +1,13 @@
-# survey8_simplest_sn_benchmark/ — 去殼 SN + 原文字典基準測試
+# survey8_simplest_sn_benchmark/ — 去殼(simplestSN) + 同版本不同節 + 原文與字:號碼對照
+
+## 一句話摘要
+
+**同語言（中文）、同版本（UNV）；不同節。Survey4 的架構（同版本不同節）+ survey6 原文與 SN:原文字對照 + 去殼簡化 LLM 核心，程式套殼。**
+
+- LLM 只插裸數字（7225, 430, 853），不處理任何格式（WH, WAH, braces, zero-padding）
+- 原文字典（qp.php）提供 SN 號碼 → 模型不需要背 13,000+ 條字典
+- Script 後處理加殼：裸數字 → FHL 完整格式
+- 雙重評分：Score 1（去殼比對，量 LLM 放置能力）vs Score 2（加殼比對，量 script 還原品質）
 
 ## 核心想法
 
