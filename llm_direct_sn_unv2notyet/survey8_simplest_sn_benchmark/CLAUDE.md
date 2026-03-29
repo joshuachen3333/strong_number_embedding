@@ -156,6 +156,23 @@ Survey8 的 strip_shell / restore_shell 可以被其他 survey 共用：
 - Survey5 可以加 `--simplest` flag，去殼後跑、加殼後評分
 - restore_shell 的規則可以獨立成 `shared/sn_shell.py`
 
+## Prompt Framing — 跨經節標注投射
+
+Survey8 的 Annotation Projection 不是跨語言（沒有 KJV），而是**跨經節**：
+
+```
+v1 (範例節): UNV+裸數字 — 已標注，讓模型學習「數字放在中文字後面」的模式
+v2 (測試節): UNV plain + 原文 + SN:word 字典 — 模型要標注這一節
+```
+
+Prompt 第一段必須寫：
+- 這是 Annotation Projection 任務
+- v1 是範例（學習放置模式）
+- v2 是目標（用字典確認每個數字放在哪個中文字後面）
+- 字典是 ground truth — 不要猜號碼，字典有什麼就放什麼
+
+v1 的選擇：從 survey4 的 exemplar library（26 dims）中選同維度的範例。
+
 ## Status
 
 - [x] 概念設計
