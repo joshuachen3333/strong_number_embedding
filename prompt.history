@@ -490,3 +490,6 @@ DeepSeek-671B Gen 2-10 (236 節) refine v0.4 結果: improved=46 (19.5%), unchan
 
 ### 76. [2026-03-29 ~12:00] S5 v0.4 摩西五經 production run + Survey8 設計
 開始用 DeepSeek-671B 跑摩西五經 (Gen+Exod+Lev+Num+Deut) S5 v0.4 production run, 用 --resume 跨書卷接續在同一 JSON. Gen 全卷 1531 節 (cov=0.62 place=0.55 exact=10), Exod 完成, Lev 完成, Num/Deut 進行中. 同時構思 Survey8 設計: 去殼 simplestSN — LLM 只插裸數字 (7225, 430), 格式殼 (WH/WAH/braces/zero-padding) 交給 script 後處理. 結合 survey4 架構 (同版本不同節) + survey6 原文字典 (qp.php SN:原文字對照). 雙重評分: Score 1 去殼比對 (LLM 放置能力) vs Score 2 加殼比對 (script 還原品質). 各 survey 加入一句話摘要: survey4 同語文同版本不同節, survey5 不同語言不同版本同一節, survey6 同 survey5+原文字典, survey8 survey4架構+survey6字典+去殼.
+
+### 77. [2026-03-30 ~01:00] sn_shell.py 去殼加殼 全聖經 roundtrip 99.99% + Survey8 方案 A/B
+shared/sn_shell.py 實作完成: strip_shell() 去殼 + restore_shell() 加殼. 迭代修正: (1) WAH+implicit 組合 → IA marker; (2) morphology+implicit → IM marker; (3) 保留原始 digit string 避免 zero-padding 錯誤. 全聖經 31103 節 roundtrip 測試: 31100 通過 (99.99%), 3 節失敗皆為 FHL 資料異常. 方案 A (commit 93f4063): LLM 輸出帶 markers (P/M/I/A), 加殼完美但 S1=S2 無差異. 方案 B: LLM 只輸出裸數字 <number>, script 用 restore_shell_guess() 猜 marker, S1 vs S2 差異可定位 script 猜錯處. 8xxx 歧義: 8064=天是 core SN 但會被猜成 morphology. Prompt 精簡至 989 chars. DeepSeek/sonnet/qwen 初步測試中.

@@ -20,22 +20,16 @@ _TAG_RE = re.compile(r'\{?<W[ATG]*[HG]\d+[a-z]?>\}?')
 _NUM_RE = re.compile(r'(\d+[a-z]?)')
 
 
-def strip_shell(text):
+def strip_shell(text, markers=True):
     """Strip FHL SN tags to simplified format in angle brackets.
 
-    <WH07225>    → <7225>      core SN (strip WH + leading zeros)
-    <WH0430>     → <430>       core SN
-    <WAH09002>   → <P9002>     900x prefix (P = prefix marker)
-    <WTH8804>    → <M8804>     morphology (M = morph marker)
-    {<WH0853>}   → <I853>      implicit (I = implicit marker)
-    <WAH0430>    → <A430>      WAH non-900x (A = prefix-attached)
-    <WG3588>     → <3588>      NT core SN
-    <WTG5656>    → <M5656>     NT morphology
-    <WG1980a>    → <1980a>     NT with letter suffix
+    markers=True (方案 A): preserves type markers for perfect roundtrip
+        <WH07225> → <7225>, <WAH09002> → <P9002>, <WTH8804> → <M8804>,
+        {<WH0853>} → <I853>, <WAH0430> → <A430>
 
-    Markers: P=900x prefix, M=morphology, I=implicit, A=WAH non-900x,
-    IA=implicit+WAH, IP=implicit+900x prefix.
-    These markers let restore_shell reconstruct the full format.
+    markers=False (方案 B): bare numbers only, LLM simplest possible
+        <WH07225> → <7225>, <WAH09002> → <9002>, <WTH8804> → <8804>,
+        {<WH0853>} → <853>, <WAH0430> → <430>
     """
     def _replace(m):
         tag = m.group(0)
@@ -44,7 +38,10 @@ def strip_shell(text):
             return tag
         num = num_match.group(1)
 
-        # Determine marker from tag structure (before stripping zeros)
+        if not markers:
+            return f"<{num}>"
+
+        # Determine marker from tag structure
         is_braced = tag.startswith('{')
         is_morph = 'WT' in tag          # WTH or WTG
         is_wah = 'WAH' in tag or 'WAG' in tag
@@ -190,6 +187,44 @@ def restore_shell(stripped_text, testament="OT"):
 
 
 # --- Scoring helpers ---
+
+def restore_shell_guess(stripped_text, testament="OT"):
+    """Restore bare numbers (no markers) to FHL format by guessing type.
+
+    Used in 方案 B where LLM outputs only <number> without markers.
+    Guessing rules:
+        9000-9999 → <WAH09xxx> (900x prefix)
+        8000-8999 → <WTH8xxx> or <WTG5xxx> (morphology) — AMBIGUOUS with core SN
+        others    → <WHxxxx> or <WGxxxx> (core SN)
+        No way to guess implicit {} — all output as bare tags
+
+    Note: 8xxx ambiguity (e.g. 8064=天 is core, 8804 is morphology) means
+    Score 2 will be lower than Score 1. This gap measures the cost of
+    not having markers.
+    """
+    def _replace(m):
+        num_str = m.group(1)
+        clean = num_str.rstrip('abcdefghijklmnopqrstuvwxyz')
+        suffix = num_str[len(clean):]
+        try:
+            num = int(clean)
+        except ValueError:
+            return f"<{num_str}>"
+
+        lang = "H" if testament == "OT" else "G"
+
+        if 9000 <= num <= 9999:
+            return f"<WAH{num_str}>"
+        elif 8000 <= num <= 8999:
+            # Guess morphology (most 8xxx in practice are morphology)
+            prefix = f"WT{lang}"
+            return f"<{prefix}{clean}>"
+        else:
+            prefix = f"W{lang}"
+            return f"<{prefix}{num_str}>"
+
+    return re.sub(r'<(\d+[a-z]?)>', _replace, stripped_text)
+
 
 def strip_for_comparison(text):
     """Strip FHL tags to bare numbers for Score 1 comparison.

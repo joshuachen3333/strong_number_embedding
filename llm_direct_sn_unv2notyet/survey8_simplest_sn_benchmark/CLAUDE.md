@@ -182,6 +182,15 @@ Prompt 第一段必須寫：
 
 v1 的選擇：從 survey4 的 exemplar library（26 dims）中選同維度的範例。
 
+## 方案 A vs B
+
+**方案 A（commit 93f4063）**：LLM 輸出帶 markers（`<P9002>`, `<M8804>`, `<I853>`）。
+加殼完美但 S1=S2，雙重評分無差異。LLM 負擔稍重。
+
+**方案 B（目前）**：LLM 只輸出裸數字（`<9002>`, `<8804>`, `<853>`）。
+Script 用規則猜 marker。S1>S2 可定位 script 猜錯的地方。LLM 最簡。
+難點：8xxx 數字歧義（8064=天 是 core SN，8804 是 morphology）。
+
 ## Status
 
 - [x] 概念設計

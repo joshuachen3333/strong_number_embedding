@@ -29,7 +29,7 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from llm_direct_sn_unv2notyet import fetch_chap_cached, CHI_TO_ENG, parse_sec_arg as parse_sec_spec
-from shared.sn_shell import strip_shell, restore_shell, extract_bare_numbers
+from shared.sn_shell import strip_shell, restore_shell, restore_shell_guess, extract_bare_numbers
 
 # Reuse from survey4
 S4_DIR = os.path.join(PARENT_DIR, "survey4_self_supervised_prompt_tuning")
@@ -132,8 +132,8 @@ def build_sn_dict_stripped(qp_records, testament):
 
 
 def build_example_stripped(example_text, testament):
-    """Strip an example verse's SN tags to bare number format."""
-    return strip_shell(example_text)
+    """Strip an example verse's SN tags to bare number format (no markers)."""
+    return strip_shell(example_text, markers=False)
 
 
 def build_survey8_prompt(system_prompt, example_stripped, sn_dict_stripped,
@@ -265,7 +265,7 @@ def main():
 
             unv_sn = unv_data[sec]          # ground truth (full format)
             unv_plain = strip_sn(unv_sn)    # plain text (no tags)
-            gt_stripped = strip_shell(unv_sn)  # ground truth stripped
+            gt_stripped = strip_shell(unv_sn, markers=False)  # GT stripped (no markers)
 
             # Fetch qp.php dictionary
             try:
@@ -280,7 +280,7 @@ def main():
             example_sec = sec - 1 if sec > 1 and (sec - 1) in unv_data else secs[0]
             if example_sec == sec and len(secs) > 1:
                 example_sec = secs[1] if secs[0] == sec else secs[0]
-            example_stripped = strip_shell(unv_data.get(example_sec, unv_sn))
+            example_stripped = strip_shell(unv_data.get(example_sec, unv_sn), markers=False)
 
             if args.dry_run:
                 print(f"{'─'*60}")
@@ -309,8 +309,8 @@ def main():
                 # Score 1: stripped comparison (LLM placement)
                 score1 = score_verse(output, gt_stripped)
 
-                # Score 2: restore shell then compare with original GT
-                output_shelled = restore_shell(output, testament)
+                # Score 2: guess-restore shell then compare with original GT
+                output_shelled = restore_shell_guess(output, testament)
                 score2 = score_verse(output_shelled, unv_sn)
 
                 print(f"  {ref:15s} "
