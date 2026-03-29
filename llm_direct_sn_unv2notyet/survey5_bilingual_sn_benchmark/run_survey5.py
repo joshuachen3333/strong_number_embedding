@@ -260,18 +260,31 @@ def main():
     print(f"Model: {args.model} ({brand})")
     print(f"Prompt: {len(system_prompt)} chars")
     if done_refs:
-        print(f"Resume: {len(done_refs)} verses already done, skipping")
+        last_done = results[-1]["ref"] if results else "?"
+        # Group done refs by book
+        from collections import Counter
+        done_books = Counter(r.split()[0] for r in done_refs)
+        done_summary = ", ".join(f"{b}={n}" for b, n in sorted(done_books.items()))
+        print(f"Resume: {len(done_refs)} verses already done ({done_summary})")
+        print(f"  Last completed: {last_done}")
+        print(f"  Continuing with: {book_eng} {args.chap}")
     print()
 
     # Determine output path early (for incremental save)
+    # When resuming, always write back to resume file
     _out_path = None
-    if args.out is not None:
+    if resume_path:
+        _out_path = resume_path
+        if args.out is None:
+            args.out = resume_path
+    elif args.out is not None:
         task_short = "rev" if args.reverse else "fwd"
         if isinstance(args.out, str) and args.out == "":
             _out_path = make_out_path(task_short, book_eng, args.chap,
                                       args.model, pver, "json")
         else:
             _out_path = os.path.join(SCRIPT_DIR, args.out) if not os.path.isabs(args.out) else args.out
+    if _out_path:
         os.makedirs(os.path.dirname(_out_path), exist_ok=True)
 
     t0 = time.time()
