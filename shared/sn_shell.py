@@ -33,8 +33,9 @@ def strip_shell(text):
     <WTG5656>    → <M5656>     NT morphology
     <WG1980a>    → <1980a>     NT with letter suffix
 
-    Markers: P=900x prefix, M=morphology, I=implicit, A=WAH non-900x.
-    These single-letter markers let restore_shell reconstruct the full format.
+    Markers: P=900x prefix, M=morphology, I=implicit, A=WAH non-900x,
+    IA=implicit+WAH, IP=implicit+900x prefix.
+    These markers let restore_shell reconstruct the full format.
     """
     def _replace(m):
         tag = m.group(0)
@@ -54,7 +55,11 @@ def strip_shell(text):
         is_wah = 'WAH' in tag or 'WAG' in tag
         raw_num = int(num_stripped.rstrip('abcdefghijklmnopqrstuvwxyz') or '0')
 
-        if is_braced:
+        if is_braced and is_wah and 9000 <= raw_num <= 9999:
+            return f"<IP{num_stripped}>"
+        elif is_braced and is_wah:
+            return f"<IA{num_stripped}>"
+        elif is_braced:
             return f"<I{num_stripped}>"
         elif is_morph:
             return f"<M{num_stripped}>"
@@ -73,8 +78,8 @@ def extract_bare_numbers(text):
 
     Returns list of strings: ['7225', '430', '1254', '8804', '853', ...]
     """
-    # After strip_shell, numbers are in <number> or <Mnumber> etc. format
-    return re.findall(r'<([MPIA]?\d+[a-z]?)>', text)
+    # After strip_shell, numbers are in <number>, <Mnumber>, <IAnumber> etc.
+    return re.findall(r'<((?:IA|IP|[MPIA])?\d+[a-z]?)>', text)
 
 
 def _zero_pad(num_int, testament="OT"):
@@ -110,7 +115,11 @@ def restore_tag(tagged_num, testament="OT"):
     """
     marker = ""
     num_str = tagged_num
-    if tagged_num and tagged_num[0] in "MPIA":
+    # Check for two-letter markers first (IA, IP)
+    if tagged_num[:2] in ("IA", "IP"):
+        marker = tagged_num[:2]
+        num_str = tagged_num[2:]
+    elif tagged_num and tagged_num[0] in "MPIA":
         marker = tagged_num[0]
         num_str = tagged_num[1:]
 
@@ -128,7 +137,15 @@ def restore_tag(tagged_num, testament="OT"):
 
     lang = "H" if testament == "OT" else "G"
 
-    if marker == "P":
+    if marker == "IP":
+        # Implicit + 900x prefix
+        return "{" + f"<WAH0{num}>" + "}"
+    elif marker == "IA":
+        # Implicit + WAH non-900x
+        prefix = f"WA{lang}"
+        padded = _zero_pad(num, testament)
+        return "{" + f"<{prefix}{padded}{suffix}>" + "}"
+    elif marker == "P":
         # 900x prefix
         return f"<WAH0{num}>"
     elif marker == "M":
@@ -136,7 +153,7 @@ def restore_tag(tagged_num, testament="OT"):
         prefix = f"WT{lang}"
         return f"<{prefix}{num}>"
     elif marker == "I":
-        # Implicit
+        # Implicit (plain WH/WG)
         prefix = f"W{lang}"
         padded = _zero_pad(num, testament)
         return "{" + f"<{prefix}{padded}{suffix}>" + "}"
@@ -171,8 +188,8 @@ def restore_shell(stripped_text, testament="OT"):
         num_str = m.group(1)
         return restore_tag(num_str, testament)
 
-    # Match <number>, <Mnumber>, <Pnumber>, <Inumber>, <Anumber>
-    return re.sub(r'<([MPIA]?\d+[a-z]?)>', _replace, stripped_text)
+    # Match <number>, <Mnumber>, <IAnumber>, <IPnumber>, etc.
+    return re.sub(r'<((?:IA|IP|[MPIA])?\d+[a-z]?)>', _replace, stripped_text)
 
 
 # --- Scoring helpers ---
