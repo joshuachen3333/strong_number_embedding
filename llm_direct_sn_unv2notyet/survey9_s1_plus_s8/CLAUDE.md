@@ -15,7 +15,7 @@ run_survey9.py                    ← 主程式，跑 UNV+SN → LCC+SN
   │  ↓
   ├─ fix_pipeline()               ← 迴圈調度器，最多 3 輪直到穩定
   │   │
-  │   ├─ fix_coverage()           ← 補漏：input 有但 output 沒有的 900x，插回去
+  │   ├─ fix_coverage()           ← 補漏：900x + morphology（從 input 配對查，非猜測）
   │   │
   │   └─ fix_placement()          ← 修順序：orphan morphology 和 prefix 的位置對調
   │
@@ -28,9 +28,18 @@ run_survey9.py                    ← 主程式，跑 UNV+SN → LCC+SN
 |------|--------|--------|
 | `run_survey9.py` | survey9/ | 主程式，串接 LLM + 後處理 + 輸出 |
 | `fix_pipeline()` | shared/sn_shell.py | 迴圈跑補漏+修順序直到穩定，最多 3 輪逃離 |
-| `fix_coverage()` | shared/sn_shell.py | 比對 input/output tags，漏掉的 900x 插回配對的 core 前 |
+| `fix_coverage()` | shared/sn_shell.py | 比對 input/output tags，漏掉的 900x 插回配對的 core 前，漏掉的 morphology 插回配對的 core 後 |
 | `fix_placement()` | shared/sn_shell.py | orphan morphology 交換到 core 後，prefix 交換到 core 前 |
 | `restore_shell_lookup()` | survey9/run_survey9.py | 查 UNV+SN 建的表，裸數字換回原始 FHL tag |
+
+## fix_pipeline 版本與邊界
+
+| 版本 | 自動補什麼 | 依據 |
+|------|-----------|------|
+| v1 | 900x prefix | input 配對（prefix→core 相鄰關係）|
+| **v2（當前）** | 900x prefix + morphology | input 配對（core→morph 相鄰關係）|
+
+**v2 已到邊界。** 剩下漏的是 core SN 和 implicit — 都是「LLM 不知道放哪」的情況。自動插會猜位置，違反不過度工程原則。剩下的交給 consensus（多模型比對）或人工。
 
 ## S1 是什麼（保留原樣於 survey1/）
 
