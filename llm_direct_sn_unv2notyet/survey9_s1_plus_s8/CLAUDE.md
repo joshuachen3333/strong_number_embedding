@@ -4,6 +4,34 @@
 
 **S1 的任務（UNV+SN → LCC+SN）+ S8 的方法（去殼裸數字 + script 加殼）。Production pipeline。**
 
+## 程式架構一覽
+
+```
+run_survey9.py                    ← 主程式，跑 UNV+SN → LCC+SN
+  │
+  │  呼叫 LLM（DeepSeek/sonnet/qwen）
+  │  ↓
+  │  LLM 輸出裸數字 LCC
+  │  ↓
+  ├─ fix_pipeline()               ← 迴圈調度器，最多 3 輪直到穩定
+  │   │
+  │   ├─ fix_coverage()           ← 補漏：input 有但 output 沒有的 900x，插回去
+  │   │
+  │   └─ fix_placement()          ← 修順序：orphan morphology 和 prefix 的位置對調
+  │
+  ├─ restore_shell_lookup()       ← 查表加殼：裸數字 → FHL 完整格式（零損失）
+  │
+  └─ 存 JSON + log
+```
+
+| 函數 | 在哪裡 | 一句話 |
+|------|--------|--------|
+| `run_survey9.py` | survey9/ | 主程式，串接 LLM + 後處理 + 輸出 |
+| `fix_pipeline()` | shared/sn_shell.py | 迴圈跑補漏+修順序直到穩定，最多 3 輪逃離 |
+| `fix_coverage()` | shared/sn_shell.py | 比對 input/output tags，漏掉的 900x 插回配對的 core 前 |
+| `fix_placement()` | shared/sn_shell.py | orphan morphology 交換到 core 後，prefix 交換到 core 前 |
+| `restore_shell_lookup()` | survey9/run_survey9.py | 查 UNV+SN 建的表，裸數字換回原始 FHL tag |
+
 ## S1 是什麼（保留原樣於 survey1/）
 
 Survey1 = UNV+SN → LCC+SN 的 production 任務。
