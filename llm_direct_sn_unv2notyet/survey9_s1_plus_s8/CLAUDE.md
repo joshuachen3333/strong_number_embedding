@@ -39,7 +39,7 @@ run_survey9.py                    ← 主程式，跑 UNV+SN → LCC+SN
 | v1 | 900x prefix | input 配對（prefix→core 相鄰關係）|
 | **v2（當前）** | 900x prefix + morphology | input 配對（core→morph 相鄰關係）|
 
-**v2 已到邊界。** 剩下漏的是 core SN 和 implicit — 都是「LLM 不知道放哪」的情況。自動插會猜位置，違反不過度工程原則。剩下的交給 consensus（多模型比對）或人工。
+**v2 已到邊界。** 詳見 [fix_pipeline_edge.md](fix_pipeline_edge.md)。
 
 ## S1 是什麼（保留原樣於 survey1/）
 
