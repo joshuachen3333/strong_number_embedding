@@ -349,6 +349,109 @@ def fix_placement(text, core_sns=None):
     return result
 
 
+def fix_coverage(text, input_tags, core_sns=None):
+    """Insert missing tags back into LLM output.
+
+    Compares input_tags (from UNV+SN stripped) with output tags.
+    Missing tags are inserted at heuristic positions:
+      - 900x prefix → before the nearest core SN in output
+      - morphology (8xxx not in core_sns) → after the nearest core SN in output
+      - implicit / other → not auto-inserted (leave for human/consensus)
+
+    Args:
+        text: LLM output (stripped format with <number> tags)
+        input_tags: list of bare number strings from UNV+SN stripped
+        core_sns: set of core SN numbers (int) from qp.php
+
+    Returns:
+        text with missing 900x/morphology tags inserted
+    """
+    from collections import Counter
+
+    def _num_val(s):
+        try:
+            return int(s.rstrip('abcdefghijklmnopqrstuvwxyz'))
+        except ValueError:
+            return 0
+
+    def _is_morph(num_str):
+        n = _num_val(num_str)
+        if 8000 <= n <= 8999:
+            return not (core_sns and n in core_sns)
+        return False
+
+    def _is_prefix(num_str):
+        return 9000 <= _num_val(num_str) <= 9999
+
+    # Count input vs output tags
+    output_tags = extract_bare_numbers(text)
+    input_counter = Counter(input_tags)
+    output_counter = Counter(output_tags)
+
+    # Find missing tags
+    missing = []
+    for tag, count in input_counter.items():
+        diff = count - output_counter.get(tag, 0)
+        for _ in range(diff):
+            missing.append(tag)
+
+    if not missing:
+        return text
+
+    # For each missing tag, find insertion point
+    tag_pattern = re.compile(r'<(\d+[a-z]?)>')
+    result = text
+
+    for mtag in missing:
+        if _is_prefix(mtag):
+            # Find the core SN that follows this prefix in the input
+            paired_core = None
+            for idx, itag in enumerate(input_tags):
+                if itag == mtag:
+                    # Look for next non-prefix tag in input
+                    for j in range(idx + 1, len(input_tags)):
+                        if not _is_prefix(input_tags[j]):
+                            paired_core = input_tags[j]
+                            break
+                    break
+
+            if paired_core:
+                # Find paired_core in output, insert prefix before it
+                tags = list(tag_pattern.finditer(result))
+                for t in tags:
+                    if t.group(1) == paired_core:
+                        result = result[:t.start()] + f"<{mtag}>" + result[t.start():]
+                        break
+
+        # morphology, core SN, implicit — don't auto-insert
+        # (can't reliably determine correct position without context)
+        # Leave for human review or multi-model consensus
+
+    return result
+
+
+def fix_pipeline(text, input_tags, core_sns=None, max_rounds=3):
+    """Run fix_coverage + fix_placement in a loop until stable.
+
+    Args:
+        text: LLM output (stripped)
+        input_tags: list of bare number strings from UNV+SN
+        core_sns: set of core SN numbers from qp.php
+        max_rounds: escape hatch — stop after this many rounds
+
+    Returns:
+        (fixed_text, rounds_used)
+    """
+    result = text
+    for round_num in range(1, max_rounds + 1):
+        prev = result
+        result = fix_coverage(result, input_tags, core_sns)
+        result = fix_placement(result, core_sns)
+        if result == prev:
+            return result, round_num
+    return result, max_rounds  # hit escape limit
+
+
 def strip_for_comparison(text):
     """Strip FHL tags to bare numbers for Score 1 comparison.
 
