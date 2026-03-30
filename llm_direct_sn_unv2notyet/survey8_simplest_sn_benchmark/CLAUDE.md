@@ -37,15 +37,41 @@
 
 不需要知道 WH/WG/WAH/braces/zero-padding。不需要背 SN 字典。只做語義配對。
 
-### Script 做什麼（後處理）
+### Script 做什麼（後處理 pipeline）
 
 ```
-LLM 輸出:  地<0776>是<01961>空虛<08414>...
-     ↓ fix_placement() — 修正順序（morphology 跟 core, prefix 在 core 前）
+LLM 輸出:  起初<07225>，上帝<0430>創造<01254><0853>天<08064>...
+     ↓
+     ↓ fix_pipeline() — 迴圈修補直到穩定（最多 3 輪逃離）
+     │   ↓ fix_coverage() — 補漏：比對 input vs output tags
+     │   │   • 900x prefix 漏了 → 插回配對的 core SN 前面
+     │   │   • morphology/core/implicit 漏了 → 不動（留給人工/consensus）
+     │   ↓ fix_placement() — 修順序：
+     │       • orphan morphology 在 core 前 → 交換
+     │       • 900x prefix 在 core 後 → 交換
+     │   ↓ result == prev? → 穩定就結束，否則再跑一輪
+     ↓
      ↓ restore_shell_guess() — 加殼（benchmark 用猜的）
      或 restore_shell_lookup() — 加殼（production 用查表）
-最終輸出:  地<WH0776>是<WH01961><WTH8804>空虛<WH08414>...
+最終輸出:  起初<WAH09002><WH07225>，上帝<WH0430>創造<WH01254>...
 ```
+
+### fix_pipeline 迴圈機制
+
+```
+Round 1: fix_coverage 補漏 → fix_placement 修順序
+Round 2: 還有要補/修的嗎？→ 沒有 → 穩定，結束
+（最多 3 輪強制結束，實測都是 1-2 輪）
+```
+
+**fix_coverage 的設計原則**：
+- **只自動補 900x prefix** — 位置確定（在配對的 core SN 前面，參照 input tag 順序）
+- **不自動補 morphology/core/implicit** — 位置靠猜不可靠，留給人工或 consensus
+- 配對邏輯：在 input_tags 中找 900x 後面緊跟的非 prefix tag → 那就是它的 core SN
+
+**fix_placement 的兩條規則**：
+- Rule 1: orphan morphology（前面沒有 core）在 core 前 → 交換
+- Rule 2: 900x prefix 在 core 後 → 交換
 
 ## 為什麼 S8 比 S5 好
 
