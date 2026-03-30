@@ -4,10 +4,62 @@
 
 **同語言（中文）、同版本（UNV）；不同節。Survey4 的架構（同版本不同節）+ survey6 原文與 SN:原文字對照 + 去殼簡化 LLM 核心，程式套殼。**
 
-- LLM 只插裸數字（7225, 430, 853），不處理任何格式（WH, WAH, braces, zero-padding）
-- 原文字典（qp.php）提供 SN 號碼 → 模型不需要背 13,000+ 條字典
-- Script 後處理加殼：裸數字 → FHL 完整格式
-- 雙重評分：Score 1（去殼比對，量 LLM 放置能力）vs Score 2（加殼比對，量 LLM + script 組合）
+## 工作原理
+
+### LLM 收到什麼（去殼後的 5 個輸入）
+
+```
+1. 範例節 UNV+SN（去殼）:  起初<09002><07225>，神<0430>創造<01254><8804>天<08064>地<0776>。
+   → 從 survey4 的 26 dims exemplar library 選出，讓模型學「數字放在中文字後面」的模式
+
+2. SN:原文字 字典:        07225: בְּרֵאשִׁית
+                          0430: אֱלֹהִים
+                          01254: בָּרָא
+   → 來自 qp.php，告訴模型每個數字對應哪個原文字
+
+3. 原文經文:              בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ
+   → 輔助模型理解原文字順序
+
+4. 工作節 UNV（純文字）:   地是空虛混沌，淵面黑暗...
+   → 模型要在這裡插入數字
+
+5. Prompt (v0.1, 989 chars): 標注投射 framing + 規則
+```
+
+### LLM 做什麼
+
+**只做一件事：把字典的數字放在對應的中文字後面。**
+
+```
+字典: 0776=אֶרֶץ(earth) → 找「地」→ 地<0776>
+字典: 01961=הָיָה(was)  → 找「是」→ 是<01961>
+```
+
+不需要知道 WH/WG/WAH/braces/zero-padding。不需要背 SN 字典。只做語義配對。
+
+### Script 做什麼（後處理）
+
+```
+LLM 輸出:  地<0776>是<01961>空虛<08414>...
+     ↓ fix_placement() — 修正順序（morphology 跟 core, prefix 在 core 前）
+     ↓ restore_shell_guess() — 加殼（benchmark 用猜的）
+     或 restore_shell_lookup() — 加殼（production 用查表）
+最終輸出:  地<WH0776>是<WH01961><WTH8804>空虛<WH08414>...
+```
+
+## 為什麼 S8 比 S5 好
+
+```
+考試三科：coverage（數字全不全）、placement（位置對不對）、format（殼穿對不對）
+
+S5 做法：LLM 同時考三科 → cov=0.61 place=0.57（三科都普通）
+S8 做法：LLM 只考 placement → place=0.78（專注一科，高 22pp）
+          coverage → production 時 UNV+SN 直接給答案（送分）
+          format   → script 查表加殼（送分）
+
+S8 Gen 1-10 (211 節, DeepSeek-671B): placement=0.78, exact=7
+S5 Gen 1-10 (同範圍): placement=0.57, exact≈0
+```
 
 ## 評分指標
 
