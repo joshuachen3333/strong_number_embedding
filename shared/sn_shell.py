@@ -322,8 +322,16 @@ def fix_placement(text, core_sns=None):
             swap = False
 
             # Rule 1: morphology should follow core, not precede
+            # BUT only if the morph doesn't already follow a core (i.e. morph is orphaned)
             if _is_morph(n1) and _is_core(n2):
-                swap = True
+                # Check if morph already has a core before it
+                has_core_before = False
+                if i > 0:
+                    prev_between = result[tags[i-1].end():t1.start()]
+                    if not prev_between.strip() and _is_core(tags[i-1].group(1)):
+                        has_core_before = True
+                if not has_core_before:
+                    swap = True
 
             # Rule 2: prefix should precede core, not follow
             if _is_core(n1) and _is_prefix(n2):
