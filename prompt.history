@@ -499,3 +499,6 @@ S5 v0.4 摩西五經全完成 (5835 節): Gen cov=0.62/place=0.55, Exod 0.61/0.5
 
 ### 79. [2026-03-30 ~04:00] S8 Gen 1-10 大規模驗證 — placement +22pp vs S5, 去殼架構確認
 S8 方案 B (去殼裸數字) Gen 1-10 跑分 (211 節, DeepSeek-671B): S0 cov=0.573 place=0.784 exact=7. 與 S5 v0.4 (Gen 1-10 cov=0.607 place=0.566) 對比: placement 高 22pp (0.78 vs 0.57), coverage 低 3pp (benchmark-only, 缺 morphology/900x). fix_placement 211 節觸發 0 次 — DeepSeek 裸數字順序天生正確. S1→S2 差距仍大 (cov 0.57→0.35) 但 production 時查表加殼不需猜. 結論: 去殼讓模型專注 placement, 效果顯著. Production 預期: S0 的 placement=0.78 + UNV+SN 保證 coverage/format = 全面優於 S5.
+
+### 80. [2026-03-30 ~10:00] Survey9 實作 + fix_pipeline v2 + Production 首跑
+Survey9 (S1+S8) 實作完成: UNV+SN stripped → LLM 搬裸數字到 LCC → fix_pipeline → restore_shell_lookup (查表加殼零損失). Gen 1:1 驗證 LCC+SN 完整輸出正確. fix_placement bug 修正: Rule 1 不再交換已正確跟在 core 後的 morphology (commit 5b1e989). Gen 1 單模型 (DeepSeek) 結果: tag coverage 88.7%→90.6% (fix_pipeline v1 補 900x). 人工抽查: 短節 placement 完美, 長節漏 tag 是主要問題 (morphology/900x). Production 洞見: UNV+SN 洩題但 LLM 仍只搬 88.7% — 不是缺號碼而是 LLM 不理解多 tag 要全搬. fix_coverage v2: 加入 morphology 補漏 (從 input 相鄰關係查配對, 非猜測), 測試通過. fix_pipeline 版本追蹤: v1=900x only, v2=900x+morphology (input pairing).

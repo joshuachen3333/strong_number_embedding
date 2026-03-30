@@ -352,11 +352,15 @@ def fix_placement(text, core_sns=None):
 def fix_coverage(text, input_tags, core_sns=None):
     """Insert missing tags back into LLM output.
 
+    Version history:
+      v1 (commit dabe8fa): 900x prefix only
+      v2 (current): 900x prefix + morphology (using input pairing)
+
     Compares input_tags (from UNV+SN stripped) with output tags.
-    Missing tags are inserted at heuristic positions:
-      - 900x prefix → before the nearest core SN in output
-      - morphology (8xxx not in core_sns) → after the nearest core SN in output
-      - implicit / other → not auto-inserted (leave for human/consensus)
+    Missing tags are inserted using input pairing (not guessing):
+      - 900x prefix → before its paired core SN (from input adjacency)
+      - morphology → after its paired core SN (from input adjacency)
+      - core SN / implicit → not auto-inserted (leave for human/consensus)
 
     Args:
         text: LLM output (stripped format with <number> tags)
@@ -423,15 +427,39 @@ def fix_coverage(text, input_tags, core_sns=None):
                         result = result[:t.start()] + f"<{mtag}>" + result[t.start():]
                         break
 
-        # morphology, core SN, implicit — don't auto-insert
-        # (can't reliably determine correct position without context)
-        # Leave for human review or multi-model consensus
+        elif _is_morph(mtag):
+            # v2: Find the core SN that this morphology follows in the input
+            paired_core = None
+            for idx in range(len(input_tags) - 1, -1, -1):
+                if input_tags[idx] == mtag:
+                    # Look backwards for the preceding core SN in input
+                    for j in range(idx - 1, -1, -1):
+                        if not _is_morph(input_tags[j]) and not _is_prefix(input_tags[j]):
+                            paired_core = input_tags[j]
+                            break
+                    break
+
+            if paired_core:
+                # Find paired_core in output, insert morphology right after it
+                tags = list(tag_pattern.finditer(result))
+                for t in tags:
+                    if t.group(1) == paired_core:
+                        pos = t.end()
+                        result = result[:pos] + f"<{mtag}>" + result[pos:]
+                        break
+
+        # core SN, implicit — don't auto-insert
+        # (position depends on semantic alignment, leave for human/consensus)
 
     return result
 
 
 def fix_pipeline(text, input_tags, core_sns=None, max_rounds=3):
     """Run fix_coverage + fix_placement in a loop until stable.
+
+    Version history:
+      v1 (commit dabe8fa): fix_coverage 900x only + fix_placement
+      v2 (current): fix_coverage 900x + morphology (input pairing) + fix_placement
 
     Args:
         text: LLM output (stripped)
