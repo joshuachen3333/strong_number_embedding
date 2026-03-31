@@ -114,13 +114,45 @@ def normalize_qp_sn(sn_str: str, ot: bool) -> str:
     return f"{prefix}{s}"
 
 
+# SQLite-based local qp data (replaces qp.php API calls)
+import sqlite3
+
+_PARSING_DB = os.path.join(os.path.dirname(os.path.dirname(SCRIPT_DIR)),
+                           "original_text_preparation", "source_sqlite", "bible_parsing.db")
+
+# Map CHI_TO_ENG book codes → SQLite engs codes
+_SQLITE_BOOK_MAP = {
+    # OT differences
+    "Exod": "Ex", "Isa": "Is", "Jonah": "Jon",
+    "1Sam": "1 Sam", "2Sam": "2 Sam",
+    "1Kgs": "1 Kin", "2Kgs": "2 Kin",
+    "1Chr": "1 Chr", "2Chr": "2 Chr",
+    # NT differences
+    "Jas": "James", "Phlm": "Philem",
+    "1Cor": "1 Cor", "2Cor": "2 Cor",
+    "1Thess": "1 Thess", "2Thess": "2 Thess",
+    "1Tim": "1 Tim", "2Tim": "2 Tim",
+    "1Pet": "1 Pet", "2Pet": "2 Pet",
+    "1John": "1 John", "2John": "2 John", "3John": "3 John",
+}
+
 # Cache for qp verse data: {(book_eng, chap, sec): [{wid, word, sn}, ...]}
 _qp_cache = {}
+_db_conn = None
+
+
+def _get_db():
+    global _db_conn
+    if _db_conn is None:
+        _db_conn = sqlite3.connect(_PARSING_DB)
+        _db_conn.row_factory = sqlite3.Row
+    return _db_conn
 
 
 def fetch_qp_verse(book_eng: str, chap: int, sec: int) -> list:
-    """Fetch per-word original-language data from qp.php.
+    """Fetch per-word original-language data from local SQLite (bible_parsing.db).
 
+    Falls back to qp.php API if SQLite not available.
     Returns list of dicts with keys: wid, word, sn (normalized tag body).
     wid=0 (verse summary) is skipped.
     """
@@ -128,8 +160,48 @@ def fetch_qp_verse(book_eng: str, chap: int, sec: int) -> list:
     if key in _qp_cache:
         return _qp_cache[key]
 
+    ot = is_ot_book(book_eng)
+
+    # Try local SQLite first
+    if os.path.exists(_PARSING_DB):
+        db = _get_db()
+        table = "lparsing" if ot else "fhlwhparsing"
+        sqlite_book = _SQLITE_BOOK_MAP.get(book_eng, book_eng)
+        cursor = db.execute(
+            f"SELECT wid, word, sn, exp, wform FROM {table} "
+            f"WHERE engs=? AND chap=? AND sec=? ORDER BY wid",
+            (sqlite_book, chap, sec))
+        rows = cursor.fetchall()
+        if rows:
+            records = []
+            for row in rows:
+                if row["wid"] == 0:
+                    continue
+                word = (row["word"] or "").strip()
+                sn_raw = (row["sn"] or "").strip()
+                if not word or not sn_raw:
+                    continue
+                sn_tag = normalize_qp_sn(sn_raw, ot)
+                rec = {"wid": row["wid"], "word": word, "sn": sn_tag}
+                exp = (row["exp"] or "").strip()
+                wform = (row["wform"] or "").strip()
+                if exp:
+                    rec["exp"] = exp
+                if wform:
+                    rec["wform"] = wform
+                records.append(rec)
+            _qp_cache[key] = records
+            return records
+
+    # Fallback to qp.php API
+    qp_book = _SQLITE_BOOK_MAP.get(book_eng, book_eng)
+    # For API, numbered books with space won't work — use original mapping
+    if " " in qp_book:
+        # API doesn't support spaced names, return empty
+        _qp_cache[key] = []
+        return []
     params = urllib.parse.urlencode({
-        "engs": book_eng,
+        "engs": qp_book,
         "chap": chap,
         "sec": sec,
     })
