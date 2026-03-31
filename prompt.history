@@ -505,3 +505,6 @@ Survey9 (S1+S8) 實作完成: UNV+SN stripped → LLM 搬裸數字到 LCC → fi
 
 ### 81. [2026-03-31 ~12:00] S9 OT 13142 節完成 + qp.php 改用 SQLite + pipeline 三項改進
 S9 (DeepSeek-671B) OT 跑完 13142 節 (跳過撒上下王上下代上下): avg cov=74.6%, full=11.9%. 發現 qp.php API 兩大問題: (1) 17 本帶數字書卷不支持 (engs 代碼不同); (2) rate limit 429. 解法: fetch_qp_verse 改用本地 SQLite (bible_parsing.db), lparsing=OT, fhlwhparsing=NT, 全 66 卷可用, 零網路延遲. 書卷代碼映射 _SQLITE_BOOK_MAP (e.g. 1Sam→"1 Sam"). DeepSeek weekly limit 到了 (cloud 轉發帳號限制), 等重置. Pipeline 三項改進: (1) input_tag_count=0 跳過 (40節FHL缺資料); (2) trim_extra_tags 砍 LLM 多放的 tag (125節); (3) qp.php→SQLite 已完成. 改進對 coverage 數字影響極小 (-0.1%), 但保證 production 品質正確性.
+
+### 82. [2026-04-01 ~01:00] Pipeline 改進 rescore 驗證 — coverage 74.8%→93.1% (+18pp)
+用 13142 節已有 JSON rescore (不重跑 LLM): 三項改進合計 coverage 從 74.8%→93.1% (+18.3pp). fix_pipeline v2 是最大貢獻 (11101/13102=85% 的節被改善, 補回 900x prefix + morphology). trim_extra_tags 砍了 2141 節多餘 tag. skip input=0 排除 40 節. Full coverage 從 11.7%→46.9% (+35pp). 剩餘 6.9% gap 是 LLM 漏掉的 core SN + implicit, fix_pipeline 邊界外. 93.1% 是後處理天花板. DeepSeek sai weekly limit, 改用本機 ollama 轉發 (不同帳號). 開始跑剩餘 33 卷 (OT 6 + NT 27) 作為改進後 pipeline 的 baseline (注意: 與 13142 節 baseline 是不同迭代, 13142 是改進前, 33 卷是改進後).
