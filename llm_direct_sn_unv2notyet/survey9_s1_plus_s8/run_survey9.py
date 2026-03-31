@@ -35,7 +35,7 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from llm_direct_sn_unv2notyet import fetch_chap_cached, CHI_TO_ENG, parse_sec_arg as parse_sec_spec
-from shared.sn_shell import strip_shell, restore_shell, fix_placement, extract_bare_numbers
+from shared.sn_shell import strip_shell, restore_shell, fix_placement, fix_pipeline, extract_bare_numbers
 
 # Reuse from survey4
 S4_DIR = os.path.join(PARENT_DIR, "survey4_self_supervised_prompt_tuning")
@@ -154,6 +154,38 @@ def restore_shell_lookup(stripped_text, lookup):
         return m.group(0)  # keep as-is if not found
 
     return re.sub(r'<(\d+[a-z]?)>', _replace, stripped_text)
+
+
+def trim_extra_tags(text, input_tags):
+    """Remove tags from output that don't exist in input.
+
+    If LLM added tags not present in UNV+SN, remove them.
+    Preserves correct tags, only strips extras.
+    """
+    from collections import Counter
+    input_counter = Counter(input_tags)
+    output_tags = extract_bare_numbers(text)
+
+    # Track how many of each tag we've seen
+    seen = Counter()
+    result = text
+
+    # Process tags from left to right, remove extras
+    tag_pattern = re.compile(r'<(\d+[a-z]?)>')
+    parts = []
+    last_end = 0
+    for m in tag_pattern.finditer(result):
+        num = m.group(1)
+        seen[num] += 1
+        if seen[num] <= input_counter.get(num, 0):
+            # Keep this tag
+            parts.append(result[last_end:m.end()])
+        else:
+            # Extra tag — remove it (keep text before, skip the tag)
+            parts.append(result[last_end:m.start()])
+        last_end = m.end()
+    parts.append(result[last_end:])
+    return "".join(parts)
 
 
 def build_sn_dict_stripped(qp_records):
@@ -319,6 +351,10 @@ def main():
             input_tags = extract_bare_numbers(unv_stripped)
             input_count = len(input_tags)
 
+            # Skip verses with no SN tags (FHL data missing)
+            if input_count == 0:
+                continue
+
             # Fetch qp.php
             try:
                 qp_records = fetch_qp_verse(book_eng, chap, sec)
@@ -364,8 +400,9 @@ def main():
                     except ValueError:
                         pass
 
-                # Pipeline: fix_placement → restore_shell_lookup
-                fixed = fix_placement(output, core_sns)
+                # Pipeline: trim extras → fix_coverage+fix_placement → restore_shell
+                trimmed = trim_extra_tags(output, input_tags)
+                fixed, fix_rounds = fix_pipeline(trimmed, input_tags, core_sns)
                 shelled = restore_shell_lookup(fixed, shell_lookup)
 
                 # Coverage check: count output tags vs input tags

@@ -502,3 +502,6 @@ S8 方案 B (去殼裸數字) Gen 1-10 跑分 (211 節, DeepSeek-671B): S0 cov=0
 
 ### 80. [2026-03-30 ~10:00] Survey9 實作 + fix_pipeline v2 + Production 首跑
 Survey9 (S1+S8) 實作完成: UNV+SN stripped → LLM 搬裸數字到 LCC → fix_pipeline → restore_shell_lookup (查表加殼零損失). Gen 1:1 驗證 LCC+SN 完整輸出正確. fix_placement bug 修正: Rule 1 不再交換已正確跟在 core 後的 morphology (commit 5b1e989). Gen 1 單模型 (DeepSeek) 結果: tag coverage 88.7%→90.6% (fix_pipeline v1 補 900x). 人工抽查: 短節 placement 完美, 長節漏 tag 是主要問題 (morphology/900x). Production 洞見: UNV+SN 洩題但 LLM 仍只搬 88.7% — 不是缺號碼而是 LLM 不理解多 tag 要全搬. fix_coverage v2: 加入 morphology 補漏 (從 input 相鄰關係查配對, 非猜測), 測試通過. fix_pipeline 版本追蹤: v1=900x only, v2=900x+morphology (input pairing).
+
+### 81. [2026-03-31 ~12:00] S9 OT 13142 節完成 + qp.php 改用 SQLite + pipeline 三項改進
+S9 (DeepSeek-671B) OT 跑完 13142 節 (跳過撒上下王上下代上下): avg cov=74.6%, full=11.9%. 發現 qp.php API 兩大問題: (1) 17 本帶數字書卷不支持 (engs 代碼不同); (2) rate limit 429. 解法: fetch_qp_verse 改用本地 SQLite (bible_parsing.db), lparsing=OT, fhlwhparsing=NT, 全 66 卷可用, 零網路延遲. 書卷代碼映射 _SQLITE_BOOK_MAP (e.g. 1Sam→"1 Sam"). DeepSeek weekly limit 到了 (cloud 轉發帳號限制), 等重置. Pipeline 三項改進: (1) input_tag_count=0 跳過 (40節FHL缺資料); (2) trim_extra_tags 砍 LLM 多放的 tag (125節); (3) qp.php→SQLite 已完成. 改進對 coverage 數字影響極小 (-0.1%), 但保證 production 品質正確性.
