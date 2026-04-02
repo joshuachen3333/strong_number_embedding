@@ -508,3 +508,6 @@ S9 (DeepSeek-671B) OT 跑完 13142 節 (跳過撒上下王上下代上下): avg 
 
 ### 82. [2026-04-01 ~01:00] Pipeline 改進 rescore 驗證 — coverage 74.8%→93.1% (+18pp)
 用 13142 節已有 JSON rescore (不重跑 LLM): 三項改進合計 coverage 從 74.8%→93.1% (+18.3pp). fix_pipeline v2 是最大貢獻 (11101/13102=85% 的節被改善, 補回 900x prefix + morphology). trim_extra_tags 砍了 2141 節多餘 tag. skip input=0 排除 40 節. Full coverage 從 11.7%→46.9% (+35pp). 剩餘 6.9% gap 是 LLM 漏掉的 core SN + implicit, fix_pipeline 邊界外. 93.1% 是後處理天花板. DeepSeek sai weekly limit, 改用本機 ollama 轉發 (不同帳號). 開始跑剩餘 33 卷 (OT 6 + NT 27) 作為改進後 pipeline 的 baseline (注意: 與 13142 節 baseline 是不同迭代, 13142 是改進前, 33 卷是改進後).
+
+### 83. [2026-04-02 ~02:00] 全聖經 66 卷 S9 完成 — 29,958 節深度分析
+用 4 台 DeepSeek cloud 轉發 (sai + 本機 + genesis + fhlgpu, 各自 weekly limit) 跑完全聖經. 29,958 節, 66/66 卷, avg cov=80.6%, full coverage=19.4%, <50%=1.4%. 分佈: 72% 的節 ≥70%, 35% ≥90%. OT (81.4%) 略優於 NT (78.2%). 最佳: 約珥 94.8%, 哀歌 93.7%, 但以理 93.2%. 最差: 詩篇 71.4%, 以斯帖 71.4%. 重要發現: 後跑的書卷 (改進後 pipeline) cov 90%+ vs 先跑 (改進前) ~75% — 證實 fix_pipeline v2 + trim_extra_tags 的效果. Tag 數量對 coverage 影響不大 (6-31+ tags 穩定在 79-81%). 全聖經 baseline 建立完成.
