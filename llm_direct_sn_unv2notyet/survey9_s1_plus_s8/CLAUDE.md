@@ -4,6 +4,20 @@
 
 **S1 的任務（UNV+SN → LCC+SN）+ S8 的方法（去殼裸數字 + script 加殼）。Production pipeline。**
 
+- UNV+SN 去殼 → LLM 只搬裸數字到 LCC → script 補漏 + 修順序 + 查表加殼
+- **考試三科只考一科**：coverage 靠 UNV+SN 洩題（送分），format 靠查表加殼（送分），LLM 只考 placement
+- S5（完整格式）cov=0.61 place=0.57 → S9（去殼）Gen 全卷 cov=93.1%，品質接近 S1 三模型共識但成本為零
+- 全聖經 66 卷 29,958 節 baseline 完成（DeepSeek-671B, avg cov=80.6%）
+- 主程式已整合：`--naked`（alias `--shell-off`）flag
+
+## 評分指標
+
+| 指標 | 量什麼 | 白話 |
+|------|--------|------|
+| **cov** (coverage) | 該有的數字有沒有出現 | 「漏了幾個？多了幾個？」 |
+| **place** (placement) | 數字出現了，位置對不對 | 「放對地方了嗎？」 |
+| **fmt** (format) | 格式對不對（zero-padding、braces、prefix） | 「殼穿對了嗎？」 |
+
 ## 程式架構一覽
 
 ```
