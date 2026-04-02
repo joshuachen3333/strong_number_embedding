@@ -511,3 +511,6 @@ S9 (DeepSeek-671B) OT 跑完 13142 節 (跳過撒上下王上下代上下): avg 
 
 ### 83. [2026-04-02 ~02:00] 全聖經 66 卷 S9 完成 — 29,958 節深度分析
 用 4 台 DeepSeek cloud 轉發 (sai + 本機 + genesis + fhlgpu, 各自 weekly limit) 跑完全聖經. 29,958 節, 66/66 卷, avg cov=80.6%, full coverage=19.4%, <50%=1.4%. 分佈: 72% 的節 ≥70%, 35% ≥90%. OT (81.4%) 略優於 NT (78.2%). 最佳: 約珥 94.8%, 哀歌 93.7%, 但以理 93.2%. 最差: 詩篇 71.4%, 以斯帖 71.4%. 重要發現: 後跑的書卷 (改進後 pipeline) cov 90%+ vs 先跑 (改進前) ~75% — 證實 fix_pipeline v2 + trim_extra_tags 的效果. Tag 數量對 coverage 影響不大 (6-31+ tags 穩定在 79-81%). 全聖經 baseline 建立完成.
+
+### 84. [2026-04-02 ~10:00] 主程式 --naked (--shell-off) 整合 + S1 vs S9 對照 + Gen 全卷開跑
+S9 改進整合回主程式 llm_direct_sn_unv2notyet.py: 加入 --naked (alias --shell-off) flag. Pipeline: strip_shell → LLM 裸數字 → trim_extra_tags → fix_pipeline → restore_shell_lookup. Gen 1:1 實測通過 (DeepSeek via fhlgpu tunnel, 7 秒, 9/9 tags 全對). S1 (3-model gold, opus+gemini+gpt5.4) vs S9 (DeepSeek naked) 對照 Gen 1: tag 數量幾乎一致, 主要差異是位置微調, S9 品質接近 S1 但成本為零. 既有 sonnet 非 naked 結果: Gen 1501 節 + Exod 353 節可做跨模型比較. 開始跑 Gen 全卷 DeepSeek naked (--force, fhlgpu tunnel port 11436), 預計 6-7 小時. 4 台 ollama 轉發管理: sai(11434)/本機(11434)/genesis(11435)/fhlgpu(11436), DeepSeek cloud weekly limit 分散.
