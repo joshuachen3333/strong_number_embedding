@@ -37,6 +37,7 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from shared.data.book_data_loader import load_books
+from shared.sn_shell import strip_shell, fix_pipeline, extract_bare_numbers
 
 # ── Duration / time parsing ──────────────────────────────────────────────────
 
@@ -443,6 +444,66 @@ UNV+SN: {unv_sn}
 {ver}:    {target_text}
 
 Return the JSON with {sn_field}, confidence, and notes."""
+
+
+def build_naked_user_prompt(unv_stripped: str, target_text: str, target_version: str,
+                            book_chi: str, chap: int, sec: int) -> str:
+    """Build prompt for --naked mode: bare numbers only."""
+    book_eng = CHI_TO_ENG.get(book_chi, book_chi)
+    ver = target_version.upper()
+    sn_field = f"{target_version}_sn"
+    return f"""\
+Move every SN number from UNV to {ver} for {book_eng} {chap}:{sec}.
+
+UNV with numbers: {unv_stripped}
+{ver}: {target_text}
+
+Place each <number> after the corresponding {ver} word. Return JSON with {sn_field} (the annotated text), confidence, and notes."""
+
+
+def _build_shell_lookup(unv_sn_text):
+    """Build lookup: bare number → original FHL tag from UNV+SN."""
+    import re as _re
+    _tag_re = _re.compile(r'\{?<W[ATG]*[HG]\d+[a-z]?>\}?')
+    _num_re = _re.compile(r'(\d+[a-z]?)')
+    lookup = {}
+    for m in _tag_re.finditer(unv_sn_text):
+        raw = m.group(0)
+        stripped = strip_shell(raw, markers=False)
+        num = stripped.strip("<>")
+        if num not in lookup:
+            lookup[num] = raw
+    return lookup
+
+
+def _restore_shell_lookup(stripped_text, lookup):
+    """Restore bare <number> tags to FHL format using lookup table."""
+    import re as _re
+    def _replace(m):
+        num = m.group(1)
+        return lookup.get(num, m.group(0))
+    return _re.sub(r'<(\d+[a-z]?)>', _replace, stripped_text)
+
+
+def _trim_extra_tags(text, input_tags):
+    """Remove tags from output that don't exist in input."""
+    import re as _re
+    from collections import Counter as _Counter
+    input_counter = _Counter(input_tags)
+    seen = _Counter()
+    tag_pattern = _re.compile(r'<(\d+[a-z]?)>')
+    parts = []
+    last_end = 0
+    for m in tag_pattern.finditer(text):
+        num = m.group(1)
+        seen[num] += 1
+        if seen[num] <= input_counter.get(num, 0):
+            parts.append(text[last_end:m.end()])
+        else:
+            parts.append(text[last_end:m.start()])
+        last_end = m.end()
+    parts.append(text[last_end:])
+    return "".join(parts)
 
 
 # ── Claude CLI ───────────────────────────────────────────────────────────────
@@ -1508,7 +1569,8 @@ def process_sec(model: str, brand: str, target_version: str, book_chi: str,
                 verbose: bool = False,
                 progress: tuple = None,
                 paused_acc: list = None,
-                verse_stats: list = None) -> tuple:
+                verse_stats: list = None,
+                naked: bool = False) -> tuple:
     """Process a single sec. Returns (result_dict, rate_limit_info).
 
     progress: optional (total_processed, start_time, total_paused) for display.
@@ -1529,9 +1591,17 @@ def process_sec(model: str, brand: str, target_version: str, book_chi: str,
         print(f"  ✗ {e}", file=sys.stderr)
         return None, None
 
-    print(f"\n  UNV+SN: {unv_sn}")
+    # Naked mode: strip shells before LLM
+    if naked:
+        unv_stripped = strip_shell(unv_sn, markers=False)
+        shell_lookup = _build_shell_lookup(unv_sn)
+        input_tags = extract_bare_numbers(unv_stripped)
+        print(f"\n  UNV+SN (naked): {unv_stripped}")
+    else:
+        print(f"\n  UNV+SN: {unv_sn}")
     print(f"\n  {ver}:    {target_text}")
-    print(f"\n  ⚙ Invoking {brand}/{model} for SN embedding...", flush=True)
+    naked_label = " [naked]" if naked else ""
+    print(f"\n  ⚙ Invoking {brand}/{model}{naked_label} for SN embedding...", flush=True)
 
     if dry_run:
         print("  [dry-run] Skipping LLM call")
@@ -1542,7 +1612,9 @@ def process_sec(model: str, brand: str, target_version: str, book_chi: str,
             "local": call_ollama, "gemini": call_gemini, "codex": call_codex,
         }
         call_fn = _call_dispatch.get(brand, call_claude)
-        result, rate_limit_info = call_fn(model, unv_sn, target_text,
+        # In naked mode, pass stripped UNV instead of full format
+        _unv_for_llm = unv_stripped if naked else unv_sn
+        result, rate_limit_info = call_fn(model, _unv_for_llm, target_text,
                                           target_version, book_chi,
                                           chap, sec, verbose=verbose,
                                           progress=progress,
@@ -1554,6 +1626,20 @@ def process_sec(model: str, brand: str, target_version: str, book_chi: str,
     # Normalize notes to list (model may return a string despite schema)
     if "notes" in result and isinstance(result["notes"], str):
         result["notes"] = [result["notes"]] if result["notes"] else []
+
+    # Naked mode: post-process (trim → fix_pipeline → restore shells)
+    target_sn = result.get(sn_field, "")
+    if naked and target_sn:
+        # Strip backticks if model added them
+        target_sn = target_sn.replace("`", "")
+        # Trim extra tags
+        target_sn = _trim_extra_tags(target_sn, input_tags)
+        # Fix pipeline (coverage + placement)
+        target_sn, _fix_rounds = fix_pipeline(target_sn, input_tags)
+        # Restore shells from lookup table
+        target_sn = _restore_shell_lookup(target_sn, shell_lookup)
+        result[sn_field] = target_sn
+        result.setdefault("notes", []).append(f"naked mode: fix_pipeline {_fix_rounds} rounds")
 
     # Verify SN coverage
     target_sn = result.get(sn_field, "")
@@ -1693,6 +1779,10 @@ def main():
                         default=0, metavar="N",
                         help="Preserve N%% of token budget for colleagues; "
                              "0=no limit (default: 0, set in .run_config.conf for persistent)")
+    parser.add_argument("--naked", "--shell-off", action="store_true",
+                        dest="naked",
+                        help="Naked mode: strip SN shells before LLM, restore after. "
+                             "LLM only handles bare numbers, script handles format.")
     # Intercept --model --help / --model -h before argparse consumes -h
     _argv = sys.argv[1:]
     for i, a in enumerate(_argv):
@@ -2134,7 +2224,8 @@ def main():
                     args.model, brand, target_version, book_chi, chap, s,
                     dry_run=args.dry_run, verbose=args.verbose,
                     progress=(total_processed, start_time, total_paused),
-                    paused_acc=paused_acc, verse_stats=verse_stats)
+                    paused_acc=paused_acc, verse_stats=verse_stats,
+                    naked=args.naked)
                 total_paused = paused_acc[0]
             except KeyboardInterrupt:
                 print(f"\n⏹ Interrupted by user.")
