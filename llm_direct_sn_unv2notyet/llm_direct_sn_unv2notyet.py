@@ -1776,9 +1776,9 @@ def main():
     parser.add_argument("--quit-at-work-hours", action="store_true",
                         help="Quit instead of pausing when work hours reached")
     parser.add_argument("--preserve-token-percentage-4-colleagues", type=int,
-                        default=0, metavar="N",
+                        default=40, metavar="N",
                         help="Preserve N%% of token budget for colleagues; "
-                             "0=no limit (default: 0, set in .run_config.conf for persistent)")
+                             "pause at (100-N)%% usage (default: 40, i.e. pause at 60%%)")
     parser.add_argument("--naked", "--shell-off", action="store_true",
                         dest="naked",
                         help="Naked mode: strip SN shells before LLM, restore after. "
