@@ -27,7 +27,7 @@ Usage:
     # Mix ollama + claude
     python3 compare_models.py --dim 1 --verse-pair-count 5 \
         --models qwen3:32b sonnet haiku \
-        --ollama-url http://sai.fhl.net:11434
+        --ollama-url http://<ollama-host>:11434
 
     # Pre-built pairs
     python3 compare_models.py --pairs dmfs_pairs.json --verse-pair-count 10 \

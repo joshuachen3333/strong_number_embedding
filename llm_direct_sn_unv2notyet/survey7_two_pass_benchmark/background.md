@@ -41,7 +41,7 @@ Pass 2 (refine):  draft + Original + SN:word dict + KJV+SN → corrected UNV+SN
 
 ## Two-pass 的實驗結果
 
-### DeepSeek-671B (sai.fhl.net ollama)
+### DeepSeek-671B (private ollama host)
 
 迭代了 refine prompt v0.1→v0.5：
 

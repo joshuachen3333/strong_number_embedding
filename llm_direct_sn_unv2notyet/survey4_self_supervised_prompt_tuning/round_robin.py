@@ -7,11 +7,11 @@ tested (v2). Produces dual rankings: best example + hardest test.
 Usage:
     # Run dim #1 only (quick test)
     python3 round_robin.py --dim 1 --model qwen3:32b \
-        --ollama-url http://sai.fhl.net:11434
+        --ollama-url http://<ollama-host>:11434
 
     # Run all dims
     python3 round_robin.py --model qwen3:32b \
-        --ollama-url http://sai.fhl.net:11434
+        --ollama-url http://<ollama-host>:11434
 
     # Limit opponents per round (faster)
     python3 round_robin.py --dim 1 --max-opponents 5

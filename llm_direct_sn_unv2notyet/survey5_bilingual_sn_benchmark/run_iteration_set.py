@@ -3,8 +3,8 @@
 
 Usage:
     python3 run_iteration_set.py --model sonnet
-    python3 run_iteration_set.py --model deepseek-v3.1:671b-cloud --ollama-url http://sai.fhl.net:11434
-    python3 run_iteration_set.py --prompt prompts/survey5_v0.3.md --model deepseek-v3.1:671b-cloud --ollama-url http://sai.fhl.net:11434 --out
+    python3 run_iteration_set.py --model deepseek-v3.1:671b-cloud --ollama-url http://<ollama-host>:11434
+    python3 run_iteration_set.py --prompt prompts/survey5_v0.3.md --model deepseek-v3.1:671b-cloud --ollama-url http://<ollama-host>:11434 --out
 """
 
 import argparse

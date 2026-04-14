@@ -7,7 +7,7 @@ Dual scoring: Score 1 (stripped comparison) + Score 2 (shelled comparison).
 Usage:
     python3 run_survey8.py --book 創 --chap 1 --sec 1 --model sonnet
     python3 run_survey8.py --book 創 --chap 1 --model deepseek-v3.1:671b-cloud \
-        --ollama-url http://sai.fhl.net:11434 --out
+        --ollama-url http://<ollama-host>:11434 --out
     python3 run_survey8.py --book 創 --chap 1 --sec 1 --dry-run
 """
 

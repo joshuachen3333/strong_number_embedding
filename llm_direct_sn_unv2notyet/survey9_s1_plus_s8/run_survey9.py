@@ -6,11 +6,11 @@ UNV+SN (stripped) → LLM places bare numbers in LCC → script restores shells.
 Usage:
     # Single verse
     python3 run_survey9.py --book 創 --chap 1 --sec 1 \
-        --model deepseek-v3.1:671b-cloud --ollama-url http://sai.fhl.net:11434
+        --model deepseek-v3.1:671b-cloud --ollama-url http://<ollama-host>:11434
 
     # Full chapter with output
     python3 run_survey9.py --book 創 --chap 1 \
-        --model deepseek-v3.1:671b-cloud --ollama-url http://sai.fhl.net:11434 --out
+        --model deepseek-v3.1:671b-cloud --ollama-url http://<ollama-host>:11434 --out
 
     # Dry run
     python3 run_survey9.py --book 創 --chap 1 --sec 1 --dry-run

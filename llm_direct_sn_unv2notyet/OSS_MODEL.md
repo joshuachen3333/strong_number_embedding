@@ -1,11 +1,11 @@
 # Open-Source / Local Model Benchmark for SN Embedding
 
-Tested on `sai.fhl.net` — NVIDIA GB10 GPU, 119GB RAM, Ollama in Docker.
+Tested on a private ollama host — NVIDIA GB10 GPU, 119GB RAM, Ollama in Docker.
 Task: Transfer Strong's Numbers from UNV to LCC (Genesis 1:1–3).
 
 ## Results (2026-03-14)
 
-### Local Models via Ollama (sai.fhl.net)
+### Local Models via Ollama (private host)
 
 | Model          | Size  | Gen 1:1 | Gen 1:2 | Gen 1:3 | Time/verse | JSON OK? | Verdict                          |
 |----------------|-------|---------|---------|---------|------------|----------|----------------------------------|
@@ -30,7 +30,7 @@ Task: Transfer Strong's Numbers from UNV to LCC (Genesis 1:1–3).
 ## Recommendations
 
 1. **For quality**: gemini-3-flash-preview or claude/sonnet — confidence 1.0, perfect SN match
-2. **For free/unlimited**: qwen3:32b on sai.fhl.net — decent quality (0.9–0.98), no token cost, but slow (~8 min/verse)
+2. **For free/unlimited**: qwen3:32b on private ollama host — decent quality (0.9–0.98), no token cost, but slow (~8 min/verse)
 3. **Don't bother with**: qwen3:30b, gpt-oss:120b — can't follow structured JSON output instructions
 
 ## Notes

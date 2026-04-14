@@ -13,7 +13,7 @@ Task: Transfer Strong's Numbers from UNV to LCC for Genesis chapter 1 (31 verses
 | haiku                  | claude | 40m  | 1.3 min   | 14/31 (−27 SNs total)          | 0.91           |
 | gpt-5.1-codex-mini     | codex  | 21m  | 0.7 min   | 4/31 (+11 extra), 2 parse fails | 0.79          |
 
-### TranslateGemma (sai.fhl.net NVIDIA GB10, 2026-03-16)
+### TranslateGemma (an NVIDIA GB10 ollama host, 2026-03-16)
 
 Google's translation-specific model (55 languages incl. Chinese), built on Gemma 3. Tested all 12 Ollama variants: 3 base sizes × (base + 3 quantizations).
 
@@ -187,4 +187,4 @@ The main differentiator between models is handling of implicit Hebrew markers:
 4. **Not viable**: TranslateGemma (all sizes) — translation-specific models are counterproductive for SN annotation transfer
 
 See [CONFIDENCE_BASIS.md](CONFIDENCE_BASIS.md) for how confidence scores are determined.
-See [OSS_MODEL.md](OSS_MODEL.md) for local/open-source model benchmarks on sai.fhl.net.
+See [OSS_MODEL.md](OSS_MODEL.md) for local/open-source model benchmarks on a private ollama host.

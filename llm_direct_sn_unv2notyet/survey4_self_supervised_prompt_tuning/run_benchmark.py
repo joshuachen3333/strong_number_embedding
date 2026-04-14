@@ -7,15 +7,15 @@ to reproduce FHL's UNV+SN annotations. Results scored by auto_score.py.
 Usage:
     # Generate pairs + run in one shot
     python3 run_benchmark.py --pct 1 --model qwen3:32b \
-        --ollama-url http://sai.fhl.net:11434 --out results.json
+        --ollama-url http://<ollama-host>:11434 --out results.json
 
     # Use pre-built pairs
     python3 run_benchmark.py --pairs dmfs_pairs.json --model qwen3:32b \
-        --ollama-url http://sai.fhl.net:11434 --out results.json
+        --ollama-url http://<ollama-host>:11434 --out results.json
 
     # With custom prompt
     python3 run_benchmark.py --pct 1 --model qwen3:32b \
-        --prompt my_prompt.md --ollama-url http://sai.fhl.net:11434
+        --prompt my_prompt.md --ollama-url http://<ollama-host>:11434
 
     # Use Claude CLI
     python3 run_benchmark.py --pct 1 --model haiku --out results.json
@@ -165,7 +165,7 @@ def main():
     parser.add_argument("--model", default="qwen3:32b",
                         help="Model name (default: qwen3:32b)")
     parser.add_argument("--ollama-url", default=None,
-                        help="Ollama server URL (e.g., http://sai.fhl.net:11434)")
+                        help="Ollama server URL (e.g., http://<ollama-host>:11434)")
     parser.add_argument("--brand", choices=["ollama", "claude", "gemini"],
                         default=None,
                         help="Force brand (auto-detected from model name if omitted)")

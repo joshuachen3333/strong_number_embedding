@@ -21,7 +21,7 @@ Usage:
 
     # Ollama
     python3 run_survey6.py --book 創 --chap 1 \\
-        --model deepseek-v3.1:671b-cloud --ollama-url http://sai.fhl.net:11434
+        --model deepseek-v3.1:671b-cloud --ollama-url http://<ollama-host>:11434
 
     # Dry run
     python3 run_survey6.py --book 創 --chap 1 --sec 1 --dry-run

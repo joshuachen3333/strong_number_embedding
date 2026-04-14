@@ -73,7 +73,7 @@ python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1
 
 # With specific model/brand
 python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --model gemini-3-flash-preview
-python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --model qwen3:32b --ollama-url http://sai.fhl.net:11434
+python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --model qwen3:32b --ollama-url http://<ollama-host>:11434
 
 # Model reference
 python3 llm_direct_sn_unv2notyet.py --model --help
@@ -90,6 +90,12 @@ parse_sec_arg(["1,3,5-8"])    # → [1, 3, 5, 6, 7, 8]
 parse_sec_arg(["1", "2,5-7"]) # → [1, 2, 5, 6, 7]
 ```
 Any script that accepts `--sec` should wire through this function.
+
+**Colleague token reservation (Claude cloud only)** — `--preserve-token-percentage-4-colleagues N`: reserves N% of the 5-hour token window for colleagues by pausing when usage reaches (100-N)%. Default: 0 (no limit). Can also be set in `.run_config.conf` (hot-reloaded). Typical setting for shared accounts: `40` (you use 60%, pause to let colleagues use the remaining 40%).
+
+```bash
+python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --preserve-token-percentage-4-colleagues 40
+```
 
 **Key docs**:
 - [CONFIDENCE_BASIS.md](llm_direct_sn_unv2notyet/CONFIDENCE_BASIS.md) — How confidence scores work (LLM self-reported vs objective SN coverage check)

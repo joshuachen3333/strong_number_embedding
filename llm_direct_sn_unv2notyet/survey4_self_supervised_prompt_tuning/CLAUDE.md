@@ -684,7 +684,7 @@ python3 dmfs_select.py --test-set test_set.json --out pairs.json
 # Step 3: 跑 benchmark（用 prompt v1.2 作 baseline）
 python3 run_benchmark.py --pairs pairs.json \
   --prompt ../survey1_prompt_evolving/prompts/v1.2_joshua.md \
-  --model qwen3:32b --ollama-url http://sai.fhl.net:11434 \
+  --model qwen3:32b --ollama-url http://<ollama-host>:11434 \
   --out results_qwen_v1.2.json
 
 # Step 4: 自動評分
@@ -698,7 +698,7 @@ python3 auto_score.py --input results_qwen_v1.2.json
 # Step 7: 重跑 Step 3-4 用新 prompt
 python3 run_benchmark.py --pairs pairs.json \
   --prompt prompts/v1.2-exp-a.md \
-  --model qwen3:32b --ollama-url http://sai.fhl.net:11434 \
+  --model qwen3:32b --ollama-url http://<ollama-host>:11434 \
   --out results_qwen_v1.2-exp-a.json
 # → exact 30% → 進步！
 

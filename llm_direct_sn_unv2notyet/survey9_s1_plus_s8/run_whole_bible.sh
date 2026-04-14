@@ -4,7 +4,7 @@
 # Usage: ./run_whole_bible.sh [model] [ollama-url]
 
 MODEL="${1:-deepseek-v3.1:671b-cloud}"
-OLLAMA_URL="${2:-http://sai.fhl.net:11434}"
+OLLAMA_URL="${2:-http://localhost:11434}"
 OUTFILE="run_logs/s9_lcc_whole_bible_$(echo $MODEL | tr ':/' '-')_v0.1.json"
 
 # All 66 books in Chinese abbreviation order
