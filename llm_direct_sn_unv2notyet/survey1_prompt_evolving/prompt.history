@@ -1,0 +1,24 @@
+# prompt.history — survey1_prompt_evolving/
+
+Cross-CLI raw prompt provenance for this component (3-model gold standard with
+live prompt evolution). Started 2026-06-13 via /ph + /logoutput activation.
+Records Joshua's verbatim prompts; canonical structured format. Companion file:
+response.history (logs my replies). See ~/.claude/skills/record-prompt-history/.
+
+
+
+
+##     2026-06-13 18:13 CST
+
+###    User Prompt
+/logoutput — activate history tracking HERE (survey1_prompt_evolving), BOTH files (prompt.history + response.history)
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Activate /ph + /logoutput recording in survey1_prompt_evolving
+- Diff: Created prompt.history + response.history here; per-component tracking root activated for all future sessions in this dir
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/response.history`
+
+
+
+

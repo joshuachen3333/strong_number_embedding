@@ -1,0 +1,36 @@
+# response.history — survey1_prompt_evolving/
+
+Dual of prompt.history: records MY (assistant) final narrative replies for
+provenance of reasoning shown to Joshua. Started 2026-06-13 via /logoutput
+activation. result = final reply prose only, never tool-intermediate content.
+See ~/.claude/skills/logoutput/.
+
+
+
+
+##     2026-06-13 18:10 CST
+
+###    User Prompt
+/record-prompt-history (/ph) — invoked standalone at session start
+
+###    result
+There's nothing for me to record yet. This session opened with `/ph` itself — there's no preceding prompt in the conversation to capture, and `/ph` with no payload only back-fills the *immediately preceding* meaningful prompt.
+
+Two things worth flagging before I write anything:
+
+1. **No content yet** — give me the prompt/decision you want logged (or just talk to me normally and I'll record the next meaningful prompt automatically).
+2. **Where it lands** — this cwd (`survey1_prompt_evolving/`) has **no** `prompt.history` of its own. Existing files live at:
+   - repo root `./prompt.history`
+   - `dual_reader_right_editor/`, `chinese_term_segmentation/`, `sn_within_unv_selfgroup_segmentation/`
+
+   Neither `llm_direct_sn_unv2notyet/` nor `survey1_prompt_evolving/` is currently activated. Per the skill, the first `/ph` here would **create** `survey1_prompt_evolving/prompt.history` and activate per-subdir recording from now on.
+
+How do you want to proceed?
+
+- **Activate here** — create `survey1_prompt_evolving/prompt.history` and record going forward, or
+- **Use an existing file** (e.g. repo root), or
+- **Tell me the specific prompt/decision** to log right now and I'll write it.
+
+
+
+
