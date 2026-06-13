@@ -34,3 +34,65 @@ How do you want to proceed?
 
 
 
+##     2026-06-13 18:14 CST
+
+###    User Prompt
+/logoutput — AskUserQuestion answered: activate Here (survey1_prompt_evolving), Both files
+
+###    result
+Done. Both history files are now active in `survey1_prompt_evolving/`.
+
+What I set up:
+- prompt.history — seeded with a header + first entry recording the activation directive (here, both files).
+- response.history — seeded + first entry logging my prior reply (the "nothing to record / how to proceed" message).
+- Committed both as a single commit and pushed to origin/main (c661702..674f6c7) — remote exists, so push per the macro's standing rule.
+
+Standing behavior from now on (this dir, all future sessions): /ph records prompts automatically before I respond; /logoutput logs my substantive replies automatically after I compose them.
+
+Note: this current reply gets logged on the NEXT response cycle (chicken-and-egg).
+
+
+
+
+##     2026-06-13 18:20 CST
+
+###    User Prompt
+llm_direct_sn_unv2notyet-obe->survey1_prompt_evolving-obe [GO]: 升級 s1 三模型互評到 consensus-on-naked. 去殼選 restore_shell_lookup. 三接點 A/B/D. --naked opt-in 預設 off. 第一步抽 build/restore_shell_lookup 進 shared/sn_shell.py + round-trip 測試. 先給落地計畫不要動 code, 完成後 flare [STATUS] ack. 讀 NAKED_SHELL_UPGRADE.md + ARCHITECTURE_DECISIONS.md.
+
+###    result
+Cross-cwd inject from parent-dir sibling llm_direct_sn_unv2notyet-obe handled end-to-end (plan only, no production code touched).
+
+Did:
+1. Invoked /obe (protocol: I'm survey1_prompt_evolving-obe), recorded the inject to prompt.history.
+2. Read NAKED_SHELL_UPGRADE.md + ARCHITECTURE_DECISIONS.md, then traced all three接點 in code (comparator.py, judge.py, consensus.py, run_gold_standard.py, cli_caller.py) + the shell-lookup functions in survey9 and the main driver.
+3. Wrote the landing plan to 20260613_from_survey1_to_llm_direct_naked_landing_plan.md.
+4. Dispatched a fenced [STATUS] ack to the sibling (window 54431 / ttys041).
+
+Key finding that revises the sibling's step 1: the build/restore shell-lookup pair already exists in TWO places — survey9 (build_shell_lookup deps survey4's extract_tags) and the MAIN DRIVER (_build_shell_lookup, self-contained regex). Extract the main driver's self-contained pair into shared/sn_shell.py, NOT survey9's, to drop the survey4 coupling. build_naked_user_prompt + _trim_extra_tags also already live in the main driver — reuse, don't re-author.
+
+接點 mapping: A = strip unv_sn + build_naked_user_prompt at the 6 build_user_prompt sites in run_gold_standard.py (wrap in one helper so all branch uniformly). B = no change to texts_match (content-agnostic); only swap comparator.extract_sn_sequence -> extract_bare_numbers for legible diagnostics. D = single restore post-pass at the END of consensus.build_gold_standard before return (store naked + shelled), zero resolved_at branches touched — satisfies AD-1.
+
+Caveat: inject landing into a Claude Code TUI is not verifiable via readback (returns only the redraw frame); sibling is alive (Opus 4.8, 18% ctx). Per Ack Rule my [STATUS] is the terminal ack to their [GO], so no reply expected.
+
+
+
+
+##     2026-06-13 18:38 CST
+
+###    User Prompt
+llm_direct_sn_unv2notyet-obe->survey1_prompt_evolving-obe [GO]: Plan §0 verified, GO steps 1-3. Constraints (a) don't repoint survey9, (b) hold steps 4-5. Flare [STATUS] with round-trip numbers when done.
+
+###    result
+Steps 1-3 implemented under TDD, all offline tests green (10/10), and the [STATUS] flare with round-trip numbers dispatched to the sibling. Code uncommitted (no commit instruction).
+
+验证① round-trip (Gen 1, 28 golden verses): LOOKUP 17/28 perfect — off-boundary 17/17 LOSSLESS; GUESS 0/28; §2.1 same-number-different-shell 11/28 (39%); lookup fails ONLY on the §2.1 boundary (verified subset relation). Tag census: core 269, wah_prefix 104, morph_8xxx 90, implicit_braced 47, core_8xxx 19.
+
+Load-bearing finding surfaced to sibling: §2.1 is not rare (39% of Gen 1) — same number, two shells (e.g. 0776 as <WH0776> and {<WH0776>}). First-occurrence lookup collapses these; now auto-flagged for human review at save time. Recommended a follow-up (their call): occurrence-aware positional restore → 100% even on boundary, but it diverges from the main-driver algorithm so must be a separate tested change, not this faithful extraction.
+
+What landed: Step 1 — canonical build_shell_lookup/restore_shell_lookup in shared/sn_shell.py (main driver's self-contained pair), main driver repointed with byte-identical output signature, survey9 untouched (constraint a), shared/test_sn_shell_lookup.py 5/5. Step 2 — run_gold_standard.py --naked (default off): single _user_prompt helper threaded through R1/convergence/patch-regression/debate/R3, comparator.extract_sn_sequence made mode-agnostic, judge reference stripped in naked. Step 3 — consensus.build_gold_standard(naked=...) end-of-function _restore_gold_shells post-pass (stores lcc_sn_naked + shelled lcc_sn, logs §2.1), zero resolved_at branches touched (AD-1), test_consensus_naked.py 5/5.
+
+Deferred (constraint b + scope): steps 4-5 token run await Joshua; Trigger-only feedback/self-patch/evolve templates still feed shelled reference (rare paths, gated behind step 4).
+
+
+
+

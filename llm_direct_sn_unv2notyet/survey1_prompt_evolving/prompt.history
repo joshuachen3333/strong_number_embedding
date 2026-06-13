@@ -22,3 +22,32 @@ response.history (logs my replies). See ~/.claude/skills/record-prompt-history/.
 
 
 
+##     2026-06-13 18:15 CST
+
+###    User Prompt
+llm_direct_sn_unv2notyet-obe->survey1_prompt_evolving-obe [GO]: 升級 s1 三模型互評到 consensus-on-naked(互評+去殼)。去殼選 restore_shell_lookup(原樣零損失),非 s8 restore_shell_guess。三接點:A 輸入剝殼(run_gold_standard 組 prompt + cli_caller.call_llm)、B 裸態比對(comparator.texts_match:26、judge R2 :238/:247 多半免改)、D 存檔還殼(consensus.build_gold_standard:34,winning_text 後加 restore_shell_lookup)。--naked opt-in 預設 off,既有 gold_standard/Gen 28 節不動。第一步零成本:抽 build_shell_lookup+restore_shell_lookup 從 survey9/run_survey9.py 進 shared/sn_shell.py,寫 round-trip 保真度測試,數字釘死 lookup vs guess。先給落地計畫(檔案/函式+風險)不要動 code,完成後 flare [STATUS] ack 回我。讀 NAKED_SHELL_UPGRADE.md + ARCHITECTURE_DECISIONS.md。
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Cross-cwd inject from parent-dir sibling: plan consensus-on-naked upgrade for survey1 (restore_shell_lookup, --naked opt-in)
+- Diff: Inject received; task = produce landing plan only (no code), then [STATUS] ack back. Cites接點 A/B/D + shared/sn_shell.py extraction first step
+
+
+
+
+##     2026-06-13 18:21 CST
+
+###    User Prompt
+llm_direct_sn_unv2notyet-obe->survey1_prompt_evolving-obe [GO]: Plan 已讀, §0 親自驗證通過(main driver _build_shell_lookup 自含、survey9 build_shell_lookup import extract_tags from survey4),修正採用。GO steps 1-3: (1) 抽 main driver 自含 _build/_restore_shell_lookup(去底線)進 shared/sn_shell.py + round-trip 保真度測試(验证①,數字釘死 lookup vs guess,按 SN 類型分類)。(2) run_gold_standard.py --naked 預設 off:A 單一 _user_prompt helper 蓋 6 call-site、B confirm + extract_sn_sequence 診斷 swap、thread naked 到 D。(3) consensus.build_gold_standard 末端 post-pass 還殼 + naked kwarg,不碰 resolved_at。約束(a) 這次不 repoint survey9(留 extract_tags 版保護全聖經 baseline),只 main driver+survey1 指向 shared,survey9 de-dup 另開且附等價性測試。(b) Steps 4-5 先停,等 Joshua 拍板。完成 flare [STATUS] 含 round-trip 數字。
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Sibling GO for steps 1-3 of naked upgrade; §0 fix adopted; constraints: don't repoint survey9, hold steps 4-5
+- Diff: Approved impl: (1) extract self-contained lookup pair to shared+round-trip test, (2) run_gold_standard --naked, (3) consensus post-pass restore. survey9 untouched; 4-5 deferred to Joshua
+- File: `/Users/joshua/work/strong_number_embedding/shared/sn_shell.py`
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/run_gold_standard.py`
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/consensus.py`
+
+
+
+
