@@ -1,0 +1,33 @@
+# response.history — assistant output log (see logoutput skill)
+
+
+
+
+##     2026-06-13 18:16 CST
+
+###    User Prompt
+你用 obe 注入一下鄰居, 他位於 s1/ 底下
+
+###    result
+注入成功並已送出。確認狀態:
+
+- **目標**:`survey1_prompt_evolving-obe`(pid 95343, tty ttys042, window 54769 tab 1)— 確實是 s1/ 底下那位鄰居。
+- **送出狀態**:tab 顯示完整 fenced payload 從 `### inserted prompt begins ###` 到 `### inserted prompt ended ###` 都進去了,且下方出現 `✶ Transfiguring… (10s · thinking)`、輸入框 `❯` 已清空 → **payload 已提交,鄰居正在處理**,沒有卡在輸入框。
+
+## 注入內容(main→sibling,fenced + [GO])
+
+- 身分確認 + 要它先 `invoke /obe`(學 fences/ack 協議)
+- 指向它 cwd 下的 **`NAKED_SHELL_UPGRADE.md`**(完整設計)+ `ARCHITECTURE_DECISIONS.md`(別動 `resolved_at` 判決)
+- 任務:consensus-on-naked,選定 **lookup(原樣)非 guess**,三接點 A/B/D,`--naked` opt-in 預設 off、28 節先不動
+- 第一步:抽 `build/restore_shell_lookup` 進 `shared/sn_shell.py` + round-trip 測試(零模型成本先釘死 lookup vs guess)
+- 要求**先給落地計畫、別直接動 code**,完成後 flare `[STATUS]` ack 回我(長任務追蹤)
+
+## 提醒
+
+Claude Code TUI 的 readback 不可靠(畫面持續重繪),所以**鄰居的 ack 才是唯一可靠確認**。我在 payload 裡已要求它完成計畫後 flare `[STATUS]` 回來。不過這個 repo 沒有 `tools/three_dogs/inject.sh`,鄰居可能沒有現成 inject 管道回我——它大概會改成在自己 tab 留可 readback 的回覆,或請你轉達。
+
+要我等一會兒再 readback 它的回覆草案,還是你先看它那邊跑出什麼?
+
+
+
+
