@@ -582,3 +582,16 @@ Opus 模型已經到 4.8 了
 
 
 
+##     2026-06-14 22:46 CST
+
+###    User Prompt
+[s1 inject STATUS] naked 大批次 1/4 (創 1:1-8) 完成。機制 PASS 效益未證(老實版): 8/8 還殼正確、零紅旗、coverage perfect、§2.1 7節點 flagged、AD-3 跳過 random Trigger1。R1 unanimous 5/8、R2 debate 3/8(都 3/3 winner=A)、0 R3/trigger/evolution。效益: overlap 7 節 R1 naked 4/7 vs shelled 5/7(略低), N=7 噪音內不能下結論。機制可上 prod, 去殼抬升 consensus 假設仍未證需大N/重複(驗證②)。歷史 round*_results 從備份還原、28 golden 沒碰。
+
+###    
+- Agent: `llm_direct_sn_unv2notyet-obe`
+- Hint: naked 大批次 1/4 (創 1:1-8): 機制 PASS 但效益未證 — 8/8 還殼正確/§2.1 7節點 flagged/R2 debate 3/8/AD-3 跳過 random Trigger1;但 overlap 7 節 R1 一致 naked 4/7 vs shelled 5/7(略低,N=7 噪音內不能下結論)
+- Diff: 機制 prod-ready 且 format 無損 = 已驗證的真 win;但『去殼抬升 consensus』假設首批信號略負(R1 naked 4/7<shelled 5/7)、落噪音內未證,需大N/重複跑(=先前 defer 的驗證②)才能定論。關鍵 reframe: R1-unanimity 未必是對的效益指標 — 帶殼三模型可能共享 format 錯卻仍『agree』,naked 的真 win 是輸出 format 無損(by construction),這不靠 R1 抬升。解析: R1 unanimous 5/8, R2 debate 3/8(都 3/3 winner=A), 0 R3/trigger/evolution(故 trigger 帶殼模板路徑仍未真觸發)。round*_results 已從備份還原(歷史不動), gold 在 scratch /tmp, 28 golden 沒碰。鄰居續跑 batch 2-4/4。決定點: (a) commit naked code(機制穩可上 prod); (b) 投驗證② 大N 證效益, 或以 format-lossless 為由直接生產 golden。
+
+
+
+
