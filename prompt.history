@@ -532,3 +532,40 @@ S9 改進整合回主程式 llm_direct_sn_unv2notyet.py: 加入 --naked (alias -
 
 ### 90. [2026-06-14 ~00:20] Joshua 拍板 S1 去殼改 DEFAULT ON (覆寫 opt-in 約束) + 鄰居開始小批真跑驗證
 Joshua (透過 s1 鄰居 inject 轉達 + 本 chat 確認) 決定 S1 去殼改為 default ON, 覆寫我先前「--naked opt-in 預設 off、flip 等 step-4 驗證後再翻」的約束 —— 他要在 token 驗證前直接翻預設。鄰居實作: run_gold_standard.py --naked 改 argparse.BooleanOptionalAction default=True (:548-549), 無旗標=去殼 lookup, 帶殼 legacy 需 --no-naked; lookup 法維持非 guess; compile OK, offline tests 10/10 綠; 既有 28 節 golden skip-cached 保護 (僅 --force 才以 naked 重生)。我親自驗證屬實並標三個隨 step-4 收尾的風險: (1) naked 路徑只過 offline 單測, 從未真三模型實跑; (2) §2.1 同號異殼 39pct 仍 first-occurrence (存第一殼 + 標記送人工); (3) trigger feedback/self-patch/evolve 模板仍餵帶殼 reference, 與主裸態流程不一致, R2/R3 觸發時可能干擾判決。建議: 先 commit (低風險, 28 節有保護) + default-ON 後第一動作別直接開大 golden run, 先用 創 1 --force 小批真三模型 naked 驗掉三風險再鋪量。Joshua 回「鄰居在小測了」→ 採納小批驗證路線, 鄰居開始跑 step-4 最小版。Code 仍 uncommitted, 待小測綠後連同首個 validated 結果一起入庫。
+
+
+
+
+##     2026-06-14 11:26 CST
+
+###    User Prompt
+3 2 1
+照順序
+
+###    
+- Agent: `strong_number_embedding-obe`
+- Hint: Joshua: 依序執行 option 3→2→1(commit code → 修 R1-coverage naked wrinkle → 跑全 trio 一節)
+- Diff: Triggers: commit naked batch on main; fix R1-time verify_sn_coverage naked-awareness; full opus+gemini+gpt smoke
+
+
+
+
+##     2026-06-14 11:45 CST
+
+###    User Prompt
+Opus 模型已經到 4.8 了
+修一下有寫死 4.6 4.7 的code
+
+最好能用通用語法
+讓 opus 調用 總是使用 opus 最新的
+例如 若有 opus 4.9 或 5.x
+
+###    
+- Agent: `llm_direct_sn_unv2notyet-obe`
+- Hint: Opus 4.8 出 — 主程式 model 解析本已 generic(傳 alias 讀回 resolved model),只修過時的版本顯示字串為 latest;依指示注入 s1 協調 survey1 對齊
+- Diff: 主程式 3 處版本顯示字串 Opus4.7/Sonnet4.6/Haiku4.5 → latest Opus/Sonnet/Haiku(:1410-1412、:1467-1468、:1746),ast OK、grep 無殘留;invocation 早已 version-agnostic(resolve_claude_model :619 傳 alias 讀回 _resolved_model :527,#43b 設計);注入 s1 [GO] 協調 survey1 4 點(cli_caller 不 pin 版本/掃 display 字串/resolve-from-CLI-readback/勿動歷史 round1_results);cli_caller 不在鄰居 naked uncommitted 集故可獨立做、小測優先;主程式 opus edits 仍 uncommitted(該檔有 session 前既存改動,未一併 commit)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/llm_direct_sn_unv2notyet.py`
+
+
+
+
