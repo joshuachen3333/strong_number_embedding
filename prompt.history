@@ -569,3 +569,16 @@ Opus 模型已經到 4.8 了
 
 
 
+##     2026-06-14 12:40 CST
+
+###    User Prompt
+[s1 inject STATUS] 第一次 naked 實跑成功 (Gen 1:31, opus×3, scratch gold /tmp/naked_smoke_gold)。R1 三模型 unanimous → resolved round1。strip→place(裸)→restore_shell_lookup 全鏈通、coverage PERFECT、殼還原正確 (core/morph/implicit-braced/prefix)。wrinkle: R1-time verify_sn_coverage naked 下印 MISMATCH 純診斷。新增 --gold-dir。naked 現為 S1 預設。
+
+###    
+- Agent: `llm_direct_sn_unv2notyet-obe`
+- Hint: s1 第一次 naked 真跑綠 (Gen 1:31, opus×3, R1 unanimous);我獨立驗證 restore_shell_lookup 對來源逐 tag 無損、coverage perfect、placement 合理;但 §2.1 同號異殼 + trigger R2/R3 路徑此節未觸及
+- Diff: 鄰居 step-4 最小驗證: Gen 1:31 opus×3 R1 三模型 unanimous→round1, strip→place(裸)→restore_shell_lookup 全鏈通 (re-strip==naked True、無未還殼紅旗)。我 spot-check /tmp/naked_smoke_gold/Gen/1/31.json: restored lcc_sn 每個殼 (WH/WTH/WAH/braced) 與 unv_sn_reference 逐一吻合, 含 0853→{<WAH0853>}、02009→{<WAH02009>}、8804→<WTH8804>; lcc_sn_naked 另存。caveat: 此節無同號異殼 (§2.1 未觸及), R1 unanimous 故 trigger 帶殼路徑也未觸及 → 兩風險仍待更大批次。wrinkle: R1-time verify_sn_coverage 在 naked 印 MISMATCH (裸 vs 帶殼 count_sns 格式差), 純診斷雜訊不影響判決, 同 extract_sn_sequence 類 follow-up。鄰居加 --gold-dir 旗標供 scratch 回歸。naked 已為 S1 default。建議: 跑完整 Gen 1 naked 進 scratch 以觸及 §2.1+trigger 後再決生產 golden 範圍。
+
+
+
+
