@@ -50,3 +50,22 @@ Claude Code TUI 的 readback 不可靠(畫面持續重繪),所以**鄰居的 ack
 
 
 
+##     2026-06-14 08:21 CST
+
+###    User Prompt
+[s1 鄰居 inject] Joshua 拍板 (2026-06-14): S1 去殼改為 DEFAULT ON。覆寫『--naked opt-in 預設 off』約束, 直接翻預設在 token 驗證前。已實作 BooleanOptionalAction default=True; offline tests 10/10 綠; 28 節 golden skip-cached 保護。風險 FYI: naked 未真三模型實跑; §2.1 39pct first-occurrence; trigger 模板仍帶殼。
+
+###    result
+Verified on disk — it's real: run_gold_standard.py:548 → --naked 是 BooleanOptionalAction default=True (去殼預設 ON, 帶殼 legacy 要 --no-naked); 仍 uncommitted; 既有 28 節 golden 安全 (skip-cached, 僅 --force 才 naked 重生)。
+
+收到翻預設的決定 (覆寫先前「flip 等驗證」約束) — 你的 call, 照辦。但把一個你當初自己謹慎過的點再擺一次讓你睜眼翻:
+
+default-ON 一條「還沒真跑過」的路徑。鄰居三個 FYI 風險核心 = naked 路徑只過 offline 單測、從沒真三模型實跑過。default-ON 後任何人無旗標/--force 就直接吐 naked。三點未收尾: (1) 未 end-to-end 驗證; (2) §2.1 同號異殼 39pct 仍 first-occurrence; (3) trigger 路徑仍帶殼, 與主裸態流程不一致, R2/R3 觸發可能干擾判決。
+
+建議兩步: (1) 先 commit (default-ON 是你決定, 28 節有保護, 低風險); (2) default-ON 後第一動作別直接開大 golden run, 先 創 1 --force 小批真三模型 naked 驗掉三點再鋪量。
+
+兩個要點頭: (a) 現在就 commit 嗎? (b) 下一步 創 1 小批真跑驗證, 還是直接指定 golden 範圍開跑?
+
+
+
+
