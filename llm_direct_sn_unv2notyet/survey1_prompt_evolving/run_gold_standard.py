@@ -202,10 +202,23 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from llm_direct_sn_unv2notyet import (
-    fetch_sec_pair, fetch_chap_cached, build_user_prompt, load_system_prompt,
-    verify_sn_coverage, CHI_TO_ENG,
+    fetch_sec_pair, fetch_chap_cached, build_user_prompt, build_naked_user_prompt,
+    load_system_prompt, verify_sn_coverage, CHI_TO_ENG,
 )
+from shared.sn_shell import strip_shell
 from shared.data.book_data_loader import load_books
+
+
+def _user_prompt(unv_sn, target_text, target_version, book_chi, chap, sec,
+                 naked=False):
+    """Build the per-verse placement prompt; naked mode strips the source
+    shell so the model places bare numbers only (sole graded job)."""
+    if naked:
+        return build_naked_user_prompt(
+            strip_shell(unv_sn, markers=False), target_text,
+            target_version, book_chi, chap, sec)
+    return build_user_prompt(unv_sn, target_text, target_version,
+                             book_chi, chap, sec)
 
 from cli_caller import call_llm, DEFAULT_MODELS, MODEL_ALIASES, build_panel
 from comparator import compare_round1, summarize_disagreement
@@ -244,7 +257,7 @@ def get_verse_list(book_chi, chapters, sec_range=None):
 def _run_patch_regression(model_name, prompt_version, base_prompt, patch_text,
                           convergence_results, verse_data, models,
                           target_version, sn_field, verbose,
-                          instability_level="mild"):
+                          instability_level="mild", naked=False):
     """Minor 回測: re-run patched model solo on past verses.
 
     Sampling rate scales with instability level:
@@ -303,9 +316,9 @@ def _run_patch_regression(model_name, prompt_version, base_prompt, patch_text,
         chap, sec = vk
 
         # Do one blind call with patched prompt
-        user_prompt = build_user_prompt(
+        user_prompt = _user_prompt(
             vdata["unv_sn"], vdata["lcc_original"],
-            target_version, book_chi, chap, sec)
+            target_version, book_chi, chap, sec, naked=naked)
 
         result = call_llm(
             brand=model_info["brand"], model=model_info["model"],
@@ -532,6 +545,16 @@ def main():
                         help=f"3 model slots (comma/space separated). "
                              f"Aliases: {aliases_help}. "
                              f"Example: --modelsABC opus opus opus")
+    parser.add_argument("--gold-dir", default=None,
+                        help="output dir for gold_standard JSONs "
+                             "(default: survey dir's gold_standard/). Use a "
+                             "scratch dir to avoid touching the canonical set.")
+    parser.add_argument("--naked", action=argparse.BooleanOptionalAction,
+                        default=True,
+                        help="consensus-on-naked: models place bare numbers; "
+                             "shells restored zero-loss by lookup at save time. "
+                             "DEFAULT ON (2026-06-14, Joshua). Use --no-naked for "
+                             "the legacy shelled path.")
     parser.add_argument("--strip-prompt-comment", action="store_true",
                         help="Strip # comment headers from prompt before feeding to models (survey3 experiment)")
     parser.add_argument("--force", action="store_true",
@@ -731,8 +754,9 @@ def main():
 
         # ── R1: All 3 models produce output ──
         print(f"\n  ── R1 [{ts()}] ──")
-        user_prompt = build_user_prompt(
-            unv_sn, target_text, target_version, book_chi, chap, sec)
+        user_prompt = _user_prompt(
+            unv_sn, target_text, target_version, book_chi, chap, sec,
+            naked=args.naked)
 
         for model_info in model_trio:
             model_name = model_info["name"]
@@ -807,6 +831,7 @@ def main():
             verse_data=verse_data,
             models=model_trio,
             system_prompt=system_prompt,
+            naked=args.naked,
             target_version=target_version,
             sn_field=sn_field,
             max_retries=args.max_r2_retries,
@@ -871,6 +896,7 @@ def main():
                 verse_data=verse_data,
                 models=model_trio,
                 system_prompt=system_prompt,
+                naked=args.naked,
                 target_version=target_version,
                 sn_field=sn_field,
                 max_retries=args.max_r2_retries,
@@ -1227,7 +1253,7 @@ def main():
                         convergence_results, verse_data,
                         model_trio, target_version, sn_field,
                         args.verbose,
-                        instability_level=patch_level)
+                        instability_level=patch_level, naked=args.naked)
 
                     if not patch_ok:
                         print(f"  PATCH REVERTED — made {unstable_model} less stable")
@@ -1281,6 +1307,7 @@ def main():
             sn_field=sn_field,
             verbose=args.verbose,
             force=args.force,
+            naked=args.naked,
         )
         round2_judgments.update(r2j)
 
@@ -1306,6 +1333,7 @@ def main():
             sn_field=sn_field,
             verbose=args.verbose,
             force=args.force,
+            naked=args.naked,
         )
         round3_judgments.update(r3j)
 
@@ -1491,9 +1519,10 @@ def main():
         sn_field=sn_field,
         trigger1_verses=all_trigger1,
         trigger2_verses=all_trigger2,
+        naked=args.naked,
     )
 
-    save_gold_standard(gold_standard)
+    save_gold_standard(gold_standard, output_dir=args.gold_dir)
     print_summary(gold_standard, unresolved, prompt_evolutions)
 
     # Verify SN coverage on gold standard

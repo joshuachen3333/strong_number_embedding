@@ -3,14 +3,55 @@
 
 import json
 import os
+import re
 import sys
 
 SURVEY_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.dirname(SURVEY_DIR)
+REPO_ROOT = os.path.dirname(PARENT_DIR)
 if PARENT_DIR not in sys.path:
     sys.path.insert(0, PARENT_DIR)
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
 
 from judge import tally_r2_debate, tally_r3_judgments
+from shared.sn_shell import build_shell_lookup, restore_shell_lookup, strip_shell
+
+
+def _restore_gold_shells(gold_standard):
+    """--naked post-pass: restore original FHL shells onto naked winning text.
+
+    For each gold entry, treat the current ``lcc_sn`` as bare-number (naked)
+    text, build a zero-loss lookup from ``unv_sn_reference`` (the shelled
+    source), and restore the original tags. The naked text is preserved in
+    ``lcc_sn_naked``. Numbers absent from the source stay bare on purpose
+    (red flag). This is deterministic format post-processing only — it never
+    reads or writes ``resolved_at`` or any other resolution field.
+
+    Returns a list of (verse_key, bare_num) §2.1 same-number-different-shell
+    nodes for the human-review list.
+    """
+    flagged = []
+    for verse_key, gold in gold_standard.items():
+        naked = gold.get("lcc_sn", "")
+        if not naked:
+            continue  # e.g. trigger1 verses with no valid output
+        ref = gold.get("unv_sn_reference", "")
+
+        # §2.1 detection: same bare number carrying >1 distinct shell in source.
+        by_num = {}
+        for m in re.finditer(r'\{?<W[ATG]*[HG]\d+[a-z]?>\}?', ref):
+            raw = m.group(0)
+            num = strip_shell(raw, markers=False).strip("<>")
+            by_num.setdefault(num, set()).add(raw)
+        for num, shells in by_num.items():
+            if len(shells) > 1:
+                flagged.append((verse_key, num))
+
+        lookup = build_shell_lookup(ref)
+        gold["lcc_sn_naked"] = naked
+        gold["lcc_sn"] = restore_shell_lookup(naked, lookup)
+    return flagged
 
 
 def resolve_winner_text(winner_label, verse_key, convergence_results,
@@ -35,7 +76,8 @@ def build_gold_standard(unanimous, disagreed, round1_results,
                         convergence_results, round2_judgments,
                         round3_judgments, verse_data,
                         prompt_version="v1.0", sn_field="lcc_sn",
-                        trigger1_verses=None, trigger2_verses=None):
+                        trigger1_verses=None, trigger2_verses=None,
+                        naked=False):
     """Build gold standard JSONs from all round results.
 
     Args:
@@ -275,6 +317,15 @@ def build_gold_standard(unanimous, disagreed, round1_results,
     if trigger2_verses:
         for verse_key, gold_entry in trigger2_verses:
             gold_standard[verse_key] = gold_entry
+
+    # --naked post-pass (存檔還殼): restore FHL shells onto naked winning text.
+    # Deterministic format step, decoupled from all resolved_at logic above.
+    if naked:
+        flagged = _restore_gold_shells(gold_standard)
+        if flagged:
+            nodes = ", ".join(f"{c}:{s}#{num}" for (c, s), num in flagged)
+            print(f"\n  ⚠ §2.1 same-number-different-shell (lookup kept first "
+                  f"occurrence — human review): {nodes}")
 
     return gold_standard, unresolved, prompt_evolutions
 

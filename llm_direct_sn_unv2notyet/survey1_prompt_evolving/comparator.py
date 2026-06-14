@@ -16,10 +16,13 @@ from llm_direct_sn_unv2notyet import count_sns
 def extract_sn_sequence(text: str) -> list:
     """Extract ordered list of SN tags (with context) from annotated text.
 
-    Returns list of full tag strings like '<WH0430>', '{<WH0853>}', '<WTH8804>'.
-    Order matters — we compare placement, not just presence.
+    Returns list of full tag strings like '<WH0430>', '{<WH0853>}', '<WTH8804>'
+    in shelled mode, or bare '<0430>' tags in --naked mode. Order matters — we
+    compare placement, not just presence. Mode-agnostic: matches both shelled
+    FHL tags and bare-number tags so disagreement diagnostics stay legible
+    whether or not the run is naked.
     """
-    pattern = r'(\{<W[ATH]*[HG]?\d+>\}|<W[ATH]*[HG]?\d+>)'
+    pattern = r'(\{<W[ATH]*[HG]?\d+>\}|<W[ATH]*[HG]?\d+>|<\d+[a-z]?>)'
     return re.findall(pattern, text)
 
 

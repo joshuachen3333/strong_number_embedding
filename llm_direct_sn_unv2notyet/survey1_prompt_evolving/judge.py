@@ -119,7 +119,7 @@ If all are wrong:
 def run_r2_convergence(verses, round1_results, verse_data, models=None,
                        system_prompt="", target_version="lcc",
                        sn_field="lcc_sn", max_retries=3, verbose=False,
-                       force=False):
+                       force=False, naked=False):
     """Run R2 convergence: each model re-does the task blindly until stable.
 
     For each model+verse:
@@ -152,7 +152,8 @@ def run_r2_convergence(verses, round1_results, verse_data, models=None,
         models = DEFAULT_MODELS
 
     # Import here to avoid circular — build_user_prompt is in parent
-    from llm_direct_sn_unv2notyet import build_user_prompt
+    from llm_direct_sn_unv2notyet import build_user_prompt, build_naked_user_prompt
+    from shared.sn_shell import strip_shell
 
     conv_dir = os.path.join(SURVEY_DIR, "round2_results")
     os.makedirs(conv_dir, exist_ok=True)
@@ -205,9 +206,14 @@ def run_r2_convergence(verses, round1_results, verse_data, models=None,
 
                 print(f"    [{model_name}] {label}...", end=" ", flush=True)
 
-                # Blind re-do: same prompt as R1
-                user_prompt = build_user_prompt(
-                    unv_sn, lcc_original, target_version, book_chi, chap, sec)
+                # Blind re-do: same prompt as R1 (naked strips source shell)
+                if naked:
+                    user_prompt = build_naked_user_prompt(
+                        strip_shell(unv_sn, markers=False), lcc_original,
+                        target_version, book_chi, chap, sec)
+                else:
+                    user_prompt = build_user_prompt(
+                        unv_sn, lcc_original, target_version, book_chi, chap, sec)
 
                 t_start = time.time()
                 result = call_llm(
@@ -299,12 +305,18 @@ def run_r2_convergence(verses, round1_results, verse_data, models=None,
 # ── R2 Debate ────────────────────────────────────────────────────────────────
 
 def build_r2_debate_prompt(verse_key, convergence_results, verse_data,
-                           sn_field="lcc_sn"):
+                           sn_field="lcc_sn", naked=False):
     """Build the R2 debate prompt showing stable outputs + convergence info."""
     models = list(convergence_results.keys())
     model_a, model_b, model_c = models
 
     vdata = verse_data.get(verse_key, {})
+    # In naked mode candidates are bare-number; show the reference in the same
+    # format so judges compare placement, not shell.
+    _ref = vdata.get("unv_sn", "")
+    if naked:
+        from shared.sn_shell import strip_shell
+        _ref = strip_shell(_ref, markers=False)
 
     def _get_output_and_conv(model_name):
         conv = convergence_results[model_name].get(verse_key, {})
@@ -322,7 +334,7 @@ def build_r2_debate_prompt(verse_key, convergence_results, verse_data,
     output_c, conv_c = _get_output_and_conv(model_c)
 
     return ROUND2_DEBATE_PROMPT.format(
-        unv_sn=vdata.get("unv_sn", ""),
+        unv_sn=_ref,
         lcc_original=vdata.get("lcc_original", ""),
         model_a=model_a, model_b=model_b, model_c=model_c,
         output_a=output_a, output_b=output_b, output_c=output_c,
@@ -332,7 +344,7 @@ def build_r2_debate_prompt(verse_key, convergence_results, verse_data,
 
 def run_r2_debate(verses, convergence_results, verse_data, models=None,
                   target_version="lcc", sn_field="lcc_sn", verbose=False,
-                  force=False):
+                  force=False, naked=False):
     """Run R2 debate: each model judges the 3 stable outputs.
 
     Returns:
@@ -367,7 +379,7 @@ def run_r2_debate(verses, convergence_results, verse_data, models=None,
                 continue
 
             prompt = build_r2_debate_prompt(
-                verse_key, convergence_results, verse_data, sn_field)
+                verse_key, convergence_results, verse_data, sn_field, naked=naked)
 
             print(f"    [{model_name}] debating...", end=" ", flush=True)
 
@@ -411,12 +423,16 @@ def run_r2_debate(verses, convergence_results, verse_data, models=None,
 # ── R3 Dual-Capability ───────────────────────────────────────────────────────
 
 def build_r3_prompt(verse_key, convergence_results, round2_judgments,
-                    verse_data, sn_field="lcc_sn"):
+                    verse_data, sn_field="lcc_sn", naked=False):
     """Build R3 prompt with dual capability (pick or all_wrong)."""
     models = list(convergence_results.keys())
     model_a, model_b, model_c = models
 
     vdata = verse_data.get(verse_key, {})
+    _ref = vdata.get("unv_sn", "")
+    if naked:
+        from shared.sn_shell import strip_shell
+        _ref = strip_shell(_ref, markers=False)
 
     def _get_output_and_conv(model_name):
         conv = convergence_results[model_name].get(verse_key, {})
@@ -444,7 +460,7 @@ def build_r3_prompt(verse_key, convergence_results, round2_judgments,
     round2_text = '\n'.join(r2_lines) if r2_lines else "(no Round 2 judgments)"
 
     return ROUND3_PROMPT.format(
-        unv_sn=vdata.get("unv_sn", ""),
+        unv_sn=_ref,
         lcc_original=vdata.get("lcc_original", ""),
         model_a=model_a, model_b=model_b, model_c=model_c,
         output_a=output_a, output_b=output_b, output_c=output_c,
@@ -455,7 +471,7 @@ def build_r3_prompt(verse_key, convergence_results, round2_judgments,
 
 def run_round3(verses, convergence_results, round2_judgments, verse_data,
                models=None, target_version="lcc", sn_field="lcc_sn",
-               verbose=False, force=False):
+               verbose=False, force=False, naked=False):
     """Run Round 3: dual-capability judging (pick or all_wrong).
 
     Returns:
@@ -494,7 +510,7 @@ def run_round3(verses, convergence_results, round2_judgments, verse_data,
 
             prompt = build_r3_prompt(
                 verse_key, convergence_results, round2_judgments,
-                verse_data, sn_field)
+                verse_data, sn_field, naked=naked)
 
             print(f"    [{model_name}] judging...", end=" ", flush=True)
 

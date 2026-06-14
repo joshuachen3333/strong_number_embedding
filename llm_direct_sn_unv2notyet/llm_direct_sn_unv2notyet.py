@@ -12,7 +12,7 @@ Usage:
     python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --sec 1-10
     python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --sec 1,2,5-13,17,19
     python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --model gemini-3-flash
-    python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --model gpt-5.2
+    python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --model gpt-5.5
     python3 llm_direct_sn_unv2notyet.py --book 創 --chap 1 --model qwen3:32b
     python3 llm_direct_sn_unv2notyet.py --model --help                 # full model list
 """
@@ -37,7 +37,10 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from shared.data.book_data_loader import load_books
-from shared.sn_shell import strip_shell, fix_pipeline, extract_bare_numbers
+from shared.sn_shell import (
+    strip_shell, fix_pipeline, extract_bare_numbers,
+    build_shell_lookup, restore_shell_lookup,
+)
 
 # ── Duration / time parsing ──────────────────────────────────────────────────
 
@@ -461,28 +464,12 @@ UNV with numbers: {unv_stripped}
 Place each <number> after the corresponding {ver} word. Return JSON with {sn_field} (the annotated text), confidence, and notes."""
 
 
-def _build_shell_lookup(unv_sn_text):
-    """Build lookup: bare number → original FHL tag from UNV+SN."""
-    import re as _re
-    _tag_re = _re.compile(r'\{?<W[ATG]*[HG]\d+[a-z]?>\}?')
-    _num_re = _re.compile(r'(\d+[a-z]?)')
-    lookup = {}
-    for m in _tag_re.finditer(unv_sn_text):
-        raw = m.group(0)
-        stripped = strip_shell(raw, markers=False)
-        num = stripped.strip("<>")
-        if num not in lookup:
-            lookup[num] = raw
-    return lookup
-
-
-def _restore_shell_lookup(stripped_text, lookup):
-    """Restore bare <number> tags to FHL format using lookup table."""
-    import re as _re
-    def _replace(m):
-        num = m.group(1)
-        return lookup.get(num, m.group(0))
-    return _re.sub(r'<(\d+[a-z]?)>', _replace, stripped_text)
+# Canonical home is shared/sn_shell.py (extracted 2026-06-13, naked-mode
+# consensus upgrade). These aliases preserve the existing call sites; the
+# survey9 copy (build_shell_lookup via extract_tags) is intentionally NOT
+# repointed yet — it guards a verified whole-bible baseline.
+_build_shell_lookup = build_shell_lookup
+_restore_shell_lookup = restore_shell_lookup
 
 
 def _trim_extra_tags(text, input_tags):
@@ -1383,6 +1370,7 @@ MODEL_BRAND_MAP = {
     "gemini-3-pro-preview": "gemini", "gemini-3-flash-preview": "gemini",
     "gemini-2.5-pro": "gemini", "gemini-2.5-flash": "gemini",
     # Cloud — Codex (via codex CLI)
+    "gpt-5.5": "codex", "gpt-5.5-codex": "codex",
     "gpt-5.4": "codex", "gpt-5.3-codex": "codex",
     "gpt-5.2-codex": "codex", "gpt-5.2": "codex",
     "gpt-5.1-codex-max": "codex", "gpt-5.1-codex-mini": "codex",
@@ -1401,6 +1389,8 @@ MODEL_BRAND_MAP = {
     "translategemma:27b-it-bf16": "local",
     # Local — Ollama (others)
     "gpt-oss:120b": "local",
+    # Cloud-hosted via Ollama (DeepSeek — strong general reasoning, weekly quota)
+    "deepseek-v3.1:671b-cloud": "local",
 }
 
 KNOWN_BRANDS = sorted(set(MODEL_BRAND_MAP.values()))
@@ -1417,14 +1407,16 @@ def _print_model_help():
     print("  ─────      ─────              ─────")
 
     notes = {
-        "sonnet": "default, fast & capable",
-        "opus": "strongest reasoning, slowest",
-        "haiku": "fastest, cheapest",
+        "sonnet": "fast & capable (currently Sonnet 4.6)",
+        "opus": "default, strongest reasoning (currently Opus 4.7)",
+        "haiku": "fastest, cheapest (currently Haiku 4.5)",
         "gemini-3-pro-preview": "latest, strongest Gemini 3",
         "gemini-3-flash-preview": "fast Gemini 3",
         "gemini-2.5-pro": "strong Gemini 2.5, deep thinking",
         "gemini-2.5-flash": "fast Gemini 2.5, good balance",
-        "gpt-5.4": "latest OpenAI flagship",
+        "gpt-5.5": "latest OpenAI flagship",
+        "gpt-5.5-codex": "GPT-5.5 Codex variant",
+        "gpt-5.4": "previous OpenAI flagship",
         "gpt-5.3-codex": "strong reasoning",
         "gpt-5.2-codex": "Codex optimized",
         "gpt-5.2": "base GPT-5.2",
@@ -1440,6 +1432,7 @@ def _print_model_help():
         "llama3.1:70b": "good general, weaker Chinese",
         "llama3.1:8b": "fast, for testing only",
         "gpt-oss:120b": "large open-source, untested for SN",
+        "deepseek-v3.1:671b-cloud": "DeepSeek 671B via Ollama cloud (free, weekly quota)",
         "translategemma:4b": "Google translation, 4B base",
         "translategemma:12b": "Google translation, 12B base",
         "translategemma:27b": "Google translation, 27B base",
@@ -1471,9 +1464,10 @@ def _print_model_help():
             print(f"    --model {m:<20s} {note}")
 
     print(f"\nUsage:")
-    print(f"  --model sonnet              (default, Claude cloud)")
+    print(f"  --model opus                (default, Claude Opus 4.7, strongest)")
+    print(f"  --model sonnet              (Sonnet 4.6, faster & cheaper)")
     print(f"  --model gemini-3-flash-preview (Gemini 3, via gemini CLI)")
-    print(f"  --model gpt-5.2             (OpenAI, via codex CLI)")
+    print(f"  --model gpt-5.5             (OpenAI flagship, via codex CLI)")
     print(f"  --model qwen3:32b           (local Ollama, best Chinese)")
     print(f"  --model llama3.3:70b --ollama-url http://host:11434")
     print(f"  --brand local --model mymodel:latest   (custom Ollama model)")
@@ -1748,8 +1742,8 @@ def main():
                         help="List all 66 book abbreviations and exit")
     parser.add_argument("--sec", type=str, default=None, nargs="+",
                         help="Verse(s): 1 2 3, 1,2,3, 1-10, 1,2,5-13,17,19")
-    parser.add_argument("--model", default="sonnet",
-                        help="LLM model (default: sonnet). Use --model --help for full list. "
+    parser.add_argument("--model", default="opus",
+                        help="LLM model (default: opus, currently Opus 4.7). Use --model --help for full list. "
                              "Brands: claude, gemini, codex, local (Ollama)")
     parser.add_argument("--ollama-url", default="http://localhost:11434",
                         help="Ollama API base URL (default: http://localhost:11434)")

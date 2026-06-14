@@ -76,6 +76,42 @@ def extract_bare_numbers(text):
     return re.findall(r'<((?:IA|IP|IM|[MPIA])?\d+[a-z]?)>', text)
 
 
+def build_shell_lookup(unv_sn_text):
+    """Build lookup: bare number -> original FHL tag from UNV+SN (zero-loss).
+
+    Maps each source tag's stripped bare number to its full original tag, e.g.
+    {'07225': '<WH07225>', '09002': '<WAH09002>', '0853': '{<WH0853>}',
+     '8804': '<WTH8804>'}. Used to restore shells by table lookup with no
+    guessing — the source UNV+SN already prints every SN's original shell.
+
+    First occurrence wins: if the same number appears with two different shells
+    (§2.1 boundary, e.g. once <WH0853> once {<WH0853>}), the first is kept.
+    Callers doing golden work should flag such same-number-different-shell
+    nodes for human review.
+    """
+    lookup = {}
+    for m in _TAG_RE.finditer(unv_sn_text):
+        raw = m.group(0)
+        num = strip_shell(raw, markers=False).strip("<>")
+        if num not in lookup:
+            lookup[num] = raw
+    return lookup
+
+
+def restore_shell_lookup(stripped_text, lookup):
+    """Restore bare <number> tags to original FHL format via table lookup.
+
+    Zero-loss counterpart to restore_shell_guess(): each <number> is replaced
+    by its original tag from `lookup` (built by build_shell_lookup). A number
+    absent from the table is deliberately left bare (<number>) — that is a red
+    flag (LLM emitted an SN not present in the source UNV+SN) for a judge or
+    human to catch, rather than masking it with a plausible guessed shell.
+    """
+    def _replace(m):
+        return lookup.get(m.group(1), m.group(0))
+    return re.sub(r'<(\d+[a-z]?)>', _replace, stripped_text)
+
+
 def _zero_pad(num_int, testament="OT", orig_digits=None):
     """Apply FHL zero-padding rule.
 
