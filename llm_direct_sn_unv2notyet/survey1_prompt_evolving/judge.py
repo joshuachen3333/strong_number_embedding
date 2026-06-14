@@ -909,7 +909,7 @@ def generate_model_patch(unstable_model, unstable_attempts, stable_output,
                          unv_sn, stable_models, models, target_version,
                          verse_key=None, book_eng="", existing_patch="",
                          verbose=False, converged=True,
-                         past_trigger2_verses=None):
+                         past_trigger2_verses=None, naked=False):
     """Generate a model-specific patch via feedback from stable models.
 
     Patch intensity scales with instability:
@@ -924,6 +924,9 @@ def generate_model_patch(unstable_model, unstable_attempts, stable_output,
     Returns (patch_text, record) where record has all feedbacks and patch.
     patch_text is "" if generation fails.
     """
+    if naked:
+        from shared.sn_shell import strip_shell
+        unv_sn = strip_shell(unv_sn, markers=False)
     chap, sec = verse_key if verse_key else (0, 0)
 
     # Calculate instability score
@@ -1128,7 +1131,7 @@ Return ONLY a JSON object:
 
 
 def validate_trigger2(unstable_model, stable_output, unv_sn, lcc_original,
-                       models, target_version="lcc", verbose=False):
+                       models, target_version="lcc", verbose=False, naked=False):
     """Ask the unstable model if it agrees with the stable pair's output.
 
     Returns (agrees: bool, reasoning: str)
@@ -1137,6 +1140,9 @@ def validate_trigger2(unstable_model, stable_output, unv_sn, lcc_original,
     if not model_info:
         return True, "model not found, defaulting to agree"
 
+    if naked:
+        from shared.sn_shell import strip_shell
+        unv_sn = strip_shell(unv_sn, markers=False)
     prompt = TRIGGER2_VALIDATE_PROMPT.format(
         stable_output=stable_output,
         unv_sn=unv_sn,

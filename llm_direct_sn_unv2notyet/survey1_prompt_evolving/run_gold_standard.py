@@ -1122,6 +1122,7 @@ def main():
                     models=model_trio,
                     target_version=target_version,
                     verbose=args.verbose,
+                    naked=args.naked,
                 )
                 if not agrees:
                     print(f"  {unstable_model} DISAGREES — routing to normal R2 debate.")
@@ -1144,6 +1145,7 @@ def main():
                         existing_patch=current_patch,
                         verbose=args.verbose,
                         converged=unstable_conv.get("converged", True),
+                        naked=args.naked,
                     )
                     if patch_text:
                         patch_ver = next_patch_version(unstable_model, args.prompt_version)
@@ -1198,6 +1200,7 @@ def main():
                     verbose=args.verbose,
                     converged=unstable_conv.get("converged", True),
                     past_trigger2_verses=past_t2_verses if past_t2_verses else None,
+                    naked=args.naked,
                 )
 
                 if patch_text:
