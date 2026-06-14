@@ -51,3 +51,18 @@ llm_direct_sn_unv2notyet-obe->survey1_prompt_evolving-obe [GO]: Plan 已讀, §0
 
 
 
+##     2026-06-14 07:52 CST
+
+###    User Prompt
+好的, 實作 去殼,  lookup 而非 guess,
+讓去殼當作預設, 非去殼要特別指定才能. 更改 S1
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 拍板:S1 去殼(naked+lookup)改為預設,非去殼需 --no-naked 指定
+- Diff: 翻轉 --naked 預設 off→on(BooleanOptionalAction default True);覆寫 sibling 先前『預設 off、flip 等驗證』約束。lookup 法(非 guess)維持
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/run_gold_standard.py`
+
+
+
+

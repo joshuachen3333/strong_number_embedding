@@ -96,3 +96,72 @@ Deferred (constraint b + scope): steps 4-5 token run await Joshua; Trigger-only 
 
 
 
+##     2026-06-14 07:53 CST
+
+###    User Prompt
+好的, 實作 去殼, lookup 而非 guess, 讓去殼當作預設, 非去殼要特別指定才能. 更改 S1
+[+ followup] 知會一下另一個 obe (inject him)
+
+###    result
+實作完成 + 已知會 sibling obe。
+
+改動:run_gold_standard.py 的 --naked 從 store_true(預設 off)翻成 argparse.BooleanOptionalAction default=True。
+- 無旗標 → 去殼(naked + lookup),現在是預設
+- --no-naked → legacy 帶殼路徑(opt-out)
+- --naked → 仍可顯式開(= 預設)
+lookup 法維持(非 guess),restore_shell_lookup 不動。compile OK,offline tests 10/10 綠。
+
+既有 28 節 golden 不受影響:預設 skip cached,只有 --force 才會以 naked 重生。
+
+已 inject 另一個 obe(llm_direct_sn_unv2notyet-obe,window 54431/ttys041)一則 [STATUS]:告知 Joshua 拍板把 S1 去殼設為預設,覆寫他先前「預設 off、flip 等驗證」的約束;附實作摘要 + 三個 FYI 風險(naked 還沒三模型實跑、§2.1 39% 仍 first-occurrence、Trigger-only 模板仍帶殼),隨 step-4 一起收尾。
+
+注意:這是把去殼設為預設,但 naked 路徑至今只過 offline 單測、還沒真的用三模型跑過一節。下一次沒帶 --no-naked 的實跑就會是第一次真正去殼跑。
+
+
+
+
+##     2026-06-14 08:22 CST
+
+###    User Prompt
+Ok [跑第一次 naked smoke test]
+
+###    result
+第一次真正去殼跑已啟動(背景),naked 模式確認 active。
+
+設定:Gen 1:31(新節,不在 28 golden 內、無 cache)· opus×3(--modelsABC opus opus opus,單 CLI 省 token)· --gold-dir /tmp/naked_smoke_gold(scratch,不碰 canonical golden)· prompt v1.2。
+
+順帶加了 --gold-dir 旗標(step-4 回歸本來就需要,wire 進 save_gold_standard)。
+
+log 已見:fetch Gen 1:31(UNV+SN 帶殼)→ 進 R1 → opus-A calling。目前還在 R1 第一個 opus call(opus 偏慢)。等三個 R1 完成 → 若一致則 R1 resolved → build_gold_standard 末端 _restore_gold_shells 查表還殼 → 存 scratch。
+
+完成後我會檢查 /tmp/naked_smoke_gold/Gen/1/31.json 的 lcc_sn(查表還殼後帶殼)+ lcc_sn_naked(裸態)兩欄,回報 strip→place→restore 中間態。背景跑完會通知我。
+
+
+
+
+##     2026-06-14 08:25 CST
+
+###    User Prompt
+[background smoke test completed — first real naked run]
+
+###    result
+第一次真正去殼跑成功 — 整條 naked 管線端到端驗證通過。
+
+跑法:Gen 1:31 · opus×3 · scratch /tmp/naked_smoke_gold · ~2.5 分鐘 · exit 0。
+
+結果:
+- R1 三個 opus 對裸數字 placement 完全一致 → resolved at round1(只花 3 個 call)。
+- lcc_sn_naked(裸):上帝<0430>看看<07200><8799>他<0853>...（模型只放裸數字）
+- lcc_sn(還殼):上帝<WH0430>看看<WH07200><WTH8799>他{<WAH0853>}...（restore_shell_lookup 查表還原）
+- 驗證:re-strip(restored)==naked → True;無未還殼紅旗;最終 SN coverage PERFECT。
+- 殼還原各型正確:core <0430>→<WH0430>、morph <8799>→<WTH8799>、implicit-braced <0853>→{<WAH0853>}、prefix <03605>→<WAH03605>。
+
+一個小 wrinkle(非阻擋):R1-time 每模型的 verify_sn_coverage 在 naked 下印「MISMATCH (missing=[裸號…])」——因為它拿裸 output 的 SN 對帶殼 reference 做 count_sns,格式不同。純診斷雜訊,沒影響判決(三模型仍 unanimous),最終帶殼 coverage 完美。列為小 follow-up:把 R1-time coverage 檢查做成 naked-aware(同 extract_sn_sequence 那類診斷修正)。
+
+已 flare sibling 這個 milestone(first end-to-end naked run done)。canonical 28 golden 完全沒動(scratch 在 /tmp)。
+
+所以:去殼法現在不只是「裝備上膛」,而是「實彈打過一發、命中」。要不要我跑全 trio(opus+gemini+gpt)一節確認跨 CLI naked 解析,或就把 wrinkle 修一修?
+
+
+
+
