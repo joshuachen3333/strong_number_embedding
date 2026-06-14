@@ -595,3 +595,16 @@ Opus 模型已經到 4.8 了
 
 
 
+##     2026-06-14 23:17 CST
+
+###    User Prompt
+a b 中文詳述
+
+###    
+- Agent: `llm_direct_sn_unv2notyet-obe`
+- Hint: Joshua 批 (a) commit naked code + (b) 生產前路徑三步: ①trigger 模板改 naked-aware ②跑完 batch 2-4/4 ③以 format-無損為由上 naked golden(不燒驗證② 大N)
+- Diff: (a): 已 inject 鄰居 [GO] commit steps1-3 + naked default-on + tests + docs(shared/sn_shell.py、survey1 4 檔、2 測試、NAKED_SHELL_UPGRADE.md+landing plan);排除 scratch/tmp、prod golden、*.history.backups;我主程式 opus help-text edits 另 commit。(b): 批准生產路徑三步。時序: 待鄰居 commit [STATUS] flare 後再 inject (b)-go,避免與 commit 指令在輸入框 queue 碰撞。生產 golden 最終範圍(整卷創世記/創1-10/全OT)留作 ①② 綠後、開大跑前的最後 checkpoint。批 (b) = 接受『以 format 無損為由上 naked、不為 consensus 抬升燒驗證②』。
+
+
+
+
