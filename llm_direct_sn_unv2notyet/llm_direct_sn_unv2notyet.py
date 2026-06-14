@@ -1407,9 +1407,9 @@ def _print_model_help():
     print("  ─────      ─────              ─────")
 
     notes = {
-        "sonnet": "fast & capable (currently Sonnet 4.6)",
-        "opus": "default, strongest reasoning (currently Opus 4.7)",
-        "haiku": "fastest, cheapest (currently Haiku 4.5)",
+        "sonnet": "fast & capable (latest Sonnet)",
+        "opus": "default, strongest reasoning (latest Opus)",
+        "haiku": "fastest, cheapest (latest Haiku)",
         "gemini-3-pro-preview": "latest, strongest Gemini 3",
         "gemini-3-flash-preview": "fast Gemini 3",
         "gemini-2.5-pro": "strong Gemini 2.5, deep thinking",
@@ -1464,8 +1464,8 @@ def _print_model_help():
             print(f"    --model {m:<20s} {note}")
 
     print(f"\nUsage:")
-    print(f"  --model opus                (default, Claude Opus 4.7, strongest)")
-    print(f"  --model sonnet              (Sonnet 4.6, faster & cheaper)")
+    print(f"  --model opus                (default, latest Claude Opus, strongest)")
+    print(f"  --model sonnet              (latest Sonnet, faster & cheaper)")
     print(f"  --model gemini-3-flash-preview (Gemini 3, via gemini CLI)")
     print(f"  --model gpt-5.5             (OpenAI flagship, via codex CLI)")
     print(f"  --model qwen3:32b           (local Ollama, best Chinese)")
@@ -1743,7 +1743,7 @@ def main():
     parser.add_argument("--sec", type=str, default=None, nargs="+",
                         help="Verse(s): 1 2 3, 1,2,3, 1-10, 1,2,5-13,17,19")
     parser.add_argument("--model", default="opus",
-                        help="LLM model (default: opus, currently Opus 4.7). Use --model --help for full list. "
+                        help="LLM model (default: opus = always latest Opus). Use --model --help for full list. "
                              "Brands: claude, gemini, codex, local (Ollama)")
     parser.add_argument("--ollama-url", default="http://localhost:11434",
                         help="Ollama API base URL (default: http://localhost:11434)")
