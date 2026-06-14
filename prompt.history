@@ -608,3 +608,18 @@ a b 中文詳述
 
 
 
+##     2026-06-15 01:35 CST
+
+###    User Prompt
+1, commit, 2, 動手做這個 ①(改 judge.py 那兩處 + 串 naked 旗標)
+
+###    
+- Agent: `llm_direct_sn_unv2notyet-obe`
+- Hint: Joshua 依序: (1) 主程式 opus 修正乾淨 commit, (2) 做 ① judge.py trigger 模板 naked-aware
+- Diff: (1) 主程式 diff 確認只含 3 處 opus 顯示字串改動(無不明既存改動)→ commit。(2) ① 實作: judge.py generate_model_patch + validate_trigger2 加 naked 參數、naked 時 strip_shell(unv_sn,markers=False) 對齊裸輸出(原 FEEDBACK_PROMPT_*/TRIGGER2_VALIDATE_PROMPT 嵌帶殼 reference 與裸輸出格式不一致, Trigger2 觸發會誤導 feedback/self-patch); run_gold_standard 3 call site(:1125/:1148/:1203)串 naked=args.naked; debate/R3/convergence 先前已 naked-aware。compile OK, naked test 5/5。已 commit。剩 ②跑完整 Gen 1 naked scratch、③確認範圍上生產 golden。
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/judge.py`
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/run_gold_standard.py`
+
+
+
+

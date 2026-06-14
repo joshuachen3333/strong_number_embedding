@@ -69,3 +69,28 @@ default-ON 一條「還沒真跑過」的路徑。鄰居三個 FYI 風險核心 
 
 
 
+##     2026-06-15 01:35 CST
+
+###    User Prompt
+1, commit, 2, 動手做這個 ①(改 judge.py 那兩處 + 串 naked 旗標)
+
+###    result
+① 做完了,兩步都收工。
+
+(1) 主程式 opus 修正已 commit:diff 確認那檔現在只剩我那 3 處顯示字串改動(沒有不明的既存改動混進來——先前的既存改動在 session 中已被 commit 掉了),乾淨 commit 推送 → `main driver: opus/sonnet/haiku help text → generic 'latest'`。
+
+(2) ① trigger 模板 naked-aware 已 commit:
+- `judge.py`:`generate_model_patch`(Trigger2 的 FEEDBACK_PROMPT_*)和 `validate_trigger2`(TRIGGER2_VALIDATE_PROMPT)各加 `naked` 參數,naked 時 `strip_shell(unv_sn, markers=False)`,讓嵌進模板的 reference 跟旁邊的裸輸出格式一致。
+- `run_gold_standard.py`:3 個 call site(:1125 validate、:1148/:1203 patch)串 `naked=args.naked`。
+- debate/R3/convergence 路徑鄰居先前已做,所以這次只補 patch/validate 兩條罕見路。
+- compile OK,既有 naked 測試 5/5 過。
+
+這就把「大跑必炸的 correctness 洞」關上:之後生產 golden 大跑遇到不穩節點觸發 Trigger2 時,feedback / self-patch 看到的 reference 會是裸態、不再被帶殼格式誤導。
+
+(b) 進度:① ✅。剩 ② 跑完整 Gen 1(1:9-31)naked 進 scratch(踩 §2.1 + 真觸發一次 trigger 驗 ①)、③ 確認範圍後上生產 golden。
+
+下一步要我直接跑 ② 完整 Gen 1 naked 進 scratch `--gold-dir`(會花 token:opus×3 × ~31 節)嗎?還是先處理別的?
+
+
+
+
