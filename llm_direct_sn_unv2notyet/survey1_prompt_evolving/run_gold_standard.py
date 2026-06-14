@@ -205,7 +205,7 @@ from llm_direct_sn_unv2notyet import (
     fetch_sec_pair, fetch_chap_cached, build_user_prompt, build_naked_user_prompt,
     load_system_prompt, verify_sn_coverage, CHI_TO_ENG,
 )
-from shared.sn_shell import strip_shell
+from shared.sn_shell import strip_shell, build_shell_lookup, restore_shell_lookup
 from shared.data.book_data_loader import load_books
 
 
@@ -219,6 +219,16 @@ def _user_prompt(unv_sn, target_text, target_version, book_chi, chap, sec,
             target_version, book_chi, chap, sec)
     return build_user_prompt(unv_sn, target_text, target_version,
                              book_chi, chap, sec)
+
+
+def _coverage(unv_sn, output_sn, naked=False):
+    """SN-coverage check that is correct in both modes. In naked mode the model
+    output is bare numbers, which count_sns() (prefix-required) cannot see, so
+    we restore the output first and verify against the shelled source — the
+    same basis as the final gold-standard coverage check."""
+    if naked:
+        output_sn = restore_shell_lookup(output_sn, build_shell_lookup(unv_sn))
+    return verify_sn_coverage(unv_sn, output_sn)
 
 from cli_caller import call_llm, DEFAULT_MODELS, MODEL_ALIASES, build_panel
 from comparator import compare_round1, summarize_disagreement
@@ -795,7 +805,7 @@ def main():
 
             output_sn = result.get(sn_field, "")
             if output_sn and not result.get("error"):
-                coverage = verify_sn_coverage(unv_sn, output_sn)
+                coverage = _coverage(unv_sn, output_sn, naked=args.naked)
                 result["_sn_coverage"] = coverage
                 status = "OK" if coverage["perfect"] else f"MISMATCH (missing={coverage['missing']})"
             else:
