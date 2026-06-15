@@ -623,3 +623,16 @@ a b 中文詳述
 
 
 
+##     2026-06-15 08:51 CST
+
+###    User Prompt
+直接跑 ② 完整 Gen 1 naked 進 scratch, 但是使用 codex, gemini, opus, 三個 variant
+
+###    
+- Agent: `llm_direct_sn_unv2notyet-obe`
+- Hint: 啟動 ② 完整 Gen 1(31節)naked trio consensus(opus+gemini-3-pro+gpt-5.4)進 scratch; 先備份 --gold-dir 保護不到的 round*_results/prompts(歷史保護)
+- Diff: flags: --modelsABC opus gemini gpt(異質三家=DEFAULT trio)、--gold-dir /tmp/gen1_naked_trio_gold(只導最終 gold save :1538)、--naked default ON、--force(完整重跑31節)。發現 --gold-dir 不導 round1/2/3_results+prompts(寫死 SURVEY_DIR :447/728/897/1180/1384),--force 覆蓋歷史 round*_results(Joshua 點名保護)→ 先 cp 備份 /tmp/gen1_protect_20260615_084912 + git committed 第二還原路徑。背景啟動 bg bc9su2zl0(log /tmp/gen1_naked_trio.log),startup 健康(trio+v1.2+31節),R1 opus calling。另起 watcher bg beuhtaoip 確認三家 v1 都回應。跑完: 本跑 round*_results 複製 scratch 供分析、還原歷史。
+
+
+
+

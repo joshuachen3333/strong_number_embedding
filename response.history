@@ -94,3 +94,22 @@ default-ON 一條「還沒真跑過」的路徑。鄰居三個 FYI 風險核心 
 
 
 
+##     2026-06-15 08:51 CST
+
+###    User Prompt
+直接跑 ② 完整 Gen 1 naked 進 scratch, 但是使用 codex, gemini, opus, 三個 variant
+
+###    result
+② 開跑了 — 完整 Gen 1、異質三家 trio、進 scratch。
+
+啟動確認(log 已驗): Models = opus + gemini-3-pro-preview + gpt-5.4(你要的三 variant)、prompt v1.2、31 節全跑、naked ON、--force(完整重跑不跳 cached)。背景跑 id bc9su2zl0,R1 已開始(opus calling)。
+
+歷史保護(重要): 你點名「round*_results 不動」,但 --gold-dir 只導最終 gold 存檔,round1/2/3_results 和 prompts/ 是寫死 SURVEY_DIR 的,--force 會覆蓋。所以我先 cp 備份到 /tmp/gen1_protect_20260615_084912(git 也 committed 為第二還原路徑)。跑完我會把本跑的 round*_results 複製到 scratch 供你分析,再還原歷史 round*_results。28 節既有 golden 沒被碰(gold 全寫到 /tmp/gen1_naked_trio_gold)。
+
+監看: 另起 watcher 確認 gemini+codex 在第 1 節 R1 都真回應(這 trio 最近多是 opus×3 跑,先確認異質三家 auth 正常避免 stall 幾小時)。完整跑完(31 節 × R1/R2/R3,可能數小時)harness 會通知我。你想自己看: tail -f /tmp/gen1_naked_trio.log。
+
+這次驗: §2.1 多節標記、最好真觸發一次 Trigger2 驗 ① 的修正、異質三家 naked R1 一致率 vs 帶殼。watcher 回報三家健康我再說一聲。
+
+
+
+
