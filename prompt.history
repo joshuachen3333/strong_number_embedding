@@ -649,3 +649,18 @@ a b 中文詳述
 
 
 
+##     2026-06-16 06:51 CST
+
+###    User Prompt
+2.1 還殼
+
+###    
+- Agent: `llm_direct_sn_unv2notyet-obe`
+- Hint: §2.1 occurrence-aware 定位還殼: 新增 restore_shells_positional() 到 shared/sn_shell.py, consensus.py 改用, 消掉同號異殼人工旗標
+- Diff: restore_shells_positional(stripped, source): 第 k 個 <num> → 來源該號第 k 個殼(文件順序), 取代 first-occurrence 折疊; 同殼情形與 lookup 位元相同。corpus round-trip Gen 1 golden: 舊 lookup 17/28(11 §2.1 邊界失敗)→ positional 28/28(邊界全 lossless)。consensus.py 接新函式 + §2.1 訊息降為 spot-check 資訊。與 first-occurrence pair 分開(main driver/survey9 不動)。tests 9/9、consensus naked 5/5。實證 scratch 1:28: 0430[<WH0430>,{<WH0430>}]、0853[<WAH0853>,{<WAH0853>}] 各 occurrence 給不同殼(old!=new)。保留假設: 假設輸出保留同號相對順序(正常成立), 顛倒則配錯但比舊嚴格更好。淨效果: 人工旗標從上千必修→少數可選 spot-check。進度 ①+§2.1 done, 剩 ③ 定範圍。
+- File: `/Users/joshua/work/strong_number_embedding/shared/sn_shell.py`
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/consensus.py`
+
+
+
+

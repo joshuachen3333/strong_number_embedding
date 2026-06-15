@@ -143,3 +143,29 @@ default-ON 一條「還沒真跑過」的路徑。鄰居三個 FYI 風險核心 
 
 
 
+##     2026-06-16 06:51 CST
+
+###    User Prompt
+2.1 還殼
+
+###    result
+§2.1 occurrence-aware 還殼做好了,測試 + 真實資料都驗過。
+
+做了什麼: shared/sn_shell.py 新增 restore_shells_positional(naked, source) —— 第 k 個 <num> 還原成來源該號的第 k 個殼(文件順序),不再把所有同號折疊成第一個殼。consensus.py 改用它。與舊的 first-occurrence pair 分開(main driver / survey9 不動)。
+
+驗證:
+- Gen 1 golden corpus round-trip:舊 lookup 17/28(11 個 §2.1 邊界 verse 失敗)→ positional 28/28(11 個邊界全 lossless)。
+- 真實 ② 跑的 1:28:0430 有 <WH0430> 和 {<WH0430>}、0853 有 <WAH0853> 和 {<WAH0853>} —— positional 確實給每個 occurrence 各自的殼(舊版會錯一個)。
+- tests 9/9、consensus naked 5/5。
+
+§2.1 訊息也從「⚠ human review」降為資訊性「positionally restored, spot-check if uncertain」。
+
+唯一保留的假設(誠實): positional 假設 LLM 輸出保留同號 SN 的相對順序(正常情形成立)。若 LLM 把兩個同號 SN 顛倒會配錯 —— 但比舊版「必錯一個」嚴格更好,且罕見。所以保留輕量 spot-check flag,不再是「必須人工修」。
+
+淨效果: golden 大跑的人工旗標從「上千個必修」降到「少數可選 spot-check」。
+
+進度: ① ✅、§2.1 ✅。剩 ③ 定 golden 範圍開生產跑。要直接定範圍(整卷創世記 / 全 OT / 全本)開跑嗎?
+
+
+
+
