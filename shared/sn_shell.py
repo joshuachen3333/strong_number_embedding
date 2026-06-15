@@ -112,6 +112,40 @@ def restore_shell_lookup(stripped_text, lookup):
     return re.sub(r'<(\d+[a-z]?)>', _replace, stripped_text)
 
 
+def restore_shells_positional(stripped_text, unv_sn_text):
+    """Occurrence-aware shell restore — §2.1 boundary correct.
+
+    Like restore_shell_lookup but distinguishes repeated occurrences of the
+    same bare number: the k-th ``<num>`` in stripped_text is restored to the
+    k-th shell that number carries in ``unv_sn_text`` (source order). This makes
+    the §2.1 boundary (same number, different shells — e.g. 0853 once
+    ``<WH0853>``, once ``{<WH0853>}``) lossless whenever the output preserves
+    the relative order of those repeats (the normal case), instead of
+    collapsing every occurrence to the first-occurrence shell.
+
+    A ``<num>`` with no remaining shell in the source (an SN absent from the
+    UNV+SN, or more copies than the source carries) is left bare on purpose —
+    the same red-flag policy as restore_shell_lookup.
+
+    For numbers whose every occurrence shares one shell this is byte-identical
+    to restore_shell_lookup; only same-number-different-shell nodes change.
+    """
+    from collections import defaultdict, deque
+    queues = defaultdict(deque)
+    for m in _TAG_RE.finditer(unv_sn_text):
+        raw = m.group(0)
+        num = strip_shell(raw, markers=False).strip("<>")
+        queues[num].append(raw)
+
+    def _replace(m):
+        q = queues.get(m.group(1))
+        if q:
+            return q.popleft()
+        return m.group(0)  # bare: absent from source or exhausted — red flag
+
+    return re.sub(r'<(\d+[a-z]?)>', _replace, stripped_text)
+
+
 def _zero_pad(num_int, testament="OT", orig_digits=None):
     """Apply FHL zero-padding rule.
 

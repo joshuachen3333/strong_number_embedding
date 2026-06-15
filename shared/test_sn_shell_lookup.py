@@ -17,6 +17,7 @@ import pytest
 from sn_shell import (
     build_shell_lookup,
     restore_shell_lookup,
+    restore_shells_positional,
     restore_shell_guess,
     strip_shell,
 )
@@ -167,3 +168,50 @@ def test_lookup_is_lossless_off_boundary_and_beats_guess_on_golden_corpus(capsys
     assert lookup_ok_off_boundary == non_boundary
     # Contract 3: lookup strictly dominates guess (here 17 vs 0 perfect).
     assert lookup_ok >= guess_ok
+
+
+# --- occurrence-aware positional restore (§2.1 fix) ------------------------
+
+def test_positional_restores_same_number_different_shell_losslessly():
+    # §2.1 boundary: same number, two different shells, in order.
+    # lookup (first-occurrence) collapses both to {<WH0853>}; positional keeps
+    # each occurrence's own shell -> exact source.
+    src = "a{<WH0853>}b<WH0853>c"
+    stripped = strip_shell(src, markers=False)            # a<853>b<853>c
+    assert restore_shell_lookup(stripped, build_shell_lookup(src)) != src   # lookup fails
+    assert restore_shells_positional(stripped, src) == src                  # positional exact
+
+
+def test_positional_identical_to_lookup_off_boundary():
+    # Gen 1:1 has 0853 twice but with the SAME shell -> positional == lookup.
+    stripped = strip_shell(GEN_1_1, markers=False)
+    assert restore_shells_positional(stripped, GEN_1_1) == GEN_1_1
+
+
+def test_positional_keeps_unknown_or_exhausted_bare_as_red_flag():
+    # absent number stays bare
+    assert restore_shells_positional("foo<9999>bar", GEN_1_1) == "foo<9999>bar"
+    # more copies than source carries -> the extra one exhausts the queue -> bare
+    src = "x<WH0776>y"   # strip_shell preserves zero-pad -> bare key is 0776
+    assert restore_shells_positional("x<0776>y<0776>z", src) == "x<WH0776>y<0776>z"
+
+
+def test_positional_lossless_on_full_golden_corpus_including_boundary(capsys):
+    # The win: positional round-trips EVERY golden verse exactly — including the
+    # §2.1 boundary verses that lookup cannot — so the human-review list empties.
+    corpus = _load_corpus()
+    if not corpus:
+        pytest.skip("no golden corpus found")
+    bad = []
+    boundary = []
+    for relpath, ref in corpus:
+        stripped = strip_shell(ref, markers=False)
+        if _same_number_different_shell(ref):
+            boundary.append(relpath)
+        if restore_shells_positional(stripped, ref) != ref:
+            bad.append(relpath)
+    with capsys.disabled():
+        print(f"\n  positional round-trip over {len(corpus)} golden verses: "
+              f"{len(corpus) - len(bad)}/{len(corpus)} perfect "
+              f"(§2.1 boundary verses: {len(boundary)}, now lossless)")
+    assert bad == [], f"positional failed on: {bad}"

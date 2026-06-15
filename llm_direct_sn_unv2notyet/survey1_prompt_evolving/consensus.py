@@ -15,7 +15,7 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from judge import tally_r2_debate, tally_r3_judgments
-from shared.sn_shell import build_shell_lookup, restore_shell_lookup, strip_shell
+from shared.sn_shell import restore_shells_positional, strip_shell
 
 
 def _restore_gold_shells(gold_standard):
@@ -48,9 +48,8 @@ def _restore_gold_shells(gold_standard):
             if len(shells) > 1:
                 flagged.append((verse_key, num))
 
-        lookup = build_shell_lookup(ref)
         gold["lcc_sn_naked"] = naked
-        gold["lcc_sn"] = restore_shell_lookup(naked, lookup)
+        gold["lcc_sn"] = restore_shells_positional(naked, ref)
     return flagged
 
 
@@ -324,8 +323,9 @@ def build_gold_standard(unanimous, disagreed, round1_results,
         flagged = _restore_gold_shells(gold_standard)
         if flagged:
             nodes = ", ".join(f"{c}:{s}#{num}" for (c, s), num in flagged)
-            print(f"\n  ⚠ §2.1 same-number-different-shell (lookup kept first "
-                  f"occurrence — human review): {nodes}")
+            print(f"\n  §2.1 same-number-different-shell positionally restored "
+                  f"({len(flagged)} nodes; occurrence order assumed = source — "
+                  f"spot-check if uncertain): {nodes}")
 
     return gold_standard, unresolved, prompt_evolutions
 
