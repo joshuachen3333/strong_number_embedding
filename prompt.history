@@ -636,3 +636,16 @@ a b 中文詳述
 
 
 
+##     2026-06-15 14:23 CST
+
+###    User Prompt
+[② Gen 1 naked trio run COMPLETE — results + housekeeping]
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: ② 完整 Gen 1 naked 異質三家(opus+gemini-3-pro+gpt-5.4)跑完: 機制 prod-ready 但 ① 仍未 live 驗(Trigger2 0 次)、§2.1 常見(17節點)、consensus-lift 無對照
+- Diff: 31節全 resolved/perfect coverage: R1 unanimous 12、R2 debate 18、R3 1(1:28 gpt all_wrong→corrected)、Trigger2 0、Trigger1 候選 2 次但 AD-3 正確跳過(random noise)。§2.1 同號異殼 17 節點 flagged 送人工。歷史保護: 確認 round*_results 為 gitignored(git 非還原路徑)、run 確實覆蓋磁碟歷史(1:1 opus 4-6→4-8)→ 從 /tmp/gen1_protect_20260615_084912 還原並驗證(prompts/ 不變)、本跑資料存 /tmp/gen1_naked_trio_{gold,round_results}。結論: 機制穩可上 prod; ① by-construction+單測但無 live Trigger2; consensus-lift 仍無乾淨對照; §2.1 推全本=上千旗標→建議生產前先做 occurrence-aware 定位還殼。decision: 先修 §2.1 還殼 vs 直接定範圍開生產 golden。
+
+
+
+

@@ -113,3 +113,33 @@ default-ON 一條「還沒真跑過」的路徑。鄰居三個 FYI 風險核心 
 
 
 
+##     2026-06-15 14:23 CST
+
+###    User Prompt
+[② Gen 1 naked trio run COMPLETE]
+
+###    result
+② 完整 Gen 1 naked 三家 trio 跑完了。先說 housekeeping:歷史 round*_results 已從備份還原並驗證(Gen 1:1 opus 回到 claude-opus-4-6/帶殼、prompts/ 與跑前一致),本跑資料(31 gold + 282 round files)留在 scratch 供分析。28 節既有 golden 沒被碰。
+
+結果(31 節,opus+gemini-3-pro+gpt-5.4,naked,v1.2):
+- 全部 resolved、coverage 全 perfect、0 unresolved。
+- R1 unanimous 12/31、R2 debate 18/31、R3 1/31(1:28,gpt 判 all_wrong → resolved=corrected)。
+- Trigger2(model patch)0 次。Trigger1 候選 2 次(avg 2.3、3.0)但 AD-3 都正確判為 random noise 跳過。
+- §2.1 同號異殼:17 節點 flagged 送人工(lookup 存第一殼)。
+
+驗到 / 沒驗到(誠實版):
+- ✅ 機制在真異質三家、31 節全過:debate / R3 / AD-3 這些 naked-aware 路徑該觸發的都觸發、都正確(R3 在 1:28 真跑一次、乾淨 resolve)。prod-ready 沒問題。
+- ❌ ① 還是沒被 live 驗到:Trigger2 在 Gen 1 一次都沒觸發(8 節 0、31 節也 0,它本來就難觸發)。① 在位、單測 5/5、correct-by-construction,但沒有真 Trigger2 打到它。
+- ⚠️ 「去殼抬升 consensus」仍無乾淨對照:本跑是異質三家 naked(R1 39%),沒有同 panel 的帶殼對照(28 節歷史是 opus×3 帶殼、不同 panel)。所以還是不能下結論。
+- ⚠️ §2.1 很常見:Gen 1 就 17 節點。按比例推到全本 = 上千個人工複查旗標。對「要減少人工」的 golden 來說這是個負擔。
+
+建議(③ 生產 golden 前):
+1. 認真考慮先做「occurrence-aware 定位還殼」修正 §2.1(strip 保留順序+數量,可達 ~100%、消掉那上千個旗標)。這是先前提過的「另一個獨立測試過的變更」。否則 golden 會帶大量人工旗標。
+2. ① 要不要 live 驗:Gen 1 觸發不了 Trigger2,要嘛找會逼出 one-weak-two-strong 的難節,要嘛接受 by-construction + 單測。
+3. 然後定 golden 範圍(整卷創世記 / 全 OT…)。
+
+要先做 §2.1 的 occurrence-aware 還殼,還是直接定範圍開生產 golden?
+
+
+
+
