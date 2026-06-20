@@ -95,21 +95,3 @@ Two caveats: (1) R1-only — gives each leg's independent annotation + unanimity
 
 
 
-##     2026-06-20 17:56 CST
-
-###    User Prompt
-Headless backup should be also for lala and erha
-
-###    result
-Requirement met and verified. Headless backup already covered all three legs; proved it with a forced-failure test (bogus window -> live attempt fails -> fallback fires):
-- opus: always headless (claude -p)
-- lala (codex): [live codex] failed -> headless fallback -> [codex] calling (codex exec)
-- erha (agy): [live agy] failed -> headless fallback -> [agy] calling (agy -p)
-
-Any live leg that misses (focus race, hung session, unparseable answer) silently degrades to its brand's headless caller, so the run always completes. Added LIVE_TIMEOUT=150s so a hung session falls back fast instead of burning the full 300s first (committed de7806f).
-
-Meanwhile the 1-10 R1 run is nearly done: verses 1-8 complete (3/3 legs each), finishing 1:9 and 1:10. Full per-verse results table (unanimity + coverage + transport mix) coming when it lands.
-
-
-
-
