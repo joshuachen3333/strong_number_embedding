@@ -58,20 +58,3 @@ you will inherit all s1 logic (3 llm models, opus, gemini (agy), codex), but s10
 
 
 
-##     2026-06-20 16:40 CST
-
-###    User Prompt
-[S10 design Q&A answers — Joshua, via AskUserQuestion]
-Q1 session lifetime: no more than context 50%, meaning they should do /compact on 40%-50% context window full
-Q2 blind convergence vs cumulative memory: Everything stateful
-Q3 feed resolved consensus back into sessions: Feed resolved consensus back (Recommended)
-
-###    
-- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
-- Hint: S10 design decisions locked via Q&A: session lifetime, blind-convergence tension, outcome feedback
-- Diff: Wrote SURVEY10_DESIGN.md. D1: continuous sessions, compact at 40-50% context (summarize-and-reseed since headless has no /compact). D2: EVERYTHING stateful — R2 convergence no longer blind, judge.py stability/Trigger1/2 semantics need redesign (largest delta). D3: feed resolved consensus back into all 3 sessions (obe-style learning loop).
-- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/SURVEY10_DESIGN.md`
-
-
-
-
