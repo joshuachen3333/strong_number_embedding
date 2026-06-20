@@ -1,1 +1,10 @@
+__pycache__/
+.codex_last_message.txt
+.codex_schema.json
 .s10_sessions.json
+*.console
+gold_standard/
+round1_results/
+round2_results/
+round3_results/
+run_logs/
