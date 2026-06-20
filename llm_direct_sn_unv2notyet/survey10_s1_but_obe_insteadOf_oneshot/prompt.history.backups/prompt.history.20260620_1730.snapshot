@@ -142,16 +142,3 @@ and once the injection fails, you know how to call the stateless headless model 
 
 
 
-##     2026-06-20 17:39 CST
-
-###    User Prompt
-S10 跑一下創 一 1-10
-
-###    
-- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
-- Hint: Directive: run S10 on 創 (Gen) 1:1-10
-- Diff: Assembling s10 runner from s1's orchestrator (--round1-only to sidestep undesigned D2 R2 semantics) + s10 live-inject cli_caller (codex/agy via tab file-handoff, claude headless). Then run R1 on Gen 1:1-10.
-
-
-
-
