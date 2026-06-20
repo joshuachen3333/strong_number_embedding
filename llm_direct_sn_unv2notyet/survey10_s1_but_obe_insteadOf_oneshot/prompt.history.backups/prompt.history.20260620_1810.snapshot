@@ -168,16 +168,3 @@ Headless backup should be also for lala and erha
 
 
 
-##     2026-06-20 18:11 CST
-
-###    User Prompt
-繼續跑滿創世紀 第一章 到五章
-
-###    
-- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
-- Hint: Directive: continue full run — Genesis chapters 1-5 (R1)
-- Diff: Launching run_gold_standard --round1-only --chap 1-5 (~138 verses; 1:1-10 cached). Live lala/erha + headless opus + fallback. Caveat: D1 /compact not yet implemented, so as live sessions fill they lean on headless fallback.
-
-
-
-

@@ -137,18 +137,3 @@ Proves: the obe-style transport (orchestrator injects verse tasks into live lala
 
 
 
-##     2026-06-20 18:13 CST
-
-###    User Prompt
-繼續跑滿創世紀 第一章 到五章
-
-###    result
-Launched full Genesis 1-5 R1 run. Process alive (pid 84827), resumed past cached 1:1-10, working verse 11/138 (ch1=31, 2=25, 3=24, 4=26, 5=32). ~1-2 hour run at live legs' ~30-60s/verse.
-
-Armed two watchers: a problem-monitor (alerts on headless fallback / error / rate limit / context overflow) and a completion signal (notifies when all 138 verses finish). Will post full results table at completion.
-
-Watching closely: live codex/agy sessions accumulate context every verse (intended obe-style cumulation), but D1 /compact isn't built yet — so mid-run the codex window (smaller than agy's) may fill. If it does, that leg's live call fails and headless fallback takes over automatically; run won't break, just loses live-cumulation for codex from there. Monitor will flag the first occurrence = useful data for sizing the D1 compaction trigger.
-
-
-
-
