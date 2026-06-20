@@ -1,0 +1,6 @@
+# response.history — survey10_s1_but_obe_insteadOf_oneshot
+
+Dual of prompt.history: records my (survey10...-obe / Claude) final narrative
+replies shown to Joshua, for reasoning provenance. Canonical format with a
+`result` field. Started 2026-06-20. Tool-call intermediates are never logged —
+only the reply prose.
