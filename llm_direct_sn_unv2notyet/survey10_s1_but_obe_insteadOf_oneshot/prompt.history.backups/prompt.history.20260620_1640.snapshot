@@ -75,31 +75,3 @@ Q3 feed resolved consensus back into sessions: Feed resolved consensus back (Rec
 
 
 
-##     2026-06-20 16:44 CST
-
-###    User Prompt
-s10 就是使用已經開啟, 互相綁定的 3 obe, 而非 headless 一次性地呼叫, 又載入最後 context (那個可以作為注入失敗時的候補方法）
-
-###    
-- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
-- Hint: Architecture correction: s10 = drive the LIVE already-open mutually-bound 3 obe sessions via osascript inject+readback (the /obe leash), NOT headless one-shot --resume calls. Headless+load-last-context is the FALLBACK when inject fails.
-- Diff: Flips SURVEY10_DESIGN mechanism: primary path = inject into live interactive CLI sessions (context accumulates naturally; native /compact works since sessions are interactive). Headless --resume demoted to inject-failure fallback. Major revision to D1 (compaction now native /compact) pending.
-- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/SURVEY10_DESIGN.md`
-
-
-
-
-##     2026-06-20 16:44 CST
-
-###    User Prompt
-meaning s10 should open sibling obes first, or if. injection failed, do the headless calling of models
-
-###    
-- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
-- Hint: S10 flow clarified: orchestrator OPENS the 3 sibling obe sessions first, drives via inject; headless model calling is the per-call fallback when injection fails
-- Diff: Confirms s10 owns session lifecycle (spawn 3 live panel sessions). Primary = inject+readback; fallback = headless --resume loading same on-disk session context. Revising SURVEY10_DESIGN accordingly.
-- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/SURVEY10_DESIGN.md`
-
-
-
-
