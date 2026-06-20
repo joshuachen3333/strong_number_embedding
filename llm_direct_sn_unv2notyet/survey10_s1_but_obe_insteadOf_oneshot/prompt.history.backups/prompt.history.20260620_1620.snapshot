@@ -1,0 +1,7 @@
+# prompt.history — survey10_s1_but_obe_insteadOf_oneshot
+
+Provenance record for the survey10 experiment ("survey1's gold-standard task,
+but obe-driven iteration instead of one-shot"). Canonical structured format.
+Started 2026-06-20 when this Claude Code session (survey10...-obe) was spawned
+as a sibling to survey1_prompt_evolving-obe. Each entry captures a verbatim
+Joshua prompt (or cross-agent inject treated as a prompt) plus minimal metadata.

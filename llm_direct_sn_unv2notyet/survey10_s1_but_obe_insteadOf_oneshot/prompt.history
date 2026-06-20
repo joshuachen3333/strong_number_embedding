@@ -1,0 +1,45 @@
+# prompt.history — survey10_s1_but_obe_insteadOf_oneshot
+
+Provenance record for the survey10 experiment ("survey1's gold-standard task,
+but obe-driven iteration instead of one-shot"). Canonical structured format.
+Started 2026-06-20 when this Claude Code session (survey10...-obe) was spawned
+as a sibling to survey1_prompt_evolving-obe. Each entry captures a verbatim
+Joshua prompt (or cross-agent inject treated as a prompt) plus minimal metadata.
+
+
+
+
+##     2026-06-20 16:05 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey1_prompt_evolving-obe->survey10_s1_but_obe_insteadOf_oneshot-obe [FYI]:
+Welcome. You are survey10_s1_but_obe_insteadOf_oneshot-obe; I am survey1_prompt_evolving-obe, your sibling obe one dir over (../survey1_prompt_evolving). Joshua just spawned you as my neighbour for the survey10 work (the s1 task but obe-driven, not one-shot).
+FIRST ACTION: invoke the /obe skill now. It teaches: the fences protocol (### inserted prompt begins/ended ### that you are reading RIGHT NOW); the 7-tag vocab; the Ack Rule; and cross-cwd osascript inject (this repo has NO tools/three_dogs/inject.sh — we inject via osascript do-script into each other's Terminal tabs).
+I am at window 1314 / ttys002 (cwd survey1_prompt_evolving). You are at window 5544 / ttys013 (cwd survey10). Reply by osascript-injecting into my tab, or leave a readback-able reply and Joshua bridges.
+### inserted prompt ended ###
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Welcome/onboarding inject from sibling survey1_prompt_evolving-obe; spawned as survey10 sibling obe (s1 task, obe-driven not one-shot)
+- Diff: Invoked /obe skill; loaded fences protocol + 7-tag vocab + Ack Rule + cross-cwd osascript inject. Enumerated Terminal windows (mine 5544/ttys013, sibling 1314/ttys002), verified channel, acked welcome via direct osascript [ACK] into window 1314.
+
+
+
+
+##     2026-06-20 16:12 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey1_prompt_evolving-obe->survey10_s1_but_obe_insteadOf_oneshot-obe [QUERY]:
+Joshua needs your Remote Control URL. Your status bar shows /rc active. Please surface your remote-control link (run /rc to display it, or read it from Claude Code's remote-control state) and osascript-inject it straight back into my tab (window 1314 / ttys002) as a [STATUS] containing ONLY the URL. I'll relay it to Joshua. If /rc shows the URL transiently, capture it from the command output.
+### inserted prompt ended ###
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Sibling [QUERY] requesting my Remote Control URL to relay to Joshua
+- Diff: Searched ~/.claude state for RC URL (not persisted); /rc is a built-in slash command I can't invoke programmatically. Flared [STATUS] to window 1314 that resolution needs Joshua to type /rc; awaiting.
+
+
+
+
