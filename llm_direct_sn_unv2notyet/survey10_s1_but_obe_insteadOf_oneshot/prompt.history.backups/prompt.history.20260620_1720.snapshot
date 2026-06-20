@@ -129,16 +129,3 @@ yes, you (s10-obe), s10-lala, s10-erha, are you all ready?
 
 
 
-##     2026-06-20 17:21 CST
-
-###    User Prompt
-and once the injection fails, you know how to call the stateless headless model as backup?
-
-###    
-- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
-- Hint: Confirm fallback: when inject fails, call the stateless headless model as backup (= reuse s1 cli_caller.py one-shot callers)
-- Diff: Fallback contract pinned: obe_panel detects inject failure (no ack/file within timeout, unparseable answer, session errored) -> calls s1's cli_caller.call_llm() one-shot per leg (claude -p --no-session-persistence / codex exec / agy -p). Optional --resume/--conversation seed to load last context; pure stateless is the simplest guaranteed path.
-
-
-
-

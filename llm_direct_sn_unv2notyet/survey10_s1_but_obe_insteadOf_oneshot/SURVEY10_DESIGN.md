@@ -147,6 +147,25 @@ survey10_.../
 └── gold_standard/ round{1,2,3}_results/ run_logs/
 ```
 
+## Transport validation (2026-06-20) — both paths proven
+
+Live panel opened in-cwd: **s10-obe** (5544, opus+orchestrator), **s10-lala**
+(5555, codex gpt-5.5), **s10-erha** (5557, agy). Results:
+
+| Test | Leg | Result |
+|------|-----|--------|
+| Canary inject + read-back | lala, erha | PASS |
+| **Primary**: inject "write JSON to file" → read file | lala (codex) | PASS ~3s |
+| **Primary**: inject "write JSON to file" → read file | erha (agy) | PASS ~9s |
+| **Fallback**: headless `cli_caller.call_llm` | opus | PASS 5s |
+| **Fallback**: headless `cli_caller.call_llm` | codex | PASS 7s |
+| **Fallback**: headless `cli_caller.call_llm` | agy (Gemini 3.1 Pro High) | PASS 7s |
+
+Conclusion: the obe-leash transport (inject + file-handoff) AND the stateless
+headless fallback (s1's `cli_caller.py`, imported as-is) both work for every leg.
+s10 transport is **ready**. Open config item: erha live tab is on Flash; switch
+to Gemini 3.1 Pro (High) before the real run (headless Pro already confirmed).
+
 ## Risk flags for Joshua
 - **R2 semantics (D2)** is a genuine redesign, not a port. "Convergence" and the
   Trigger 1/2 stability math were built on amnesia; with memory they need new
