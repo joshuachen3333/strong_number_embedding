@@ -50,28 +50,3 @@ Once the Remote Control URL appears in the output, I'll capture it and inject it
 
 
 
-##     2026-06-20 17:25 CST
-
-###    User Prompt
-and once the injection fails, you know how to call the stateless headless model as backup?
-[then] do whatever test to get it ready
-
-###    result
-s10 is ready — full transport validated. Fallback question: yes — when an inject round fails (no file/ack within timeout, unparseable answer, or a dead session), the backup is s1's cli_caller.py imported as-is. Proven end-to-end.
-
-Test matrix (all green):
-- Canary inject: lala PASS, erha PASS
-- Primary (inject + file-handoff): lala ~3s PASS, erha ~9s PASS (opus n/a — I answer directly)
-- Fallback (headless stateless): opus 5s, codex 7s, agy-Pro 7s — all PASS
-
-Primary path (the obe way): inject task into live tab asking it to write JSON answer to a file, then read the file — sidesteps flaky TUI readback. Fallback path: cli_caller.call_llm spins a one-shot headless subprocess (exact s1 callers), validated all three brands from this cwd.
-
-Validation committed (216d161) and stamped into .s10_sessions.json.
-
-Open config item: live s10-erha tab is on Gemini 3.5 Flash, but panel spec is Gemini 3.1 Pro (High) — confirmed working via headless. Need to relaunch erha on Pro before the real run.
-
-Next: (1) flip erha to Pro, (2) write obe_panel.py (lifecycle + inject/file transport + headless fallback + /compact at ~45%), (3) design pass on D2 — what R2 convergence means now the panel has memory. Asked Joshua: switch erha to Pro and start obe_panel.py, or work D2 semantics first?
-
-
-
-
