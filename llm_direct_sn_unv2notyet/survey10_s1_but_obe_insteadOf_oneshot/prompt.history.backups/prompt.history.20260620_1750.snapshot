@@ -155,16 +155,3 @@ S10 跑一下創 一 1-10
 
 
 
-##     2026-06-20 17:54 CST
-
-###    User Prompt
-Headless backup should be also for lala and erha
-
-###    
-- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
-- Hint: Requirement: headless backup must cover lala (codex) + erha (agy) too, not just opus
-- Diff: Confirming s10 cli_caller.call_llm already falls back to headless for ALL live brands: codex live-fail -> _s1.call_llm(codex), agy live-fail -> _s1.call_llm(agy). Demonstrating with forced-headless test.
-
-
-
-

@@ -52,6 +52,11 @@ _extract_json = _s1._extract_json
 # Live obe leg -> Terminal window id (see .s10_sessions.json).
 LIVE_WINDOWS = {"codex": 5555, "agy": 5557}
 
+# Cap the live-inject attempt so a hung session falls back to headless quickly
+# instead of burning the full call timeout. The headless fallback then gets the
+# full timeout. Live legs normally answer in 15-60s.
+LIVE_TIMEOUT = 150
+
 
 def _osascript_inject(window_id, text):
     """Focus the target tab and type a short command + Enter into it."""
@@ -126,11 +131,12 @@ def call_llm(brand, model, system_prompt, user_prompt,
     sn_field = f"{target_version}_sn"
 
     if brand in LIVE_WINDOWS:
+        live_timeout = min(timeout, LIVE_TIMEOUT)
         if verbose:
-            print(f"  [live {brand} w{LIVE_WINDOWS[brand]}] inject ({mode})...",
-                  flush=True)
+            print(f"  [live {brand} w{LIVE_WINDOWS[brand]}] inject ({mode}, "
+                  f"≤{live_timeout}s)...", flush=True)
         res = _live_call(brand, LIVE_WINDOWS[brand], system_prompt, user_prompt,
-                         target_version, sn_field, mode, timeout, verbose)
+                         target_version, sn_field, mode, live_timeout, verbose)
         if isinstance(res, dict) and not res.get("error"):
             res.setdefault("_transport", "live")
             return res
