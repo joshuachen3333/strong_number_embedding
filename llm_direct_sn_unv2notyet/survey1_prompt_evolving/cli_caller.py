@@ -23,22 +23,30 @@ from llm_direct_sn_unv2notyet import (
     _extract_json, build_json_schema,
 )
 
-# Default models for the 3-model consensus
+# Default models for the 3-model consensus.
+# NOT version-pinned (2026-06-20, Joshua): each brand follows its own latest —
+#   claude: "opus" alias → CLI resolves to newest Opus (readback in _resolved_model)
+#   codex:  model=None  → omit --model → codex CLI config default (latest, e.g. gpt-5.5)
+#   agy:    Antigravity CLI (gemini replacement — gemini CLI is EOL). agy is a
+#           multi-family gateway, so we pin a Gemini model to keep this slot a
+#           distinct family from the claude/codex legs (panel diversity).
+# Pin a version explicitly via --modelsABC if a specific one is ever needed.
 DEFAULT_MODELS = [
-    {"name": "opus",                "brand": "claude", "model": "opus"},
-    {"name": "gemini-3-pro-preview","brand": "gemini", "model": "gemini-3-pro-preview"},
-    {"name": "gpt-5.4",            "brand": "codex",  "model": "gpt-5.4"},
+    {"name": "opus",   "brand": "claude", "model": "opus"},
+    {"name": "agy",    "brand": "agy",    "model": "Gemini 3.1 Pro (High)"},
+    {"name": "codex",  "brand": "codex",  "model": None},
 ]
 
 # Short aliases → full model info
 MODEL_ALIASES = {
-    "opus":    {"name": "opus",                 "brand": "claude", "model": "opus"},
-    "gemini":  {"name": "gemini-3-pro-preview", "brand": "gemini", "model": "gemini-3-pro-preview"},
-    "gpt":     {"name": "gpt-5.4",             "brand": "codex",  "model": "gpt-5.4"},
-    # Full names also work as aliases to themselves
-    "gemini-3-pro-preview":  {"name": "gemini-3-pro-preview",  "brand": "gemini", "model": "gemini-3-pro-preview"},
-    "gemini-3-flash-preview": {"name": "gemini-3-flash-preview", "brand": "gemini", "model": "gemini-3-flash-preview"},
-    "gpt-5.4": {"name": "gpt-5.4", "brand": "codex", "model": "gpt-5.4"},
+    "opus":    {"name": "opus",  "brand": "claude", "model": "opus"},
+    "gpt":     {"name": "codex", "brand": "codex",  "model": None},
+    # agy (Antigravity) — replaces the EOL gemini CLI. "gemini" alias repointed
+    # to agy's Gemini Pro so old usage keeps working.
+    "agy":         {"name": "agy",       "brand": "agy", "model": "Gemini 3.1 Pro (High)"},
+    "gemini":      {"name": "agy",       "brand": "agy", "model": "Gemini 3.1 Pro (High)"},
+    "agy-pro":     {"name": "agy-pro",   "brand": "agy", "model": "Gemini 3.1 Pro (High)"},
+    "agy-flash":   {"name": "agy-flash", "brand": "agy", "model": "Gemini 3.5 Flash (High)"},
 }
 
 
@@ -128,6 +136,9 @@ def call_llm(brand: str, model: str, system_prompt: str, user_prompt: str,
     elif brand == "codex":
         return _call_codex(model, system_prompt, user_prompt,
                            target_version, sn_field, timeout, verbose, mode)
+    elif brand == "agy":
+        return _call_agy(model, system_prompt, user_prompt,
+                         target_version, sn_field, timeout, verbose, mode)
     else:
         return {"error": True, "notes": [f"Unknown brand: {brand}"]}
 
@@ -199,11 +210,14 @@ def _call_gemini(model, system_prompt, user_prompt, target_version,
         "-p", full_prompt,
         "-y",
         "--output-format", "stream-json",
-        "--model", model,
     ]
+    # model=None → omit --model → use the gemini CLI's own default (latest),
+    # rather than pinning a version that goes stale.
+    if model:
+        cmd += ["--model", model]
 
     if verbose:
-        print(f"  [gemini {model}] calling ({mode})...", flush=True)
+        print(f"  [gemini {model or 'latest'}] calling ({mode})...", flush=True)
 
     try:
         result_proc = subprocess.run(
@@ -244,7 +258,12 @@ def _call_codex(model, system_prompt, user_prompt, target_version,
     cmd = [
         codex_bin, "exec",
         "--sandbox", "read-only",
-        "--model", model,
+    ]
+    # model=None → omit --model → use the codex CLI's own configured default
+    # (currently gpt-5.5), so we always follow the latest rather than pinning.
+    if model:
+        cmd += ["--model", model]
+    cmd += [
         "--output-last-message", last_msg_file,
         "-",
     ]
@@ -260,7 +279,7 @@ def _call_codex(model, system_prompt, user_prompt, target_version,
         cmd.extend(["--output-schema", schema_file])
 
     if verbose:
-        print(f"  [codex {model}] calling ({mode})...", flush=True)
+        print(f"  [codex {model or 'latest'}] calling ({mode})...", flush=True)
 
     try:
         result_proc = subprocess.run(
@@ -304,6 +323,53 @@ def _call_codex(model, system_prompt, user_prompt, target_version,
         return _extract_json(result_proc.stdout.strip(), key)
 
     return {"error": True, "notes": ["codex: no output received"]}
+
+
+def _call_agy(model, system_prompt, user_prompt, target_version,
+              sn_field, timeout, verbose, mode="production"):
+    """Antigravity (agy) CLI — gemini's EOL replacement.
+
+    agy prints PLAIN TEXT (not stream-json), so we embed the JSON schema in the
+    prompt and extract the JSON from stdout. model=None → omit --model (agy's
+    own default); for the consensus panel we pin a Gemini model so this slot
+    stays a distinct family from the claude/codex legs.
+    """
+    agy_bin = shutil.which("agy")
+    if not agy_bin:
+        return {"error": True, "notes": ["'agy' CLI not found"]}
+
+    if mode == "production":
+        json_schema = build_json_schema(target_version)
+        full_prompt = (system_prompt + "\n\n" + user_prompt +
+                       "\n\nRespond with ONLY valid JSON matching this schema:\n" +
+                       json_schema)
+    else:
+        full_prompt = system_prompt + "\n\n" + user_prompt
+
+    cmd = [agy_bin, "-p", full_prompt, "--dangerously-skip-permissions"]
+    if model:
+        cmd += ["--model", model]
+
+    if verbose:
+        print(f"  [agy {model or 'default'}] calling ({mode})...", flush=True)
+
+    try:
+        result_proc = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=timeout,
+        )
+    except subprocess.TimeoutExpired:
+        return {"error": True, "notes": [f"Timeout ({timeout}s)"]}
+
+    if result_proc.returncode != 0:
+        return {"error": True, "notes": [f"CLI error: {result_proc.stderr[:300]}"]}
+
+    raw = result_proc.stdout.strip()
+    if not raw:
+        return {"error": True, "notes": ["agy: no output received"]}
+    if mode == "freeform":
+        return {"text": raw}
+    key = sn_field if mode == "production" else "best"
+    return _extract_json(raw, key)
 
 
 # ── Freeform (judge mode) parsers ──────────────────────────────────────────

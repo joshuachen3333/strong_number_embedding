@@ -66,3 +66,111 @@ llm_direct_sn_unv2notyet-obe->survey1_prompt_evolving-obe [GO]: Plan 已讀, §0
 
 
 
+##     2026-06-14 12:39 CST
+
+###    User Prompt
+llm_direct_sn_unv2notyet-obe->survey1_prompt_evolving-obe [GO]: 協調 opus 調用總是用最新(4.8 已出,之後自動跟)。主程式已處理(model 解析 generic,readback 存 _resolved_model;help text 寫死 Opus 4.7 改 generic)。survey1 對齊:(1) cli_caller DEFAULT_MODELS/MODEL_ALIASES "opus" 維持 alias 不 pin 版本 — 確認。(2) 掃 survey1 寫死 Opus 4.6/4.7 display/help/comment 改 generic。(3) 確認 survey1 resolved model 從 CLI readback 非 hardcode。(4) round1_results 舊 _resolved_model claude-opus-4-6 是歷史別動。時機:cli_caller 不在 naked uncommitted 集,可獨立做;小測優先,做完 flare [STATUS]。
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Sibling 協調:survey1 對齊 opus=always-latest(不 pin 版本、掃寫死版號改 generic、確認 readback)
+- Diff: 待辦:確認 cli_caller alias 不 pin、掃 survey1 寫死 Opus 4.x display→generic、確認 resolved model 來自 readback。round1_results 歷史不動。做完 flare [STATUS]
+
+
+
+
+##     2026-06-14 14:02 CST
+
+###    User Prompt
+好 先跑 1/4
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua:整章太貴,先跑 1/4(創 1:1-8)naked trio 評估
+- Diff: Kill 整章 run b7vk74uwl;改 --sec 1-8 重launch(scratch gold, --max-r2-retries 2)
+
+
+
+
+##     2026-06-14 16:11 CST
+
+###    User Prompt
+(b) 認真做驗證② —— survey5 鏡像(有 FHL 客觀答案)跑帶殼 vs 去殼,才能判定效益
+
+###    
+- Agent: `llm_direct_sn_unv2notyet-obe`
+- Hint: Joshua 選 (b):認真做驗證② — 用有 FHL 客觀答案的鏡像任務跑帶殼 vs 去殼,判定去殼真實效益
+- Diff: 啟動驗證②設計:調查 survey4(同語言重標 vs FHL)/survey5(KJV→UNV)基建 + naked 支援 + 評分機制,設計 A/B 實驗
+
+
+
+
+##     2026-06-14 23:16 CST
+
+###    User Prompt
+驗證② A/B: local qwen3:32b + 8 verses (Gen 1:1-8), format-neutral placement scoring
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 驗證② 拍板:local qwen3:32b + Gen 1:1-8,format-neutral placement 評分(避開 KJV/UNV 殼錯配 confound)
+- Diff: Build survey5 naked-vs-shelled A/B harness,qwen3:32b 跑 8 節,bare placement + 分開 format 評分 vs FHL
+
+
+
+
+##     2026-06-15 01:26 CST
+
+###    User Prompt
+stop all your jobs, especially ollama related, you crashed this machine
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua:停掉所有 job(尤其 ollama)— 我把機器搞當機了
+- Diff: 全數 kill:verify2 A/B、run_gold_standard、ollama curl。教訓:本地 ollama 大模型載入吃爆 RAM 導致 crash;我在 Joshua 已質疑自主性後仍續跑 local ollama。往後不碰 ollama / 不啟重型 job 不先逐項取得同意
+
+
+
+
+##     2026-06-20 03:17 CST
+
+###    User Prompt
+請確定我們跑golden 是使用三牌的最新模型
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 要求:確認 golden 三牌(claude/gemini/codex)都用各自最新模型
+- Diff: 查核 DEFAULT_MODELS:opus=alias 自動最新;gemini/codex 是否 pin 舊版需驗證
+
+
+
+
+##     2026-06-20 03:20 CST
+
+###    User Prompt
+請確認 gemini and codex 不寫死 使用最新 我授權
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 授權:gemini/codex 改成不寫死、用最新(像 claude opus alias)
+- Diff: 待做:探測 gemini/codex CLI 最新模型解析 + 改 DEFAULT_MODELS 不 pin 版本 + 可能加 readback
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/cli_caller.py`
+
+
+
+
+##     2026-06-20 15:08 CST
+
+###    User Prompt
+gemini 已經 eol 了, 難怪不能執行
+取而代之的是 agy (antigravity). 
+幫我更改一下三廠牌模型中 gemini 替代為 agy
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua:gemini EOL,三牌中 gemini 換成 agy(antigravity)
+- Diff: 待做:調查 agy CLI 調用方式 → 新增 agy brand caller + DEFAULT_MODELS gemini→agy
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/cli_caller.py`
+
+
+
+
