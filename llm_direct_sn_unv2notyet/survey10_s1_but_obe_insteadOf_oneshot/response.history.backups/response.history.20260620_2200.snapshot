@@ -175,25 +175,3 @@ Recommendation: S1 = authoritative gold standard (independence + adversarial deb
 
 
 
-##     2026-06-20 22:02 CST
-
-###    User Prompt
-[background monitor events: clustering [live codex] failed -> headless fallback + conf=? ERROR ~158s during Genesis 1-5 run]
-
-###    result
-Stopped the noisy monitor and killed the degraded run. Clear diagnostic picture (legs opus/agy/codex):
-ch1 31/31 clean; ch2 25/25 clean; ch3 12/24 clean (degrades from 3:14); ch4 0/26; ch5 0/16 reached.
-
-Two distinct failure modes, both the risks I flagged:
-1. opus + codex -> hard errors (RATE LIMITS). opus (headless claude) clean through ch2 then errors from ch3:14 — "CLI error:" with empty stderr = classic rate-limit signature. This orchestrator session burns claude quota AND I spawned ~120 headless opus calls on the same account -> 5-hour window tripped ~verse 70. codex hit its own limit at ch4:10.
-2. agy -> soft quality decay (the D1 overflow). agy never errors (live tab responsive) but from ch3:20 starts DROPPING Strong's Numbers (coverage miss). Live session context filling up = the unbuilt-D1 ceiling; degrades silently.
-
-Salvaged: 68 verses fully clean (all 3 legs coverage-perfect) = Genesis 1, 2, 3:1-13. Safe on disk.
-
-Located both ceilings: live-session ~70 verses before agy coverage decays (set D1 /compact trigger below that); quota ceiling — headless legs can't sustain 138-verse burst on shared accounts (needs pacing / --preserve-token-percentage; orchestrator shouldn't share opus account).
-
-Not auto-resuming. Recommendation: resume later from 3:14 after (1) building minimal D1 compaction/relaunch for live legs and (2) quota recovers — re-run only ~70 failed verses, 68 clean ones cached. Asked Joshua: build D1 compaction now while quota recovers, or handle differently?
-
-
-
-
