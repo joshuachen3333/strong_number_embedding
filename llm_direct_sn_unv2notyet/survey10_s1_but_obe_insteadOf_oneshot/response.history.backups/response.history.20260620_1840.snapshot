@@ -152,26 +152,3 @@ Watching closely: live codex/agy sessions accumulate context every verse (intend
 
 
 
-##     2026-06-20 18:42 CST
-
-###    User Prompt
-我想要知道作為黃金標準S one比較好？還是S 10。
-
-###    result
-Short answer: for the gold standard itself, S1 — the reason is independence.
-
-A consensus gold standard is trustworthy only because panel members are independent: when 3 models sharing NO context independently agree, that's strong evidence of correctness (independent errors rarely coincide). That independence is the entire epistemic foundation of consensus=truth.
-
-S1 preserves independence by design (blind, stateless, one-shot; R2 re-runs blind to measure robustness). S10 deliberately sacrifices it — cumulative sessions + feeding resolved consensus back (D3) means the 3 minds share a long common history, so they agree MORE but that agreement is partly manufactured by shared memory (anchoring/groupthink), not independent arrival at truth. So a higher unanimous rate in S10 is WEAKER evidence than the same rate in S1.
-
-Table: S1 best at validating correctness (trustworthy reference; consensus strong; auditable "3 independent experts agreed"). S10 best at producing at scale (consistency, ~0 cost; consensus softer/correlated; "experts who'd been talking agreed").
-
-Honest nuance — S10's real upside: a model that has studied 50 verified verses becomes more expert at FHL quirks (神/上帝 split, zero-padding, implicit <0853>) = in-context learning from verified examples, making each model individually more accurate, not just more agreeable. S10 may produce better raw annotations; it just can't self-certify them.
-
-Two practical facts: (1) right now S1 is the only one that can produce a gold standard — S10 is R1-only, its memory-aware R2/R3 (D2) isn't designed. (2) Don't settle by opinion — measure: we have ground truth (FHL SN on UNV/KJV); run both on a re-derivation task where the true answer is known and compare accuracy-vs-truth (survey4/5 machinery exists).
-
-Recommendation: S1 = authoritative gold standard (independence + adversarial debate + auditability) on a representative sample; S10 = cheap propagation engine spreading that standard across the whole bible at near-zero cost, SEEDED by S1's sample so its cumulation starts from verified-correct examples. They're complements: S1 certifies, S10 scales.
-
-
-
-
