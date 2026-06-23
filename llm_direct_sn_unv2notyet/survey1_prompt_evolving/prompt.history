@@ -309,3 +309,70 @@ s10 你知道嗎？
 
 
 
+##     2026-06-24 02:15 CST
+
+###    User Prompt
+我要你注入 s10, 告訴他重新改正設計, 把 Original_Design_Decisions.md copy 給他, 也把 D1 E 選項告訴他, 也把你和我的中文詳述, 好處與挑戰, 與 s1 競爭 golden verses 的細節告訴他, 要他重做
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua:注入 s10 sibling,要它依 Q1-E(外部慣例)重做設計;附 Original_Design_Decisions.md + E 詳述/好處挑戰 + 與 s1 競爭 gold 細節
+- Diff: 寫 redesign brief 進 s10 dir + 注入 pointer 給 survey10-obe,要它改 SURVEY10_DESIGN 採 Q1-E、重審 Q2/Q3 保獨立、規劃與 s1 競爭 gold
+
+
+
+
+##     2026-06-24 02:29 CST
+
+###    User Prompt
+好的, Q1 選了 E, Q2 就 C D 來詳細與我討論好壞與抉擇
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 拍板:Q1 選 E(外部慣例);要求詳細討論 Q2 的 C vs D 好壞與抉擇
+- Diff: Q1=E 鎖定;進入 Q2 C(全獨立=s1+conventions)vs D(sealed-bid 審議)的抉擇討論
+
+
+
+
+##     2026-06-24 02:39 CST
+
+###    User Prompt
+把這個結論寫進 Original_Design_Decisions.md, 先不要 inject 給 s10, 我還要討論 Q3/D3
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua:把 Q2 hybrid 結論寫進 Original_Design_Decisions.md;先不 inject s10;接著討論 Q3/D3
+- Diff: 附加 RE-DECISION 段:Q1=E 鎖定、Q2=C預設+D硬節升級(含相容性論證)、Q3 標 UNDER DISCUSSION。暫不 inject sibling
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/Original_Design_Decisions.md`
+
+
+
+
+##     2026-06-24 02:42 CST
+
+###    User Prompt
+好的 Q3 也是D, 這樣設計決策就齊備了
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 拍板 Q3=D(蒸餾審查慣例摘要);s10 re-decision 三題齊備:Q1=E / Q2=C+D hybrid / Q3=D
+- Diff: 鎖定 Q3=D;Original_Design_Decisions.md 改 Q3 為 locked + 標 decisions complete。整套 = E + (C預設/D硬節) + D 回饋
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/Original_Design_Decisions.md`
+
+
+
+
+##     2026-06-24 02:44 CST
+
+###    User Prompt
+先 commit, 然後注入給 s10, 別擔心我已經叫停他了
+
+###    
+- Agent: `strong_number_embedding-obe`
+- Hint: Joshua:先 commit 設計決策文件,再注入 s10 最終鎖定版(他已被叫停);別擔心衝突
+- Diff: commit Original_Design_Decisions.md + redesign brief + survey1 history;inject s10 sibling 最終 Q1-E/Q2-hybrid/Q3-D
+
+
+
+
