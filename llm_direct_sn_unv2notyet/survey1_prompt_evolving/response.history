@@ -360,3 +360,46 @@ flagged follow-up(未做):model=None 後 golden 紀錄會記成 generic "gemini"
 
 
 
+##     2026-06-24 14:30 CST
+
+###    User Prompt
+For Q1, explain the E External 中文詳述
+
+###    result
+Q1 — 選項 E:External「慣例」外部記憶(中文詳述)
+
+核心概念:把「模型學到的東西」從「對話 context 視窗」裡抽離出來。不靠原始對話一路累積(會撐爆視窗、逼你做有損的 /compact),而是另外維護一份精煉、結構化的「已確立慣例」文件(例如 conventions.md),每處理一節就把這份文件重新注入給模型。一句話:學的是「規則」,存在外部檔案;不是把「整段對話」塞在模型腦裡。
+
+運作:每個 panel session 的原始 context 保持短(只放當前節任務+必要參考);另存一份 conventions.md 記錄已 settle 的可重用規則(隱性標記放法、同號 מִן 重複綁定…),是從已定案節蒸餾的原則,不是逐節答案;處理新節時把 conventions.md prepend 進 prompt;定案後判斷有無新慣例 → 更新 conventions.md(經人工/regression gate 審查才寫入)。
+
+好處:(1) 學習與視窗脫鉤,context 永不脹爆,不需 /compact、不會壓縮丟失慣例,可無限長跑不退化。(2) 可審查可稽核,慣例是人類可讀文件,能在影響面板前先看先改先刪。(3) 直接緩解 Q3 錯誤傳播,蒸餾+審查關卡讓錯答案不會自動變慣例,且可揪出移除——E 一手同解 Q1(視窗)和 Q3(污染)。(4) 泛化而非死記,存規則比存答案更能遷移。
+
+代價:多一個 curation 層(誰蒸餾、何時更新);慣例衝突需版本化;注入成本隨慣例增長(但遠小於累積對話);失去「自然連續感」。
+
+附帶大禮:E 讓 Q1 變簡單——跨節知識 externalize 後,每個 session 可每節 reset(永遠短 context),根本不需 /compact、不需擔心 40-50% 門檻、不需 per-leg 視窗管理。Q1 從「管理超長對話」退化成「維護一份好的慣例文件」;等於把 D1(壓縮)+D3(回饋)合併成「維護可審查的 conventions.md」這一個較乾淨的工程問題,代價是要設計好「慣例萃取+審查」pipeline(可複用 s1 regression-gate 思路)。
+
+
+
+
+##     2026-06-24 14:45 CST
+
+###    User Prompt
+如果我 D1 採取 E (外部慣例)
+那 s10 會有機會與 s1 競爭 gold verses 的生產機會嗎？
+
+###    result
+會,而且這正是關鍵轉折——但 E 是必要條件,不是充分條件。
+
+為什麼 E 打開了「s10 競爭 gold 生產」的門:s10 當初被降格成「便宜的傳播引擎、不配當 gold 權威」,唯一根本原因是「要累積專業→只能靠 stateful session→就犧牲 panel 獨立性→共識不再是 N 個獨立證人→不可信」。累積專業和失去獨立性原本綁死。E 的本質就是解綁:累積走外部 conventions.md(可審查),不走 session 累積;既然跨節知識在外部檔案,每個 session 就能每節 reset、保持新鮮 → R1 可以重新做到「三模型互不相見、獨立作答」(就像 s1)。E 把獨立性還給了 R1,而 R1 獨立性正是 gold 可信度的地基。
+
+但 E 一個人不夠,要看 Q2/Q3 配合:能競爭 gold 的組合 = Q1-E + Q2(獨立 R1,blind 或 sealed-bid)+ Q3-D(蒸餾審查慣例)。若 Q2/Q3 維持原選(全 stateful + 灌原始答案),即使有 E,R1 仍被錨定、回饋仍系統性傳播錯誤 → 還是只能傳播。
+
+不只競爭——有機會贏過 s1:同樣獨立性下,s10 多了 s1 沒有的「全 panel 共享同一份 settle 慣例」。去殼洞見指出很多 s1 分歧其實是 format/慣例雜訊造成的假分歧(§2.1、3:11 隱性標記)。s10 事先注入對齊慣例後:假分歧消失→剩下分歧 100% 是真 placement 歧義→共識更乾淨、真難節更清楚浮現;panel 越跑越聰明(s1 失憶永遠不會);仍更便宜。
+
+代價:conventions.md 變成新的單一信任點,寫錯一條規則所有節都繼承。但這其實就是 s1 的 prompt 換形態——靠同一套 regression gate 守(就像 3:11 那個 v1.3 被擋下);差別是 conventions 細粒度可逐條增刪,比整包 prompt +0.1 更精準、更不易像 v1.3 一改 regress 8 節。等於把「prompt 進化」升級成「慣例累積」。
+
+結論:會,選 E 後 s10 真有資格和 s1 競爭、甚至超越——前提是 Q2 守住 R1 獨立、Q3 改蒸餾審查慣例。E 的功勞是把「累積專業」和「犧牲獨立」解綁,那是 s10 原本唯一的死穴。代價是要建好 conventions 萃取+regression 審查 pipeline,並用 survey4/5 ground truth 客觀驗證每條慣例。
+
+
+
+
