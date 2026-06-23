@@ -25,7 +25,7 @@ s10 earns that by removing s1's two structural weaknesses:
    the disagreements that remain are *genuine* placement questions.
 2. **No memory of hard cases** — s1 is amnesiac, so a genuine-ambiguity verse
    (3:11-class oscillation) can only be *flagged*, never *resolved*. s10's gated
-   sealed-bid deliberation (R2.5) lets the panel actually settle them.
+   the gated D-deliberation tier lets the panel actually settle them.
 
 ## The central idea — decouple expertise from independence
 
@@ -58,22 +58,44 @@ back while *still* getting smarter verse-over-verse.
   run's agy coverage-decay and `/compact` loss were both context-bloat artifacts;
   E removes the cause.)
 
-### D2 = Hybrid R2 (blind → escalate to sealed-bid R2.5)
-Within a verse (sessions freshly `/clear`'d, so genuinely amnesiac):
-- **R1** — blind independent, each leg sees only `conventions.md` + the verse, not
-  the others. *(= s1 R1, plus the conventions preamble.)*
-- **R2** — blind amnesiac re-roll, **exactly as s1**, to measure stability
-  (Level 0–3 → Trigger 1/2). **s1's stability machinery is preserved verbatim.**
-- **R2.5 (new, gated)** — fired **only when R2 flags instability** (the
-  oscillation class s1 can only flag). Each leg's R1+R2 answers were committed
-  before any reveal (**sealed-bid**), so independence is intact; now the
-  orchestrator reveals the three committed answers and asks each leg
-  **hold-or-revise with reasons**. This is the deliberation amnesia cannot do.
-- **R3** — judge / pick-or-all_wrong, **as s1**.
+### D2 = C-default + D-escalation (two-tier ladder)
+Within a verse (sessions freshly `/clear`'d, so genuinely amnesiac), a **sequential
+two-tier ladder** — **not** a mid-R2 escalation, and D is **not** Trigger-2:
 
-Net: s1's trust math runs on every verse; deliberation is spent only on the
-genuinely-hard minority. See `judge.py` change scope in
-[`CONVENTIONS_PIPELINE.md`](CONVENTIONS_PIPELINE.md) §R2.5.
+```
+independent R1  (= sealed bids — clean, collected first)
+  → C tier: blind R2-convergence stability (Trigger 1/2) + independent R3 voting
+      → majority / resolved              → resolved as C   (highest trust)
+      → C EXHAUSTED  (R3 unresolved, OR Trigger-1 convention-evolution regression-FAILS)
+          → D tier: reuse those same R1s as sealed bids → reveal → deliberate/revise → consensus
+              → still deadlocked         → human
+```
+
+- **R1** — blind independent, each leg sees only `conventions.md` + the verse, not
+  the others. *(= s1 R1 + conventions preamble.)* These are the **sealed bids**.
+- **C tier (R2 + R3)** — **exactly s1**: blind amnesiac R2 re-roll measures
+  stability (Level 0–3 → Trigger 1/2), independent R3 voting resolves. **s1's
+  stability machinery is preserved verbatim.** Most verses resolve here (highest
+  trust, `resolved_at = c_consensus`).
+- **D tier (deliberation) — terminal, gated** — fires **only after C is
+  exhausted**: i.e. **R3 returns unresolved**, OR a **Trigger-1
+  convention-evolution attempt regression-FAILS** (the verse can't be fixed by a
+  prompt/convention → it is genuinely ambiguous). It **replaces s1's terminal
+  "→ human"** with "→ D, then human." The orchestrator reveals the three sealed R1
+  bids and asks each leg **hold-or-revise with reasons** (`resolved_at =
+  d_deliberation`). Canonical case: **Gen 3:11**. This is the deliberation amnesia
+  cannot do.
+
+**Three distinct failure modes — never conflated:**
+- **Trigger 1** (prompt/convention bad) → **evolve conventions** (scribe pipeline).
+- **Trigger 2** (weak model) → **model patch** (s1's existing path, kept
+  **separate and intact** — *not* D-deliberation; the two must never co-fire).
+- **D** (the verse itself is irreducibly ambiguous) → **deliberate** (the tier above).
+
+Net: s1's trust math runs untainted on every verse; deliberation is the **last
+resort for the genuine-ambiguity tail only**, never a broad mid-pipeline trigger.
+See `judge.py` change scope in
+[`CONVENTIONS_PIPELINE.md`](CONVENTIONS_PIPELINE.md) §D-deliberation.
 
 ### D3 = Q3-D batched — distilled conventions, not raw answers
 - **No raw resolved-answer injection** (that was the worst error-propagation
@@ -126,7 +148,9 @@ fallback path trivially satisfies per-verse reset.
 ### What is new in s10 (the deltas)
 1. `conventions.md` + its prepend-into-prompt wiring (D1-E).
 2. The **scribe**: convention extraction + regression-gate + versioning (D3).
-3. **R2.5** sealed-bid deliberation round, gated on R2 instability (D2 hybrid).
+3. **D-deliberation tier** — sealed-bid round, gated to fire **only after C is
+   exhausted** (R3 unresolved / Trigger-1 convention-evolution regression-fail),
+   replacing s1's terminal "→ human"; **distinct from** Trigger-2's model patch (D2).
 4. Per-verse `/clear` driver in the live transport.
 
 ## Transport (unchanged from v1 — validated 2026-06-20)
@@ -146,8 +170,10 @@ implements this routing.
    `run_gold_standard.py` to pass it through.
 2. **Per-verse `/clear` driver** — extend the live transport to `/clear` each leg
    between verses; confirm codex/agy clear verbs at a spike.
-3. **R2.5 sealed-bid round** — add to `judge.py`: commit R1/R2 → on R2 instability,
-   reveal + hold-or-revise. Keep R2 blind-stability unchanged.
+3. **D-deliberation tier** — add to `judge.py` as a **post-C terminal handler**:
+   when C is exhausted (R3 unresolved / Trigger-1 evolution regression-fails),
+   reveal the sealed R1 bids → hold-or-revise. Keep C (blind R2 stability + R3) and
+   Trigger-2's model-patch path **unchanged and separate**.
 4. **The scribe** — per-chapter convention extraction + regression-gate +
    versioning (`CONVENTIONS_PIPELINE.md`).
 5. **Validate** on 創 1:1-3 vs s1 gold, then run the **s10-vs-s1 contest**
@@ -162,7 +188,7 @@ survey10_.../
 ├── S10_VS_S1_GOLD_EXPERIMENT.md   # empirical contest vs s1 (survey4/5 truth)
 ├── conventions.md                 # THE externalized learning (versioned)
 ├── cli_caller.py                  # live inject + file-handoff, headless fallback (+/clear driver)
-├── judge.py                       # adapted: + R2.5 sealed-bid deliberation
+├── judge.py                       # adapted: + D-deliberation (post-C terminal tier)
 ├── consensus.py / regression.py / run_gold_standard.py  # from s1 (+conventions prepend)
 ├── prompts/                       # versioned (seed from s1 latest)
 ├── .s10_sessions.json             # per-leg window ids + session ids (gitignored)
@@ -190,9 +216,11 @@ before the real run (headless Pro already confirmed).
   per-line granularity (finer than whole-prompt +0.1) so a bad rule is revertible
   without losing the whole notebook. The contest (`S10_VS_S1_GOLD_EXPERIMENT.md`)
   scores **each convention** against FHL truth so poison is caught empirically.
-- **R2.5 escalation criterion** must reuse s1's instability definition exactly, or
-  we either over-deliberate (cost/anchoring) or under-deliberate (miss hard
-  verses). Pin it to the existing Trigger-2 condition.
+- **D-escalation criterion** must be pinned to **"C exhausted"** (R3 unresolved OR
+  Trigger-1 convention-evolution regression-fails), **not** to a stability/Trigger-2
+  condition. Wrong pinning either over-deliberates (cost/anchoring, fires on stable
+  verses) or conflates D with Trigger-2's model patch. Keep Trigger-2 (weak-model
+  patch) a separate path that never co-fires with D.
 - **Scribe over-extraction** — too many narrow conventions = overfit + injection
   bloat. Batched-per-chapter + regression gate + a convention budget cap mitigate.
 - **Live transport landmines** (inject focus-race, Claude-TUI read-back) — already

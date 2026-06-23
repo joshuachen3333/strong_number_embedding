@@ -109,15 +109,16 @@ These were pinned in subsequent prompts, not the original AskUserQuestion:
 
 ---
 
-## RE-DECISION — 2026-06-24 (D1→E pivot, Q2/Q3 re-settled)
+## RE-DECISION — 2026-06-24 (D1→E pivot; Q2/Q3 re-settled)
 
 > **Trigger**: `survey1_prompt_evolving-obe` redesign brief
 > ([`20260624_from_survey1obe_to_survey10obe_redesign_Q1E.md`](20260624_from_survey1obe_to_survey10obe_redesign_Q1E.md)),
 > per Joshua. Goal: move s10 off the far-*expertise* end of the dial so it can
-> **rival s1 for trustworthy gold**, not merely propagate s1's gold cheaply.
-> **Decided by Joshua via `AskUserQuestion`** (s10 `prompt.history`,
-> 2026-06-24): Q2 = **Hybrid**, Q3 = **D-batched**. D1 = **E** was directed by
-> the brief.
+> **rival s1 for trustworthy gold**, not merely propagate it cheaply.
+> **Decided by Joshua** — Q1-E directed by the brief; **Q2/Q3 via `AskUserQuestion`**
+> (s10 `prompt.history`, 2026-06-24). *This section supersedes and collapses the two
+> earlier draft RE-DECISION blocks (merged 2026-06-24 after survey1-obe review;
+> R2.5 escalation re-pinned, Trigger-1 target unified, stale status removed).*
 
 ### The pivot in one sentence
 **Q1-E decouples "accumulated expertise" from "lost independence."** Cross-verse
@@ -132,14 +133,53 @@ design (expertise ⊥ independence) come apart.
 | | Original (2026-06-20) | **Re-decided (2026-06-24)** | Why the change |
 |---|---|---|---|
 | **D1** | **A** — continuous session, `/compact` at 40–50% | **E** — external `conventions.md` + **per-verse `/clear`** | A's `/compact` is lossy + per-leg-threshold complex + diverges from headless fallback; E makes learning explicit/auditable, never bloats context, and *enables* independent R1. Empirically: last run's agy coverage-decay (context overflow) and `/compact` loss both **vanish** under E. |
-| **D2** | **A** — everything stateful; R2 = memory-ful deliberation; Trigger 1/2 "largest code delta" | **Hybrid (Q2-D-gated)** — R1 blind-independent; **blind R2 measures stability (s1 machinery intact)**; escalate to **sealed-bid R2.5 deliberation only when blind R2 flags instability** | Per-verse reset already restores blind independence, so the original "largest code delta" mostly evaporates. Hybrid keeps s1's Trigger 1/2 trust math AND adds deliberation exactly on the genuine-ambiguity (3:11-class) verses amnesia can only flag. |
+| **D2** | **A** — everything stateful; R2 = memory-ful deliberation; Trigger 1/2 "largest code delta" | **C-default + D-escalation** two-tier ladder (see *Q2 locked ladder* below) | Per-verse reset restores blind R1 independence, so **C runs all of s1's machinery untainted**; **D-deliberation is a TERMINAL tier** for the genuine-ambiguity tail — it fires only *after C is exhausted*, not as a mid-pipeline escalation. The original "largest code delta" evaporates. |
 | **D3** | **A** — inject raw resolved consensus into all 3 | **Q3-D batched** — extract **distilled conventions per chapter**, regression-gate, version, re-inject | Raw-answer feedback = worst error-propagation (one wrong early consensus contaminates all later verses). Batched distilled conventions learn at the *generalizable* level, are gated before they can poison, and overfit less than per-verse. |
 
 ### Where each decision now lives on the dial
 The cross-cutting dial (top of this doc) moves **left** (toward trustworthy gold):
-`D1-E + Q2-hybrid + Q3-D-batched` is the **"have-both" middle** — accumulated
-expertise *and* preserved independence — at the cost of one new engineering
-artifact: the curated, regression-gated `conventions.md` pipeline.
+`D1-E + (Q2 C-default + D-escalation) + Q3-D-batched` is the **"have-both" middle** —
+accumulated expertise *and* preserved independence — at the cost of one new
+engineering artifact: the curated, regression-gated `conventions.md` pipeline.
+
+### Q2 locked ladder (C-default + D-escalation) — authoritative
+A two-tier escalation ladder — NOT two competing modes, and NOT a mid-R2 escalation:
+
+```
+independent R1  (= sealed bids — clean, collected first)
+  → C tier: blind R2-convergence stability (Trigger 1/2) + independent R3 voting
+      → majority / resolved              → resolved as C   (highest trust)
+      → C EXHAUSTED  (R3 unresolved, OR Trigger-1 convention-evolution regression-FAILS)
+          → D tier: reuse those same R1s as sealed bids → reveal → deliberate/revise → consensus
+              → still deadlocked         → human
+```
+
+**Clean division of failure modes (no overlap) — the load-bearing correction:**
+- **Trigger 1** = *prompt/convention* bad → **evolve conventions** (feeds the
+  scribe / `conventions.md` pipeline — the *same* learning channel as Q3-D, **not** a
+  separate prompt `+0.1` bump).
+- **Trigger 2** = *weak model* → **model patch** (s1's existing path, kept
+  **separate and intact** — a distinct action from D-deliberation; the two must
+  never be conflated or co-fired on one verse).
+- **D-deliberation** = the *verse itself* is genuinely ambiguous (prompt & models
+  fine) → reveal sealed R1 bids → deliberate. Fires **only after C is exhausted**;
+  it **replaces s1's terminal "→ human"** with "→ D, then human." Canonical case:
+  **Gen 3:11** (Trigger-1 evolution regression-failed → proved irreducible
+  verse-ambiguity, not a prompt fix).
+
+**Why it is coherent:** C's R1 *is* D's sealed bid (shared data, zero waste); the
+tiers are **sequential** (D fires only after C's independent signals are collected
+untainted, never simultaneously); Q1-E's per-verse reset **contains** D's
+within-verse statefulness so it never pollutes other verses' C-independence.
+`resolved_at` records **two trust tiers** (`c_consensus` vs `d_deliberation`) —
+auditable, structurally like s1 already distinguishing round1/2/3/unresolved.
+
+### Q1-E and Q3-D are one mechanism, two faces
+`conventions.md` is the spine of all three decisions: it **carries** the expertise
+(Q1-E), it **is** the feedback channel (Q3-D), and it keeps R1 **independent** so
+C/D can run (Q2). **Trigger-1 evolution and the Q3-D per-chapter digest are the
+same regression-gated write-path** into `conventions.md` — one feedback artifact,
+one gate, no second ungated channel.
 
 ### Reconciling E with Joshua's "live obe sessions" CRUX
 Per-verse reset does **not** abandon the live mutually-bound panel. The 3 obe
@@ -157,83 +197,11 @@ inherited by every verse. This is just **s1's prompt in a new form**, guarded by
 **the same regression gate** (cf. s1's v1.3 REGRESSION_FAILED block). The
 upgrade: conventions are **per-line addable/removable**, so the gate is finer
 than s1's whole-prompt +0.1 bump and far less likely to regress 8 verses on one
-edit. "Prompt evolution" → "**convention accumulation**."
+edit. Because **Trigger-1 evolution now writes to the *same* `conventions.md`**
+(not a separate prompt), **one gate guards every learning write** — there is no
+second, ungated feedback channel. "Prompt evolution" → "**convention accumulation**."
 
----
-
-## Source pointers
-- s10 `prompt.history` (design-Q&A era + 2026-06-24 re-decision): the `AskUserQuestion` answers + later clarifications.
-- [`SURVEY10_DESIGN.md`](SURVEY10_DESIGN.md): the locked decisions + implementation plan + transport validation.
-- [`CONVENTIONS_PIPELINE.md`](CONVENTIONS_PIPELINE.md): the extract → regression-gate → version pipeline that populates `conventions.md`.
-- [`S10_VS_S1_GOLD_EXPERIMENT.md`](S10_VS_S1_GOLD_EXPERIMENT.md): the empirical contest vs s1, judged by survey4/5 FHL ground truth.
-- [`20260624_from_survey1obe_to_survey10obe_redesign_Q1E.md`](20260624_from_survey1obe_to_survey10obe_redesign_Q1E.md): the redesign brief that triggered this re-decision.
-
----
-
-# RE-DECISION (2026-06-24) — Joshua + `survey1_prompt_evolving-obe`
-
-> The original D1/D2/D3 (all = option A) put s10 at the *cheap-propagation* end.
-> Joshua is re-deciding toward the *gold-competitive* combination. **Status: Q1 & Q2
-> locked; Q3 still under discussion — do NOT implement until Q3 is settled.**
-
-## Q1 → **E** (External conventions memory) — *was A*
-- Each leg's session stays **short and resets per verse**; cross-verse expertise lives
-  in a curated, auditable **`conventions.md`** that is re-injected each verse, and
-  updated (through a **regression gate**) only when a verse reveals a new convention.
-- **Why**: decouples "accumulate expertise" from "consume context window" → no `/compact`,
-  no per-leg window juggling, no lossy compaction; learning is **explicit & reviewable**;
-  it *also* defuses Q3's error-propagation (a wrong convention is catchable before it spreads).
-- **Knock-on**: this is the linchpin that lets Q2 keep R1 independent (per-verse reset
-  restores s1's amnesia premise *within* a verse) — i.e. **E is what makes s10 able to
-  rival/surpass s1 for gold** (see `20260624_from_survey1obe_to_survey10obe_redesign_Q1E.md`).
-
-## Q2 → **C (default) + D (hard-verse escalation)** — *was A; hybrid, not either/or*
-A two-tier escalation ladder, NOT two competing modes:
-
-```
-independent R1 (= sealed bids — clean, collected first)
-  → C tier: blind R2-convergence stability + independent voting (all independent)
-      → majority reached → resolved as C  (highest trust)
-      → C exhausted (no majority / Trigger-1 evolution fails regression / R3 unresolved)
-          → D tier: reuse those same R1s as sealed bids → reveal → deliberate/revise → consensus
-              → still deadlocked → human
-```
-
-**Why it is coherent (no contradiction):**
-1. **C's R1 *is* D's sealed bid** — same independent first move; they share data, zero waste.
-2. **Sequential tiers, not simultaneous** — D fires only *after* C's independent signals are
-   collected untainted; C's measurements are never polluted.
-3. **Q1=E contains D's statefulness within the verse** — the deliberation memory is wiped by
-   the per-verse reset, so it never pollutes other verses' C-independence.
-4. It is the **natural completion of s1's ladder**: s1 ended at "→ human"; this replaces that
-   terminal tier with "→ try D deliberation, *then* human."
-5. **Clean division of failure modes** (no overlap): Trigger 1 = *prompt/convention* bad →
-   evolve conventions; Trigger 2 = *weak model* → patch; **D = the verse itself is genuinely
-   ambiguous** (prompt & models fine) → deliberate. 3:11 is the canonical D case (Trigger-1
-   evolution regression-failed → proves it's irreducible verse-ambiguity, not a prompt fix).
-
-**Design carefully (not contradictions, just must-dos):**
-- Record **two trust tiers** in `resolved_at` (`c_consensus` vs `d_deliberation`) — a feature
-  (auditable), structurally identical to s1 already distinguishing round1/2/3/unresolved.
-- **Pin the handoff** = "C marks unresolved / Trigger-1 evolution fails regression."
-- **Anchor D's trust on the sealed first answers**; deliberation output must stay auditable.
-
-**Feasibility**: C tier = low (reuse s1, E restores its premises); handoff = low (one conditional
-at s1's existing unresolved point); D tier = medium, **contained** (an escalation handler for a
-few hard verses — do NOT make the whole pipeline stateful).
-
-## Q3 / D3 → **D** (periodic distilled, audited convention digest) — *was A*
-- **Not** raw per-verse answers injected into sessions. Instead, settled rules are
-  **distilled into `conventions.md`** and re-injected — i.e. **the feedback channel
-  *is* updating `conventions.md`** (the same artifact Q1-E maintains; Q3-D and Q1-E
-  are two faces of one mechanism).
-- **Why**: learning at the **generalizable convention level** (not memorizing specific
-  answers → less per-verse overfitting); and a wrong "lesson" must pass the
-  **regression gate** before it can spread → **defuses A's systematic error-propagation**.
-
----
-
-## ✅ DECISION SET COMPLETE (2026-06-24)
+### ✅ DECISION SET COMPLETE (2026-06-24)
 
 | Q | Original | **Re-decided** |
 |---|---|---|
@@ -243,13 +211,17 @@ few hard verses — do NOT make the whole pipeline stateful).
 
 **The through-line**: `conventions.md` is the spine of all three — it carries the
 expertise (Q1-E), it is the feedback channel (Q3-D), and it is what lets R1 stay
-independent so C/D can run (Q2). The whole design now sits in the **"have-both"
-middle**: accumulated expertise **without** sacrificing the independence that makes
-gold trustworthy → **s10 can rival, and on the hard tail surpass, s1 for gold
+independent so C/D can run (Q2). The design sits in the **"have-both" middle**:
+accumulated expertise **without** sacrificing the independence that makes gold
+trustworthy → **s10 can rival, and on the hard tail surpass, s1 for gold
 production.** The single new point of trust (`conventions.md`) is governed by s1's
 existing regression-gate discipline.
 
-**Next**: re-decisions are locked; the s10 sibling is already mid-redo with
-`Q1-E + independent-R1 + Q3-D` (per its START flare) but does NOT yet have the
-**refined Q2 hybrid (C-default + D-escalation)** — that needs relaying before/at its
-next checkpoint.
+---
+
+## Source pointers
+- s10 `prompt.history` (design-Q&A era + 2026-06-24 re-decision + review-corrections): the `AskUserQuestion` answers + later clarifications.
+- [`SURVEY10_DESIGN.md`](SURVEY10_DESIGN.md): the locked decisions + implementation plan + transport validation.
+- [`CONVENTIONS_PIPELINE.md`](CONVENTIONS_PIPELINE.md): the extract → regression-gate → version pipeline that populates `conventions.md`; the D-deliberation (post-C) handler; Trigger-1→conventions unification.
+- [`S10_VS_S1_GOLD_EXPERIMENT.md`](S10_VS_S1_GOLD_EXPERIMENT.md): the empirical contest vs s1, judged by survey4/5 FHL ground truth.
+- [`20260624_from_survey1obe_to_survey10obe_redesign_Q1E.md`](20260624_from_survey1obe_to_survey10obe_redesign_Q1E.md): the redesign brief that triggered this re-decision.

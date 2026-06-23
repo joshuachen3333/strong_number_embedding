@@ -2,7 +2,7 @@
 
 > The engine behind **D1-E + D3-Q3-D-batched**. `conventions.md` is s10's
 > externalized, auditable cross-verse memory; this doc specifies how it is
-> populated, gated, versioned, and re-injected — and the `judge.py` R2.5 delta.
+> populated, gated, versioned, and re-injected — and the `judge.py` D-deliberation delta.
 > Companion: [`SURVEY10_DESIGN.md`](SURVEY10_DESIGN.md),
 > [`S10_VS_S1_GOLD_EXPERIMENT.md`](S10_VS_S1_GOLD_EXPERIMENT.md).
 
@@ -129,39 +129,68 @@ without it). The measured delta is written back into the rule's heading. A rule
 with delta ≤ 0 is **demoted** — proves the gate (which only checks *non-regression*
 on the training gold) is not enough; the contest is the *positive* check.
 
-## The R2.5 sealed-bid deliberation round (D2 hybrid) — `judge.py` delta
+## Two distinct learning channels — do NOT conflate (the load-bearing distinction)
 
-R2.5 reuses s1's stability classifier as its **escalation trigger** and s1's
-debate scaffolding as its **mechanism**.
+s1 has **three** orthogonal responses to a verse; s10 keeps all three separate:
 
-### Escalation trigger (reuse `judge.py:_stability_level`)
-s1 already classifies each model's R2 behavior:
-- Level 0 Easy / Level 1 Mild → **stable** → resolve as s1 (no R2.5).
-- **Level 2 Moderate / Level 3 Strong → escalate to R2.5.** (This is exactly the
-  "Trigger 2" instability class — the verses s1 can only flag.)
+| s1 mechanism | Cause | s10 response | Where it writes |
+|---|---|---|---|
+| **Trigger 1** | the *prompt/convention* is wrong (collective error) | **evolve conventions** → feed the **scribe** (extract candidate → gate → `conventions.md`) | `conventions.md` (the unified learning artifact) |
+| **Trigger 2** | a *single weak model* oscillates | **model patch** (`generate_model_patch`) — **s1's existing path, kept verbatim & separate** | per-model patch file (unchanged) |
+| terminal **"→ human"** | the *verse itself* is irreducibly ambiguous (prompt & models fine) | **D-deliberation** (below) | `resolved_at = d_deliberation` |
 
-Pin the escalation condition to `_stability_level(...) in {moderate, strong}` so
-s10 never over- or under-deliberates relative to s1's own definition.
+**Trigger 1 and Q3-D are the same write-path.** A Trigger-1 collective-error
+correction does **not** bump a separate prompt (`+0.1`); it produces a **candidate
+convention** that goes through the *same* scribe extract → regression-gate →
+version pipeline as the Q3-D per-chapter digest. One feedback artifact
+(`conventions.md`), one gate. This unifies what would otherwise be two learning
+channels.
 
-### Mechanism (sealed-bid → reveal → hold-or-revise)
-1. **Commit**: R1 and the blind R2 re-rolls are already produced *before* any
-   cross-leg reveal — that IS the sealed bid. No leg has seen another's answer.
+## The D-deliberation tier (terminal, post-C) — `judge.py` delta
+
+D is **not** R2.5 and **not** a stability/Trigger-2 escalation. It is the
+**terminal tier that replaces s1's "→ human"**, fired **only after C is
+exhausted**.
+
+### Escalation trigger — pinned to "C exhausted", NOT to stability
+D fires when, and only when, the C tier (blind R2 stability + independent R3) has
+failed to resolve the verse:
+- **R3 returns unresolved** (no majority / collective `all_wrong`), **OR**
+- a **Trigger-1 convention-evolution attempt regression-FAILS** — i.e. the panel
+  tried to fix the verse by evolving a convention and the gate rejected it,
+  *proving* the verse is not a prompt/convention problem but an irreducible
+  placement ambiguity.
+
+Do **not** pin D to `_stability_level in {moderate, strong}` — that is the
+**Trigger-2** (weak-model) condition, a *different* failure mode with a *different*
+response (model patch). Conflating them would fire deliberation on stable,
+model-weak verses and would double-fire alongside the patch path. Canonical D
+case: **Gen 3:11** (Trigger-1 evolution regression-failed).
+
+### Mechanism (reuse the sealed R1 bids → reveal → hold-or-revise)
+1. **Sealed bids already exist**: the independent R1 answers were collected before
+   any cross-leg reveal — they ARE the sealed bids. No re-collection needed.
 2. **Reveal**: orchestrator builds a deliberation prompt (adapt
-   `build_r2_debate_prompt`) showing all three committed answers + the current
-   `conventions.md`, and asks each leg: *"Here are the three independent answers.
-   Hold or revise yours? Give the placement rule that decides it."*
-3. **Re-collect**: each leg returns hold/revise + reasoning. This is the round
-   amnesia cannot run — it requires the panel to reason about each other's
-   placements.
+   `build_r2_debate_prompt`) showing the three sealed R1 bids + current
+   `conventions.md`, and asks each leg: *"These three independent answers
+   disagree and neither convention-evolution nor voting resolved it. Hold or
+   revise yours? Give the placement rule that decides it."*
+3. **Re-collect**: each leg returns hold/revise + reasoning — the round amnesia
+   cannot run (it requires reasoning about each other's placements).
 4. **Resolve**: `consensus.py:build_gold_standard()` remains the **sole
-   authority** — R2.5 outputs are just additional collected data it weighs; the
-   scribe later may distill the deciding rule into `conventions.md`.
+   authority** — D outputs are additional data it weighs; `resolved_at =
+   d_deliberation` (a second, auditable trust tier below `c_consensus`). Still
+   deadlocked → **human**.
 
 ### What stays untouched
-- Blind R2 stability measurement (`run_r2_convergence`, `_stability_level`,
-  Trigger 1 `+0.1`) is **unchanged** — s10 still gets s1's instability signal.
+- The **C tier**: blind R2 stability (`run_r2_convergence`, `_stability_level`),
+  independent R3 (`run_round3`, `tally_r3_judgments`) — **unchanged**. s10 gets s1's
+  full instability signal.
+- **Trigger 2** (weak-model patch, `generate_model_patch`) — **unchanged and
+  separate** from D.
 - `build_gold_standard()` stays the sole `resolved_at` authority.
-- R3 (`run_round3`, `tally_r3_judgments`) is unchanged.
+- The only changes to Trigger 1: its *target* is now `conventions.md` via the
+  scribe (not a separate prompt `+0.1`); its *measurement* is unchanged.
 
 ## Failure modes & mitigations
 | Risk | Mitigation |
@@ -169,5 +198,6 @@ s10 never over- or under-deliberates relative to s1's own definition.
 | Scribe over-extracts narrow rules → overfit + bloat | per-chapter batching + budget cap + "penalize verse-specific rules" prompt + contest demotion |
 | A wrong rule passes the gate (non-regression but still wrong) | contest's *positive* FHL-truth scoring catches it (gate only checks non-regression) |
 | Rule edits silently change many verses | edits go through the **same gate** as additions |
-| R2.5 over-fires (cost, anchoring) | escalation pinned to Level-2/3 only; R1 + R2 stay blind so independence is never spent on stable verses |
-| conventions.md becomes single trust-point | per-line revertible; versioned snapshots; same gate as s1's prompt |
+| **D conflated with Trigger-2** (fires on stable weak-model verses, double-fires with patch) | pin D strictly to "C exhausted" (R3 unresolved / Trigger-1 regression-fail); keep Trigger-2's patch path separate |
+| D over-fires (cost, anchoring) | D is terminal — it only sees the *genuine-ambiguity tail* that C could not resolve; the stable majority never reaches it |
+| conventions.md becomes single trust-point | per-line revertible; versioned snapshots; same gate as s1's prompt; one unified gated write-path |

@@ -29,7 +29,7 @@ gold producer — no consensus circularity.
 | Arm | Method | Cross-verse learning |
 |---|---|---|
 | **A — s1** | `../survey1_prompt_evolving` consensus, unchanged | prompt evolution (`+0.1`, gated) |
-| **B — s10-E** | this dir: per-verse `/clear`, blind R1/R2, gated R2.5, conventions.md | `conventions.md` (gated, versioned) |
+| **B — s10-E** | this dir: per-verse `/clear`, blind R1/R2 (C tier), gated D-deliberation (post-C), conventions.md | `conventions.md` (gated, versioned) |
 | **B0 — s10 ablation** (optional) | s10 with `conventions.md` **frozen empty** | none (isolates the conventions contribution) |
 
 A and B see the **same stripped-UNV corpus** and the **same panel roster**
@@ -62,7 +62,7 @@ Aggregated per arm: mean placement/coverage, exact-match rate, and the
 - **Cost**: total LLM calls + tokens per arm (s10 should fall over time as
   conventions settle and re-rolls drop).
 - **Genuine-ambiguity resolution**: # verses where blind R2 flagged instability,
-  split by *resolved by R2.5 deliberation* (s10 only) vs *left flagged* (s1).
+  split by *resolved by D-deliberation* (s10 only) vs *left flagged* (s1).
 - **False-disagreement removed**: # R1 panel splits in arm A that **do not occur**
   in arm B because a convention pre-aligned them. This is s10's headline claim —
   measure it directly.
@@ -77,7 +77,7 @@ Aggregated per arm: mean placement/coverage, exact-match rate, and the
 - **H2 (false-disagreement)**: B has materially fewer R1 panel splits than A on
   convention-covered phenomena (implicit markers, rebinding, 神/上帝).
 - **H3 (resolves the hard ones)**: among R2-flagged unstable verses, B resolves a
-  higher fraction via R2.5 than A leaves flagged.
+  higher fraction via D-deliberation than A leaves flagged.
 - **H4 (cheaper over time)**: B's per-verse cost trends **down** across chapters
   as conventions settle; A's stays flat.
 - **H5 (conventions are real)**: most accepted conventions show **positive**
@@ -107,7 +107,7 @@ Aggregated per arm: mean placement/coverage, exact-match rate, and the
 | mean coverage | | | | |
 | exact-match rate | | | | |
 | false-disagreements (R1 splits) | | | | |
-| unstable verses resolved (R2.5) | n/a | | n/a | |
+| genuine-ambiguity verses resolved (D-deliberation) | n/a | | n/a | |
 | total cost (calls / tokens) | | | | |
 | conventions w/ positive delta | n/a | / | n/a | |
 
