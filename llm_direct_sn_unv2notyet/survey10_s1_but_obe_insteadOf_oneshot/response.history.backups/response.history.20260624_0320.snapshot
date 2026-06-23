@@ -240,28 +240,3 @@ Verified: grep shows 0 stale phrasings (flags instability / Q2-D-gated / Q3-unde
 
 
 
-##     2026-06-24 03:27 CST
-
-###    User Prompt
-survey1_prompt_evolving-obe [DESIGN-APPROVED + IMPLEMENT-GO, GEN-1 HELD]: GO to implement the 4 v2 deltas (conventions scaffold, per-verse /clear, D-deliberation post-C tier, scribe) to a 6-point code-review gate; do NOT fire Gen 1 until code cleared.
-
-###    result
-v2 implementation complete + pushed (b31c442); Gen 1 held for s1 code review.
-
-Studied the full s1 pipeline (run_gold_standard.py per-verse loop R1->unanimous->R2-convergence->Trigger1/Trigger2->R2-debate->R3; consensus.build_gold_standard as sole resolved_at authority; regression.run_prompt_regression; judge debate/stability). Then implemented the 4 deltas, concentrating ALL new logic in a NEW conventions.py so the edits to the inherited pipeline stay minimal and reviewable.
-
-conventions.py (new): load_conventions/conventions_text/build_conventions_preamble (D1-E prepend, gate #1 — empty seed still emits a greppable marker); append_convention + versioning + history snapshots; run_convention_regression (reuses s1's run_prompt_regression verbatim, gate #4); extract_candidate_conventions + _dedup + try_evolve_convention + run_scribe_for_chapter (the scribe, D3); run_d_deliberation (TERMINAL post-C tier, gate #2 — sealed R1 bids -> reveal -> hold/revise -> tally; NEVER pinned to _stability_level/Trigger-2); handle_collective_error (Trigger-1/R3-all_wrong reroute: evolve convention -> on gate-FAIL escalate to D-deliberation).
-
-cli_caller.py: reset_live_panel() — per-verse /clear of the live legs (gate #3); headless fallback already amnesiac.
-
-consensus.py: build_gold_standard gains deliberation_verses param (D entries override unresolved) + a trust_tier field recording c_consensus vs d_deliberation distinctly (gate #5); remains the sole resolved_at authority.
-
-run_gold_standard.py (wiring only): import conventions; prepend conventions into system_prompt (gate #1); reset_live_panel per verse (gate #3); Trigger-1 and R3-all_wrong both rerouted from auto_evolve_prompt(PROMPT) to conv_mod.handle_collective_error (gate #4 — auto_evolve_prompt now 0 refs in the pipeline, no prompt +0.1); R3-unresolved -> run_d_deliberation (gate #2); thread deliberation_verses to build_gold_standard; per-chapter scribe after gold is built. Critically, both reroutes drop s1's `break` for `continue` — conventions accumulate live, no human prompt-fix stop. Trigger-2's generate_model_patch path is untouched (4 refs) and never co-fires with D.
-
-Verification: py_compile OK on all 4 files; import smoke test passes (preamble marker present, reset_live_panel present, deliberation_verses param present); all 6 gate points grep-confirmed; 0 orphaned variable refs from the removed prompt-evolution blocks. conventions.md seeded empty (v0.0).
-
-Flared implementation-ready [STATUS] to survey1-obe (window 1314) with a per-gate-point line:file map for fast code review. Gen 1 remains HELD until s1 clears the code.
-
-
-
-
