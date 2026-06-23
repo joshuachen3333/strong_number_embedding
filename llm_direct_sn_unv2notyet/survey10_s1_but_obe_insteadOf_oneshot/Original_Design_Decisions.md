@@ -107,9 +107,66 @@ These were pinned in subsequent prompts, not the original AskUserQuestion:
   — S1 or S10?"* → sibling's lean: **S1 authoritative (independent); S10 = cheap
   propagation**, to be settled empirically against survey4/5 ground truth.
 
+---
+
+## RE-DECISION — 2026-06-24 (D1→E pivot, Q2/Q3 re-settled)
+
+> **Trigger**: `survey1_prompt_evolving-obe` redesign brief
+> ([`20260624_from_survey1obe_to_survey10obe_redesign_Q1E.md`](20260624_from_survey1obe_to_survey10obe_redesign_Q1E.md)),
+> per Joshua. Goal: move s10 off the far-*expertise* end of the dial so it can
+> **rival s1 for trustworthy gold**, not merely propagate s1's gold cheaply.
+> **Decided by Joshua via `AskUserQuestion`** (s10 `prompt.history`,
+> 2026-06-24): Q2 = **Hybrid**, Q3 = **D-batched**. D1 = **E** was directed by
+> the brief.
+
+### The pivot in one sentence
+**Q1-E decouples "accumulated expertise" from "lost independence."** Cross-verse
+learning moves out of each model's session context and into an external,
+**reviewable** `conventions.md`. Because the learning is externalized, each panel
+session can **`/clear` (reset) per verse** → R1 independence is restored to
+s1-grade *for free*. The two things that were welded together in the original
+design (expertise ⊥ independence) come apart.
+
+### New decisions
+
+| | Original (2026-06-20) | **Re-decided (2026-06-24)** | Why the change |
+|---|---|---|---|
+| **D1** | **A** — continuous session, `/compact` at 40–50% | **E** — external `conventions.md` + **per-verse `/clear`** | A's `/compact` is lossy + per-leg-threshold complex + diverges from headless fallback; E makes learning explicit/auditable, never bloats context, and *enables* independent R1. Empirically: last run's agy coverage-decay (context overflow) and `/compact` loss both **vanish** under E. |
+| **D2** | **A** — everything stateful; R2 = memory-ful deliberation; Trigger 1/2 "largest code delta" | **Hybrid (Q2-D-gated)** — R1 blind-independent; **blind R2 measures stability (s1 machinery intact)**; escalate to **sealed-bid R2.5 deliberation only when blind R2 flags instability** | Per-verse reset already restores blind independence, so the original "largest code delta" mostly evaporates. Hybrid keeps s1's Trigger 1/2 trust math AND adds deliberation exactly on the genuine-ambiguity (3:11-class) verses amnesia can only flag. |
+| **D3** | **A** — inject raw resolved consensus into all 3 | **Q3-D batched** — extract **distilled conventions per chapter**, regression-gate, version, re-inject | Raw-answer feedback = worst error-propagation (one wrong early consensus contaminates all later verses). Batched distilled conventions learn at the *generalizable* level, are gated before they can poison, and overfit less than per-verse. |
+
+### Where each decision now lives on the dial
+The cross-cutting dial (top of this doc) moves **left** (toward trustworthy gold):
+`D1-E + Q2-hybrid + Q3-D-batched` is the **"have-both" middle** — accumulated
+expertise *and* preserved independence — at the cost of one new engineering
+artifact: the curated, regression-gated `conventions.md` pipeline.
+
+### Reconciling E with Joshua's "live obe sessions" CRUX
+Per-verse reset does **not** abandon the live mutually-bound panel. The 3 obe
+tabs stay **alive and leashed** for the whole run (persistent *processes*,
+driven by osascript inject — Joshua's hard requirement); only their
+conversational *context* is `/clear`'d between verses. So: **persistent
+processes, per-verse-fresh contexts, externalized learning.** The "3 bound
+colleagues" property is preserved; the "amnesiac independence" property is
+regained; the `conventions.md` carries what used to (lossily) accumulate in
+each head.
+
+### Honest residual risk
+`conventions.md` becomes a **new single trust-point** — a wrong rule is
+inherited by every verse. This is just **s1's prompt in a new form**, guarded by
+**the same regression gate** (cf. s1's v1.3 REGRESSION_FAILED block). The
+upgrade: conventions are **per-line addable/removable**, so the gate is finer
+than s1's whole-prompt +0.1 bump and far less likely to regress 8 verses on one
+edit. "Prompt evolution" → "**convention accumulation**."
+
+---
+
 ## Source pointers
-- s10 `prompt.history` (design-Q&A era): the `AskUserQuestion` answers + later clarifications.
-- [`SURVEY10_DESIGN.md`](SURVEY10_DESIGN.md): the locked D1/D2/D3 + implementation plan + transport validation.
+- s10 `prompt.history` (design-Q&A era + 2026-06-24 re-decision): the `AskUserQuestion` answers + later clarifications.
+- [`SURVEY10_DESIGN.md`](SURVEY10_DESIGN.md): the locked decisions + implementation plan + transport validation.
+- [`CONVENTIONS_PIPELINE.md`](CONVENTIONS_PIPELINE.md): the extract → regression-gate → version pipeline that populates `conventions.md`.
+- [`S10_VS_S1_GOLD_EXPERIMENT.md`](S10_VS_S1_GOLD_EXPERIMENT.md): the empirical contest vs s1, judged by survey4/5 FHL ground truth.
+- [`20260624_from_survey1obe_to_survey10obe_redesign_Q1E.md`](20260624_from_survey1obe_to_survey10obe_redesign_Q1E.md): the redesign brief that triggered this re-decision.
 
 ---
 

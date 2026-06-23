@@ -1,179 +1,200 @@
-# Survey 10 — S1 task, Obe-style LIVE persistent sessions (not one-shot)
+# Survey 10 — S1's gold task, obe-style live panel, with externalized conventions
 
-> Status: **design locked, pre-implementation** (2026-06-20, revised after Joshua
-> clarification). Inherits all of `../survey1_prompt_evolving/` logic; the change
-> is that the 3 panel models are **live, already-open, mutually-bound obe
-> sessions driven by osascript injection** — NOT headless one-shot subprocess
-> calls. This doc is the s10 analog of s1's `ARCHITECTURE_DECISIONS.md`.
+> Status: **design locked v2** (2026-06-24, the Q1-E re-decision). Supersedes the
+> 2026-06-20 v1 (continuous-session + `/compact`). Inherits all of
+> `../survey1_prompt_evolving/` logic. This doc is the s10 analog of s1's
+> `ARCHITECTURE_DECISIONS.md`. Companion docs:
+> [`Original_Design_Decisions.md`](Original_Design_Decisions.md) (option/consequence
+> tables + the 06-24 re-decision), [`CONVENTIONS_PIPELINE.md`](CONVENTIONS_PIPELINE.md),
+> [`S10_VS_S1_GOLD_EXPERIMENT.md`](S10_VS_S1_GOLD_EXPERIMENT.md).
 
 ## Mission
 
 Reproduce s1's 3-model consensus gold-standard pipeline (R1 → R2 → R3 + live
-prompt evolution + regression gate), but run the panel **obe-style**: the three
-models (**opus** / **agy** / **codex**) are **three live interactive CLI sessions
-in Terminal tabs**, mutually bound via the `/obe` leash, that the s10
-orchestrator drives by **osascript inject + read-back** — the same machinery that
-leashes obe/lala/erha. Context accumulates *naturally* because each is a real,
-ongoing conversation, not a subprocess re-summoned from scratch.
+quality evolution + regression gate), run **obe-style** — the three models
+(**opus** / **agy** / **codex**) are **three live, mutually-bound CLI sessions in
+Terminal tabs**, driven by osascript inject + file-handoff — but with the
+cross-verse learning **externalized into a curated `conventions.md`** instead of
+accumulating (and bloating, and being lossily `/compact`ed) inside each session.
 
-The three models become three persistent colleagues deliberating verse-by-verse.
+**The target is not "cheaper s1." The target is "s1-grade or better gold."**
+s10 earns that by removing s1's two structural weaknesses:
+1. **False disagreement** — many s1 panel splits are *format/convention noise*
+   (implicit-marker placement, same-number rebinding), not real placement
+   ambiguity. s10 pre-injects the settled `conventions.md` so those evaporate →
+   the disagreements that remain are *genuine* placement questions.
+2. **No memory of hard cases** — s1 is amnesiac, so a genuine-ambiguity verse
+   (3:11-class oscillation) can only be *flagged*, never *resolved*. s10's gated
+   sealed-bid deliberation (R2.5) lets the panel actually settle them.
 
-## CRUX (Joshua correction, 2026-06-20): live sessions, not headless
+## The central idea — decouple expertise from independence
 
-> 「s10 就是使用已經開啟, 互相綁定的 3 obe, 而非 headless 一次性地呼叫, 又載入最後
-> context (那個可以作為注入失敗時的候補方法)」
-> 「s10 should open sibling obes first, or if injection failed, do the headless
-> calling of models」
+The original s10 was downgraded to "cheap propagation engine, unfit to be gold
+authority" for **one** reason:
 
-| | PRIMARY path (obe-style) | FALLBACK path (inject fails) |
+> accumulate expertise (s10's selling point) → only via stateful session →
+> sacrifice panel independence → consensus is no longer N independent witnesses →
+> not trustworthy.
+
+"Accumulate expertise" and "lose independence" were **welded together**.
+**Q1-E breaks the weld**: expertise accumulates in an external, reviewable
+`conventions.md`; it does **not** accumulate in session context. Therefore each
+session can be **reset (`/clear`) per verse → R1 is blind-independent again, just
+like s1**. R1 independence is the bedrock of gold trustworthiness, and E gives it
+back while *still* getting smarter verse-over-verse.
+
+## Locked decisions (2026-06-24)
+
+### D1 = E — External conventions memory + per-verse reset
+- Each panel session's live context stays **short**: only the current verse task
+  + the re-injected `conventions.md`.
+- `conventions.md` holds **distilled, regression-gated, versioned** reusable rules
+  (e.g. "implicit `<...0853>` 受詞記號 binds to the *following* noun's group, not
+  standalone"; "a repeated Strong's number rebinds per occurrence, not once").
+  These are **principles distilled from resolved verses**, never raw per-verse
+  answers.
+- Before each verse, `conventions.md` is **prepended** to the prompt.
+- **No `/compact`, no per-leg window thresholds, no context-bloat decay.** (Last
+  run's agy coverage-decay and `/compact` loss were both context-bloat artifacts;
+  E removes the cause.)
+
+### D2 = Hybrid R2 (blind → escalate to sealed-bid R2.5)
+Within a verse (sessions freshly `/clear`'d, so genuinely amnesiac):
+- **R1** — blind independent, each leg sees only `conventions.md` + the verse, not
+  the others. *(= s1 R1, plus the conventions preamble.)*
+- **R2** — blind amnesiac re-roll, **exactly as s1**, to measure stability
+  (Level 0–3 → Trigger 1/2). **s1's stability machinery is preserved verbatim.**
+- **R2.5 (new, gated)** — fired **only when R2 flags instability** (the
+  oscillation class s1 can only flag). Each leg's R1+R2 answers were committed
+  before any reveal (**sealed-bid**), so independence is intact; now the
+  orchestrator reveals the three committed answers and asks each leg
+  **hold-or-revise with reasons**. This is the deliberation amnesia cannot do.
+- **R3** — judge / pick-or-all_wrong, **as s1**.
+
+Net: s1's trust math runs on every verse; deliberation is spent only on the
+genuinely-hard minority. See `judge.py` change scope in
+[`CONVENTIONS_PIPELINE.md`](CONVENTIONS_PIPELINE.md) §R2.5.
+
+### D3 = Q3-D batched — distilled conventions, not raw answers
+- **No raw resolved-answer injection** (that was the worst error-propagation
+  path). Feedback flows **only** through `conventions.md`.
+- **Cadence: batched per chapter** (configurable N). After a chapter's verses
+  resolve, a **scribe** step extracts candidate conventions from that chapter's
+  gold, each candidate is **regression-gated** against prior gold, survivors are
+  **versioned** into `conventions.md`. Detail: [`CONVENTIONS_PIPELINE.md`](CONVENTIONS_PIPELINE.md).
+
+## Reconciling E with the "live obe sessions" CRUX (Joshua, 2026-06-20)
+
+> 「s10 就是使用已經開啟, 互相綁定的 3 obe, 而非 headless 一次性地呼叫」
+
+Per-verse reset does **not** demote the panel to headless one-shots. The
+distinction is **process vs context**:
+
+| Property | Lifetime | Satisfies |
 |---|---|---|
-| Mechanism | osascript **inject** task into live tab + **read back** answer | headless `claude -p --resume <id>` / `codex exec resume <id>` / `agy --conversation <id>` |
-| Session | the live interactive Terminal session | the **same** on-disk session id, reloaded |
-| Context | accumulates live | reloaded from last persisted context |
-| Compaction | native `/compact` typed into the live tab (works — interactive!) | headless summarize-and-reseed |
+| The 3 Terminal tabs / CLI processes | **persistent** — alive & leashed for the whole run, driven by inject | Joshua's "3 mutually-bound live obe" requirement |
+| Each session's **conversational context** | **per-verse** — `/clear`'d between verses | Q1-E independence (fresh, blind R1) |
+| Cross-verse **learning** | **externalized** — `conventions.md`, re-injected each verse | Q1-E + Q3-D (auditable, gated, generalizable) |
 
-**s10 owns the lifecycle**: it **opens the 3 sibling obe sessions first** (spawns
-the 3 panel CLIs in Terminal tabs, each pinned to a known session id), drives them
-by inject, and only drops to headless model calls **per-call** when an inject
-round fails (focus race, no ack within window, unparseable read-back).
+So: **persistent processes, per-verse-fresh contexts, externalized learning.**
+The panel is still three bound colleagues; they just consult a shared, reviewed
+notebook (`conventions.md`) instead of relying on each one's lossy memory.
 
-**Shared session id is the linchpin**: each live tab is launched with a known
-session id (claude `--session-id <uuid>`, codex session uuid, agy conversation
-id). The headless fallback `--resume`s that *same* id, so live-inject and
-headless-fallback are two ways to drive one accumulating context — no divergence.
+### Per-leg reset command
+| Leg | Reset between verses | Notes |
+|---|---|---|
+| opus / claude | `/clear` in the live tab | orchestrator also IS this leg |
+| codex (lala) | `/clear` (or `/new`) in the live tab | confirm codex clear verb at spike |
+| agy (erha)  | clear / new-conversation in the live tab | confirm agy clear verb at spike |
 
-### Read-back caveat → file-based handoff
-Per `/obe`, reading answers back from a **Claude Code TUI** tab is unreliable
-(continuous redraw). Resolution: inject the task **plus** "write your JSON answer
-to `<path>`"; the orchestrator reads the **file**, not the TUI scrollback. Live
-obe sessions have tools enabled, so they can write. (codex/agy shell read-back is
-reliable, but file-handoff is the uniform, robust choice for all three legs.)
+Fallback if a leg's clear verb can't be driven by inject: **headless one-shot**
+(`cli_caller.call_llm`, no `--resume`) is *already* per-call amnesiac, so the
+fallback path trivially satisfies per-verse reset.
 
 ## What is inherited verbatim from s1
 
-- The R1 (unanimous) → R2 (convergence + Trigger 1/2 + debate) → R3 (pick /
-  all_wrong) pipeline shape.
+- The R1 (unanimous) → R2 (blind convergence + Trigger 1/2) → R3 (pick /
+  all_wrong) pipeline shape — **now intact again** because per-verse reset
+  restores blindness (v1's "largest code delta" is mostly gone).
 - `consensus.py` `build_gold_standard()` remains the **sole authority** for
   `resolved_at`. Main loop only collects.
-- Live prompt evolution (Trigger 1 +0.1, Trigger 2 model patch), regression gate,
-  gold-standard JSON schema, the prompts/ versioning.
-- The 3-leg panel from `cli_caller.py:DEFAULT_MODELS`:
+- The regression gate — **reused** to gate `conventions.md` edits (this is the
+  key reuse; cf. s1 v1.3 REGRESSION_FAILED).
+- Gold-standard JSON schema; the 3-leg panel from `cli_caller.py:DEFAULT_MODELS`:
   `opus` (claude) / `agy` (Antigravity, Gemini 3.1 Pro) / `codex`.
 
-## Leg mechanics (live primary + headless fallback share one session id)
+### What is new in s10 (the deltas)
+1. `conventions.md` + its prepend-into-prompt wiring (D1-E).
+2. The **scribe**: convention extraction + regression-gate + versioning (D3).
+3. **R2.5** sealed-bid deliberation round, gated on R2 instability (D2 hybrid).
+4. Per-verse `/clear` driver in the live transport.
 
-| Leg | Live launch (primary) | Headless fallback |
-|-----|----------------------|-------------------|
-| opus/claude | open tab → `claude --session-id <uuid> [-n opus-s10]` interactive | `claude -p --resume <uuid> --json-schema …` |
-| codex | open tab → `codex` (capture session uuid) | `codex exec resume <uuid> -` |
-| agy   | open tab → `agy` (capture conversation id) | `agy --conversation <id> -p …` |
+## Transport (unchanged from v1 — validated 2026-06-20)
 
-Session ids persisted to `.s10_sessions.json` so a resumed run reattaches to the
-same three minds. Feasibility verified 2026-06-20 — all three CLIs expose
-resume/continue in print mode, so the fallback can always reload the live tab's
-accumulated context.
+PRIMARY = osascript **inject** task into live tab + **file-handoff** read-back
+(orchestrator writes prompt to a task file, injects a short "read it, write JSON
+to answer file" command, polls the answer file — never reads TUI scrollback).
+FALLBACK = headless `cli_caller.call_llm` one-shot per leg on any inject failure
+(no ack/file within timeout, unparseable answer). Both paths proven for all three
+legs (see "Transport validation" below). The s10 `cli_caller.py` already
+implements this routing.
 
-## Locked decisions (Joshua, 2026-06-20, via design Q&A)
+## Implementation plan (phased, revised for v2)
 
-### D1 — Session lifetime: continuous, self-compacting at 40–50% context
-**Not** a fixed per-chapter/per-book reset. Each session runs continuously, but
-when its context window crosses **40–50% full**, it must **compact** before
-continuing. Rationale: keep each mind lean enough to stay sharp, never let it
-bloat past half its window.
+1. **Conventions scaffold** — `conventions.md` schema + loader that prepends it to
+   the prompt; seed it empty (or from s1's latest prompt distillation). Wire
+   `run_gold_standard.py` to pass it through.
+2. **Per-verse `/clear` driver** — extend the live transport to `/clear` each leg
+   between verses; confirm codex/agy clear verbs at a spike.
+3. **R2.5 sealed-bid round** — add to `judge.py`: commit R1/R2 → on R2 instability,
+   reveal + hold-or-revise. Keep R2 blind-stability unchanged.
+4. **The scribe** — per-chapter convention extraction + regression-gate +
+   versioning (`CONVENTIONS_PIPELINE.md`).
+5. **Validate** on 創 1:1-3 vs s1 gold, then run the **s10-vs-s1 contest**
+   (`S10_VS_S1_GOLD_EXPERIMENT.md`) on a ground-truth corpus.
 
-**Mechanism (primary = native `/compact` in the live tab)** — because the panel
-is now interactive, the real `/compact` command is available:
-1. Track each leg's context usage (the live tab's status line shows context %;
-   or estimate from injected+returned bytes).
-2. When usage ≥ ~45% of that model's window, **inject `/compact`** into that leg's
-   tab (claude `/compact`, codex `/compact`, agy equivalent) and let the live
-   session compress itself in place — session id unchanged.
-3. Per-leg windows differ (opus ~1M, agy/codex smaller) → threshold is per-leg.
-4. **Fallback** (if `/compact` can't be driven): summarize-and-reseed — ask the
-   leg for a structured summary, open a fresh session seeded with it.
-
-### D2 — Everything stateful (R2 convergence is no longer blind)
-All calls — R1 generation, R2 convergence, R3 judging — share the leg's
-persistent session. This **breaks s1's blind-convergence premise**, so the
-semantics shift:
-
-- In s1, R2 convergence re-ran the task with **no memory** to *measure
-  instability* (Level 0–3 → Trigger 1/2). That measurement assumed amnesia.
-- In s10, a model **remembers its R1 answer**, so naive re-asking yields trivial
-  self-agreement. The Level 0–3 stability machinery must be **re-interpreted**:
-  R2 becomes genuine *deliberation* — each model sees the others' answers (or is
-  prompted to reconsider) and decides whether to **hold or revise** with full
-  memory. "Convergence" = the panel settling through informed deliberation, not
-  through independent amnesiac re-rolls.
-- `judge.py` convergence/stability semantics need rework. Trigger 1/2 thresholds
-  may need re-derivation (or replacement with a hold-vs-revise signal). **This is
-  the largest code delta of s10** — flag for careful design before coding.
-
-### D3 — Feed resolved consensus back into all sessions
-After `build_gold_standard()` resolves a verse, inject "the consensus answer was
-X (resolved_at=…)" into **all three** sessions. The panel accumulates *corrected*
-knowledge, so later verses benefit from settled conventions — the real obe-style
-learning loop (not just continuity of each model's own, possibly-wrong, attempts).
-
-## Implementation plan (phased)
-
-1. **Spike the obe transport** — open ONE live panel session in a Terminal tab
-   with a known session id, inject a verse task + "write JSON to `<path>`", read
-   the file back, confirm round-trip. Then confirm the headless `--resume`
-   fallback reloads the *same* session. De-risks the whole transport.
-2. **`obe_panel.py`** — NEW module: opens the 3 panel tabs (lifecycle), holds
-   their window ids + session ids, exposes `ask(leg, prompt) -> dict` that
-   injects + file-reads with **automatic headless fallback** on inject failure,
-   tracks per-leg context %, triggers `/compact` at ~45%.
-3. **Replace `cli_caller.py`'s role** — `call_llm()` routes through `obe_panel`
-   (live inject) with the s1 headless caller as the fallback branch.
-4. **Rework `judge.py` R2** under D2 (hold-vs-revise deliberation; re-derive or
-   replace Trigger 1/2 — see risk flags).
-5. **Wire D3** — inject resolved consensus into all 3 live tabs after each verse.
-6. Copy/adapt `consensus.py`, `regression.py`, `run_gold_standard.py`, `prompts/`.
-7. Validate on 創 1:1-3 small batch vs s1's gold standard.
-
-## Directory layout (planned, mirrors s1)
+## Directory layout (planned)
 ```
 survey10_.../
-├── SURVEY10_DESIGN.md          # this file
-├── obe_panel.py                # NEW — open/drive 3 live sessions, inject+file
-│                               #   readback, headless fallback, /compact trigger
-├── cli_caller.py               # adapted: headless FALLBACK callers (resume)
-├── judge.py                    # adapted: D2 deliberation semantics
-├── consensus.py / regression.py / run_gold_standard.py  # adapted from s1
-├── prompts/                    # versioned (seed from s1 latest)
-├── .s10_sessions.json          # per-leg window ids + session ids (gitignored)
+├── SURVEY10_DESIGN.md             # this file (locked decisions + architecture)
+├── Original_Design_Decisions.md   # Q1/Q2/Q3 option tables + 06-24 re-decision log
+├── CONVENTIONS_PIPELINE.md        # scribe: extract → regression-gate → version
+├── S10_VS_S1_GOLD_EXPERIMENT.md   # empirical contest vs s1 (survey4/5 truth)
+├── conventions.md                 # THE externalized learning (versioned)
+├── cli_caller.py                  # live inject + file-handoff, headless fallback (+/clear driver)
+├── judge.py                       # adapted: + R2.5 sealed-bid deliberation
+├── consensus.py / regression.py / run_gold_standard.py  # from s1 (+conventions prepend)
+├── prompts/                       # versioned (seed from s1 latest)
+├── .s10_sessions.json             # per-leg window ids + session ids (gitignored)
 └── gold_standard/ round{1,2,3}_results/ run_logs/
 ```
 
 ## Transport validation (2026-06-20) — both paths proven
 
 Live panel opened in-cwd: **s10-obe** (5544, opus+orchestrator), **s10-lala**
-(5555, codex gpt-5.5), **s10-erha** (5557, agy). Results:
+(5555, codex gpt-5.5), **s10-erha** (5557, agy).
 
 | Test | Leg | Result |
 |------|-----|--------|
 | Canary inject + read-back | lala, erha | PASS |
 | **Primary**: inject "write JSON to file" → read file | lala (codex) | PASS ~3s |
 | **Primary**: inject "write JSON to file" → read file | erha (agy) | PASS ~9s |
-| **Fallback**: headless `cli_caller.call_llm` | opus | PASS 5s |
-| **Fallback**: headless `cli_caller.call_llm` | codex | PASS 7s |
-| **Fallback**: headless `cli_caller.call_llm` | agy (Gemini 3.1 Pro High) | PASS 7s |
+| **Fallback**: headless `cli_caller.call_llm` | opus / codex / agy | PASS 5–7s |
 
-Conclusion: the obe-leash transport (inject + file-handoff) AND the stateless
-headless fallback (s1's `cli_caller.py`, imported as-is) both work for every leg.
-s10 transport is **ready**. Open config item: erha live tab is on Flash; switch
-to Gemini 3.1 Pro (High) before the real run (headless Pro already confirmed).
+Open config item: erha live tab on Flash → switch to **Gemini 3.1 Pro (High)**
+before the real run (headless Pro already confirmed).
 
-## Risk flags for Joshua
-- **R2 semantics (D2)** is a genuine redesign, not a port. "Convergence" and the
-  Trigger 1/2 stability math were built on amnesia; with memory they need new
-  definitions. Worth a focused design pass before coding judge.py.
-- **Live transport reliability** — inject focus-races + Claude-TUI read-back are
-  the known `/obe` landmines. Mitigations baked in: file-based handoff (not TUI
-  scrollback), ack/timeout detection, and the headless `--resume` fallback on any
-  failed round. The transport spike (step 1) must prove this before scale-up.
-- **Panel roster + who opens them** — assumed: s10 spawns opus(claude) /
-  codex(lala) / agy(erha) itself in fresh tabs. Confirm whether to reuse any
-  already-open sessions instead.
+## Risk flags
+- **`conventions.md` = new single trust-point.** A wrong rule propagates to every
+  verse. Mitigation: the **same regression gate** that blocked s1's v1.3; plus
+  per-line granularity (finer than whole-prompt +0.1) so a bad rule is revertible
+  without losing the whole notebook. The contest (`S10_VS_S1_GOLD_EXPERIMENT.md`)
+  scores **each convention** against FHL truth so poison is caught empirically.
+- **R2.5 escalation criterion** must reuse s1's instability definition exactly, or
+  we either over-deliberate (cost/anchoring) or under-deliberate (miss hard
+  verses). Pin it to the existing Trigger-2 condition.
+- **Scribe over-extraction** — too many narrow conventions = overfit + injection
+  bloat. Batched-per-chapter + regression gate + a convention budget cap mitigate.
+- **Live transport landmines** (inject focus-race, Claude-TUI read-back) — already
+  mitigated by file-handoff + headless fallback; re-verify the new `/clear` driver
+  at the spike.
