@@ -265,27 +265,3 @@ Flared implementation-ready [STATUS] to survey1-obe (window 1314) with a per-gat
 
 
 
-##     2026-06-24 04:06 CST
-
-###    User Prompt
-survey1-obe [STOP + APPLY FIXES — supersedes GO]: Joshua final = option 甲 (spectacular AND trustworthy in one run). Stop as-is run; apply (a) double-Enter every inject, (b) >=15s between legs, (c) per-call /clear blindness in _live_call, (d) erha->Gemini 3.1 Pro; then one clean --force run. Flare when stopped/fixes-in/started.
-
-###    result
-Stopped the as-is run, applied all 4 transport fixes, verified with canaries, re-fired the single clean run (commit 7f3f91c).
-
-STOPPED: killed run_gold_standard (--force as-is) + TaskStop'd its completion watcher. Provisional gold is overwritten by the re-run, nothing lost.
-
-FIXES to cli_caller.py:
-(a) DOUBLE-ENTER: _osascript_inject now sends two `key code 36` with a 5s gap (the /obe-codified v2) — a single Return doesn't reliably commit into a CLI TUI's bracketed-paste box (Joshua watched /clear fail to submit).
-(b) LEG PACING: LEG_PACING_SEC=15 + _pace_between_legs/_mark_live_inject enforce >=15s between consecutive live legs globally (sequential osascript injects fight for Terminal frontmost focus).
-(c) PER-CALL BLINDNESS: _live_call now paces, commits /clear (double-Enter), settles, THEN injects the task — so EVERY model call (R1, each R2 re-roll, R3) starts blank. Within-verse R1/R2 independence restored at call granularity (not just per-verse). D-deliberation passes sealed R1 bids in-prompt, so clear-before-D loses nothing.
-(d) agy -> Gemini 3.1 Pro (High): couldn't read the Flash tab's state (I'd /clear'd it), so rather than blind-exit interactive agy I launched a FRESH window 8214 with `agy --dangerously-skip-permissions --model "Gemini 3.1 Pro (High)"` (banner confirms Pro), and repointed LIVE_WINDOWS[agy] 5557->8214. codex 5555 unchanged.
-run_gold_standard.py: removed the per-verse reset (per-call blindness supersedes it); kept one run-start hygiene reset.
-
-CANARIES (full _live_call round-trip clear->inject->file-handoff): agy 8214 Pro returned {'lcc_sn':'OK-PRO-8214'} in 24s; codex 5555 returned {'lcc_sn':'OK-CODEX-5555'} in 32s. Transport now trustworthy.
-
-CLEAN RUN: launched run_gold_standard.py --book 創 --chap 1 --force live (31 verses, opus/agy-Pro/codex). Run-start hygiene reset fired, verse 1:1 R1 underway at 04:05. The run is intentionally slower now (per-call /clear + 15s leg pacing = the cost of trustworthy per-call blindness) — Joshua's 甲 choice. Completion watcher armed (bq8gqm0ry); will flare on finish with resolved_at + trust_tier tally. Consolidated [STATUS] (stopped + fixes-in + started) flared to survey1-obe.
-
-
-
-
