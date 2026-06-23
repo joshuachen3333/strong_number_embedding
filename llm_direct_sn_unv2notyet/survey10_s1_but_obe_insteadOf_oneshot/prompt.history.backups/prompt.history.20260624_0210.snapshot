@@ -103,3 +103,94 @@ meaning s10 should open sibling obes first, or if. injection failed, do the head
 
 
 
+##     2026-06-20 17:15 CST
+
+###    User Prompt
+why don't you open s10-lala s10-erha now?
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Directive: open s10-lala (codex) + s10-erha (agy) sibling sessions in survey10 cwd now — the same-cwd three-dogs leash IS the s10 panel transport
+- Diff: Opening 2 live panel legs as Terminal sessions in cwd: lala=codex, erha=agy. s10-obe (this session) is the orchestrator + opus-family leg. Capturing window ids into .s10_sessions.json.
+
+
+
+
+##     2026-06-20 17:19 CST
+
+###    User Prompt
+yes, you (s10-obe), s10-lala, s10-erha, are you all ready?
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua confirms s10 panel roster = s10-obe (opus leg + orchestrator) + s10-lala + s10-erha; readiness check
+- Diff: Resolves the opus-leg question: this session IS the opus panel leg AND orchestrator (no separate s10-opus). Verifying all 3 legs responsive before declaring ready.
+
+
+
+
+##     2026-06-20 17:21 CST
+
+###    User Prompt
+and once the injection fails, you know how to call the stateless headless model as backup?
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Confirm fallback: when inject fails, call the stateless headless model as backup (= reuse s1 cli_caller.py one-shot callers)
+- Diff: Fallback contract pinned: obe_panel detects inject failure (no ack/file within timeout, unparseable answer, session errored) -> calls s1's cli_caller.call_llm() one-shot per leg (claude -p --no-session-persistence / codex exec / agy -p). Optional --resume/--conversation seed to load last context; pure stateless is the simplest guaranteed path.
+
+
+
+
+##     2026-06-20 17:39 CST
+
+###    User Prompt
+S10 跑一下創 一 1-10
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Directive: run S10 on 創 (Gen) 1:1-10
+- Diff: Assembling s10 runner from s1's orchestrator (--round1-only to sidestep undesigned D2 R2 semantics) + s10 live-inject cli_caller (codex/agy via tab file-handoff, claude headless). Then run R1 on Gen 1:1-10.
+
+
+
+
+##     2026-06-20 17:54 CST
+
+###    User Prompt
+Headless backup should be also for lala and erha
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Requirement: headless backup must cover lala (codex) + erha (agy) too, not just opus
+- Diff: Confirming s10 cli_caller.call_llm already falls back to headless for ALL live brands: codex live-fail -> _s1.call_llm(codex), agy live-fail -> _s1.call_llm(agy). Demonstrating with forced-headless test.
+
+
+
+
+##     2026-06-20 18:11 CST
+
+###    User Prompt
+繼續跑滿創世紀 第一章 到五章
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Directive: continue full run — Genesis chapters 1-5 (R1)
+- Diff: Launching run_gold_standard --round1-only --chap 1-5 (~138 verses; 1:1-10 cached). Live lala/erha + headless opus + fallback. Caveat: D1 /compact not yet implemented, so as live sessions fill they lean on headless fallback.
+
+
+
+
+##     2026-06-20 18:42 CST
+
+###    User Prompt
+我想要知道作為黃金標準S one比較好？還是S 10。
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Q: which is better AS the gold standard — S1 or S10?
+- Diff: Methodological analysis: gold-standard trustworthiness rests on panel INDEPENDENCE (S1 preserves; S10's cumulative memory + D3 feedback sacrifices it for throughput/expertise). Recommend S1 as authoritative reference, S10 as cheap propagation engine; settle empirically via ground-truth re-derivation (survey4/5).
+
+
+
+

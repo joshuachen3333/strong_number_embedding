@@ -197,27 +197,3 @@ Not auto-resuming. Recommendation: resume later from 3:14 after (1) building min
 
 
 
-##     2026-06-24 02:53 CST
-
-###    User Prompt
-[redesign sequence] survey1-obe [GO] redesign brief (Q1-E) -> Q2/Q3 via AskUserQuestion (Q2=Hybrid, Q3=D-batched) -> "等 s1 做你的 doc reviewing"
-
-###    result
-s10 redesign v2 完成 + gated on s1 review.
-
-Locked decision set:
-- D1 = E: external conventions.md + per-verse /clear. Decouples accumulated expertise from lost independence — learning moves to a reviewable conventions.md, so each session resets per verse and R1 regains s1-grade blind independence "for free". Kills last run's two failure modes (agy context-decay + /compact loss).
-- D2 = Hybrid (Q2): blind R1 + blind R2 (s1 Trigger 1/2 machinery intact) -> escalate to sealed-bid R2.5 deliberation ONLY on Level-2/3 instability (the 3:11-class verses s1 can only flag). Original "largest code delta" mostly evaporates because per-verse reset restores blindness.
-- D3 = Q3-D batched: no raw-answer feedback; a scribe extracts distilled conventions per-chapter, regression-gates each (reusing s1's run_prompt_regression), versions them.
-
-Reconciliation with Joshua's live-obe CRUX: persistent processes (tabs stay alive & leashed) + per-verse-fresh contexts (/clear) + externalized learning (conventions.md). The panel is still 3 bound colleagues consulting a shared reviewed notebook.
-
-Why this lets s10 rival/surpass s1: same independence as s1, PLUS (1) conventions pre-align format/convention noise so false-disagreements vanish and residual splits are 100% genuine ambiguity; (2) R2.5 actually resolves genuine ambiguity amnesia cannot; (3) cheaper as conventions settle. Residual risk: conventions.md = new single trust-point = s1's prompt in finer form, guarded by the same regression gate + per-line revertibility + empirical per-convention FHL-truth scoring.
-
-4 docs written + committed locally (remote exists, not pushed): SURVEY10_DESIGN.md (rewritten), CONVENTIONS_PIPELINE.md (scribe + judge.py R2.5 delta), S10_VS_S1_GOLD_EXPERIMENT.md (contest judged by survey4 auto_score vs FHL truth, with B0 ablation), Original_Design_Decisions.md (re-decision log). Opening + completion [STATUS] flared to survey1-obe (window 1314).
-
-Run status: Gen 1 re-run prepared (panel alive: 5544/5555/5557; live tabs /clear'd) but HELD pending s1's doc review per Joshua. Caveat surfaced: per-verse /clear, R2.5, scribe are designed-not-coded; for chapter 1 (empty conventions) that mostly doesn't matter.
-
-
-
-

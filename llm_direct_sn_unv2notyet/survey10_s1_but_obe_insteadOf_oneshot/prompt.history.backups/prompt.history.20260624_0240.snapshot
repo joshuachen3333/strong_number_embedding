@@ -129,3 +129,101 @@ yes, you (s10-obe), s10-lala, s10-erha, are you all ready?
 
 
 
+##     2026-06-20 17:21 CST
+
+###    User Prompt
+and once the injection fails, you know how to call the stateless headless model as backup?
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Confirm fallback: when inject fails, call the stateless headless model as backup (= reuse s1 cli_caller.py one-shot callers)
+- Diff: Fallback contract pinned: obe_panel detects inject failure (no ack/file within timeout, unparseable answer, session errored) -> calls s1's cli_caller.call_llm() one-shot per leg (claude -p --no-session-persistence / codex exec / agy -p). Optional --resume/--conversation seed to load last context; pure stateless is the simplest guaranteed path.
+
+
+
+
+##     2026-06-20 17:39 CST
+
+###    User Prompt
+S10 跑一下創 一 1-10
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Directive: run S10 on 創 (Gen) 1:1-10
+- Diff: Assembling s10 runner from s1's orchestrator (--round1-only to sidestep undesigned D2 R2 semantics) + s10 live-inject cli_caller (codex/agy via tab file-handoff, claude headless). Then run R1 on Gen 1:1-10.
+
+
+
+
+##     2026-06-20 17:54 CST
+
+###    User Prompt
+Headless backup should be also for lala and erha
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Requirement: headless backup must cover lala (codex) + erha (agy) too, not just opus
+- Diff: Confirming s10 cli_caller.call_llm already falls back to headless for ALL live brands: codex live-fail -> _s1.call_llm(codex), agy live-fail -> _s1.call_llm(agy). Demonstrating with forced-headless test.
+
+
+
+
+##     2026-06-20 18:11 CST
+
+###    User Prompt
+繼續跑滿創世紀 第一章 到五章
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Directive: continue full run — Genesis chapters 1-5 (R1)
+- Diff: Launching run_gold_standard --round1-only --chap 1-5 (~138 verses; 1:1-10 cached). Live lala/erha + headless opus + fallback. Caveat: D1 /compact not yet implemented, so as live sessions fill they lean on headless fallback.
+
+
+
+
+##     2026-06-20 18:42 CST
+
+###    User Prompt
+我想要知道作為黃金標準S one比較好？還是S 10。
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Q: which is better AS the gold standard — S1 or S10?
+- Diff: Methodological analysis: gold-standard trustworthiness rests on panel INDEPENDENCE (S1 preserves; S10's cumulative memory + D3 feedback sacrifices it for throughput/expertise). Recommend S1 as authoritative reference, S10 as cheap propagation engine; settle empirically via ground-truth re-derivation (survey4/5).
+
+
+
+
+##     2026-06-24 02:17 CST
+
+###    User Prompt
+survey1_prompt_evolving-obe->survey10_s1_but_obe_insteadOf_oneshot-obe [GO]:
+Joshua 要你依新方向重做 s10 設計。兩份檔已寫進你 cwd,請先讀:
+1) Original_Design_Decisions.md — Q1/Q2/Q3 完整選項×後果表 + 原 D1/D2/D3
+2) 20260624_from_survey1obe_to_survey10obe_redesign_Q1E.md — 重做指令 + Q1-E 外部慣例詳述(好處/挑戰)+ 與 s1 競爭 gold 的細節
+核心:D1 從 /compact 改選 E(外部 conventions.md + 每節 reset),據此重審 Q2(守住 R1 獨立:blind 或 sealed-bid)、Q3(改成只回饋蒸餾+審查過的慣例,不灌原始答案)。目標:讓 s10 從『便宜傳播引擎』升級成『可與 s1 競爭 gold verses 生產、甚至超越』。
+要做:改寫 SURVEY10_DESIGN.md + 設計 conventions 萃取/regression 審查 pipeline + 規劃 s10 vs s1 並列產 gold、用 survey4/5 FHL ground truth 裁判的實驗。
+這是長任務:開工 flare 一個 [STATUS]、完成再 flare 一個 [STATUS] 回我(window 1314 / ttys002)。
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: sibling survey1-obe [GO]: redo s10 design — D1 改選 E(外部 conventions.md + 每節 reset),重審 Q2/Q3,升級成可與 s1 競爭 gold 生產
+- Diff: 收到重做指令 + 2 份設計檔(Original_Design_Decisions.md, 20260624 redesign letter)。將改寫 SURVEY10_DESIGN.md + 設計 conventions 萃取/regression pipeline + 規劃 s10-vs-s1 並列產 gold 用 survey4/5 FHL ground truth 裁判
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/SURVEY10_DESIGN.md`
+
+
+
+
+##     2026-06-24 02:21 CST
+
+###    User Prompt
+等一下再實作改動, Q2 Q3 還未定稿
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 暫停實作:Q2/Q3 還未定稿,先別動 SURVEY10_DESIGN.md
+- Diff: 收到 hold 指令。停止改寫設計檔,改為先把 Q2(R1 獨立性怎麼守)、Q3(慣例回饋形式)的選項與建議攤開給 Joshua 定案,定案後才實作
+
+
+
+

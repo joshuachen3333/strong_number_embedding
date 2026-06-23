@@ -242,3 +242,16 @@ Q3 conventions: D batched (every N verses) — extract per-chapter, regression-g
 
 
 
+##     2026-06-24 02:53 CST
+
+###    User Prompt
+等 s1 做你的 doc reviewing.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 暫停 Gen 1 run,等 s1 鄰居 review 我的 redesign docs 後再動
+- Diff: Gen 1 run gated on s1 doc review。已 /clear 5555/5557 但未啟動任何 run。等 window 1314 的 review inject,處理意見後才跑
+
+
+
+
