@@ -76,6 +76,7 @@ def build_gold_standard(unanimous, disagreed, round1_results,
                         round3_judgments, verse_data,
                         prompt_version="v1.0", sn_field="lcc_sn",
                         trigger1_verses=None, trigger2_verses=None,
+                        deliberation_verses=None,
                         naked=False):
     """Build gold standard JSONs from all round results.
 
@@ -316,6 +317,29 @@ def build_gold_standard(unanimous, disagreed, round1_results,
     if trigger2_verses:
         for verse_key, gold_entry in trigger2_verses:
             gold_standard[verse_key] = gold_entry
+
+    # Process D-deliberation verses (s10 terminal post-C tier). These were
+    # collected only after C was exhausted (R3 unresolved / Trigger-1 convention-
+    # evolution regression-fail). A D resolution OVERRIDES any earlier "unresolved"
+    # entry for the same verse, and clears it from the unresolved list.
+    if deliberation_verses:
+        for verse_key, gold_entry in deliberation_verses:
+            if gold_entry is None:
+                continue  # D deadlocked → leave as unresolved
+            gold_standard[verse_key] = gold_entry
+            if verse_key in unresolved:
+                unresolved.remove(verse_key)
+
+    # Record the trust tier explicitly (gate #5: c_consensus vs d_deliberation).
+    # Every resolved verse that is NOT d_deliberation is a C-tier consensus.
+    _C_TIER = {"round1", "round2", "round3", "r2_model_patch"}
+    for g in gold_standard.values():
+        if g.get("resolved_at") == "d_deliberation":
+            g.setdefault("trust_tier", "d_deliberation")
+        elif g.get("resolved_at") in _C_TIER:
+            g["trust_tier"] = "c_consensus"
+        else:
+            g["trust_tier"] = None  # unresolved / *_evolution — no trust tier
 
     # --naked post-pass (存檔還殼): restore FHL shells onto naked winning text.
     # Deterministic format step, decoupled from all resolved_at logic above.

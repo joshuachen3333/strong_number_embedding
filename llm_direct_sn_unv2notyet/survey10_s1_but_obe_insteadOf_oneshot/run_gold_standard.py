@@ -231,12 +231,16 @@ def _coverage(unv_sn, output_sn, naked=False):
     return verify_sn_coverage(unv_sn, output_sn)
 
 from cli_caller import call_llm, DEFAULT_MODELS, MODEL_ALIASES, build_panel
+from cli_caller import reset_live_panel
 from comparator import compare_round1, summarize_disagreement
 from judge import run_r2_convergence, run_r2_debate, run_round3, tally_r2_debate
 from consensus import build_gold_standard, save_gold_standard, print_summary
 from regression import (
     load_gold_standard, select_regression_verses, print_regression_plan,
 )
+# s10 v2 deltas: externalized conventions (D1-E), the scribe (D3), D-deliberation.
+import conventions as conv_mod
+from conventions import build_conventions_preamble, load_conventions
 
 
 def parse_range(s):
@@ -685,6 +689,13 @@ def main():
         system_prompt = strip_prompt_comments(system_prompt)
         print(f"  [--strip-prompt-comment] # comments stripped from prompt")
 
+    # ── s10 D1-E (gate #1): PREPEND externalized conventions.md into the system
+    # prompt so every leg's R1/R2/R3 built prompt carries the settled conventions.
+    # Empty seed still injects a greppable marker so the wiring is verifiable.
+    system_prompt = build_conventions_preamble(target_version) + system_prompt
+    print(f"  [conventions] {len(load_conventions())} active rule(s) prepended "
+          f"into every leg's prompt")
+
     # Get verse list
     verses = get_verse_list(book_chi, chapters, sec_range)
     if args.verse_count is not None:
@@ -735,10 +746,16 @@ def main():
     all_disagreed = []
     all_trigger1 = []   # (verse_key, verse_data_entry, convergence_for_verse)
     all_trigger2 = []   # (verse_key, gold_entry)
+    all_deliberation = []  # s10 D-tier: (verse_key, gold_entry|None) — terminal post-C
 
     for verse_idx, (chap, sec) in enumerate(verses):
         verse_key = (chap, sec)
         _update_last_verse(book_eng, chap, sec)
+
+        # ── s10 D1-E (gate #3): per-verse reset — /clear each LIVE leg so this
+        # verse starts blind/independent (R1 amnesia restored). Headless legs are
+        # already per-call amnesiac, so a failed /clear degrades safely.
+        reset_live_panel(verbose=args.verbose)
 
         if verse_idx > 0:
             print("\n\n\n\n\n")
@@ -974,108 +991,39 @@ def main():
                 json.dump(evo_record, f, indent=2, ensure_ascii=False)
             print(f"  Evolution record saved: {evo_path}")
 
-            # Auto-generate new prompt
-            print(f"\n  Auto-evolving prompt (Trigger 1)...")
-            from judge import auto_evolve_prompt
-            # Build judge opinions from convergence data
-            judge_opinions = [{
-                "error_identified": "All 3 models failed to converge — prompt is ambiguous for this verse type",
-                "prompt_improvement": f"Model {m} stable_at={convergence_results.get(m, {}).get(verse_key, {}).get('stable_at', '?')}"
-            } for m in models_list]
+            # ── s10 (gate #4): Trigger-1 = prompt/convention bad → evolve a
+            # CONVENTION (NOT a prompt +0.1 bump). If no candidate passes the
+            # regression gate, the verse is genuinely ambiguous → D-deliberation
+            # (gate #2). The run CONTINUES — conventions accumulate live; there is
+            # no break / human prompt-fix. Trigger-2's model-patch path is untouched.
+            print(f"\n  Trigger 1 → conventions write-path (s10)...")
+            conv_ctx = "; ".join(
+                f"{m} stable_at={convergence_results.get(m, {}).get(verse_key, {}).get('stable_at','?')}"
+                for m in models_list)
+            outcome, d_entry = conv_mod.handle_collective_error(
+                verse_key, reason="Trigger-1",
+                error_descriptions=["All 3 models unstable in R2 convergence — "
+                                    "prompt/convention may be ambiguous"],
+                convergence_context=conv_ctx,
+                system_prompt=system_prompt, book_chi=book_chi, book_eng=book_eng,
+                models=model_trio, target_version=target_version, sn_field=sn_field,
+                round1_results=round1_results, verse_data=verse_data,
+                naked=args.naked, verbose=args.verbose)
+            evo_record["resolution"] = outcome
+            with open(evo_path, "w", encoding="utf-8") as f:
+                json.dump(evo_record, f, indent=2, ensure_ascii=False)
+            if outcome == "deliberation":
+                all_deliberation.append((verse_key, d_entry))
 
-            new_prompt, evolve_record = auto_evolve_prompt(
-                current_prompt=system_prompt,
-                current_version=args.prompt_version,
-                verse_ref=f"{book_eng} {chap}:{sec}",
-                judge_opinions=judge_opinions,
-                models=model_trio,
-                target_version=target_version,
-                verbose=args.verbose,
-            )
-
-            # Save evolve record
-            evolve_record_path = os.path.join(evo_dir, f"{chap}_{sec}_auto_evolve_record.json")
-            with open(evolve_record_path, "w", encoding="utf-8") as f:
-                json.dump(evolve_record, f, indent=2, ensure_ascii=False)
-
-            if new_prompt:
-                import re as _re
-                m_ver = _re.match(r'v(\d+)\.(\d+)', args.prompt_version)
-                if m_ver:
-                    new_ver = f"v{m_ver.group(1)}.{int(m_ver.group(2)) + 1}"
-                else:
-                    new_ver = args.prompt_version + ".1"
-
-                new_trigger = f"{book_eng}_{chap}_{sec}"
-                new_fname = f"{new_ver}_{new_trigger}.md"
-                new_path = os.path.join(SURVEY_DIR, "prompts", new_fname)
-
-                header = (
-                    f"# Prompt {new_ver}\n"
-                    f"# Evolved from: {args.prompt_version}\n"
-                    f"# Triggered by: {book_eng} {chap}:{sec} (R2 Trigger 1 — all struggling)\n"
-                    f"# Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
-                    f"# Winner: {evolve_record.get('winner', {}).get('model', '?')}\n"
-                    f"# Average level: {avg_level:.1f}\n"
-                    f"\n"
-                )
-                with open(new_path, "w", encoding="utf-8") as f:
-                    f.write(header + new_prompt)
-                print(f"\n  NEW PROMPT SAVED: {new_fname}")
-
-                evo_record["prompt_to"] = new_ver
-                with open(evo_path, "w", encoding="utf-8") as f:
-                    json.dump(evo_record, f, indent=2, ensure_ascii=False)
-
-                # 回測
-                from regression import run_prompt_regression
-                print(f"\n  Running 回測 for {new_fname}...")
-                regression_ok, regression_results = run_prompt_regression(
-                    new_prompt=new_prompt,
-                    new_version=new_ver,
-                    trigger_verse=verse_key,
-                    book_chi=book_chi,
-                    book_eng=book_eng,
-                    models=model_trio,
-                    target_version=target_version,
-                    sn_field=sn_field,
-                    verbose=args.verbose,
-                )
-                if regression_ok:
-                    print(f"  REGRESSION TEST PASSED — {new_fname} is safe to adopt.")
-                else:
-                    print(f"  回測 FAILED — marking {new_fname} as REGRESSION_FAILED.")
-                    failed_verses = regression_results.get("failed_verses", [])
-                    fail_verse_str = "_".join(f"{c}_{s}" for c, s in failed_verses) if failed_verses else "unknown"
-                    reverted_path = new_path.replace(".md", f"_REGRESSION_FAILED_at_{book_eng}_{fail_verse_str}.md")
-                    fail_header = (
-                        f"\n# *** REGRESSION FAILED ***\n"
-                        f"# Failed at: {', '.join(f'{book_eng} {c}:{s}' for c, s in failed_verses)}\n"
-                        f"# Passed: {regression_results.get('passed', 0)}/{regression_results.get('sampled', 0)}\n"
-                        f"# This prompt improved the trigger verse but broke the above.\n"
-                        f"# Kept for learning — do not auto-detect as active prompt.\n\n"
-                    )
-                    with open(new_path, "r", encoding="utf-8") as f:
-                        content = f.read()
-                    with open(reverted_path, "w", encoding="utf-8") as f:
-                        f.write(fail_header + content)
-                    os.remove(new_path)
-                    print(f"  Saved as: {os.path.basename(reverted_path)}")
-                    evo_record["prompt_to"] = None
-                    evo_record["regression_failed"] = True
-                    evo_record["failed_verses"] = [f"{c}:{s}" for c, s in failed_verses]
-                    with open(evo_path, "w", encoding="utf-8") as f:
-                        json.dump(evo_record, f, indent=2, ensure_ascii=False)
-            else:
-                print(f"\n  Auto-evolve FAILED. Human review needed.")
-
-            # Collect for build_gold_standard() — don't save directly (AD-1)
+            # Collect the trigger verse for gold (r2_early_evolution unless D
+            # resolved it — D entries override in build_gold_standard). AD-1: don't
+            # save directly.
             conv_for_verse = {m: convergence_results.get(m, {}).get(verse_key, {})
                               for m in models_list}
             all_trigger1.append((verse_key, verse_data[verse_key], conv_for_verse))
-            all_disagreed.remove(verse_key)  # was added at DISAGREED, now handled by trigger1
-            print(f"\n  STOPPING — fix prompt before processing more verses.")
-            break
+            all_disagreed.remove(verse_key)  # was added at DISAGREED, now handled
+            # s10: do NOT break — conventions are live; continue the run.
+            continue
 
         # TRIGGER 2: distance-based (AD-2)
         # Find all pairs of agreeing AVAILABLE models, check distance to the third
@@ -1395,120 +1343,40 @@ def main():
                     print(f"    Judge {i+1} error: {err[:150]}")
                     print(f"    Judge {i+1} fix:   {imp[:150]}")
 
-                if details["aligned"]:
-                    print(f"\n  Models AGREE on the error. Auto-evolving prompt...")
-
-                    # Auto-generate new prompt: 3 models draft → vote
-                    from judge import auto_evolve_prompt
-                    judge_opinions = [
-                        {"error_identified": err, "prompt_improvement": imp}
-                        for err, imp in zip(details["error_descriptions"],
-                                            details["improvements"])
-                    ]
-                    new_prompt, evolve_record = auto_evolve_prompt(
-                        current_prompt=system_prompt,
-                        current_version=args.prompt_version,
-                        verse_ref=f"{book_eng} {chap}:{sec}",
-                        judge_opinions=judge_opinions,
-                        models=model_trio,
-                        target_version=target_version,
-                        verbose=args.verbose,
-                    )
-
-                    # Save evolution record
-                    evolve_record_path = os.path.join(
-                        evo_dir, f"{chap}_{sec}_auto_evolve_record.json")
-                    with open(evolve_record_path, "w", encoding="utf-8") as f:
-                        json.dump(evolve_record, f, indent=2, ensure_ascii=False)
-
-                    if new_prompt:
-                        # Determine new version
-                        import re as _re
-                        m = _re.match(r'v(\d+)\.(\d+)', args.prompt_version)
-                        if m:
-                            new_ver = f"v{m.group(1)}.{int(m.group(2)) + 1}"
-                        else:
-                            new_ver = args.prompt_version + ".1"
-
-                        # Save new prompt with story header
-                        new_trigger = f"{book_eng}_{chap}_{sec}"
-                        new_fname = f"{new_ver}_{new_trigger}.md"
-                        new_path = os.path.join(SURVEY_DIR, "prompts", new_fname)
-
-                        header = (
-                            f"# Prompt {new_ver}\n"
-                            f"# Evolved from: {args.prompt_version}\n"
-                            f"# Triggered by: {book_eng} {chap}:{sec} (R3 all_wrong)\n"
-                            f"# Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
-                            f"# Winner: {evolve_record.get('winner', {}).get('model', '?')}\n"
-                            f"#\n"
-                            f"# --- Evolution story ---\n"
-                            f"# R3 judges (2/3+) independently identified collective error.\n"
-                            f"# 3 models each drafted a new prompt → voted → winner selected.\n"
-                        )
-                        for i, op in enumerate(judge_opinions):
-                            header += f"# Judge {i+1} error: {op['error_identified'][:100]}\n"
-                        header += f"\n"
-
-                        with open(new_path, "w", encoding="utf-8") as f:
-                            f.write(header + new_prompt)
-                        print(f"\n  NEW PROMPT SAVED: {new_fname}")
-
-                        # Update evo_record with new version
-                        evo_record["prompt_to"] = new_ver
-                        with open(evo_path, "w", encoding="utf-8") as f:
-                            json.dump(evo_record, f, indent=2, ensure_ascii=False)
-
-                        # 回測: run past gold standard with new prompt
-                        from regression import run_prompt_regression
-                        print(f"\n  Running 回測 for {new_fname}...")
-                        regression_ok, regression_results = run_prompt_regression(
-                            new_prompt=winning_prompt,
-                            new_version=new_ver,
-                            trigger_verse=verse_key,
-                            book_chi=book_chi,
-                            book_eng=book_eng,
-                            models=model_trio,
-                            target_version=target_version,
-                            sn_field=sn_field,
-                            verbose=args.verbose,
-                        )
-                        if regression_ok:
-                            print(f"  REGRESSION TEST PASSED — {new_fname} is safe to adopt.")
-                        else:
-                            print(f"  回測 FAILED — marking {new_fname} as REGRESSION_FAILED.")
-                            failed_verses = regression_results.get("failed_verses", [])
-                            fail_verse_str = "_".join(f"{c}_{s}" for c, s in failed_verses) if failed_verses else "unknown"
-                            reverted_path = new_path.replace(".md", f"_REGRESSION_FAILED_at_{book_eng}_{fail_verse_str}.md")
-                            fail_header = (
-                                f"\n# *** REGRESSION FAILED ***\n"
-                                f"# Failed at: {', '.join(f'{book_eng} {c}:{s}' for c, s in failed_verses)}\n"
-                                f"# Passed: {regression_results.get('passed', 0)}/{regression_results.get('sampled', 0)}\n"
-                                f"# This prompt improved the trigger verse but broke the above.\n"
-                                f"# Kept for learning — do not auto-detect as active prompt.\n\n"
-                            )
-                            with open(new_path, "r", encoding="utf-8") as f:
-                                content = f.read()
-                            with open(reverted_path, "w", encoding="utf-8") as f:
-                                f.write(fail_header + content)
-                            os.remove(new_path)
-                            print(f"  Saved as: {os.path.basename(reverted_path)}")
-                            evo_record["prompt_to"] = None
-                            evo_record["regression_failed"] = True
-                            evo_record["failed_verses"] = [f"{c}:{s}" for c, s in failed_verses]
-                            with open(evo_path, "w", encoding="utf-8") as f:
-                                json.dump(evo_record, f, indent=2, ensure_ascii=False)
-                    else:
-                        print(f"\n  Auto-evolve FAILED (no 2/3 majority in vote).")
-                        print(f"  Human review needed.")
-                else:
-                    print(f"\n  Models DISAGREE on improvement direction. Human review needed.")
-
-                print(f"\n  STOPPING — fix prompt before processing more verses.")
-                # Still build gold standard for what we have so far
-                break
+                # ── s10 (gate #4): R3 collective error = prompt/convention bad →
+                # evolve a CONVENTION (NOT a prompt +0.1 bump). If no candidate
+                # passes the regression gate, the verse is genuinely ambiguous →
+                # D-deliberation (gate #2). The run CONTINUES — conventions are
+                # live. The verse stays in `disagreed`, so build_gold_standard marks
+                # it prompt_evolution unless a D entry overrides it.
+                print(f"\n  R3 all_wrong → conventions write-path (s10)...")
+                outcome, d_entry = conv_mod.handle_collective_error(
+                    verse_key, reason="R3-all_wrong",
+                    error_descriptions=details["error_descriptions"],
+                    convergence_context="; ".join(
+                        i for i in details.get("improvements", []) if i),
+                    system_prompt=system_prompt, book_chi=book_chi, book_eng=book_eng,
+                    models=model_trio, target_version=target_version, sn_field=sn_field,
+                    round1_results=round1_results, verse_data=verse_data,
+                    naked=args.naked, verbose=args.verbose)
+                evo_record["resolution"] = outcome
+                with open(evo_path, "w", encoding="utf-8") as f:
+                    json.dump(evo_record, f, indent=2, ensure_ascii=False)
+                if outcome == "deliberation":
+                    all_deliberation.append((verse_key, d_entry))
+                # s10: do NOT break — conventions are live; continue the run.
+                continue
             else:
-                print(f"  → R3 UNRESOLVED [{ts()}] (human review needed)", flush=True)
+                # ── s10 D-tier (gate #2): C is exhausted (R3 returned unresolved).
+                # Fire D-deliberation — the TERMINAL tier replacing s1's "→ human".
+                # This is the corrected trigger (C-exhausted), NOT _stability_level.
+                print(f"  → R3 UNRESOLVED [{ts()}] → D-deliberation (C exhausted)",
+                      flush=True)
+                d_entry = conv_mod.run_d_deliberation(
+                    verse_key, round1_results, verse_data, model_trio,
+                    target_version, sn_field, reason="R3-unresolved",
+                    naked=args.naked, verbose=args.verbose)
+                all_deliberation.append((verse_key, d_entry))
                 continue
 
     if args.round1_only:
@@ -1532,11 +1400,23 @@ def main():
         sn_field=sn_field,
         trigger1_verses=all_trigger1,
         trigger2_verses=all_trigger2,
+        deliberation_verses=all_deliberation,  # s10 D-tier (terminal post-C)
         naked=args.naked,
     )
 
     save_gold_standard(gold_standard, output_dir=args.gold_dir)
     print_summary(gold_standard, unresolved, prompt_evolutions)
+
+    # ── s10 D3 (gate #4): per-chapter scribe — distill this run's resolved gold
+    # into new regression-gated conventions for FUTURE verses. Runs AFTER gold is
+    # built (verses must be settled before learning from them).
+    scribe_chaps = sorted({c for (c, _s) in gold_standard.keys()})
+    for _c in scribe_chaps:
+        accepted = conv_mod.run_scribe_for_chapter(
+            _c, book_chi, book_eng, gold_standard, model_trio,
+            target_version, sn_field, verbose=args.verbose)
+        if accepted:
+            print(f"  [scribe] ch{_c}: {len(accepted)} new convention(s) accepted")
 
     # Verify SN coverage on gold standard
     print(f"\n  Verifying SN coverage on gold standard...")

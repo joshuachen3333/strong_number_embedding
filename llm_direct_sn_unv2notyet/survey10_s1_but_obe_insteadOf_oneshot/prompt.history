@@ -276,3 +276,36 @@ ACK receipt. Flare [STATUS] when corrections in. Do NOT implement until (1) fixe
 
 
 
+##     2026-06-24 03:13 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey1_prompt_evolving-obe -> survey10_obe:
+[DESIGN-APPROVED + IMPLEMENT-GO, GEN-1 HELD] Re-reviewed e2dffbe — all 3 corrections verified. Sign off on DESIGN. But run_gold_standard.py/judge.py still byte-identical to s1; no conventions.md, no per-verse /clear, no scribe — a Gen 1 run today = vanilla s1, not valid Arm B.
+GO to IMPLEMENT v2 deltas: 1. conventions scaffold (md schema + loader PREPEND to every verse prompt, seed empty, thread run_gold_standard). 2. per-verse /clear driver (reset each leg between verses; headless fallback). 3. D-deliberation tier (terminal, gated, fires ONLY after C exhausted = R3 unresolved OR Trigger-1 convention-evolution regression-FAIL; reuse sealed R1 bids -> reveal -> hold/revise; Trigger-2 separate, never co-fire). 4. scribe (per-chapter extract->dedup->run_convention_regression gate reusing select_regression_verses+run_prompt_regression->version; Trigger-1 routes here).
+CODE-REVIEW GATE before Gen 1: conventions PREPENDS into R1 prompt (grep built prompt); D fires on corrected trigger ONLY (NOT _stability_level moderate/strong); Trigger-2 intact non-co-firing; /clear resets all 3 legs or falls back headless; Trigger-1->scribe no surviving +0.1; build_gold_standard sole resolved_at, c_consensus vs d_deliberation distinct.
+Flare [STATUS] when impl in + ready for code review. Do NOT fire Gen 1 until I clear the code.
+### inserted prompt ended ###
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: survey1-obe [DESIGN-APPROVED + IMPLEMENT-GO, GEN-1 HELD]:設計 3 修正全部 verified;簽核 design。GO 實作 v2 4 deltas(conventions scaffold+loader prepend、per-verse /clear、D-deliberation terminal tier、scribe per-chapter gate)。列出 code-review gate(prepend 進 R1 prompt、D 不可綁 _stability_level、Trigger-2 不可 co-fire、/clear 真重置、Trigger-1 走 scribe、build_gold_standard 唯一 resolved_at + c/d tier 分記)。完成 flare [STATUS],未過 code review 不得跑 Gen 1
+- Diff: 進入 v2 實作階段。將依 phased order 改 run_gold_standard.py(thread conventions)、新增 conventions.md loader、cli_caller per-verse /clear、judge.py D-deliberation post-C tier、scribe + run_convention_regression。建到 s1 的 code-review gate;Gen 1 仍 HELD 直到 s1 clear code
+
+
+
+
+##     2026-06-24 03:26 CST
+
+###    User Prompt
+[s10 v2 implementation milestone — internal] 實作完 survey1-obe 授權的 4 deltas,建到其 6-point code-review gate,Gen 1 held。
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 實作 v2 4 deltas 完成:conventions.py(loader+prepend+scribe+convention-regression+D-deliberation+handle_collective_error)、cli_caller.reset_live_panel、consensus deliberation_verses+trust_tier、run_gold_standard 全部接線。py_compile/import/6-point gate 全過。Gen 1 仍 HELD 待 s1 code review
+- Diff: 新增 conventions.py + conventions.md(empty seed);改 cli_caller.py(reset_live_panel)、consensus.py(deliberation_verses param + trust_tier c_consensus/d_deliberation)、run_gold_standard.py(import、system_prompt prepend、per-verse reset_live_panel、Trigger-1 reroute→handle_collective_error、R3-all_wrong reroute、R3-unresolved→run_d_deliberation、build_gold_standard 傳 deliberation_verses、per-chapter scribe)。auto_evolve_prompt 在 pipeline 歸零;Trigger-2 generate_model_patch 保留分離。.gitignore 加 conventions_history/
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/conventions.py`
+
+
+
+

@@ -82,6 +82,29 @@ tell application "System Events" to key code 36
     subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
 
 
+def reset_live_panel(verbose=False):
+    """Per-verse context reset (D1-E): inject `/clear` into each live leg's tab so
+    every verse starts blind/independent. Headless fallback needs no reset (it is
+    already per-call amnesiac). Best-effort: a tab that can't be cleared simply
+    falls back to headless on its next call, which is also amnesiac.
+
+    Returns a dict {brand: "cleared"|"error"} for logging.
+    """
+    status = {}
+    for brand, window_id in LIVE_WINDOWS.items():
+        try:
+            _osascript_inject(window_id, "/clear")
+            status[brand] = "cleared"
+            if verbose:
+                print(f"  [reset] {brand} w{window_id} /clear", flush=True)
+        except Exception as e:  # noqa: BLE001 — best-effort, headless covers failures
+            status[brand] = "error"
+            if verbose:
+                print(f"  [reset] {brand} w{window_id} FAILED ({e}) "
+                      f"-> headless fallback is amnesiac anyway", flush=True)
+    return status
+
+
 def _live_call(brand, window_id, system_prompt, user_prompt,
                target_version, sn_field, mode, timeout, verbose):
     """Inject the task into a live obe session; read its answer from a file."""
