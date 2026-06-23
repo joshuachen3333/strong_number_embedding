@@ -403,3 +403,48 @@ Q1 — 選項 E:External「慣例」外部記憶(中文詳述)
 
 
 
+##     2026-06-24 16:10 CST
+
+###    User Prompt
+Q2「失憶重擲測不穩定度,記憶讓前提崩了,拿什麼取代?」中文詳述
+
+###    result
+s1 原本:模型對某節答案的「穩定度」= 這節有多難/多歧義的代理信號。R2 convergence 叫同一模型對同一節「失憶地」重做(R2a/b/c,每次像第一次),每次都一樣→穩定(Level 0,有把握);一直 differs→不穩定(Level 3,在擲骰)。Level 0-3 驅動 Trigger 1(全體 avg≥2→prompt 爛→進化+0.1)、Trigger 2(2穩1不穩→弱模型 patch)。整套地基=失憶。
+
+有記憶就崩:stateful 模型記得 R1 講過 X,R2 重做變「我剛說 X 就 X」=trivial self-agreement→每次都一樣→量表判「假穩定」→Trigger 永不觸發、prompt 進化+弱模型 patch 都死→s1 自我診斷/改進機制失效。
+
+四個取代:A 全 stateful(放棄量表改真審議,能解 3:11 真歧義,但失獨立+Level/Trigger 全重設+groupthink);B 混合 R1 stateful/R2 blind(理論兩全,但無法真讓 stateful 模型忘記,不可靠);C 全獨立(=s1+live transport,可信但失去 s10 意義、3:11 沒解);D sealed-bid(先封閉作答再揭曉審議,封閉手獨立可當錨點,但編排最複雜)。
+
+關鍵:Q1-E 改變這題答案。E 把跨節知識搬去 conventions.md、每節 reset→節內失憶前提復活→可重新做獨立 R1、甚至 blind R2。所以選 E,Q2 就能選 C/D 而不犧牲累積專業(專業在 conventions.md 不在 session)。取代失憶前提的最佳答案取決於 Q1:維持 A→只能走審議放棄量表;改 E→失憶前提節內復活→可走 C/D 保 gold 可信。
+
+
+
+
+##     2026-06-24 16:25 CST
+
+###    User Prompt
+Q1 選了 E,Q2 就 C D 詳細討論好壞與抉擇
+
+###    result
+Q1=E 後,C/D 差別只剩「節內三模型要不要互相影響」。C=s1+conventions(獨立 R1、失憶重擲測穩定[E 已復活]、互評投票);D=sealed-bid(先封閉作答→揭曉→審議修正)。
+
+C 好:最大可信度(N 獨立證人=s1);失憶前提復活→s1 機制原封可用(D2 最大 delta 消失);conventions 去假分歧→已贏 s1;工程最輕;零 groupthink。C 壞:解不了真歧義尾巴(3:11 只能投票/升級人工,不讓模型推理互相說服);上限=s1+去雜訊。
+
+D 好:能解 C 解不了的真歧義(推理談出比投票更好的答案);封閉手仍是獨立信號可當錨點;上限超越 s1。D 壞:工程最重(跨3 tab 封揭時序+審議協議+穩定度信號重定義,縮小版 D2 delta 回來);groupthink 風險(須錨在封閉手);較貴。
+
+推薦:C 當底 + D 作硬節升級(hybrid,非二選一)。預設走 C;只在 C 卡關(無多數/Trigger-1 進化回測失敗/R3 unresolved)才啟動 D 的 sealed-bid 審議。易節保 C 全獨立+便宜;硬節用審議拿 D 天花板,標記「審議解決」可審查,groupthink 框在一小撮。拿到 D 上限只付局部成本/風險。純 C=最快最穩已贏 s1(硬節照丟人工);C+D=連 3:11 尾巴都自動解、真超越 s1(推這個);純 D 不建議(易節浪費審議+折損可信度)。
+
+
+
+
+##     2026-06-24 16:40 CST
+
+###    User Prompt
+預設走 C 只在卡關啟動 D——這有矛盾嗎?相容可行嗎?
+
+###    result
+不矛盾,完全相容可行——C/D 不是互斥模式,是同一階梯的兩層。三個理由:(1) C 的 R1 就是 D 的 sealed bid,同一手,共享資料零浪費;(2) 順序分層非同時——D 只在 C 收好獨立信號後才啟動,C 的測量永不被污染;(3) Q1=E 把 D 的狀態關在一節內,審議記憶被每節 reset 清掉,不污染其他節的 C 獨立性。它是 s1 階梯的自然完成式(s1 盡頭=人工;這裡換成「先試 D,D 也失敗才人工」)。失敗模式零重疊:Trigger1=prompt問題→進化慣例;Trigger2=弱模型→patch;D=該節真歧義(3:11 正是,Trigger-1 進化回測失敗=irreducible verse-ambiguity 信號)。要設計好(非矛盾):resolved_at 記兩個信任級(c_consensus/d_deliberation,同 s1 分 round1/2/3);handoff 釘死=C 標 unresolved/進化回測失敗;D 信任錨在 sealed 手、審議可審查。可行性:C 低(搬 s1)、handoff 低(加條件分支)、D 中(只當升級處理器跑少數硬節,不必整 pipeline stateful)。判決:沒矛盾、相容可行、比純 D 更 coherent,是最佳解。
+
+
+
+

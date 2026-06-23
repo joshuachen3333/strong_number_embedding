@@ -376,3 +376,16 @@ s10 你知道嗎？
 
 
 
+##     2026-06-24 02:54 CST
+
+###    User Prompt
+ok, before you do the review, /compact first, then /ph then /logoutput
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua:做 review 前先 /compact、/ph、/logoutput(flush provenance)
+- Diff: 提醒:/compact 是 built-in 無法自呼叫(Joshua 自打);先做 ph+lo flush 再 review s10 4 docs
+
+
+
+
