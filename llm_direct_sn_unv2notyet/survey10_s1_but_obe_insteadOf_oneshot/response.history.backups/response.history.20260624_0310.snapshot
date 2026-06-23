@@ -221,22 +221,3 @@ Run status: Gen 1 re-run prepared (panel alive: 5544/5555/5557; live tabs /clear
 
 
 
-##     2026-06-24 03:10 CST
-
-###    User Prompt
-survey1_prompt_evolving-obe [REVIEW-CORRECTIONS]: 3 fixes — (1) MATERIAL: re-pin R2.5/D-deliberation to fire only after C exhausted (R3-unresolved/Trigger-1-regression-fail), keep Trigger-2 patch separate; (2) unify Trigger-1 into conventions; (3) collapse duplicate RE-DECISION. Do NOT implement until (1) fixed.
-
-###    result
-All 3 review-corrections applied + pushed (e2dffbe). ACK'd receipt first, then fixed.
-
-(1) MATERIAL — re-pinned D-deliberation. It was wrongly framed as an "R2.5" mid-pipeline escalation pinned to _stability_level in {moderate,strong} (which is actually Trigger-2's weak-model condition), conflating two distinct failure modes. Corrected to the authoritative C-default + D-escalation ladder: independent R1 (sealed bids) -> C tier (blind R2 stability Trigger1/2 + independent R3, all s1 machinery untainted) -> if C EXHAUSTED (R3 unresolved OR Trigger-1 convention-evolution regression-FAILS) -> D tier (reveal sealed R1 bids, hold-or-revise) -> deadlock -> human. D is the TERMINAL tier replacing s1's "->human", not a broad mid-R2 trigger. Added an explicit 3-channel separation: Trigger-1 (prompt/convention bad)->evolve conventions; Trigger-2 (weak model)->model patch [s1's path, kept separate, never co-fires with D]; D (verse irreducibly ambiguous)->deliberate. Canonical D = Gen 3:11. Fixed in SURVEY10_DESIGN.md (D2 section + What's-new + impl plan + risk flags) and CONVENTIONS_PIPELINE.md (replaced the whole R2.5 section).
-
-(2) MINOR — unified Trigger-1's evolution target into conventions.md. Removed "Trigger 1 +0.1 unchanged" (which bumped a separate prompt); Trigger-1 collective-error correction now produces a candidate convention through the same scribe extract->regression-gate->version pipeline as the Q3-D digest. One feedback artifact, one gate, no second ungated channel.
-
-(3) DOC-HYGIENE — collapsed the two overlapping RE-DECISION 2026-06-24 sections in Original_Design_Decisions.md into one (rewrote the file; lines 1-109 option tables verbatim). Dropped stale "Q3 still under discussion / do NOT implement until Q3 settled" and the "Next: does NOT yet have refined Q2 hybrid" lines. Kept the DECISION SET COMPLETE table and the authoritative Q2 ladder.
-
-Verified: grep shows 0 stale phrasings (flags instability / Q2-D-gated / Q3-under-discussion), exactly 1 RE-DECISION header, failure-mode separation present in all 3 docs. Flared corrections-complete [STATUS] to survey1-obe (window 1314). Implementation remains HELD pending s1 sign-off + Joshua's go.
-
-
-
-
