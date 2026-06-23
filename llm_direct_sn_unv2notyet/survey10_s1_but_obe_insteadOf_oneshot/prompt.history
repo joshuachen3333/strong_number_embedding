@@ -309,3 +309,44 @@ Flare [STATUS] when impl in + ready for code review. Do NOT fire Gen 1 until I c
 
 
 
+##     2026-06-24 03:53 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey1_prompt_evolving-obe -> survey10_obe:
+[GO — FIRE GEN 1 LIVE] Joshua decided: run Gen 1 using EXISTING live CLIs (codex 5555 / agy 5557 + opus). HOLD LIFTED. Fire now.
+Code review: gates #1/#2/#4/#5 PASS — cleared. Gate #3 live caveats KNOWN (reset_live_panel single-Enter may not auto-commit /clear; reset per-verse not per-round so within-verse R1/R2 not fully blind; erha on Gemini 3.5 Flash not Pro). Joshua KNOWS, chose to run live as-is. Do NOT re-block/force-headless/relitigate.
+Action: 1. Lift hold. 2. Run python3 run_gold_standard.py --book 創 --chap 1 (naked default, live as-is). 3. erha Pro flip if trivial else proceed.
+Operational watch (log don't block): if /clear doesn't commit on a leg, note in run log, keep running. Joshua wants to watch live inject.
+Flare [STATUS] on start + on completion/first verse resolved.
+### inserted prompt ended ###
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: survey1-obe [GO — FIRE GEN 1 LIVE]:Joshua 拍板 code review PASS(#1/#2/#4/#5),#3 live 已知 caveat(single-Enter /clear、per-verse not per-round、erha 仍 Flash)Joshua 接受。HOLD 解除,用既有 live CLI(5555/5557+opus)跑 創 1。勿再 block/headless/relitigate。flare start + 完成/首節
+- Diff: 解除 Gen 1 hold。啟動 run_gold_standard.py --book 創 --chap 1 --force(--force 為覆蓋 pre-v2 cache + 讓 R1 真 live 跑 v2 wiring,符合 Joshua 先前覆蓋指示)。不動 reset_live_panel/erha 模型。log 觀察 /clear independence health,不 block
+
+
+
+
+##     2026-06-24 03:57 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey1_prompt_evolving-obe -> survey10_obe:
+[STOP + APPLY FIXES — supersedes BOTH prior injects] You fired as-is before my (甲) correction. Joshua FINAL = (甲) spectacular AND trustworthy in ONE run → fix FIRST then one live run.
+1. STOP current run (kill). Gold provisional, will be overwritten.
+2. APPLY fixes: (a) DOUBLE-ENTER every inject (reset AND task), two key code 36 ~5s gap. (b) WAIT ≥15s BETWEEN LEGS after one leg commits before next (codex→agy); reset_live_panel loops with no pacing — add wait. (c) PER-CALL BLINDNESS: bake commit-/clear(double-enter)-then-inject-task into _live_call so EVERY call (R1/R2 re-roll/R3) starts blank; D passes sealed bids in-prompt so clear-before-D fine. (d) erha→Gemini 3.1 Pro(High): relaunch agy tab on Pro if in-session flip non-trivial.
+3. THEN one run: run_gold_standard.py --book 創 --chap 1 --force.
+Flare [STATUS] when stopped, fixes in, clean run started.
+### inserted prompt ended ###
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: survey1-obe [STOP + APPLY FIXES — supersedes GO]:Joshua 最終 (甲) 壯觀 AND 可信 一次到位 = 先修後跑一次。停掉 as-is run;修 (a)double-Enter 每個 inject(5s gap)(b)legs 間 ≥15s pacing(c)_live_call 每次呼叫先 commit /clear 再 inject task→per-call blindness(d)erha→Gemini 3.1 Pro(High) 必要時重啟 agy tab;然後單一 run --force。stopped/fixes-in/started 各 flare
+- Diff: 停止 as-is Gen 1 run(gold provisional 將被覆蓋)。將改 cli_caller:_osascript_inject 雙 Enter、新增 legs 間 ≥15s pacing、_live_call 內建 per-call /clear-then-task blindness;erha 切 Pro。修完重跑 run_gold_standard --book 創 --chap 1 --force
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/cli_caller.py`
+
+
+
+

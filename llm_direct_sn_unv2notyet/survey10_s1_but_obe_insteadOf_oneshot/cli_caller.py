@@ -50,16 +50,45 @@ build_json_schema = _s1.build_json_schema
 _extract_json = _s1._extract_json
 
 # Live obe leg -> Terminal window id (see .s10_sessions.json).
-LIVE_WINDOWS = {"codex": 5555, "agy": 5557}
+# Fix (d): agy relaunched on a fresh window pinned to "Gemini 3.1 Pro (High)"
+# (was 5557 on Flash). codex 5555 unchanged.
+LIVE_WINDOWS = {"codex": 5555, "agy": 8214}
 
 # Cap the live-inject attempt so a hung session falls back to headless quickly
 # instead of burning the full call timeout. The headless fallback then gets the
 # full timeout. Live legs normally answer in 15-60s.
 LIVE_TIMEOUT = 150
 
+# Fix (b) — pacing between consecutive LIVE legs. Sequential osascript injects
+# fight for Terminal frontmost focus; too fast and the Return lands in the wrong
+# window or never fires. After one leg's interaction commits, wait >= this before
+# the next leg's inject. Enforced globally across every live call (R1/R2/R3).
+LEG_PACING_SEC = 15.0
+_LAST_LIVE_TS = {"t": 0.0}
+
+
+def _pace_between_legs(verbose=False):
+    """Block until >= LEG_PACING_SEC has elapsed since the previous live leg."""
+    gap = LEG_PACING_SEC - (time.time() - _LAST_LIVE_TS["t"])
+    if gap > 0:
+        if verbose:
+            print(f"  [pace] {gap:.0f}s before next live leg", flush=True)
+        time.sleep(gap)
+
+
+def _mark_live_inject():
+    """Record that a live leg just finished (resets the pacing clock)."""
+    _LAST_LIVE_TS["t"] = time.time()
+
 
 def _osascript_inject(window_id, text):
-    """Focus the target tab and type a short command + Enter into it."""
+    """Focus the target tab and submit a command into it.
+
+    Fix (a) — DOUBLE-ENTER v2 (/obe-codified, Joshua-observed): a single Return
+    does not reliably commit into a CLI TUI's bracketed-paste input box (Joshua
+    watched /clear fail to submit). Send TWO `key code 36` with a ~5s gap so the
+    TUI finishes ingesting the paste before the second Return submits it.
+    """
     esc = text.replace("\\", "\\\\").replace('"', '\\"')
     script = f'''
 tell application "System Events"
@@ -78,22 +107,30 @@ tell application "Terminal"
 end tell
 delay 0.7
 tell application "System Events" to key code 36
+delay 5.0
+tell application "System Events" to key code 36
 '''
     subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
 
 
 def reset_live_panel(verbose=False):
-    """Per-verse context reset (D1-E): inject `/clear` into each live leg's tab so
-    every verse starts blind/independent. Headless fallback needs no reset (it is
-    already per-call amnesiac). Best-effort: a tab that can't be cleared simply
-    falls back to headless on its next call, which is also amnesiac.
+    """One-shot hygiene clear of every live leg (e.g. at run start) — drops any
+    stale pre-run context. Uses double-Enter (fix a, via _osascript_inject) and
+    >=15s pacing BETWEEN legs (fix b) so the sequential /clear injects don't fight
+    for focus.
+
+    NOTE: per-call blindness is enforced inside `_live_call` (it /clears before
+    EVERY model call), so this function is NOT needed per-verse — it is a coarse
+    run-start hygiene step only. Headless legs are already per-call amnesiac.
 
     Returns a dict {brand: "cleared"|"error"} for logging.
     """
     status = {}
     for brand, window_id in LIVE_WINDOWS.items():
         try:
-            _osascript_inject(window_id, "/clear")
+            _pace_between_legs(verbose=verbose)  # >=15s between legs (fix b)
+            _osascript_inject(window_id, "/clear")  # double-Enter (fix a)
+            _mark_live_inject()
             status[brand] = "cleared"
             if verbose:
                 print(f"  [reset] {brand} w{window_id} /clear", flush=True)
@@ -107,7 +144,15 @@ def reset_live_panel(verbose=False):
 
 def _live_call(brand, window_id, system_prompt, user_prompt,
                target_version, sn_field, mode, timeout, verbose):
-    """Inject the task into a live obe session; read its answer from a file."""
+    """Inject the task into a live obe session; read its answer from a file.
+
+    Fix (b)+(c) — per-call blindness with leg pacing. EVERY live call (R1, each R2
+    re-roll, R3 vote) starts blank: pace >=15s since the previous leg, COMMIT a
+    `/clear` (double-Enter) so this leg has no memory of the prior verse/round,
+    let it settle, THEN inject the task. This restores within-verse R1/R2
+    independence on the live path. D-deliberation passes the sealed R1 bids
+    explicitly in its prompt, so clearing before a D call loses nothing.
+    """
     task_file = f"/tmp/s10_task_{brand}.txt"
     ans_file = f"/tmp/s10_ans_{brand}.json"
 
@@ -122,6 +167,13 @@ def _live_call(brand, window_id, system_prompt, user_prompt,
     except OSError:
         pass
 
+    # Pace, then commit /clear (per-call blindness), then let it settle.
+    _pace_between_legs(verbose=verbose)
+    if verbose:
+        print(f"  [live {brand}] /clear (blind) then inject", flush=True)
+    _osascript_inject(window_id, "/clear")
+    time.sleep(3)  # let /clear process before the task lands
+
     inject_cmd = (
         f"Read the full task in {task_file} and complete it. "
         f"Write ONLY your answer to {ans_file} (overwrite it, raw JSON, no "
@@ -129,6 +181,7 @@ def _live_call(brand, window_id, system_prompt, user_prompt,
         f"Do not print the answer in chat.")
     _osascript_inject(window_id, inject_cmd)
 
+    result = {"error": True, "notes": [f"live inject timeout ({timeout}s) on {brand}"]}
     deadline = time.time() + timeout
     while time.time() < deadline:
         if os.path.isfile(ans_file):
@@ -140,11 +193,15 @@ def _live_call(brand, window_id, system_prompt, user_prompt,
                 raw = ""
             if raw:
                 if mode == "freeform":
-                    return {"text": raw}
-                key = sn_field if mode == "production" else "best"
-                return _extract_json(raw, key)
+                    result = {"text": raw}
+                else:
+                    key = sn_field if mode == "production" else "best"
+                    result = _extract_json(raw, key)
+                break
         time.sleep(2)
-    return {"error": True, "notes": [f"live inject timeout ({timeout}s) on {brand}"]}
+
+    _mark_live_inject()  # start the >=15s pacing clock for the NEXT leg
+    return result
 
 
 def call_llm(brand, model, system_prompt, user_prompt,

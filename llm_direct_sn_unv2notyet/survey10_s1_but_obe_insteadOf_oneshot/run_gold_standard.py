@@ -748,14 +748,21 @@ def main():
     all_trigger2 = []   # (verse_key, gold_entry)
     all_deliberation = []  # s10 D-tier: (verse_key, gold_entry|None) — terminal post-C
 
+    # Run-start hygiene: one coarse /clear of the live legs to drop any stale
+    # pre-run context (double-Enter + leg pacing). Per-call blindness in
+    # _live_call handles every call thereafter.
+    print(f"  [reset] run-start hygiene clear of live legs...")
+    reset_live_panel(verbose=args.verbose)
+
     for verse_idx, (chap, sec) in enumerate(verses):
         verse_key = (chap, sec)
         _update_last_verse(book_eng, chap, sec)
 
-        # ── s10 D1-E (gate #3): per-verse reset — /clear each LIVE leg so this
-        # verse starts blind/independent (R1 amnesia restored). Headless legs are
-        # already per-call amnesiac, so a failed /clear degrades safely.
-        reset_live_panel(verbose=args.verbose)
+        # ── s10 D1-E (gate #3): per-CALL blindness is enforced inside
+        # cli_caller._live_call (it commits /clear before EVERY model call — R1,
+        # each R2 re-roll, R3 — with double-Enter + >=15s leg pacing). So no
+        # per-verse reset is needed here; within-verse R1/R2 independence is
+        # restored at call granularity, not just verse granularity.
 
         if verse_idx > 0:
             print("\n\n\n\n\n")
