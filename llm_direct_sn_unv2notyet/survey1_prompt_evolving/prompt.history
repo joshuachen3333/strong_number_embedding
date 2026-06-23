@@ -174,3 +174,138 @@ gemini 已經 eol 了, 難怪不能執行
 
 
 
+##     2026-06-20 15:52 CST
+
+###    User Prompt
+could you open a new tab at the same window, cwd at /Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot, I want it to be your neighbour? and run claude --dangerously-skip-permissions there, to be the obe sibling
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua:在我視窗(1314)開新 tab,cwd=survey10_s1_but_obe_insteadOf_oneshot,跑 claude --dangerously-skip-permissions 當 obe sibling
+- Diff: osascript 在 window 1314 新增 tab + 啟動 claude 於 survey10 目錄,成為我的鄰居 obe
+
+
+
+
+##     2026-06-20 16:08 CST
+
+###    User Prompt
+yes, run the injection to it (new window is fine, I will pull it manually myself,) run the welcome obe prompt and /rc. copy back it's remote url and paste it here.
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua:對 survey10 sibling 注入 /obe welcome + /rc,讀回 remote URL 貼給他
+- Diff: inject welcome obe 認領 + /rc remote control,readback 抓 remote URL
+
+
+
+
+##     2026-06-20 18:55 CST
+
+###    User Prompt
+A
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 選 A:先跑 1-verse 3-brand golden smoke 確認新 panel(opus/agy/codex)整個 consensus loop
+- Diff: 背景跑 Gen 1:6 full panel naked smoke 到 scratch,驗證 agy 在 R1/R2/R3+judge 全鏈;通過後再正式產 golden
+
+
+
+
+##     2026-06-20 19:00 CST
+
+###    User Prompt
+Gen 2-3 (bigger batch) — produce golden verses for the new panel
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 選 Gen 2-3 big batch:正式產 golden(opus/agy/codex naked panel)到 canonical,~70 節
+- Diff: 背景跑 創 chap 2-3 full panel naked → canonical gold_standard/(Gen 1 不動);--max-r2-retries 2;長跑數小時、燒 3 帳號雲 quota
+
+
+
+
+##     2026-06-20 22:35 CST
+
+###    User Prompt
+繼續跑
+目前token 滿滿
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua:繼續跑,token 滿了 → resume Gen 2-3 golden(opus 額度恢復)
+- Diff: 移除 2:7 unresolved 讓它重跑;--chap 2-3 skips 2:1-2:6 已完成,redo 2:7,續跑 2:8-3:24
+
+
+
+
+##     2026-06-20 22:37 CST
+
+###    User Prompt
+明明沒有限制吧
+才 4% 五小時限額度
+Must be sth else
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 糾正:opus 才用 4% 五小時額度,非 rate-limit;pipeline 誤判,Must be sth else
+- Diff: 查 2:7 opus R2 convergence 的真實錯誤(被誤標 UNAVAILABLE rate-limited)
+
+
+
+
+##     2026-06-21 11:38 CST
+
+###    User Prompt
+2
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 選 2:調查 Gen 3:11 為何三模型全不穩 + 看失敗的 v1.3,craft 過 regression 的 prompt fix
+- Diff: 讀 3:11 verse + convergence attempts + evolution record + v1.3 REGRESSION_FAILED diff,分析根因
+
+
+
+
+##     2026-06-21 18:05 CST
+
+###    User Prompt
+先改善一處:
+s10 你知道嗎？
+
+###    
+- Agent: `llm_direct_sn_unv2notyet-obe`
+- Hint: Joshua 轉向 s10:先改善一處,問我知不知道 survey10(s1_but_obe_insteadOf_oneshot)是什麼
+- Diff: 暫停 3:11;確認對 s10 = survey1 任務改用 obe 多代理編排取代 one-shot 的理解
+
+
+
+
+##     2026-06-24 01:43 CST
+
+###    User Prompt
+我要你做一個 Q1 Q2 Q3 當時的可選項目列表, 以及如果那樣選了會有怎樣的厲害後果, 表當中要詳細呈現給我看. 我才好做出選擇
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 要 s10 Q1/Q2/Q3 完整可選項+各選項厲害後果的詳細表,以便重新抉擇
+- Diff: 產出 Q1(session 生命週期)/Q2(stateful vs blind)/Q3(結果回饋)的 options×consequences 分析表
+
+
+
+
+##     2026-06-24 02:06 CST
+
+###    User Prompt
+如果我 D1 採取 E (外部慣例)
+那 s10 會有機會與 s1 競爭 gold verses 的生產機會嗎？
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 探問:D1 改選 E(外部慣例)後,s10 是否有機會與 s1 競爭 gold 生產(而非只當傳播引擎)
+- Diff: 分析:E 解綁『累積專業 vs 失去獨立』→ 配 Q2 獨立 R1 + Q3 蒸餾慣例,s10 可競爭甚至超越 s1;conventions.md 成新信任點,需 regression gate + survey4/5 驗證
+
+
+
+
