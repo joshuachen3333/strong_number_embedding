@@ -458,3 +458,327 @@ KJV→UNV 是跨語言(英→中),比生產的同語言 UNV→LCC 難。為什�
 
 
 
+##     2026-06-25 03:37 CST
+
+###    User Prompt
+中文詳述
+
+###    result
+以下把這個 Stop hook 的設計、兩種模式、機制細節、誤判風險與我的建議,用中文詳述,讓你能在清楚的基礎上拍板。
+
+一、先講背景:hook 是什麼、為什麼是 Stop hook
+hook 是掛在 Claude Code 生命週期事件上的腳本。你現在已經有一個 UserPromptSubmit hook(設定檔第 123-133 行)—— 它在你送出 prompt 那一刻觸發,把那行 [record-prompt-history ACTIVE]… [logoutput ACTIVE]… 注入我的脈絡。這就是「回合開頭」的提醒。問題:/logoutput 是「回合結束」才做的動作,但目前只有開頭提醒。等我跑完一長串工具要收尾時,開頭那行已在脈絡上方很遠 → 容易漏。Stop hook 就是補「回合結束」這個觸發點 —— 它在我停止回覆的瞬間觸發。
+
+二、核心機制差異:兩種模式底層用不同的 hook 輸出
+Stop hook 跑完可以吐 JSON 控制行為,關鍵差在「提醒給誰、會不會把我叫回來」:
+
+| | 模式 A:nudge 我(soft block) | 模式 B:backstop 給你(passive) |
+|---|---|---|
+| 底層輸出 | `{"decision":"block","reason":"…"}` | `{"systemMessage":"…"}` |
+| 效果 | 把我叫回來:阻止這次停止,把 reason 餵回給我 → 我當場補記 → 再停 | 只在你的 UI 顯示一行字,完全不把我叫回來 |
+| 提醒對象 | 我(正確的當事人) | 你(你看到後再叫我) |
+| 算不算「block」 | 技術上是 block,但自我解除(我一記就停) | 完全不 block |
+| 成本 | 漏記的回合多花「我一個回合」去補 | 零額外回合,但你 UI 多一行 |
+
+重點:decision:block 是唯一能「在回合結束把提醒送進我腦裡」的機制;systemMessage 只能提醒你。這就是你「要非阻塞」和「要修我健忘」兩個目標的張力來源 —— 真正修我健忘的那條技術上就是個(軟)block。
+
+三、防呆設計(兩種模式都會做)
+1. 只在「這回合很可能漏記」時才觸發 —— 用 mtime 啟發式:檢查 ./response.history 的最後修改時間。若這回合內被改過 → 已記 → 靜默;若沒被改過 → 可能漏 → 才提醒。
+2. 防迴圈(只對模式 A 重要)—— Stop hook 的 stdin 帶 stop_hook_active 旗標。當 hook 已把我叫回來、我補完再停時,第二次停止的 stop_hook_active=true → hook 直接放行。所以模式 A 一個回合最多只叫我一次,不會卡死。
+
+四、誠實的誤判風險(mtime 啟發式的弱點)
+假陽性(會多提醒):有些回合本來就不該記(pwd、ok、純狀態查詢),這些回合我不會動 response.history → mtime 是舊的 → hook 會誤以為漏記而提醒。模式 A:這種回合我被叫回來,快速回「trivial,不需記」再停。模式 B:你 UI 多一行其實不需要的提醒。假陰性(會漏抓):幾乎不會。要降假陽性可調寬門檻或提醒文字明講「trivial 就略過」,但無法完全消除 —— hook 看不到我回覆內容,只能看檔案有沒有被動過。
+
+五、安裝範圍:建議全域 ~/.claude/settings.json,因為 hook 自我守門(只有當下 cwd 存在 ./response.history 才動作),掛全域安全,自動覆蓋所有有 history 檔的 sibling-obe 目錄,沒有的專案無感。
+
+六、我的建議:選模式 A(nudge 我),因為你要修的是我的健忘,只有 A 能在正確時機把提醒送進我腦裡並當場補記;B 只是把責任丟回給你當人肉守門員。A 雖技術上是 block,但有 mtime 門 + 防迴圈 → 只在漏記時觸發一次、一記就解除,不是會卡住的硬 gate。掛全域,自我守門所以安全。問你要 A 還是 B。
+
+
+
+
+##     2026-06-25 03:39 CST
+
+###    User Prompt
+接受「軟 block、只在漏記時叫我一次」→ 模式 A(我推薦), 全域 ~/.claude/settings.json, mtime 判斷「有沒有記」不是 100% 準: 你研究一下對策
+
+###    result
+Done — the Stop hook is live and verified. Here's what I built and how it answers your "mtime isn't 100% accurate" concern.
+
+## What's installed
+- Helper: ~/.claude/hooks/ph_lo_stop_reminder.py
+- Hook: a Stop entry in ~/.claude/settings.json (global; your existing UserPromptSubmit reminder preserved). Self-gating — silent in any cwd without response.history/prompt.history.
+
+## The better-than-mtime detector (your research ask)
+Instead of guessing from response.history's timestamp, the hook reads the session transcript (transcript_path on stdin) and checks whether the logging scripts actually ran in the current turn — it scans the assistant's Bash tool_use calls since the last real user prompt for logoutput.py/append_response_history and ph.py/append_prompt_history.
+
+| | mtime guess (rejected) | transcript check (built) |
+|---|---|---|
+| "Already logged?" | inferred from file timestamp — fuzzy | verified — did the script run this turn? |
+| Big false positive (nag after I did log) | happens | eliminated |
+| Residual false positive (trivial turn) | yes | trimmed by a short-prompt filter (pwd/ok/好//cmd…) |
+| Loop risk | n/a | guarded by stop_hook_active (nudges once, self-clears) |
+
+## Verified (7 pipe-tests, all correct)
+- both scripts ran → silent; logging missing + substantive → fires decision:block; trivial prompt → silent; loop-guard → silent; non-logging cwd → silent; malformed stdin → silent (never crashes).
+- settings.json valid; Stop registered; UserPromptSubmit intact.
+
+## One caveat (handoff)
+Stop fires at turn-end, so I can't prove it live in-turn. The config watcher should pick up ~/.claude/settings.json (it existed at session start), but if the nudge doesn't appear when expected, open /hooks once (reloads config) or restart. You can review/disable it there anytime.
+
+These live in ~/.claude/ (global config), outside the repo — so nothing to commit to the project.
+
+
+
+
+##     2026-06-25 03:42 CST
+
+###    User Prompt
+我想到你舉 kjv 當作餵進去的 one shot example, 那是S4 還是多少呢？
+
+###    result
+是 survey5（survey5_bilingual_sn_benchmark/），不是 survey4。我幫你把三者的關係釐清,順便講一個你可能正在想的細微點。
+
+## 三個 survey 的對照
+
+| Survey | 任務 | SN 號碼從哪來 | 有標準答案? |
+|---|---|---|---|
+| **survey4** | 純 UNV 文字 → 生出 SN | **模型自己生**(等於背 13000+ 條字典) | 有(FHL),但任務太難 |
+| **survey1**(生產) | UNV+SN → LCC+SN | 已在 UNV 輸入裡 | **無**(LCC 無 FHL) |
+| **survey5** ★ | **KJV+SN → UNV+SN**(英→中跨語言) | **已在 KJV 輸入裡** | **有**(UNV 的 FHL) |
+
+- **survey4 是失敗的那條**:要模型從純中文「憑空生出」SN 號碼 = 要它背整本 Strong's 字典。連 deepseek-671B 都只有 cov=0.12。根本問題:模型不知道哪個中文字對應哪個號碼。
+- **survey5 才是 KJV 餵入的那套**:號碼已經在 KJV+SN 輸入裡,模型只需把 `<H0430>` **搬**到對應的中文字後面,做的是「英↔中跨語言對位 + placement」,不是查字典。而且 UNV 那邊有 FHL 標準答案可以打分。**這正是 A2 的雛形。**
+
+## 你可能正在想的細微點(很重要)
+
+既然 KJV+SN 把**號碼**都給了,那「答案」不就洩了一半嗎?——**沒有,洩的只是號碼集合,沒洩 placement**:
+
+- **號碼(coverage)**:大致由 KJV 給定(KJV 和 UNV 共用同一套 Strong's,因為背後是同一個原文詞)。所以 coverage 不是純測模型 —— survey5 自己也標註瓶頸是「KJV/UNV 的 SN 數量不一致」,所以 coverage 還是有點難度,但**大部分是給定的**。
+- **placement(放對哪個中文字)**:**完全沒在 prompt 裡**。KJV 是英文、英文語序、英文 token;模型必須跨語言對位,決定 `<H0430>` 該貼到「神」還是「上帝」還是別的字。**這才是真正被測、且 leak-free 的部分**,也正是 s1/s10 投影引擎的核心技能。
+
+所以 A2 用 survey5 框架時,**主指標看 placement**(乾淨、真測能力),coverage 當輔助(部分給定,受 KJV/UNV 數量不一致影響)。
+
+## 一個延伸選項
+
+survey5 的 CLAUDE.md 還記了:**survey8 後來把 KJV 換成 qp.php 字典當來源**,就是為了消掉「KJV/UNV SN 數量不一致」這個雜訊。所以 A2 真要做,來源有兩個選擇:
+- **KJV+SN**(survey5 式):保持「跨語言投影」的任務形狀,最貼近 s1/s10 真實做的事。
+- **qp.php 字典**(survey8 式):號碼更乾淨對齊,但任務偏向「字典查找+placement」,離投影稍遠。
+
+對 A2(比 s1 vs s10 的投影能力)我傾向 **KJV 來源**,因為它測的就是 s1/s10 在做的跨語言 placement。
+
+要我把這個「survey5=A2 來源、placement 才是 leak-free 主指標、coverage 部分給定」的釐清也補進 S10_VS_S1_GOLD_EXPERIMENT.md 嗎?
+
+
+
+
+##     2026-06-25 03:50 CST
+
+###    User Prompt
+S5 and A2, 我提供兩個面向:
+1, Alignment (.../Alignments) 這裡是不是提供了更多的語言倉庫 (10+), 就不止是 kjv 了
+2, 能否先建立一個排除清單, 把 kjv （and alignment 10+ ）對照 unv 中文當中, 所缺少的那些 (是不是 9xxx 族或者有其他) 缺少的就直接排除不論, 只比對兩者都有的(unv v.s. kjv and 10+) 在兩邊都有的 sn 群中比對即可. 分而治之.
+
+###    result
+Confirmed empirically. Here's the full answer to both ideas.
+
+## 1. Alignments = Clear Bible bible_alignments — 10 languages, but no Chinese
+
+It's word-level alignment data (Scripture Burrito format) mapping each original Hebrew/Greek token (which carries the Strong's number) to target-language words. Languages present: arb, asm, ben, eng, fra, hau, hin, por, rus, spa (10). UNV/Chinese is NOT in it.
+
+So its value for A2 is not "more source texts to project from" — piling 10 source languages into the model's prompt would re-create survey6's info-overload failure. Its real value is as a scoring-side tool: the alignment tells us, per Strong's number, which of the 10 languages actually expresses it. An SN that few languages align to = Hebrew morphology/particle → a principled signal for the exclusion list.
+
+## 2. Exclusion list / intersection-only scoring — your hunch is confirmed
+
+I diffed the real FHL Strong's sets on Gen 1:1:
+
+| | Strong's set |
+|---|---|
+| **UNV** | 430, 776, 853, 1254, 7225, 8064, **09002** |
+| **KJV** | 430, 776, 853, 1254, 7225, 8064 |
+| **UNV-only (unfair to score)** | **09002** ← the ב inseparable prefix ("in") |
+| **SHARED (fair A2 set)** | 430, 776, 853, 1254, 7225, 8064 |
+
+The single UNV-only SN is exactly a 09xxx-family prefix — your "9xxx族" intuition, dead on. KJV/English has no separate token for the Hebrew ב prefix, so projecting from KJV can never produce 09002 on UNV → scoring it would penalize the model for something the source can't supply. (Note: 0853 את and 8804 morphology happened to be tagged in KJV here too, so they're shared on this verse — the exclusion is verse-specific, not a fixed blanket.)
+
+So the divide-and-conquer is right: per verse, score placement only on UNV_FHL_SN ∩ source_SN, and exclude the UNV-only set (mostly 09xxx prefixes, plus case-by-case 0853/8xxx) as "out of scope — source can't supply it."
+
+Two ways to build the exclusion, cheap→robust:
+- Rule-based (matches the project's own token classification): drop 09xxx prefixes (+ 0853/8xxx when the source lacks them), keep Core content SNs. Zero API cost.
+- Empirical (what I just did): per verse, diff UNV-FHL vs KJV-FHL → the UNV-only set is the exclusion. Optionally cross-check against the 10-language alignment's expression-rate to catch non-obvious cases.
+
+## Recommendation
+
+For A2 I'd wire a small build_exclusion.py: per verse compute shared = UNV∩KJV, score s1/s10 placement only on shared, and report the excluded morphology/prefix SNs separately. That gives a clean, fair, leak-free placement contest — exactly your 分而治之.
+
+Want me to build that exclusion + scoring scaffold now (it's cheap and de-risks A2), or fold this into S10_VS_S1_GOLD_EXPERIMENT.md first?
+
+
+
+
+##     2026-06-25 03:57 CST
+
+###    User Prompt
+中文詳述
+
+###    result
+以下把 A2 的「對齊資料 + 排除清單 + 交集評分」整套設計用中文詳述,從根因到落地流程。
+
+## 一、根本問題:為什麼 KJV/UNV 的 SN「數量不對齊」
+Strong's 號碼是綁在原文(希伯來/希臘)詞上的。每個譯本只是把這些號碼「搬」到自己語言對應的詞後面。問題是:不同語言能搬的號碼集合不一樣,因為:
+1. 09xxx 不可分前綴(9xxx 族):希伯來文 בְּ(在)/לְ(向)/מִ(從)/וְ(和)黏在字首,有自己的 SN(09001-09999)。英文沒有對應獨立詞,「in the beginning」的「in」不會被標成 09002。所以 UNV 有 09002,KJV 沒有。
+2. 0853 את(直接受詞記號):希伯來文標記受詞的虛詞,英文通常不翻。有時 KJV 仍標(Gen 1:1 就標了),有時不標 → 時有時無。
+3. 8xxx 形態/詞幹標記:動詞時態/語態,也時有時無。
+4. 純語言差異:英文要冠詞 the、UNV 不需要;反之亦然。
+結論:一個號碼在 source(KJV)沒有,模型再強也搬不出來;硬扣它的 coverage 是罰模型「source 根本沒給的東西」——這是 survey5 的瓶頸,A2 必須先處理。
+
+## 二、Gen 1:1 的實證(已驗)
+
+| | Strong's 集合 |
+|---|---|
+| **UNV** | 430, 776, 853, 1254, 7225, 8064, **09002** |
+| **KJV** | 430, 776, 853, 1254, 7225, 8064 |
+| **UNV 獨有(該排除)** | **09002**(ב 前綴「在」) |
+| **共有(A2 公平評分集)** | 430, 776, 853, 1254, 7225, 8064 |
+
+唯一 UNV 獨有的就是 09xxx 前綴——印證你的直覺。注意 0853/8804 在這節 KJV 也標了,所以是共有 → 排除清單是逐節算的,不是固定一刀切。
+
+## 三、Alignments 的角色:只當「評分側工具」,不當 source
+Alignments/ 是 Clear Bible 的 word-level 對齊資料(10 語言:arb/asm/ben/eng/fra/hau/hin/por/rus/spa,無中文)。格式:每個原文 token(帶 SN)↔ 各語言對應詞。
+- 不要拿它當投影 source 餵模型:把 10 種語言塞進 prompt = 重演 survey6 的資訊過載被放棄。模型 source 維持單一(KJV),任務形狀才乾淨。
+- 真正用途:當「這個 SN 跨語言到底表不表達得出來」的客觀裁判。做法:對某原文 SN,數「10 種語言裡有幾種有對齊詞指向它」。內容詞(神 430、創造 1254)幾乎都有 → rate 高 → 保留;前綴/虛詞(09002、0853)多數語言沒有 → rate 低 → 排除。
+- 好處:比只看 KJV 一種語言更穩健(用 10 種語言投票,不被 KJV 特例帶偏)。
+
+## 四、排除清單怎麼建(便宜→穩健,三層)
+
+| 層級 | 方法 | 成本 | 穩健度 |
+|---|---|---|---|
+| **L1 規則** | 直接排 09xxx 前綴(+ source 缺的 0853/8xxx);保留 Core 內容詞。對應專案既有 token 分類 | 零 API | 抓到主要族 |
+| **L2 實證(主力)** | 逐節 diff UNV-FHL ∩ KJV-FHL;UNV 獨有集 = 排除清單 | 1 次 KJV fetch/節 | 逐節精準 |
+| **L3 對齊加強** | 用 10 語言 expression-rate 再篩 L2,抓非顯而易見個案 | 讀 Alignments 本地檔 | 最穩 |
+
+實務上 L2 就夠(已驗有效),L3 當加分項。
+
+## 五、分而治之的完整評分流程(每節)
+
+```
+1. 取 UNV+SN(答案卷,FHL)、KJV+SN(投影 source,FHL)
+2. shared = SN(UNV) ∩ SN(KJV)              ← 公平評分集
+   excluded = SN(UNV) − SN(KJV)             ← source 給不出,排除不論
+3. 給 s1 / s10 的題目:KJV+SN(source) + UNV去殼(target),要它投影
+   (UNV 的 FHL 答案絕不進 prompt → leak-free)
+4. 評分只在 shared 上算 placement:
+   每個 shared SN,模型放的 UNV 詞位置 == FHL 真值位置?
+   - 同號多次出現(如 853×2)用「出現次序」對位
+5. 報告:placement(shared) 為主指標;coverage(shared) 為輔;excluded 清單另列(透明、不計分)
+6. s1 vs s10 比 placement(shared) 的平均
+```
+
+為什麼乾淨:答案(UNV-FHL)只在第 4 步程式裡比對,沒進 prompt → 不洩題;只在 source 給得出的 shared 上評分 → 不冤枉模型;s1/s10 同題 → 公平。
+
+## 六、build_exclusion.py 的設計(若要落地)
+
+```
+輸入: book, chap, sec 範圍
+每節:
+  unv_sns = extract_sn(fetch_fhl("unv", ...))
+  kjv_sns = extract_sn(fetch_fhl("kjv", ...))
+  shared, excluded = unv_sns ∩ kjv_sns, unv_sns − kjv_sns
+輸出: per_verse.json {sec: {shared:[...], excluded:[...]}}
+      summary: 排除的 SN 族分佈(09xxx 幾%、0853 幾%、8xxx 幾%)
+可選: --with-alignment → 用 Alignments expression-rate 再篩
+評分函式: score_placement(model_output, unv_fhl_truth, shared)
+         只在 shared 號碼上比位置,回 placement/coverage
+```
+
+這個小工具是 A2 的地基:先把公平評分集算出來、確認排除族分佈(驗證 9xxx 假設在整章/整卷成立),再接 s1/s10 投影輸出去打分。便宜、可先做、能提早暴露問題(例如某些節 shared 太小、或排除族不只 9xxx)。
+
+## 我的建議順序
+1. 先建 build_exclusion.py(只讀 FHL,零模型成本)→ 跑創 1 全章,看排除族分佈、shared 大小,驗證分而治之站得住。
+2. 結果 OK → 把這套交集評分寫進 S10_VS_S1_GOLD_EXPERIMENT.md(取代原本含混的 coverage 處理)。
+3. 再決定要不要花錢跑 s1/s10 的 A2 投影。
+要我先做第 1 步(build_exclusion.py + 跑創 1 看分佈)嗎?
+
+
+
+
+##     2026-06-25 04:12 CST
+
+###    User Prompt
+這最後部分顯然是 logoutput 作業內容顯示出來的. 這與你的 output 完全一致且看起來醜些, 這部分已經顯示過了, 能遮蔽不顯示嗎？只告知已經計入 response.history 即可
+
+###    result
+先釐清:你指的那段是 /logoutput 的「寫檔」步驟本身,不是 Stop end-hook —— end-hook 是另一個(回合結束做檢查的那個,剛剛還抓到我漏記)。
+
+為什麼會重複顯示又醜:logoutput 的寫檔器需要「我的逐字回覆」當輸入,我目前用 cat <<EOF … EOF 把整段回覆內嵌進 Bash 指令 → 整段就出現在可見指令裡,跟我正式回覆重複一次,而且是裸 shell heredoc,很醜。本質上任何工具呼叫都會顯示它的輸入,所以只要是「我手動把內容餵進去」,就一定會再顯示一次。
+
+真正的解法(我推薦)——把 end-hook 從「提醒」升級成「自動記錄」:那個 Stop hook 本來就會在回合結束讀 transcript。讓它直接從 transcript 抽出「我這回合的逐字回覆 + 你的 prompt」,自己寫進 response.history / prompt.history。結果:
+- 我整個回合不再跑任何 logoutput / ph 指令 → 畫面不再重複顯示任何內容,我只需口頭說一句「已計入」(或根本不用說)。
+- 因為是從 transcript 原樣抽取,保證逐字(連帶把「我手打時壓平表格」那個老 bug 一併根除 —— 不再經過我的手)。
+
+取捨(要誠實講):
+- hook 要自己判斷「這回合算不算實質」(沿用現在那套 trivial 過濾 + 回覆長度門檻);偶爾會多記或漏記,可微調。
+- 「我的回覆」用「最後一段 assistant 文字區塊」當準(排除工具呼叫);分段回覆的邊界個案要測。
+- hook 從「唯讀提醒」變成「會寫檔」——用既有 writer 的 flock + shrink-guard + 去重,安全;sibling session 各自 cwd 不衝突。
+
+要我把 end-hook 升級成自動記錄嗎?那之後這個醜畫面就永遠消失,且逐字有保證。
+
+（這一則我先用較乾淨的方式計入,只回報結果。）
+
+
+
+
+##     2026-06-25 04:28 CST
+
+###    User Prompt
+先等一下
+你說 10+ language 的alignment 只是作評分的信心參考 (語言越多越有信心)
+但是這  10+ 對應詞庫其實也有各自的已插入聖經經文了不是嗎？就是已經據此完成了各自語言類似 unv+sn 的成品了, 確認一下好嗎？
+
+###    result
+確認:**你是對的,我先前說「只當評分信心參考」是低估了。** 實際看了資料,每個語言都有**完整、人工、word-level 的 SN 對齊成品**。證據:
+
+## 資料結構(三層 join 就還原出「語言+SN」)
+
+**1. Source(原文,帶 Strong's)** —— `data/sources/WLC.tsv`(希伯來)、`SBLGNT.tsv`(希臘):
+```
+id            text     strongs   lemma  pos   morph
+n40001001001  Βίβλος   G0976     ...    N-NFS
+```
+每個原文 token 都有 Strong's(G0976)+ 詞元 + 形態。**這就是「每節該有哪些 SN」的權威答案卷。**
+
+**2. Target(各語言譯本的詞)** —— 例 `data/eng/targets/BSB/ot_BSB.tsv`:
+```
+id            source_verse  text
+01001001001   01001001      In
+01001001002   01001001      the
+```
+
+**3. Alignment(原文↔譯文,人工 manual)** —— 例 `WLCM-BSB-manual.json`:
+```
+{"source": ["o010010010011","o010010010012"], "target": ["...001","...002","...003"]}
+```
+把希伯來 token(帶 SN)對到譯文的詞。**manual = BiblioNexus 人工金標,不是模型產物。**
+
+→ **target 詞 → alignment → source token → strongs**,三步 join 就得到「每個譯文詞對應哪個 SN」= 跟 UNV+SN 同類的成品,只是存成**關聯式(Burrito)**而非內嵌 `詞<SN>`。
+
+## 而且不只 10 個「語言」,是 10 語言 × 多譯本
+
+eng 底下就有 **BSB、YLT** 等多個英文譯本各自一套對齊(alignments=10 個檔);fra/spa/rus/arb… 各有 2-7 個。所以是**一大批多平行的 SN 金標語料**。
+
+## 這對 A2 解鎖什麼(我修正後的看法)
+
+1. **排除清單可以更權威**:不必再用「UNV-FHL ∩ KJV-FHL」這兩個衍生品互比;直接用**原文 WLC/SBLGNT 當 SN 答案卷**,再看「source 語言的 alignment 覆蓋了哪些 SN」→ 沒覆蓋的(09xxx 前綴、0853 等)就是排除清單。更乾淨、有人工金標背書。
+2. **多 source 選項**:投影 source 不限 KJV;可用 BSB/YLT 等**人工對齊**的譯本(可能比 FHL 的 KJV 更乾淨)。
+3. **甚至有「不需要 FHL/UNV 的純淨 contest 場」**:可以讓 s1/s10 在**這 10 語言之間互投影**(例如原文→法文,對法文的人工 alignment 金標打分)—— 完全 leak-free、多語對照、金標人工。代價:測的是歐/印/閃語,**不是中文**,所以是「方法論驗證」用,不是直接的 UNV→LCC 生產證據。
+
+## 仍要誠實面對的一個限制
+
+**這套 alignment 裡沒有中文(無 UNV/LCC)。** 所以做「中文目標」的 A2,UNV 的答案還是得從 FHL 拿。這套語料對中文 A2 的角色是:**(a) 排除清單的權威裁判 + (b) 方法論驗證的乾淨 contest 場**,而不是中文金標來源。
+
+—— 換句話說:**FHL 的 UNV+SN / KJV+SN,和這套 Burrito alignment,是「同一類東西」**(譯本 + word-level SN 對齊),只是來源(FHL vs BiblioNexus)和形式(內嵌 vs 關聯式)不同。
+
+要我據此把 A2 改成「**以原文 WLC/SBLGNT 為 SN 答案卷 + alignment 推導排除清單**」的更乾淨版本,寫進實驗設計嗎?還是先動手做 `build_exclusion.py` 看创 1 實際分佈?
+
+
+
+

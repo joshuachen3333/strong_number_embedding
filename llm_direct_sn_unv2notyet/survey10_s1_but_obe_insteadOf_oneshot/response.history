@@ -782,3 +782,125 @@ eng 底下就有 **BSB、YLT** 等多個英文譯本各自一套對齊(alignment
 
 
 
+##     2026-06-25 04:33 CST
+
+###    User Prompt
+據此把 A2 改成「以原文 WLC/SBLGNT 為 SN 答案卷 + alignment 推導排除清單」的更乾淨版本,寫進實驗設計
+
+###    result
+已寫進 `S10_VS_S1_GOLD_EXPERIMENT.md` 並 push(`c01ff6e`)。
+
+## 改了什麼
+
+**新增「A2 scoring — 原文答案卷 + alignment 推導排除」整段**,兩個核心升級:
+
+1. **SN 答案卷改用原文**:`Alignments/data/sources/` 的 **WLC/WLCM(希OT)、SBLGNT/BGNT(希臘NT)**,每個原文 token 自帶 `strongs`+`lemma`+`morph`。它定義「這節**該有哪些** SN」(權威、非衍生);UNV-FHL 則定義「該放在**哪個**中文字」。set 答案卷與 placement 答案卷分工。
+
+2. **排除清單改由 alignment 跨語言覆蓋率推導**:每個原文 SN 看「10+ 語言 × 多譯本」裡有幾個對齊到它 —— 內容詞(0430/1254)覆蓋高→保留;前綴/虛詞(09xxx/0853/部分8xxx)覆蓋低→排除。10+ 語言投票,比單看 KJV 穩健太多。並寫明**每個(語言,譯本)對都是人工金標成品**(修正我先前「只當信心 vote」的低估)。
+
+**兩個 contest 場**:(a) 中文 arena(對 UNV-FHL,排除門控,production 相關);(b) 純 alignment arena(在 10+ 語言間互投影、對人工金標,完全 leak-free,但測非中文 → 方法論驗證)。
+
+**Procedure 改成先跑 `build_exclusion.py`**(零模型成本,先確認 09xxx/0853/8xxx 排除族分佈,再花錢跑 contest)。
+
+(這一則一樣由升級後的 hook 自動計入 `response.history`,我沒跑任何 logoutput 指令。)
+
+下一步要我**動手寫 `build_exclusion.py`**(join sources+alignments,跑创 1 看排除族實際分佈)嗎?還是先跑 **B(创 2)**?
+
+
+
+
+##     2026-06-25 04:36 CST
+
+###    User Prompt
+順道一問, 那十幾個翻譯本, 都沒有一本有使用 9xxx 的嗎？
+
+###    result
+查清楚了,答案有個重要轉折 —— **你直覺對了一半,但真相更微妙。**
+
+## 直接答案:沒有任何一本用 9xxx —— 因為 **09xxx 根本是 FHL 自創的編號**
+
+實證 Clear Bible 的 `WLC.tsv`:
+- **整個檔案 0 個 9xxx**(`grep` 計數 = 0),希伯來 Strong's 最高就到 **8674**(這正是標準 Strong's 希伯來字典的真正上限)。
+- **09000-09999 是 FHL 自己發明的範圍**,專門拿來標希伯來不可分前綴。標準 Strong's 沒有這段。
+
+## 但是 —— 那些前綴在 Clear Bible 裡**有被標,只是用不同號碼**
+
+看 Gen 1:1 在 WLC 的逐 token(這是關鍵):
+
+| 原文 | 意思 | Clear Bible strongs | FHL UNV 怎麼標 |
+|---|---|---|---|
+| בְּ | 在(前綴) | **H0871a** | `09002` |
+| רֵאשִׁית | 起初 | H7225 | 07225 |
+| אֵת | 受詞記號 | H0853 | 0853 |
+| הַ | 冠詞「the」 | **H1886a** | (FHL 多半不另標) |
+| וְ | 和(前綴) | **H2050b** | (FHL 09 系) |
+
+所以 Clear Bible **有把 ב/ה/ו 這些前綴切成獨立 token 並給號碼**,只是用「標準範圍 + a/b 後綴」的**擴充 Strong's**(H0871a、H1886a、H2050b),**不是** FHL 的 09xxx。而且英文 BSB「In the beginning … and the earth」**真的會對齊到這些前綴 token**(in→ב、the→ה、and→ו)。
+
+## 這對 A2 的真正含意(我得誠實修正)
+
+兩套編號是**不同系統**:**FHL 09xxx ≠ Clear Bible 擴充 Strong's**。所以我上一版寫的「用 WLC 當答案卷 + alignment 推導排除」**有個我漏講的成本 —— 跨方案橋接**:
+
+- **FHL 內部(09xxx)**:UNV 標 09002、FHL 的 KJV 不標 → 前綴是「UNV 獨有」→ 被排除。
+- **Clear Bible(H0871a)**:前綴有真號碼、而且**英文等語言會對齊到它** → 在這套裡前綴**不該被排除**。
+
+→ **「要不要排除前綴」其實取決於用哪套編號當答案卷,不是天經地義的。**
+
+而 **s1/s10 實際吐的是 FHL 的 09xxx 標記**(它們的輸入是 FHL UNV+SN)。所以最務實的排除應該**留在 FHL 內部**(UNV-FHL vs KJV-FHL 的 09xxx diff)—— 跟 s1/s10 活的世界同一套,**零橋接成本**。Clear Bible 的 alignment 仍有用,但角色該降為**用 lemma(ב/ה/ו/את)橋接的「跨語言交叉驗證」**,而不是直接當答案卷。
+
+## 結論 / 我建議的修正
+
+我上一版把 WLC/SBLGNT 抬成「答案卷」**略為過頭** —— 它跟 FHL 是不同編號系統,直接當答案卷要付橋接代價。**更乾淨的版本**:
+- **主答案卷維持 FHL**(因為 s1/s10 就用 FHL 09xxx);排除 = FHL 內部 UNV∩KJV diff(零橋接)。
+- **Clear Bible alignment 當「為什麼排除」的權威佐證**(用 lemma 橋接:這個 FHL 09xxx 前綴 = Clear Bible 的 ב/ה/ו,確認它跨語言要嘛不對齊、要嘛對齊到功能詞)。
+
+要我據此把實驗檔的 A2 再修一版(把「WLC 當答案卷」降級成「FHL 主答案卷 + Clear Bible lemma 橋接交叉驗證」),把這個 scheme mismatch 寫清楚嗎?
+
+
+
+
+##     2026-06-25 04:44 CST
+
+###    User Prompt
+1, 排除了 9xxx  是第一層, 作為單純且最嚴謹的基礎對照, 雖然少了 9xxx
+2, clear bible 也有這些前綴 (原文字對應到 fhl 的 9xxx) 這個要好好利用. 拿來當作萬一要考驗 unv 能否插回 sn 這種嚴酷測驗時的輸入 one shot , 考慮是否能拿 clear bible 當輸入.
+
+###    result
+確認理解,並把 Stage 2 的可行性查清楚了。
+
+## Stage 1 — 排除 9xxx 的乾淨基礎(最嚴謹、零橋接)
+
+- **source = KJV+SN,target = UNV 去殼,score placement 只在 `UNV-FHL ∩ KJV-FHL`**(共有的 content-word core),把 UNV 獨有的 09xxx 前綴**排除不論**。
+- 全程**留在 FHL 一套編號內**(s1/s10 本來就吐 FHL 標記)→ **零 scheme 橋接、零模型外成本**。
+- 這是「容易的 80%」:乾淨、便宜,先把 s1-vs-s10 在主體 SN 上的 placement 高下定下來。`build_exclusion.py` 就做這層。
+
+## Stage 2 — 嚴酷全測(含 9xxx),用 Clear Bible 當輸入 → **可行**
+
+你問的核心:能不能拿 Clear Bible 當輸入?**能,而且它是唯一能勝任的 source。** 原因:
+
+- **KJV 幫不上前綴**(英文沒有 ב/ה/ו 的獨立詞);而 **Clear Bible 的 WLC 原文把前綴切成顯式 token**,每個都帶號碼+詞性+形態 —— 例 Gen 1:1 `בְּ(在) H0871a prep`、`הַ(the) H1886a art`、`וְ(和) H2050b cj`。**這正是投影前綴所需的「source 端有東西可搬」。**
+- **要配一個小型固定橋接**:Clear Bible 的擴充 Strong's(H0871a…)→ FHL 的 09xxx(09002…)。希伯來不可分前綴就那幾個(בכלמ + ה冠詞 + ו連接 + ש關係),**一次建表、永久可用**,不是大工程。
+- **仍然 leak-free**:source 是希伯來 token,答案是「哪個**中文**字」,中文位置不在 source 裡 → 模型還是得做希伯來→中文對位。
+
+**一個要注意的洩漏點**:WLC.tsv 有個 `gloss2` 欄,裡面是**中文 gloss**(创造/神/起初/地…)。若把 gloss2 一起餵進去,等於給了中文提示,**接近洩題**。嚴酷測驗應**只餵 希伯來詞+號碼+morph,拿掉 gloss2**(或當作另一個「有提示 vs 無提示」的對照變因)。
+
+## 兩階段 divide-and-conquer 總表
+
+| | Stage 1 基礎 | Stage 2 嚴酷 |
+|---|---|---|
+| 測什麼 | 主體 content-word SN 的 placement | **含 09xxx 前綴的完整** placement |
+| source | KJV+SN | **Clear Bible WLC 原文**(顯式帶前綴) |
+| 9xxx | 排除 | **納入**(靠 lemma→09xxx 橋接) |
+| 編號 | 全 FHL,零橋接 | FHL + 小型固定前綴橋接 |
+| 角色 | 乾淨可信的基礎裁決 | 上限壓力測試(模型連前綴都放對嗎) |
+| 成本 | 最低(先做) | 較高(後做) |
+
+**精神**:Stage 1 先把「乾淨、無爭議」的部分用最嚴謹方式分出勝負;Stage 2 再單獨攻「前綴」這塊硬骨頭,而且專門用唯一帶得動前綴的 Clear Bible source。分而治之,層層加嚴。
+
+## 建議
+
+要我**先把這兩階段寫進 `S10_VS_S1_GOLD_EXPERIMENT.md`**(取代我上一版過頭的「WLC 直接當答案卷」),**然後動手做 Stage 1 的 `build_exclusion.py`**(跑创 1 看排除族分佈、確認基礎可信)嗎?Stage 2 的 Clear Bible 橋接表等 Stage 1 站穩再建。
+
+
+
+

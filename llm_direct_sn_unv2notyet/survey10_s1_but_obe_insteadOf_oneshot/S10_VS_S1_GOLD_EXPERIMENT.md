@@ -85,62 +85,69 @@ measures correctness (heavier, "who is closer to FHL truth?"). Only A2 uses
 `auto_score` against ground truth.* The Arms / Metrics / Hypotheses sections
 below describe **A2** (the real contest); A1 is the optional warm-up diff.
 
-## A2 scoring — original-language answer key + alignment-derived exclusion (Joshua, 2026-06-25)
+## A2 scoring — two-stage divide-and-conquer (Joshua, 2026-06-25)
 
-The KJV/UNV Strong's-**count mismatch** (survey5's bottleneck) unfairly penalizes
-coverage: projecting from a source can never supply SNs that source's language
-doesn't express — Hebrew inseparable prefixes (09xxx), the object marker 0853 את,
-some morphology 8xxx. **Empirically confirmed on Gen 1:1**: the only UNV-only SN
-was `09002` (the ב prefix). Fix = score **placement only on the SNs both sides
-genuinely have**, with a *principled, multi-language* exclusion instead of a
-single-translation diff. Two upgrades over the naive `UNV-FHL ∩ KJV-FHL`:
+> **Scheme correction (supersedes an earlier draft).** An earlier draft made the
+> original WLC/SBLGNT the *direct* SN answer key — that over-reached. **FHL's
+> 09xxx prefix range is FHL-specific**: standard Strong's tops at H8674 and
+> `WLC.tsv` has **zero** 9xxx. Clear Bible *does* tokenize the Hebrew prefixes but
+> numbers them in an **augmented standard-range scheme** (Gen 1:1: ב=`H0871a`,
+> ה=`H1886a`, ו=`H2050b`), NOT FHL's 09xxx. So **FHL ≠ Clear Bible numbering**;
+> WLC-as-answer-key needs a scheme bridge. Since s1/s10 emit **FHL** tags, the
+> primary scoring stays **FHL-internal**; Clear Bible is brought in deliberately —
+> in Stage 2, as a *source*, not as the answer key.
 
-### 1. Canonical SN answer key = the ORIGINAL Hebrew/Greek
-`Alignments/data/sources/` holds the source token tables — **WLC / WLCM** (Hebrew
-OT) and **SBLGNT / BGNT** (Greek NT) — each token carrying its `strongs` + `lemma`
-+ `morph`. This is the **authoritative "which SNs this verse has"**, not a derived
-translation. So:
-- **SN *set* answer key** = the original (WLC/SBLGNT) per verse.
-- **Placement answer key** for the Chinese target = UNV-FHL (where each SN sits on
-  Chinese tokens). The original defines *what*; UNV-FHL defines *where*.
+The KJV/UNV count mismatch (survey5's bottleneck) unfairly penalizes coverage: a
+source can't supply SNs its language doesn't express (the 09xxx prefixes, 0853 את,
+some 8xxx). On Gen 1:1 the only UNV-only SN was `09002` (the ב prefix). Fix = **two
+stages**, each its own divide-and-conquer, escalating rigor.
 
-### 2. Exclusion list = alignment-derived projectability (not a single-lang diff)
-`Alignments/` (Clear Bible / BiblioNexus, **manual** word-level alignments) maps
-each original source token to target words across **10+ languages × multiple
-translations** (eng `BSB`/`YLT`, fra, spa, por, rus, arb, hin, ben, asm, hau).
-**Each (language, translation) pair is itself a finished "translation + word-level
-SN alignment" gold** — the same *kind* of artifact as FHL's UNV+SN/KJV+SN, just in
-relational Burrito form (target word → alignment record → source token → `strongs`)
-rather than inline `詞<SN>`.
+### Stage 1 — clean baseline (exclude 09xxx; zero scheme bridge)
+- **source = KJV+SN, target = UNV-stripped**; score **placement only on
+  `UNV-FHL ∩ KJV-FHL`** (the content-word core). The UNV-only 09xxx prefixes are
+  **excluded, not scored**.
+- Stays **entirely inside FHL's numbering** (what s1/s10 actually emit) → **zero
+  bridge, zero extra cost**. The "easy 80%": settle the s1-vs-s10 placement verdict
+  on the bulk first.
+- `build_exclusion.py` builds it: per verse `shared = UNV-FHL ∩ KJV-FHL`,
+  `excluded = UNV-only`; report the excluded-cluster distribution on Gen 1 to
+  confirm it is the 09xxx/0853/8xxx families before any paid contest. Plus
+  `score_placement(model_output, unv_fhl, shared)`. Cheap (FHL reads, zero model
+  cost).
 
-For each source SN token, count how many aligned pairs map a target word to it:
-- **High coverage** (content words: 神 0430, 創造 1254) → **projectable → keep & score**.
-- **Low / zero coverage** (09xxx prefixes, 0853 את, some 8xxx morphology) →
-  **language-specific → exclude** (no translation can project them).
+### Stage 2 — harsh full test (include 09xxx) with Clear Bible as the source
+The hard tail: can the model place even the **09xxx prefixes**? KJV can't help —
+English has no token for ב/ה/ו. **Clear Bible's WLC is the only source that carries
+the prefixes explicitly** (Gen 1:1: `בְּ` H0871a `prep`, `הַ` H1886a `art`, `וְ`
+H2050b `cj`), so it is the right — and only — input for this test.
+- **source = original Hebrew (Clear Bible WLC), bridged to FHL numbering** via a
+  small fixed table mapping the handful of inseparable prefixes (בכלמ + ה + ו + ש)
+  → FHL 09xxx. Built once, reused everywhere.
+- **target = UNV-stripped; score on the FULL set including 09xxx.**
+- **Leak-free**: source tokens are Hebrew; the answer is *which Chinese token* —
+  not in the Hebrew source. ⚠️ **`WLC.tsv` has a `gloss2` column with Chinese
+  glosses** (创造/神/起初/地…); feeding it leaks Chinese hints, so the harsh test
+  must feed **Hebrew word + number + morph only, `gloss2` stripped** (or treat
+  gloss2 as a separate "with-hint vs no-hint" variable).
 
-10+ languages **vote**, so the exclusion is far more robust than a KJV-only diff
-(one translation's idiosyncrasy can't bias it).
+| | Stage 1 (baseline) | Stage 2 (harsh) |
+|---|---|---|
+| scores | content-word core placement | **full placement incl. 09xxx prefixes** |
+| source | KJV+SN | **Clear Bible WLC** (explicit prefixes) |
+| 09xxx | excluded | **included** (lemma→09xxx bridge) |
+| numbering | all FHL, zero bridge | FHL + small fixed prefix bridge |
+| role | clean, uncontested verdict | upper-bound stress test |
+| cost | lowest (do first) | higher (do after) |
 
-### Two contest arenas this unlocks
-- **(a) Chinese arena (production-relevant)** — source-with-SN → UNV-stripped,
-  score **placement vs UNV-FHL on the kept (projectable) ∩ UNV set**; excluded SNs
-  reported separately, not scored. `Alignments/` has **no Chinese**, so UNV's
-  placement truth still comes from FHL; the alignment corpus is the *exclusion
-  authority*, not a Chinese gold. Source is **no longer limited to KJV** — any
-  manually-aligned translation (e.g. BSB) is a candidate, cleaner SN source.
-- **(b) Pure-alignment arena (methodology validation, no FHL/Chinese)** — project
-  the original source SN onto **any one of the 10+ aligned languages** and score
-  against *that language's manual alignment gold*. Fully leak-free, human gold,
-  many language pairs — but tests non-Chinese, so it validates the **method**, not
-  the UNV→LCC product directly.
-
-### `build_exclusion.py` (planned scaffold)
-Join `sources/*.tsv` (SN per original token) + each language's `alignments/*.json`
-→ per-SN cross-lingual expression rate → exclusion list; intersect with UNV-FHL
-per verse → the fair scoring set. Plus `score_placement(model_output, unv_fhl,
-kept_set)`. **Cheap** (local alignment files + FHL UNV, zero model cost) — run on
-Gen 1 first to confirm the exclusion clusters as 09xxx/0853/8xxx before any paid
-contest.
+### Clear Bible as a cross-check (supporting role, both stages)
+The 10+ aligned languages × translations (each a finished **manual** word-level SN
+alignment gold) serve as a **robustness vote** for *why* an SN is excluded: bridge
+the FHL 09xxx prefix by **lemma** (ב/ה/ו/את) to the Clear Bible token and confirm
+it is either unaligned or aligned only to function words across languages. This
+corroborates the Stage-1 exclusion without making Clear Bible the answer key. A
+**pure-alignment arena** (project among the aligned languages, score vs their
+manual gold — no FHL, no Chinese) remains available for *method* validation, but
+is non-Chinese so it does not directly judge the UNV→LCC product.
 
 ## Arms
 
@@ -207,12 +214,12 @@ Aggregated per arm: mean placement/coverage, exact-match rate, and the
 
 ```
 0. Freeze panel roster (opus/agy/codex); erha → Gemini 3.1 Pro (High).
-1. build_exclusion.py (CHEAP, zero model cost — run FIRST):
-   - SN set answer key = original WLC/SBLGNT (Alignments/data/sources/*.tsv).
-   - per-SN cross-lingual expression rate over the 10+ aligned languages → exclusion
-     (low-coverage 09xxx/0853/8xxx morphology+particles).
-   - kept_set[verse] = projectable ∩ UNV-FHL. Report exclusion-cluster distribution
-     on Gen 1 to CONFIRM the 09xxx/0853/8xxx hypothesis before paying for a contest.
+1. build_exclusion.py (Stage 1, CHEAP, FHL-internal, zero model cost — run FIRST):
+   - per verse: shared = UNV-FHL ∩ KJV-FHL ; excluded = UNV-only (the 09xxx etc.).
+   - kept_set[verse] = shared. Report exclusion-cluster distribution on Gen 1 to
+     CONFIRM the 09xxx/0853/8xxx hypothesis before paying for a contest.
+   - (optional cross-check) corroborate excluded SNs via Clear Bible alignment by
+     lemma bridge — NOT the answer key, just a robustness vote.
 2. Build the contest corpus: source = KJV+SN (or a manually-aligned translation),
    target = UNV stripped (strip_shell, Gen 1–5); UNV-FHL = placement answer key.
    Audit prompt worked-examples to exclude any tested verse (no answer leak).
