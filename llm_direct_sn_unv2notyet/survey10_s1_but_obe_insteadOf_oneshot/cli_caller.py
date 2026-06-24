@@ -51,8 +51,9 @@ _extract_json = _s1._extract_json
 
 # Live obe leg -> Terminal window id (see .s10_sessions.json).
 # Fix (d): agy relaunched on a fresh window pinned to "Gemini 3.1 Pro (High)"
-# (was 5557 on Flash). codex 5555 unchanged.
-LIVE_WINDOWS = {"codex": 5555, "agy": 8214}
+# (was 5557 on Flash). codex relaunched fresh (9082) after its 5555 session ended
+# during the quota-capped run.
+LIVE_WINDOWS = {"codex": 9082, "agy": 8214}
 
 # Cap the live-inject attempt so a hung session falls back to headless quickly
 # instead of burning the full call timeout. The headless fallback then gets the
