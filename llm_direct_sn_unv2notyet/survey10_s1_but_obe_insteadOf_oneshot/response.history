@@ -348,3 +348,22 @@ Startup verified healthy: run-start hygiene reset fired, verse 1:25 R1 underway.
 
 
 
+##     2026-06-24 19:15 CST
+
+###    User Prompt
+怎麼跑這麼久？ / [resume run completed — Gen 1 31/31]
+
+###    result
+Gen 1 is COMPLETE — 31/31 gold, and the s10-E externalized-learning loop fired for real for the first time.
+
+FINAL TALLY: 31/31 verses, no missing, ALL coverage-perfect. resolved_at = 14 round1 (unanimous) + 15 round2 (debate) + 1 r2_model_patch (Trigger-2 weak-model, patched & resolved) + 1 r2_early_evolution (one genuinely hard verse, no valid output). trust_tier = 30 c_consensus + 1 None (the hard verse). No codex bail this run (stop markers 0) — codex held the whole resume.
+
+MILESTONE — the learning loop worked end-to-end: the per-chapter scribe distilled convention C1 from the resolved gold ("keep a verb's morphology/stem tag (8xxx) glued immediately after that verb's own core number with no target word intervening, even when the verb is re-lexified or the clause restructured" — e.g. 1:27 創造<01254><8799>, 1:28 祝福<01288><8762>). run_convention_regression re-ran the prior gold with C1 prepended and it passed 11/11 (changed no settled verse) -> ACCEPTED -> conventions.md bumped to v0.1. This is the first time s10's pipeline produced a real, regression-gated convention — the core thesis (accumulate expertise in an external, gated artifact without sacrificing R1 independence) is now validated on live data.
+
+WHY IT TOOK ~1.7h for 7 verses: the trustworthy transport costs ~100s/live-call (15s leg pacing + blind /clear double-Enter + real model response 80-150s) vs ~10s headless, and 1:25-1:30 were mostly hard DISAGREED verses needing many R2 re-rolls (27 re-rolls total). That's the (甲) cost: trustworthiness (~10x wall-clock) x hard-verse re-rolls.
+
+Committed conventions.md v0.1 (commit 7edddb7) and flared the completion to survey1-obe. Gen 1 is now a valid Arm B for the s1-vs-s10 gold contest (S10_VS_S1_GOLD_EXPERIMENT.md). Total run cost across both halves: run-1 ~3.5h/25 verses (codex-capped) + resume ~1.7h/7 verses.
+
+
+
+
