@@ -432,3 +432,128 @@ A2, 我們把 unv 當作題目, 要 s1 and s10 插入.
 
 
 
+##     2026-06-25 03:25 CST
+
+###    User Prompt
+加這個 Stop hook
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 同意加 Stop hook(回合結束提醒記錄 /ph /logoutput)
+- Diff: 用 update-config skill 在 settings 加一個 Stop hook,在每次回覆結束提醒檢查 prompt.history/response.history 是否已記。補上目前只有回合開頭(UserPromptSubmit)提醒的缺口
+
+
+
+
+##     2026-06-25 03:37 CST
+
+###    User Prompt
+接受「軟 block、只在漏記時叫我一次」→ 模式 A(我推薦), 全域 ~/.claude/settings.json, mtime 判斷「有沒有記」不是 100% 準: 你研究一下對策
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 拍板:Stop hook 用模式 A(軟 block、漏記才叫我一次)、全域 ~/.claude/settings.json;並要我研究比 mtime 更準的「有沒有記」偵測對策
+- Diff: 將實作全域 Stop hook(模式 A)。偵測改用更準的方法:解析 stdin 的 transcript_path,檢查本回合是否真的呼叫過 logoutput.py/ph.py(取代 mtime 猜測),消除『已記卻誤報』假陽性;再加 trivial-prompt 過濾降殘餘噪音;stop_hook_active 防迴圈
+- File: `/Users/joshua/.claude/hooks/ph_lo_stop_reminder.py`
+
+
+
+
+##     2026-06-25 03:41 CST
+
+###    User Prompt
+我想到你舉 kjv 當作餵進去的 one shot example, 那是S4 還是多少呢？
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 問:KJV 當餵入來源那套是哪個 survey?確認=survey5(bilingual KJV+SN→UNV),非 survey4
+- Diff: 查證:survey5=KJV+SN→UNV+SN 跨語言、有 FHL ground truth(SN 號碼已在 KJV 輸入,模型只做 placement);survey4=純 UNV de-novo 標註(需背字典,失敗 cov=0.12)。A2 對應 survey5,非 survey4。記下 placement leak-free / coverage 部分給定 的細微差別
+
+
+
+
+##     2026-06-25 03:48 CST
+
+###    User Prompt
+S5 and A2, 我提供兩個面向:
+1, Alignment (/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/Alignments) 這裡是不是提供了更多的語言倉庫 (10+), 就不止是 kjv 了
+2, 能否先建立一個排除清單, 把 kjv （and alignment 10+ ）對照 unv 中文當中, 所缺少的那些 (是不是 9xxx 族或者有其他) 缺少的就直接排除不論, 只比對兩者都有的(unv v.s. kjv and 10+)
+在兩邊都有的 sn 群中比對即可. 分而治之.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua A2 兩面向:(1)Alignments/ 是否提供 10+ 語言倉庫,不止 KJV;(2)先建排除清單:把 KJV(+10+)對 UNV 缺少的 SN(是否 9xxx 族?)直接排除,只比對兩邊都有的 SN 群 — 分而治之
+- Diff: 探索 Alignments/ 內容;分析 intersection-only scoring 提案(排除 source 沒有的 UNV-only SN,如 09xxx 不可分前綴/0853 את 記號,只在共有 SN 群上比 placement),解決 survey5 的 KJV/UNV SN 數量不一致雜訊
+
+
+
+
+##     2026-06-25 03:56 CST
+
+###    User Prompt
+中文詳述
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 要求中文詳述 A2 的 Alignments + 排除清單/交集評分(分而治之)整套設計
+- Diff: 詳述:Alignments 只當 scoring 工具(非 source)、KJV/UNV SN 不對齊根因(9xxx前綴/0853/8xxx)、交集 placement 評分流程、rule-based vs empirical 排除、build_exclusion.py I/O
+
+
+
+
+##     2026-06-25 04:11 CST
+
+###    User Prompt
+這最後部分顯然是 logoutput 作業內容顯示出來的. 這與你的 output 完全一致且看起來醜些, 這部分已經顯示過了, 能遮蔽不顯示嗎？只告知已經計入 response.history 即可
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua:logoutput 寫檔步驟把整段回覆內嵌進 Bash 指令→畫面重複又醜,能否遮蔽只回報已計入
+- Diff: 釐清那是 /logoutput 寫檔(非 Stop end-hook)。提案:把 Stop end-hook 從『提醒』升級成『回合結束自動從 transcript 抽我的逐字回覆+prompt 自己寫檔』→ 我不再跑 logoutput 指令、畫面不重複、且逐字有保證(連帶根除壓平 bug)。等 Joshua 批准
+
+
+
+
+##     2026-06-25 04:17 CST
+
+###    User Prompt
+現在就把它升級成自動記錄
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua:現在就把 Stop end-hook 升級成自動記錄
+- Diff: 改寫 ~/.claude/hooks/ph_lo_stop_reminder.py:回合結束從 transcript 抽我最後的逐字回覆,自動寫進 response.history(我不再跑 logoutput,畫面零重複,逐字保證)。/ph 維持手動(curated Hint/Diff),hook 仍對漏 ph 做 soft-block 提醒。約定:ph 在回合開頭、prose 收尾(最後一則 assistant 文字=可乾淨抽取)
+- File: `/Users/joshua/.claude/hooks/ph_lo_stop_reminder.py`
+
+
+
+
+##     2026-06-25 04:27 CST
+
+###    User Prompt
+先等一下
+你說 10+ language 的alignment 只是作評分的信心參考 (語言越多越有信心)
+但是這  10+ 對應詞庫其實也有各自的已插入聖經經文了不是嗎？就是已經據此完成了各自語言類似 unv+sn 的成品了, 確認一下好嗎？
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 質疑:10+ 語言 alignment 不只是評分信心參考,每個語言其實都有各自已插入經文的成品(等同各語言版 UNV+SN);要我確認
+- Diff: 查證 Alignments 資料結構:每語言是否=target 經文 + word-level 對齊到 source(帶 SN)= 完整的『語言+SN』gold。修正我先前『只當信心 vote』的低估說法;盤點這對 A2 解鎖什麼(多 source 選項/多 target contest/穩健排除清單),以及仍無中文的限制
+
+
+
+
+##     2026-06-25 04:30 CST
+
+###    User Prompt
+據此把 A2 改成「以原文 WLC/SBLGNT 為 SN 答案卷 + alignment 推導排除清單」的更乾淨版本,寫進實驗設計
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua:據此把 A2 改成『以原文 WLC/SBLGNT 為 SN 答案卷 + alignment 推導排除清單』的更乾淨版,寫進實驗設計
+- Diff: 改寫 S10_VS_S1_GOLD_EXPERIMENT.md A2:SN 答案卷改用原文 WLC(希OT)/SBLGNT(希臘NT)的 Strong's(權威、非衍生);排除清單改由 alignment 跨語言覆蓋率推導(少語言對齊=morphology/particle 09xxx/0853→排除);保留中文 arena(對 UNV-FHL 打 placement)+ 新增純 alignment 驗證 arena
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+

@@ -309,3 +309,182 @@ Flare [STATUS] when impl in + ready for code review. Do NOT fire Gen 1 until I c
 
 
 
+##     2026-06-24 03:53 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey1_prompt_evolving-obe -> survey10_obe:
+[GO — FIRE GEN 1 LIVE] Joshua decided: run Gen 1 using EXISTING live CLIs (codex 5555 / agy 5557 + opus). HOLD LIFTED. Fire now.
+Code review: gates #1/#2/#4/#5 PASS — cleared. Gate #3 live caveats KNOWN (reset_live_panel single-Enter may not auto-commit /clear; reset per-verse not per-round so within-verse R1/R2 not fully blind; erha on Gemini 3.5 Flash not Pro). Joshua KNOWS, chose to run live as-is. Do NOT re-block/force-headless/relitigate.
+Action: 1. Lift hold. 2. Run python3 run_gold_standard.py --book 創 --chap 1 (naked default, live as-is). 3. erha Pro flip if trivial else proceed.
+Operational watch (log don't block): if /clear doesn't commit on a leg, note in run log, keep running. Joshua wants to watch live inject.
+Flare [STATUS] on start + on completion/first verse resolved.
+### inserted prompt ended ###
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: survey1-obe [GO — FIRE GEN 1 LIVE]:Joshua 拍板 code review PASS(#1/#2/#4/#5),#3 live 已知 caveat(single-Enter /clear、per-verse not per-round、erha 仍 Flash)Joshua 接受。HOLD 解除,用既有 live CLI(5555/5557+opus)跑 創 1。勿再 block/headless/relitigate。flare start + 完成/首節
+- Diff: 解除 Gen 1 hold。啟動 run_gold_standard.py --book 創 --chap 1 --force(--force 為覆蓋 pre-v2 cache + 讓 R1 真 live 跑 v2 wiring,符合 Joshua 先前覆蓋指示)。不動 reset_live_panel/erha 模型。log 觀察 /clear independence health,不 block
+
+
+
+
+##     2026-06-24 03:57 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey1_prompt_evolving-obe -> survey10_obe:
+[STOP + APPLY FIXES — supersedes BOTH prior injects] You fired as-is before my (甲) correction. Joshua FINAL = (甲) spectacular AND trustworthy in ONE run → fix FIRST then one live run.
+1. STOP current run (kill). Gold provisional, will be overwritten.
+2. APPLY fixes: (a) DOUBLE-ENTER every inject (reset AND task), two key code 36 ~5s gap. (b) WAIT ≥15s BETWEEN LEGS after one leg commits before next (codex→agy); reset_live_panel loops with no pacing — add wait. (c) PER-CALL BLINDNESS: bake commit-/clear(double-enter)-then-inject-task into _live_call so EVERY call (R1/R2 re-roll/R3) starts blank; D passes sealed bids in-prompt so clear-before-D fine. (d) erha→Gemini 3.1 Pro(High): relaunch agy tab on Pro if in-session flip non-trivial.
+3. THEN one run: run_gold_standard.py --book 創 --chap 1 --force.
+Flare [STATUS] when stopped, fixes in, clean run started.
+### inserted prompt ended ###
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: survey1-obe [STOP + APPLY FIXES — supersedes GO]:Joshua 最終 (甲) 壯觀 AND 可信 一次到位 = 先修後跑一次。停掉 as-is run;修 (a)double-Enter 每個 inject(5s gap)(b)legs 間 ≥15s pacing(c)_live_call 每次呼叫先 commit /clear 再 inject task→per-call blindness(d)erha→Gemini 3.1 Pro(High) 必要時重啟 agy tab;然後單一 run --force。stopped/fixes-in/started 各 flare
+- Diff: 停止 as-is Gen 1 run(gold provisional 將被覆蓋)。將改 cli_caller:_osascript_inject 雙 Enter、新增 legs 間 ≥15s pacing、_live_call 內建 per-call /clear-then-task blindness;erha 切 Pro。修完重跑 run_gold_standard --book 創 --chap 1 --force
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/cli_caller.py`
+
+
+
+
+##     2026-06-24 09:47 CST
+
+###    User Prompt
+Try it again
+Codex may be back
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua: try again, codex may be back → resume Gen 1 剩餘 verses (1:25 + 26-31)
+- Diff: 先 canary codex 5555 確認 quota 回復;若回應則 launch run_gold_standard --book 創 --chap 1 --sec 25-31 --force(7 節),24 clean gold 已 cached
+
+
+
+
+##     2026-06-24 13:12 CST
+
+###    User Prompt
+codex is now ok, do it now.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua: codex 回復了,立刻跑 → resume Gen 1 剩餘 (1:25 + 26-31)
+- Diff: canary 確認 codex 9082 後 launch run_gold_standard --book 創 --chap 1 --sec 25-31 --force(7 節);24 clean gold cached;codex 9082 + agy Pro 8214 + opus headless
+
+
+
+
+##     2026-06-25 02:56 CST
+
+###    User Prompt
+跑 s1 Arm A 同節做對照、用 survey4 auto_score 對 FHL ground truth 評分，或繼續往創 2 推進累積更多慣例。詳述一下各自是在做什麼？
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 要求詳述三條後續路徑(s1 Arm A 對照 / survey4 auto_score 對 FHL 評分 / 推進創2 累積慣例)各自在做什麼
+- Diff: Gen 1 31/31 完成後的方向抉擇。將詳述:(A) s1-vs-s10 對照 + auto_score 的方法學細節(含 LCC 無 FHL truth 的 wrinkle、需 strip-UNV 自我重標才有客觀 ground truth)、(B) 推進創2 累積慣例驗證 C1 泛化。等 Joshua 選方向
+
+
+
+
+##     2026-06-25 03:01 CST
+
+###    User Prompt
+先把你的 A1 A2 記下來.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua: 把 A1(直接方法對照,無客觀真值)/A2(strip-UNV 自我重標,有 FHL ground truth,真 contest)的區別記進設計檔
+- Diff: 在 S10_VS_S1_GOLD_EXPERIMENT.md 新增 A1 vs A2 明確區分:A1=同 LCC 節 s1-gold vs s10-gold diff(只能看異同,LCC 無 FHL truth);A2=strip-UNV 重標 + auto_score 對 FHL 真值(唯一能評誰更準)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
+##     2026-06-25 03:05 CST
+
+###    User Prompt
+A2, 我們把 unv 當作題目, 要 s1 and s10 插入.
+那標準提示當中通常把 unv, unv+sn 當作 one shot example, 這不是洩題了嗎？洩漏答案
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 抓到 A2 洩題 bug:projection prompt 餵 UNV+SN 當 source = 答案;system prompt worked examples 也是 UNV+SN。修正:用 KJV+SN→UNV(survey5 式)當 source≠答案,score vs UNV FHL truth,並 audit worked examples
+- Diff: 更新 S10_VS_S1_GOLD_EXPERIMENT.md A2:把洩題的 strip-UNV-自我重標 改成 leak-free 的 KJV+SN(source)→UNV-stripped(target)→auto_score vs UNV FHL truth(survey5 framing);新增 worked-example audit;誠實標註 cross-lingual 比 production 同語難
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
+##     2026-06-25 03:21 CST
+
+###    User Prompt
+要補, 也要檢討為何 /ph /logoutput 會不時中斷, 縱使執行也會偷懶擅自壓平
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 要求:(1)補修 response.history 被壓平的表格(授權 hand-edit)(2)檢討為何 /ph /logoutput 會不時中斷、縱使執行也偷懶壓平
+- Diff: 授權對 response.history 一次性手動修補:把中文詳述那筆被壓平的 2 個表格還原成 markdown。並提出 discipline 失誤的根因分析 + 修正承諾(+ 可選 Stop hook 強化)。存 feedback memory
+
+
+
+
+##     2026-06-25 03:25 CST
+
+###    User Prompt
+加這個 Stop hook
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 同意加 Stop hook(回合結束提醒記錄 /ph /logoutput)
+- Diff: 用 update-config skill 在 settings 加一個 Stop hook,在每次回覆結束提醒檢查 prompt.history/response.history 是否已記。補上目前只有回合開頭(UserPromptSubmit)提醒的缺口
+
+
+
+
+##     2026-06-25 03:37 CST
+
+###    User Prompt
+接受「軟 block、只在漏記時叫我一次」→ 模式 A(我推薦), 全域 ~/.claude/settings.json, mtime 判斷「有沒有記」不是 100% 準: 你研究一下對策
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 拍板:Stop hook 用模式 A(軟 block、漏記才叫我一次)、全域 ~/.claude/settings.json;並要我研究比 mtime 更準的「有沒有記」偵測對策
+- Diff: 將實作全域 Stop hook(模式 A)。偵測改用更準的方法:解析 stdin 的 transcript_path,檢查本回合是否真的呼叫過 logoutput.py/ph.py(取代 mtime 猜測),消除『已記卻誤報』假陽性;再加 trivial-prompt 過濾降殘餘噪音;stop_hook_active 防迴圈
+- File: `/Users/joshua/.claude/hooks/ph_lo_stop_reminder.py`
+
+
+
+
+##     2026-06-25 03:41 CST
+
+###    User Prompt
+我想到你舉 kjv 當作餵進去的 one shot example, 那是S4 還是多少呢？
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 問:KJV 當餵入來源那套是哪個 survey?確認=survey5(bilingual KJV+SN→UNV),非 survey4
+- Diff: 查證:survey5=KJV+SN→UNV+SN 跨語言、有 FHL ground truth(SN 號碼已在 KJV 輸入,模型只做 placement);survey4=純 UNV de-novo 標註(需背字典,失敗 cov=0.12)。A2 對應 survey5,非 survey4。記下 placement leak-free / coverage 部分給定 的細微差別
+
+
+
+
+##     2026-06-25 03:48 CST
+
+###    User Prompt
+S5 and A2, 我提供兩個面向:
+1, Alignment (/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/Alignments) 這裡是不是提供了更多的語言倉庫 (10+), 就不止是 kjv 了
+2, 能否先建立一個排除清單, 把 kjv （and alignment 10+ ）對照 unv 中文當中, 所缺少的那些 (是不是 9xxx 族或者有其他) 缺少的就直接排除不論, 只比對兩者都有的(unv v.s. kjv and 10+)
+在兩邊都有的 sn 群中比對即可. 分而治之.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua A2 兩面向:(1)Alignments/ 是否提供 10+ 語言倉庫,不止 KJV;(2)先建排除清單:把 KJV(+10+)對 UNV 缺少的 SN(是否 9xxx 族?)直接排除,只比對兩邊都有的 SN 群 — 分而治之
+- Diff: 探索 Alignments/ 內容;分析 intersection-only scoring 提案(排除 source 沒有的 UNV-only SN,如 09xxx 不可分前綴/0853 את 記號,只在共有 SN 群上比 placement),解決 survey5 的 KJV/UNV SN 數量不一致雜訊
+
+
+
+

@@ -364,3 +364,98 @@ Codex may be back
 
 
 
+##     2026-06-24 13:12 CST
+
+###    User Prompt
+codex is now ok, do it now.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua: codex 回復了,立刻跑 → resume Gen 1 剩餘 (1:25 + 26-31)
+- Diff: canary 確認 codex 9082 後 launch run_gold_standard --book 創 --chap 1 --sec 25-31 --force(7 節);24 clean gold cached;codex 9082 + agy Pro 8214 + opus headless
+
+
+
+
+##     2026-06-25 02:56 CST
+
+###    User Prompt
+跑 s1 Arm A 同節做對照、用 survey4 auto_score 對 FHL ground truth 評分，或繼續往創 2 推進累積更多慣例。詳述一下各自是在做什麼？
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 要求詳述三條後續路徑(s1 Arm A 對照 / survey4 auto_score 對 FHL 評分 / 推進創2 累積慣例)各自在做什麼
+- Diff: Gen 1 31/31 完成後的方向抉擇。將詳述:(A) s1-vs-s10 對照 + auto_score 的方法學細節(含 LCC 無 FHL truth 的 wrinkle、需 strip-UNV 自我重標才有客觀 ground truth)、(B) 推進創2 累積慣例驗證 C1 泛化。等 Joshua 選方向
+
+
+
+
+##     2026-06-25 03:01 CST
+
+###    User Prompt
+先把你的 A1 A2 記下來.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua: 把 A1(直接方法對照,無客觀真值)/A2(strip-UNV 自我重標,有 FHL ground truth,真 contest)的區別記進設計檔
+- Diff: 在 S10_VS_S1_GOLD_EXPERIMENT.md 新增 A1 vs A2 明確區分:A1=同 LCC 節 s1-gold vs s10-gold diff(只能看異同,LCC 無 FHL truth);A2=strip-UNV 重標 + auto_score 對 FHL 真值(唯一能評誰更準)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
+##     2026-06-25 03:05 CST
+
+###    User Prompt
+A2, 我們把 unv 當作題目, 要 s1 and s10 插入.
+那標準提示當中通常把 unv, unv+sn 當作 one shot example, 這不是洩題了嗎？洩漏答案
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 抓到 A2 洩題 bug:projection prompt 餵 UNV+SN 當 source = 答案;system prompt worked examples 也是 UNV+SN。修正:用 KJV+SN→UNV(survey5 式)當 source≠答案,score vs UNV FHL truth,並 audit worked examples
+- Diff: 更新 S10_VS_S1_GOLD_EXPERIMENT.md A2:把洩題的 strip-UNV-自我重標 改成 leak-free 的 KJV+SN(source)→UNV-stripped(target)→auto_score vs UNV FHL truth(survey5 framing);新增 worked-example audit;誠實標註 cross-lingual 比 production 同語難
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
+##     2026-06-25 03:21 CST
+
+###    User Prompt
+要補, 也要檢討為何 /ph /logoutput 會不時中斷, 縱使執行也會偷懶擅自壓平
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 要求:(1)補修 response.history 被壓平的表格(授權 hand-edit)(2)檢討為何 /ph /logoutput 會不時中斷、縱使執行也偷懶壓平
+- Diff: 授權對 response.history 一次性手動修補:把中文詳述那筆被壓平的 2 個表格還原成 markdown。並提出 discipline 失誤的根因分析 + 修正承諾(+ 可選 Stop hook 強化)。存 feedback memory
+
+
+
+
+##     2026-06-25 03:25 CST
+
+###    User Prompt
+加這個 Stop hook
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 同意加 Stop hook(回合結束提醒記錄 /ph /logoutput)
+- Diff: 用 update-config skill 在 settings 加一個 Stop hook,在每次回覆結束提醒檢查 prompt.history/response.history 是否已記。補上目前只有回合開頭(UserPromptSubmit)提醒的缺口
+
+
+
+
+##     2026-06-25 03:37 CST
+
+###    User Prompt
+接受「軟 block、只在漏記時叫我一次」→ 模式 A(我推薦), 全域 ~/.claude/settings.json, mtime 判斷「有沒有記」不是 100% 準: 你研究一下對策
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 拍板:Stop hook 用模式 A(軟 block、漏記才叫我一次)、全域 ~/.claude/settings.json;並要我研究比 mtime 更準的「有沒有記」偵測對策
+- Diff: 將實作全域 Stop hook(模式 A)。偵測改用更準的方法:解析 stdin 的 transcript_path,檢查本回合是否真的呼叫過 logoutput.py/ph.py(取代 mtime 猜測),消除『已記卻誤報』假陽性;再加 trivial-prompt 過濾降殘餘噪音;stop_hook_active 防迴圈
+- File: `/Users/joshua/.claude/hooks/ph_lo_stop_reminder.py`
+
+
+
+

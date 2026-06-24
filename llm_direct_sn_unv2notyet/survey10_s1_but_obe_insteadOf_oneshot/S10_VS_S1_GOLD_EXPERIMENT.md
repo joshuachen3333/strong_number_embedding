@@ -85,6 +85,63 @@ measures correctness (heavier, "who is closer to FHL truth?"). Only A2 uses
 `auto_score` against ground truth.* The Arms / Metrics / Hypotheses sections
 below describe **A2** (the real contest); A1 is the optional warm-up diff.
 
+## A2 scoring — original-language answer key + alignment-derived exclusion (Joshua, 2026-06-25)
+
+The KJV/UNV Strong's-**count mismatch** (survey5's bottleneck) unfairly penalizes
+coverage: projecting from a source can never supply SNs that source's language
+doesn't express — Hebrew inseparable prefixes (09xxx), the object marker 0853 את,
+some morphology 8xxx. **Empirically confirmed on Gen 1:1**: the only UNV-only SN
+was `09002` (the ב prefix). Fix = score **placement only on the SNs both sides
+genuinely have**, with a *principled, multi-language* exclusion instead of a
+single-translation diff. Two upgrades over the naive `UNV-FHL ∩ KJV-FHL`:
+
+### 1. Canonical SN answer key = the ORIGINAL Hebrew/Greek
+`Alignments/data/sources/` holds the source token tables — **WLC / WLCM** (Hebrew
+OT) and **SBLGNT / BGNT** (Greek NT) — each token carrying its `strongs` + `lemma`
++ `morph`. This is the **authoritative "which SNs this verse has"**, not a derived
+translation. So:
+- **SN *set* answer key** = the original (WLC/SBLGNT) per verse.
+- **Placement answer key** for the Chinese target = UNV-FHL (where each SN sits on
+  Chinese tokens). The original defines *what*; UNV-FHL defines *where*.
+
+### 2. Exclusion list = alignment-derived projectability (not a single-lang diff)
+`Alignments/` (Clear Bible / BiblioNexus, **manual** word-level alignments) maps
+each original source token to target words across **10+ languages × multiple
+translations** (eng `BSB`/`YLT`, fra, spa, por, rus, arb, hin, ben, asm, hau).
+**Each (language, translation) pair is itself a finished "translation + word-level
+SN alignment" gold** — the same *kind* of artifact as FHL's UNV+SN/KJV+SN, just in
+relational Burrito form (target word → alignment record → source token → `strongs`)
+rather than inline `詞<SN>`.
+
+For each source SN token, count how many aligned pairs map a target word to it:
+- **High coverage** (content words: 神 0430, 創造 1254) → **projectable → keep & score**.
+- **Low / zero coverage** (09xxx prefixes, 0853 את, some 8xxx morphology) →
+  **language-specific → exclude** (no translation can project them).
+
+10+ languages **vote**, so the exclusion is far more robust than a KJV-only diff
+(one translation's idiosyncrasy can't bias it).
+
+### Two contest arenas this unlocks
+- **(a) Chinese arena (production-relevant)** — source-with-SN → UNV-stripped,
+  score **placement vs UNV-FHL on the kept (projectable) ∩ UNV set**; excluded SNs
+  reported separately, not scored. `Alignments/` has **no Chinese**, so UNV's
+  placement truth still comes from FHL; the alignment corpus is the *exclusion
+  authority*, not a Chinese gold. Source is **no longer limited to KJV** — any
+  manually-aligned translation (e.g. BSB) is a candidate, cleaner SN source.
+- **(b) Pure-alignment arena (methodology validation, no FHL/Chinese)** — project
+  the original source SN onto **any one of the 10+ aligned languages** and score
+  against *that language's manual alignment gold*. Fully leak-free, human gold,
+  many language pairs — but tests non-Chinese, so it validates the **method**, not
+  the UNV→LCC product directly.
+
+### `build_exclusion.py` (planned scaffold)
+Join `sources/*.tsv` (SN per original token) + each language's `alignments/*.json`
+→ per-SN cross-lingual expression rate → exclusion list; intersect with UNV-FHL
+per verse → the fair scoring set. Plus `score_placement(model_output, unv_fhl,
+kept_set)`. **Cheap** (local alignment files + FHL UNV, zero model cost) — run on
+Gen 1 first to confirm the exclusion clusters as 09xxx/0853/8xxx before any paid
+contest.
+
 ## Arms
 
 | Arm | Method | Cross-verse learning |
@@ -150,17 +207,23 @@ Aggregated per arm: mean placement/coverage, exact-match rate, and the
 
 ```
 0. Freeze panel roster (opus/agy/codex); erha → Gemini 3.1 Pro (High).
-1. Build KJV→UNV corpus: source = KJV+SN, target = UNV stripped (strip_shell over
-   Gen 1–5); keep UNV's FHL tags as the answer key. Audit prompt worked-examples
-   to exclude any tested verse (no answer leak).
-2. Arm A: run s1 consensus over the corpus → gold_A/{book}/{ch}/{sec}.json
-3. Arm B: run s10-E (this dir) over the SAME corpus, with the scribe active
-   per-chapter → gold_B/... + conventions.md history.
-   (B0 ablation: same but conventions.md frozen empty.)
-4. Score: auto_score.score_verse(gold_X, fhl_truth) for every verse, both arms.
-5. Aggregate: placement/coverage/exact per arm + the secondary metrics.
-6. Per-convention A/B on the test split → annotate conventions.md deltas; demote ≤0.
-7. Verdict table (below).
+1. build_exclusion.py (CHEAP, zero model cost — run FIRST):
+   - SN set answer key = original WLC/SBLGNT (Alignments/data/sources/*.tsv).
+   - per-SN cross-lingual expression rate over the 10+ aligned languages → exclusion
+     (low-coverage 09xxx/0853/8xxx morphology+particles).
+   - kept_set[verse] = projectable ∩ UNV-FHL. Report exclusion-cluster distribution
+     on Gen 1 to CONFIRM the 09xxx/0853/8xxx hypothesis before paying for a contest.
+2. Build the contest corpus: source = KJV+SN (or a manually-aligned translation),
+   target = UNV stripped (strip_shell, Gen 1–5); UNV-FHL = placement answer key.
+   Audit prompt worked-examples to exclude any tested verse (no answer leak).
+3. Arm A: run s1 consensus over the corpus → gold_A/{book}/{ch}/{sec}.json
+4. Arm B: run s10-E (this dir), scribe active per-chapter → gold_B/... + conventions
+   history. (B0 ablation: same but conventions.md frozen empty.)
+5. Score: score_placement(gold_X, unv_fhl, kept_set[verse]) per verse, both arms —
+   placement only on the kept set; excluded SNs reported separately, not scored.
+6. Aggregate: placement/coverage/exact per arm + the secondary metrics.
+7. Per-convention A/B on the test split → annotate conventions.md deltas; demote ≤0.
+8. Verdict table (below).
 ```
 
 ## Verdict table (to fill)
