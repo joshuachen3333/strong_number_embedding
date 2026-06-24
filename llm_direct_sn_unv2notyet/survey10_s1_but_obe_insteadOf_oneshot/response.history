@@ -385,10 +385,29 @@ A2 想找「有 FHL 標準答案」的題目客觀打分。最直覺是拿 UNV �
 讓投影來源是一份不等於答案的帶 SN 文本,唯一乾淨選擇是 KJV:來源=KJV+SN(英文,自己帶 FHL Strong's,不是答案);目標=UNV(拔掉 SN);任務=把 KJV 的 SN 跨語言投影到 UNV;打分=投影出的 UNV-SN 對照 UNV 原本 FHL 答案。不洩題因為:UNV 的 FHL 答案從頭到尾沒進過 prompt,只在打分那步由 auto_score 在程式裡比對。KJV/UNV 的 Strong's 背後同一套原文,投影有意義,但用詞語序語言都不同,不能照抄。再修管道②:審查 worked examples 確保不含被測節。
 
 四、怎麼打分:survey4/auto_score.py
-score_verse(model_output, ground_truth) 對每節吐 4 指標對照 FHL 真值:placement(正確擺位比例,主指標)、coverage(該有的有沒有都在)、exact(整節完全一致)、format(格式合規)。哪方更常命中 FHL 真值就是更好的 gold 生產者,無共識循環(裁判是 FHL 客觀答案)。
+score_verse(model_output, ground_truth) 對每節吐 4 個客觀指標(對照 FHL 真值):
+
+| 指標 | 意思 |
+|---|---|
+| **placement** | 正確擺位的 SN 比例(主指標 —— 號碼有沒有放對詞) |
+| **coverage** | 該有的 SN 有沒有都在(漏標/多標扣分) |
+| **exact** | 整節完全一致(嚴格) |
+| **format** | FHL 格式合規 |
+
+哪一方的 UNV 輸出更常命中 FHL 真值,哪一方就是更好的 gold 生產者 —— 無共識循環論證,因為裁判是 FHL 客觀答案,不是任何一方自己的共識。
 
 五、能證明什麼(H1–H5)
-兩臂同題同 panel 只方法不同:Arm A=s1、Arm B=s10-E、Arm B0=(選配)s10 但 conventions 凍結空白(歸因)。H1:s10 placement ≥ s1?H2:預載慣例後假分歧有沒有變少?H3:真難節 s10 的 D-deliberation 有沒有比 s1 多救回?H4:隨章節成本有沒有下降?H5:每條慣例(C1)在 held-out 節真的提升準確率嗎(per-convention A/B)。H5 最關鍵:回測閘門只保證不退步,不保證有進步;H5 用 FHL 真值做正向驗證,沒正向 delta 就降級/刪。
+兩臂同題、同 panel、只有方法不同:Arm A = s1、Arm B = s10-E、Arm B0 =(選配)s10 但 conventions 凍結空白(歸因)。
+
+| 假設 | 在問 |
+|---|---|
+| **H1** | s10 的 placement 準確率 ≥ s1?(配不配當 gold) |
+| **H2** | s10 因為預載慣例,**假分歧**(R1 就該一致卻分歧)有沒有變少? |
+| **H3** | 真難節(R3 都無解),s10 的 D-deliberation 有沒有比 s1「只能標記無解」多救回幾節? |
+| **H4** | 隨章節推進,s10 成本有沒有**下降**(慣例 settle → 重roll 變少)? |
+| **H5** | 每條慣例(像 C1)在 held-out 節上**真的提升準確率**嗎?(per-convention A/B) |
+
+H5 最關鍵:回測閘門只保證不退步,不保證有進步;H5 用 FHL 真值做正向驗證,沒正向 delta 就降級/刪。
 
 六、要誠實面對的代價
 KJV→UNV 是跨語言(英→中),比生產的同語言 UNV→LCC 難。為什麼非得這樣:中文裡只有 UNV/CUV 系有 FHL 標註,找不到第二份獨立中文帶 SN 文本當乾淨來源,唯一不洩題的帶 SN 來源就是 KJV。survey5 早接受此取捨。不影響對照公平性(s1/s10 面對完全一樣的 KJV→UNV 題目),只是分數是「跨語言投影準確率」,當方法強弱的相對證據,不是生產 UNV→LCC 的絕對值。
