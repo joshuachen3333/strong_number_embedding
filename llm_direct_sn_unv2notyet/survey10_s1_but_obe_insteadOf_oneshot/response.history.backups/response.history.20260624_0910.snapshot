@@ -289,28 +289,3 @@ CLEAN RUN: launched run_gold_standard.py --book 創 --chap 1 --force live (31 ve
 
 
 
-##     2026-06-24 09:10 CST
-
-###    User Prompt
-[task-notification] clean Gen 1 run (run_gold_standard --book 創 --chap 1 --force, fixes in) completed.
-
-###    result
-Gen 1 clean run COMPLETE — partial (quota-capped), but a strong validation of the v2 trustworthy pipeline.
-
-RESULT: 25/31 verses resolved — 13 R1-unanimous + 11 R2 + 1 unresolved (1:25). All 24 resolved verses have perfect SN coverage; trust_tier = c_consensus on all 24, None on the unresolved.
-
-TRANSPORT FIXES HELD (the whole point of option 甲): live transport confirmed genuinely used (not silent headless) — agy-Pro-8214 ~38-40s and codex-5555 ~53-79s per call vs ~7s headless, the extra time = per-call /clear + 15s leg pacing + live response. Double-Enter committed /clear reliably; zero transport errors logged. erha ran on Gemini 3.1 Pro (High) via the fresh 8214 window.
-
-STOP CAUSE (external, not a bug): codex BAILED OUT after 3 consecutive errors at verse 1:25 = shared-account rate-limit. s1's existing UNAVAILABLE->STOPPING safeguard fired and broke the loop, then build_gold_standard + scribe ran on the 25. Same shared-account quota ceiling that bit last session. 1:25 broke during R2 before reaching R3, so it's the lone unresolved (D-tier never got to fire on it).
-
-SCRIBE + CONVENTION GATE VALIDATED: the per-chapter scribe extracted 2 candidate conventions from the resolved gold; run_convention_regression REJECTED both (4/9 and 2/9 pass — they'd have changed settled verses). So conventions.md stays empty (0 rules) — the no-poison safety behavior working exactly as designed. This is the regression gate doing its job: bad candidate conventions never enter the artifact.
-
-D-TIER: wired and unit-verified earlier, but not exercised this run (no verse reached R3-unresolved; the disagreed verses all settled at R2, and 1:25 broke pre-R3 on rate-limit).
-
-COST: ~3.5h wall-clock for 25 verses — the trustworthy cost Joshua chose (甲). Per-call blindness + 15s pacing is inherently slow on a 3-leg live panel.
-
-REMAINING: verses 26-31 + re-resolve 1:25 (7 verses), pending codex shared-account quota recovery. The 24 clean gold are cached. Proposed next step: resume `run_gold_standard.py --book 創 --chap 1 --sec 25-31 --force` once codex quota resets. Flared the completion tally to survey1-obe; awaiting Joshua/s1 on resume timing (resuming now would just re-hit the codex limit).
-
-
-
-
