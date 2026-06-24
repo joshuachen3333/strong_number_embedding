@@ -404,3 +404,18 @@ codex is now ok, do it now.
 
 
 
+##     2026-06-25 03:05 CST
+
+###    User Prompt
+A2, 我們把 unv 當作題目, 要 s1 and s10 插入.
+那標準提示當中通常把 unv, unv+sn 當作 one shot example, 這不是洩題了嗎？洩漏答案
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 抓到 A2 洩題 bug:projection prompt 餵 UNV+SN 當 source = 答案;system prompt worked examples 也是 UNV+SN。修正:用 KJV+SN→UNV(survey5 式)當 source≠答案,score vs UNV FHL truth,並 audit worked examples
+- Diff: 更新 S10_VS_S1_GOLD_EXPERIMENT.md A2:把洩題的 strip-UNV-自我重標 改成 leak-free 的 KJV+SN(source)→UNV-stripped(target)→auto_score vs UNV FHL truth(survey5 framing);新增 worked-example audit;誠實標註 cross-lingual 比 production 同語難
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+

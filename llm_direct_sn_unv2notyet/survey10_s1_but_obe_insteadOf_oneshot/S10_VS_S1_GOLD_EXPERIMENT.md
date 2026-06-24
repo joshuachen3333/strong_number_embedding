@@ -11,18 +11,22 @@ The production gold task is **UNV → LCC**, but **LCC has no FHL Strong's truth
 so a UNV→LCC gold can only be judged by *consensus*, not against an answer key —
 which is circular for comparing two consensus methods.
 
-**Trick (borrowed from survey4/5):** run the contest on a task where ground truth
-**does** exist — **re-annotate UNV against its own FHL tags**:
-1. Take UNV+SN (which carries authoritative FHL tags).
-2. **Strip** the SN (survey4 `auto_score.strip_sn` / naked-mode `strip_shell`).
-3. Have each method (**s1** and **s10-E**) re-place the Strong's numbers from
-   scratch, exactly as if UNV were an unannotated target.
-4. Score each method's output against the **original FHL tags** with
+**Trick (borrowed from survey5):** run the contest on a task where ground truth
+**does** exist — project onto **UNV** (which has FHL tags) **from a different
+annotated source** so the answer is never shown:
+1. **Source = KJV+SN** (KJV carries its own FHL Strong's; it is *not* the answer).
+2. **Target = UNV stripped** of its SN (`strip_shell`).
+3. Have each method (**s1** and **s10-E**) project the Strong's numbers
+   cross-lingually KJV→UNV.
+4. Score each method's UNV output against UNV's **original FHL tags** with
    `survey4/auto_score.py:score_verse` → objective `{exact, coverage, placement,
    format}` per verse.
 
-The method whose gold matches FHL truth more often is, by definition, the better
-gold producer — no consensus circularity.
+The method whose UNV output matches FHL truth more often is the better gold
+producer — no consensus circularity, and (critically) **no answer leak**: the
+projection source is KJV, not the UNV answer. See **A2** below for the leak trap
+this avoids (a naive "strip UNV → re-place onto UNV" hands the model its own
+answer via the projection source + the system-prompt worked examples).
 
 ## Two comparison flavors — A1 vs A2 (read before running any contest)
 
@@ -42,20 +46,39 @@ production gold we already have (Gen 1) is **UNV→LCC and LCC has no FHL truth*
   panel) but still runs full R1→R2→R3 consensus over 31 verses on 3 accounts.
 - **Use as**: a cheap warm-up / sanity diff, NOT a credibility verdict.
 
-### A2 — objective contest (strip-UNV self-re-annotation, HAS FHL truth) ★
-- **What**: the strip-UNV trick above.題目 = **UNV+SN with its SN stripped**
-  (`strip_shell`); both s1 and s10 re-place the numbers onto UNV; score each
-  against the **original FHL tags** with `survey4/auto_score.py:score_verse`.
+### A2 — objective contest (HAS FHL truth) ★
+
+> ⚠️ **ANSWER-LEAK TRAP (Joshua, 2026-06-25) — read first.** s1/s10 are
+> **projection** engines: `_user_prompt(unv_sn, target, …)` feeds an annotated
+> **source** (text *with* SN) to project *from*, and the system prompt embeds
+> **UNV+SN worked examples**. So the *naive* "strip UNV, ask to re-place onto
+> UNV" leaks: if the target is UNV, the projection source (UNV+SN) and the
+> system-prompt examples literally **contain the answer** → the model just copies
+> the reference. A2 MUST NOT hand the model an annotated copy of the test text.
+
+- **Leak-free design (survey5 framing — source ≠ answer):**
+  - **Source = KJV+SN** (KJV carries its *own* FHL Strong's, English) — *not* the
+    answer being scored.
+  - **Target = UNV stripped** (SN removed).
+  - Both s1 and s10 **project KJV's SN cross-lingually onto UNV**.
+  - **Score the projected UNV-SN against UNV's original FHL tags** with
+    `survey4/auto_score.py:score_verse`. The answer never enters the prompt.
+- **Worked-example audit (second leak vector):** the prompt's
+  *"Worked examples"* must contain **no verse in the test set** (use held-out
+  examples, or strip the examples for the contest). Verify before running.
 - **Answers**: *who is more accurate vs ground truth* — mean placement/coverage
-  per arm (H1), whether each accepted convention (e.g. C1) actually **raises**
-  held-out placement accuracy (H5, the per-convention A/B), false-disagreement
-  reduction (H2), etc.
-- **Key**: this is a **separate run** — its task is stripped-UNV, NOT the
-  UNV→LCC gold we already produced. The Gen 1 LCC gold does **not** feed A2
-  directly; A2 needs s10 (and s1) re-run on the stripped-UNV corpus.
-- **Cost**: higher (a fresh s10 live run on stripped-UNV + an s1 run), but it is
-  the **only** path that can claim "s10 is as accurate as / beats s1 vs truth."
-- **Use as**: the authoritative credibility verdict (the H1–H5 tests below).
+  per arm (H1), whether each accepted convention (e.g. C1) **raises** held-out
+  placement accuracy (H5, per-convention A/B), false-disagreement reduction (H2).
+- **Honest caveat**: KJV→UNV is **cross-lingual** (English→Chinese), *harder*
+  than production's same-language UNV→LCC. Unavoidable: only UNV/CUV carry FHL SN
+  in Chinese, so two independent *Chinese* annotated texts don't exist — KJV is
+  the only leak-free annotated source. `survey5` already runs this exact setup.
+  The contest is still fair (s1 and s10 face the identical KJV→UNV task).
+- **Key**: a **separate run** — task is KJV→UNV, NOT the UNV→LCC gold we already
+  produced; the Gen 1 LCC gold does **not** feed A2.
+- **Cost**: higher (fresh s10 live run + s1 run on KJV→UNV), but the **only**
+  path that can claim "s10 is as accurate as / beats s1 vs truth."
+- **Use as**: the authoritative credibility verdict (H1–H5 below).
 
 **One line**: *A1 measures likeness (cheap, "do they look the same?"); A2
 measures correctness (heavier, "who is closer to FHL truth?"). Only A2 uses
@@ -70,7 +93,8 @@ below describe **A2** (the real contest); A1 is the optional warm-up diff.
 | **B — s10-E** | this dir: per-verse `/clear`, blind R1/R2 (C tier), gated D-deliberation (post-C), conventions.md | `conventions.md` (gated, versioned) |
 | **B0 — s10 ablation** (optional) | s10 with `conventions.md` **frozen empty** | none (isolates the conventions contribution) |
 
-A and B see the **same stripped-UNV corpus** and the **same panel roster**
+A and B see the **same KJV→UNV corpus** (source KJV+SN, target UNV-stripped, score
+vs UNV FHL truth) and the **same panel roster**
 (opus/agy/codex). Only the method differs. B0 isolates how much the conventions
 pipeline itself contributes vs the transport.
 
@@ -126,7 +150,9 @@ Aggregated per arm: mean placement/coverage, exact-match rate, and the
 
 ```
 0. Freeze panel roster (opus/agy/codex); erha → Gemini 3.1 Pro (High).
-1. Build stripped-UNV corpus (strip_sn over Gen 1–5); keep FHL truth as key.
+1. Build KJV→UNV corpus: source = KJV+SN, target = UNV stripped (strip_shell over
+   Gen 1–5); keep UNV's FHL tags as the answer key. Audit prompt worked-examples
+   to exclude any tested verse (no answer leak).
 2. Arm A: run s1 consensus over the corpus → gold_A/{book}/{ch}/{sec}.json
 3. Arm B: run s10-E (this dir) over the SAME corpus, with the scribe active
    per-chapter → gold_B/... + conventions.md history.
