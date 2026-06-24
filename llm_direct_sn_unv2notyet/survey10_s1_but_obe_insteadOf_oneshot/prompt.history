@@ -585,3 +585,17 @@ S5 and A2, 我提供兩個面向:
 
 
 
+##     2026-06-25 04:50 CST
+
+###    User Prompt
+先把這兩階段寫進 S10_VS_S1_GOLD_EXPERIMENT.md, 然後準備 /compact
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua:先把兩階段寫進 S10_VS_S1_GOLD_EXPERIMENT.md,然後準備 /compact
+- Diff: 改寫 A2 為兩階段 divide-and-conquer + scheme 修正(09xxx 是 FHL 專有,WLC 用 H0871a 擴充編號→主評分留 FHL 內部);Stage1=FHL 內部排除 09xxx,Stage2=Clear Bible WLC 當 source 含前綴+lemma→09xxx 橋接+strip gloss2。Procedure step1 同步改 FHL 內部。commit c183e4d。給出 /compact 前狀態總覽交接錨點
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
