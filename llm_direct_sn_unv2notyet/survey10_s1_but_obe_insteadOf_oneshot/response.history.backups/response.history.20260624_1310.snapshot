@@ -333,18 +333,3 @@ Flared the finding to survey1-obe. Next step options for Joshua: (a) I arm an au
 
 
 
-##     2026-06-24 13:14 CST
-
-###    User Prompt
-codex is now ok, do it now.
-
-###    result
-Codex confirmed back (canary on fresh window 9082 returned CODEX-GO in 34s), so I fired the resume immediately.
-
-Committed the codex window repoint (LIVE_WINDOWS[codex] 5555->9082, commit 79b7a9b — the 5555 session had ended during the quota cap). Launched run_gold_standard.py --book 創 --chap 1 --sec 25-31 --force = 7 verses (re-resolve the lone unresolved 1:25 + the never-reached 26-31). All three legs live with the trustworthy transport intact (per-call blind /clear, double-Enter, 15s leg pacing): codex 9082 + agy Gemini 3.1 Pro (High) 8214 + opus headless. The 24 clean gold from the first run are cached.
-
-Startup verified healthy: run-start hygiene reset fired, verse 1:25 R1 underway. Completion watcher armed (bkzlfuc0v) — it will report the FINAL Gen-1 tally (target 31/31) with resolved_at + trust_tier, a poison check on conventions.md, and SN-coverage. Flared resume-started to survey1-obe. ~7 verses at the trustworthy pace ≈ ~50 min; I'll report on completion.
-
-
-
-

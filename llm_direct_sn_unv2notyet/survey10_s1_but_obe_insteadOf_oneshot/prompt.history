@@ -350,3 +350,30 @@ Flare [STATUS] when stopped, fixes in, clean run started.
 
 
 
+##     2026-06-24 09:47 CST
+
+###    User Prompt
+Try it again
+Codex may be back
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua: try again, codex may be back → resume Gen 1 剩餘 verses (1:25 + 26-31)
+- Diff: 先 canary codex 5555 確認 quota 回復;若回應則 launch run_gold_standard --book 創 --chap 1 --sec 25-31 --force(7 節),24 clean gold 已 cached
+
+
+
+
+##     2026-06-24 13:12 CST
+
+###    User Prompt
+codex is now ok, do it now.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua: codex 回復了,立刻跑 → resume Gen 1 剩餘 (1:25 + 26-31)
+- Diff: canary 確認 codex 9082 後 launch run_gold_standard --book 創 --chap 1 --sec 25-31 --force(7 節);24 clean gold cached;codex 9082 + agy Pro 8214 + opus headless
+
+
+
+
