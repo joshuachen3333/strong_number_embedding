@@ -377,3 +377,30 @@ codex is now ok, do it now.
 
 
 
+##     2026-06-25 02:56 CST
+
+###    User Prompt
+跑 s1 Arm A 同節做對照、用 survey4 auto_score 對 FHL ground truth 評分，或繼續往創 2 推進累積更多慣例。詳述一下各自是在做什麼？
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 要求詳述三條後續路徑(s1 Arm A 對照 / survey4 auto_score 對 FHL 評分 / 推進創2 累積慣例)各自在做什麼
+- Diff: Gen 1 31/31 完成後的方向抉擇。將詳述:(A) s1-vs-s10 對照 + auto_score 的方法學細節(含 LCC 無 FHL truth 的 wrinkle、需 strip-UNV 自我重標才有客觀 ground truth)、(B) 推進創2 累積慣例驗證 C1 泛化。等 Joshua 選方向
+
+
+
+
+##     2026-06-25 03:01 CST
+
+###    User Prompt
+先把你的 A1 A2 記下來.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua: 把 A1(直接方法對照,無客觀真值)/A2(strip-UNV 自我重標,有 FHL ground truth,真 contest)的區別記進設計檔
+- Diff: 在 S10_VS_S1_GOLD_EXPERIMENT.md 新增 A1 vs A2 明確區分:A1=同 LCC 節 s1-gold vs s10-gold diff(只能看異同,LCC 無 FHL truth);A2=strip-UNV 重標 + auto_score 對 FHL 真值(唯一能評誰更準)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+

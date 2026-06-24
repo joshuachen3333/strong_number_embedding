@@ -24,6 +24,44 @@ which is circular for comparing two consensus methods.
 The method whose gold matches FHL truth more often is, by definition, the better
 gold producer — no consensus circularity.
 
+## Two comparison flavors — A1 vs A2 (read before running any contest)
+
+"Run s1 on the same verses and compare" can mean two very different things. They
+answer different questions and only one yields an objective score, because the
+production gold we already have (Gen 1) is **UNV→LCC and LCC has no FHL truth**.
+
+### A1 — direct method diff (same UNV→LCC verses, NO objective truth)
+- **What**: run `../survey1_prompt_evolving/run_gold_standard.py` on the *same*
+  UNV→LCC verses we already did in s10, producing **s1's gold**; then **diff
+  s1-gold vs s10-gold** verse by verse.
+- **Answers**: *where* the two methods place differently — e.g. did s10's
+  convention C1 make it agree/disagree with s1 on verb-morphology verses.
+- **Cannot answer**: *who is right.* LCC has no FHL answer key, so this is
+  similarity-only ("do they match?"), not accuracy.
+- **Cost**: low-ish. s1 is headless one-shot (faster per call than s10's live
+  panel) but still runs full R1→R2→R3 consensus over 31 verses on 3 accounts.
+- **Use as**: a cheap warm-up / sanity diff, NOT a credibility verdict.
+
+### A2 — objective contest (strip-UNV self-re-annotation, HAS FHL truth) ★
+- **What**: the strip-UNV trick above.題目 = **UNV+SN with its SN stripped**
+  (`strip_shell`); both s1 and s10 re-place the numbers onto UNV; score each
+  against the **original FHL tags** with `survey4/auto_score.py:score_verse`.
+- **Answers**: *who is more accurate vs ground truth* — mean placement/coverage
+  per arm (H1), whether each accepted convention (e.g. C1) actually **raises**
+  held-out placement accuracy (H5, the per-convention A/B), false-disagreement
+  reduction (H2), etc.
+- **Key**: this is a **separate run** — its task is stripped-UNV, NOT the
+  UNV→LCC gold we already produced. The Gen 1 LCC gold does **not** feed A2
+  directly; A2 needs s10 (and s1) re-run on the stripped-UNV corpus.
+- **Cost**: higher (a fresh s10 live run on stripped-UNV + an s1 run), but it is
+  the **only** path that can claim "s10 is as accurate as / beats s1 vs truth."
+- **Use as**: the authoritative credibility verdict (the H1–H5 tests below).
+
+**One line**: *A1 measures likeness (cheap, "do they look the same?"); A2
+measures correctness (heavier, "who is closer to FHL truth?"). Only A2 uses
+`auto_score` against ground truth.* The Arms / Metrics / Hypotheses sections
+below describe **A2** (the real contest); A1 is the optional warm-up diff.
+
 ## Arms
 
 | Arm | Method | Cross-verse learning |
