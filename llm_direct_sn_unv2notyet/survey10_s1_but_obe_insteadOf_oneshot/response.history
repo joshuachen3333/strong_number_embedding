@@ -367,3 +367,37 @@ Committed conventions.md v0.1 (commit 7edddb7) and flared the completion to surv
 
 
 
+##     2026-06-25 03:14 CST
+
+###    User Prompt
+中文詳述
+
+###    result
+以下把 A2 客觀對照實驗整套機制用中文詳述 —— 從「為什麼會洩題」到「正確怎麼做」到「能證明什麼」。
+
+一、先理解 s1/s10 在做的事:投影(projection),不是憑空標註
+s1 和 s10 都是投影引擎:給定「來源文本(帶 SN)+ 目標文本(不帶 SN)」,把來源的 SN 投影/搬到目標對應的詞上。生產任務是 UNV+SN(來源)→ LCC(目標)。程式 _user_prompt(unv_sn, target_text,…) 第一個參數就是帶答案的來源。關鍵:投影任務的 prompt 一定有一份「帶 SN 的文本」當來源。
+
+二、為什麼天真版 A2 會洩題(Joshua 抓到的 bug)
+A2 想找「有 FHL 標準答案」的題目客觀打分。最直覺是拿 UNV 當題目(拔掉 SN 要 s1/s10 重插)。但 s1/s10 是投影引擎,prompt 要餵帶 SN 的來源 —— 若目標是 UNV,來源只能是 UNV+SN,而那正是要拿來打分的答案。洩題管道①(逐節來源):把 UNV+SN 當投影來源 = 答案攤在模型面前,照抄就滿分。洩題管道②(系統提示範例):標準提示有 Worked examples,本身是 UNV+SN 形式,被測節若出現在範例又洩一次。所以天真版測到的是「會不會抄」,不是「會不會標」,實驗就廢了。
+
+三、正確的 leak-free 設計:來源 ≠ 答案(survey5 做法)
+讓投影來源是一份不等於答案的帶 SN 文本,唯一乾淨選擇是 KJV:來源=KJV+SN(英文,自己帶 FHL Strong's,不是答案);目標=UNV(拔掉 SN);任務=把 KJV 的 SN 跨語言投影到 UNV;打分=投影出的 UNV-SN 對照 UNV 原本 FHL 答案。不洩題因為:UNV 的 FHL 答案從頭到尾沒進過 prompt,只在打分那步由 auto_score 在程式裡比對。KJV/UNV 的 Strong's 背後同一套原文,投影有意義,但用詞語序語言都不同,不能照抄。再修管道②:審查 worked examples 確保不含被測節。
+
+四、怎麼打分:survey4/auto_score.py
+score_verse(model_output, ground_truth) 對每節吐 4 指標對照 FHL 真值:placement(正確擺位比例,主指標)、coverage(該有的有沒有都在)、exact(整節完全一致)、format(格式合規)。哪方更常命中 FHL 真值就是更好的 gold 生產者,無共識循環(裁判是 FHL 客觀答案)。
+
+五、能證明什麼(H1–H5)
+兩臂同題同 panel 只方法不同:Arm A=s1、Arm B=s10-E、Arm B0=(選配)s10 但 conventions 凍結空白(歸因)。H1:s10 placement ≥ s1?H2:預載慣例後假分歧有沒有變少?H3:真難節 s10 的 D-deliberation 有沒有比 s1 多救回?H4:隨章節成本有沒有下降?H5:每條慣例(C1)在 held-out 節真的提升準確率嗎(per-convention A/B)。H5 最關鍵:回測閘門只保證不退步,不保證有進步;H5 用 FHL 真值做正向驗證,沒正向 delta 就降級/刪。
+
+六、要誠實面對的代價
+KJV→UNV 是跨語言(英→中),比生產的同語言 UNV→LCC 難。為什麼非得這樣:中文裡只有 UNV/CUV 系有 FHL 標註,找不到第二份獨立中文帶 SN 文本當乾淨來源,唯一不洩題的帶 SN 來源就是 KJV。survey5 早接受此取捨。不影響對照公平性(s1/s10 面對完全一樣的 KJV→UNV 題目),只是分數是「跨語言投影準確率」,當方法強弱的相對證據,不是生產 UNV→LCC 的絕對值。
+
+七、要搭什麼才能跑 A2
+1. 語料:抓 KJV+SN(來源)+ UNV+SN(目標拔成無SN,SN 留當答案),Gen 1 範圍,FHL API 都支援。2. 改 runner 的來源:目前寫死 UNV 當來源,要讓它接受 --source kjv,KJV+SN 餵進來源槽,目標換 UNV-stripped,s1/s10 各跑一次。3. 範例審查:確保 worked examples 不含被測節。4. 評分腳手架:跑完 auto_score.score_verse(投影UNV, UNV-FHL真值),彙總 + per-convention A/B(H5)。5. 填 verdict 表。
+
+我的提醒:A2 是蓋章定論的重實驗,跨語言會壓低絕對分數。建議順序仍是先跑 B(创 2)便宜確認「C1 真有用、迴路會複利」(就是 H4/H5 的縱向預覽),再上 A2 拿 FHL 客觀分做最終裁決。若 B 階段就發現慣例沒幫助,A2 不用白跑。問 Joshua:先搭 A2 腳手架備用,還是先跑 B 创 2?
+
+
+
+

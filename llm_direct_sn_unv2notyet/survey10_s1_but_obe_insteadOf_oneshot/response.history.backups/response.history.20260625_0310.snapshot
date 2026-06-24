@@ -240,3 +240,130 @@ Verified: grep shows 0 stale phrasings (flags instability / Q2-D-gated / Q3-unde
 
 
 
+##     2026-06-24 03:27 CST
+
+###    User Prompt
+survey1_prompt_evolving-obe [DESIGN-APPROVED + IMPLEMENT-GO, GEN-1 HELD]: GO to implement the 4 v2 deltas (conventions scaffold, per-verse /clear, D-deliberation post-C tier, scribe) to a 6-point code-review gate; do NOT fire Gen 1 until code cleared.
+
+###    result
+v2 implementation complete + pushed (b31c442); Gen 1 held for s1 code review.
+
+Studied the full s1 pipeline (run_gold_standard.py per-verse loop R1->unanimous->R2-convergence->Trigger1/Trigger2->R2-debate->R3; consensus.build_gold_standard as sole resolved_at authority; regression.run_prompt_regression; judge debate/stability). Then implemented the 4 deltas, concentrating ALL new logic in a NEW conventions.py so the edits to the inherited pipeline stay minimal and reviewable.
+
+conventions.py (new): load_conventions/conventions_text/build_conventions_preamble (D1-E prepend, gate #1 — empty seed still emits a greppable marker); append_convention + versioning + history snapshots; run_convention_regression (reuses s1's run_prompt_regression verbatim, gate #4); extract_candidate_conventions + _dedup + try_evolve_convention + run_scribe_for_chapter (the scribe, D3); run_d_deliberation (TERMINAL post-C tier, gate #2 — sealed R1 bids -> reveal -> hold/revise -> tally; NEVER pinned to _stability_level/Trigger-2); handle_collective_error (Trigger-1/R3-all_wrong reroute: evolve convention -> on gate-FAIL escalate to D-deliberation).
+
+cli_caller.py: reset_live_panel() — per-verse /clear of the live legs (gate #3); headless fallback already amnesiac.
+
+consensus.py: build_gold_standard gains deliberation_verses param (D entries override unresolved) + a trust_tier field recording c_consensus vs d_deliberation distinctly (gate #5); remains the sole resolved_at authority.
+
+run_gold_standard.py (wiring only): import conventions; prepend conventions into system_prompt (gate #1); reset_live_panel per verse (gate #3); Trigger-1 and R3-all_wrong both rerouted from auto_evolve_prompt(PROMPT) to conv_mod.handle_collective_error (gate #4 — auto_evolve_prompt now 0 refs in the pipeline, no prompt +0.1); R3-unresolved -> run_d_deliberation (gate #2); thread deliberation_verses to build_gold_standard; per-chapter scribe after gold is built. Critically, both reroutes drop s1's `break` for `continue` — conventions accumulate live, no human prompt-fix stop. Trigger-2's generate_model_patch path is untouched (4 refs) and never co-fires with D.
+
+Verification: py_compile OK on all 4 files; import smoke test passes (preamble marker present, reset_live_panel present, deliberation_verses param present); all 6 gate points grep-confirmed; 0 orphaned variable refs from the removed prompt-evolution blocks. conventions.md seeded empty (v0.0).
+
+Flared implementation-ready [STATUS] to survey1-obe (window 1314) with a per-gate-point line:file map for fast code review. Gen 1 remains HELD until s1 clears the code.
+
+
+
+
+##     2026-06-24 04:06 CST
+
+###    User Prompt
+survey1-obe [STOP + APPLY FIXES — supersedes GO]: Joshua final = option 甲 (spectacular AND trustworthy in one run). Stop as-is run; apply (a) double-Enter every inject, (b) >=15s between legs, (c) per-call /clear blindness in _live_call, (d) erha->Gemini 3.1 Pro; then one clean --force run. Flare when stopped/fixes-in/started.
+
+###    result
+Stopped the as-is run, applied all 4 transport fixes, verified with canaries, re-fired the single clean run (commit 7f3f91c).
+
+STOPPED: killed run_gold_standard (--force as-is) + TaskStop'd its completion watcher. Provisional gold is overwritten by the re-run, nothing lost.
+
+FIXES to cli_caller.py:
+(a) DOUBLE-ENTER: _osascript_inject now sends two `key code 36` with a 5s gap (the /obe-codified v2) — a single Return doesn't reliably commit into a CLI TUI's bracketed-paste box (Joshua watched /clear fail to submit).
+(b) LEG PACING: LEG_PACING_SEC=15 + _pace_between_legs/_mark_live_inject enforce >=15s between consecutive live legs globally (sequential osascript injects fight for Terminal frontmost focus).
+(c) PER-CALL BLINDNESS: _live_call now paces, commits /clear (double-Enter), settles, THEN injects the task — so EVERY model call (R1, each R2 re-roll, R3) starts blank. Within-verse R1/R2 independence restored at call granularity (not just per-verse). D-deliberation passes sealed R1 bids in-prompt, so clear-before-D loses nothing.
+(d) agy -> Gemini 3.1 Pro (High): couldn't read the Flash tab's state (I'd /clear'd it), so rather than blind-exit interactive agy I launched a FRESH window 8214 with `agy --dangerously-skip-permissions --model "Gemini 3.1 Pro (High)"` (banner confirms Pro), and repointed LIVE_WINDOWS[agy] 5557->8214. codex 5555 unchanged.
+run_gold_standard.py: removed the per-verse reset (per-call blindness supersedes it); kept one run-start hygiene reset.
+
+CANARIES (full _live_call round-trip clear->inject->file-handoff): agy 8214 Pro returned {'lcc_sn':'OK-PRO-8214'} in 24s; codex 5555 returned {'lcc_sn':'OK-CODEX-5555'} in 32s. Transport now trustworthy.
+
+CLEAN RUN: launched run_gold_standard.py --book 創 --chap 1 --force live (31 verses, opus/agy-Pro/codex). Run-start hygiene reset fired, verse 1:1 R1 underway at 04:05. The run is intentionally slower now (per-call /clear + 15s leg pacing = the cost of trustworthy per-call blindness) — Joshua's 甲 choice. Completion watcher armed (bq8gqm0ry); will flare on finish with resolved_at + trust_tier tally. Consolidated [STATUS] (stopped + fixes-in + started) flared to survey1-obe.
+
+
+
+
+##     2026-06-24 09:10 CST
+
+###    User Prompt
+[task-notification] clean Gen 1 run (run_gold_standard --book 創 --chap 1 --force, fixes in) completed.
+
+###    result
+Gen 1 clean run COMPLETE — partial (quota-capped), but a strong validation of the v2 trustworthy pipeline.
+
+RESULT: 25/31 verses resolved — 13 R1-unanimous + 11 R2 + 1 unresolved (1:25). All 24 resolved verses have perfect SN coverage; trust_tier = c_consensus on all 24, None on the unresolved.
+
+TRANSPORT FIXES HELD (the whole point of option 甲): live transport confirmed genuinely used (not silent headless) — agy-Pro-8214 ~38-40s and codex-5555 ~53-79s per call vs ~7s headless, the extra time = per-call /clear + 15s leg pacing + live response. Double-Enter committed /clear reliably; zero transport errors logged. erha ran on Gemini 3.1 Pro (High) via the fresh 8214 window.
+
+STOP CAUSE (external, not a bug): codex BAILED OUT after 3 consecutive errors at verse 1:25 = shared-account rate-limit. s1's existing UNAVAILABLE->STOPPING safeguard fired and broke the loop, then build_gold_standard + scribe ran on the 25. Same shared-account quota ceiling that bit last session. 1:25 broke during R2 before reaching R3, so it's the lone unresolved (D-tier never got to fire on it).
+
+SCRIBE + CONVENTION GATE VALIDATED: the per-chapter scribe extracted 2 candidate conventions from the resolved gold; run_convention_regression REJECTED both (4/9 and 2/9 pass — they'd have changed settled verses). So conventions.md stays empty (0 rules) — the no-poison safety behavior working exactly as designed. This is the regression gate doing its job: bad candidate conventions never enter the artifact.
+
+D-TIER: wired and unit-verified earlier, but not exercised this run (no verse reached R3-unresolved; the disagreed verses all settled at R2, and 1:25 broke pre-R3 on rate-limit).
+
+COST: ~3.5h wall-clock for 25 verses — the trustworthy cost Joshua chose (甲). Per-call blindness + 15s pacing is inherently slow on a 3-leg live panel.
+
+REMAINING: verses 26-31 + re-resolve 1:25 (7 verses), pending codex shared-account quota recovery. The 24 clean gold are cached. Proposed next step: resume `run_gold_standard.py --book 創 --chap 1 --sec 25-31 --force` once codex quota resets. Flared the completion tally to survey1-obe; awaiting Joshua/s1 on resume timing (resuming now would just re-hit the codex limit).
+
+
+
+
+##     2026-06-24 09:59 CST
+
+###    User Prompt
+Try it again / Codex may be back
+
+###    result
+Codex is NOT back yet — confirmed account-level rate-limit, so I held the resume.
+
+Tested in escalating order: (1) canary on the original codex live tab 5555 → timeout 120s; (2) retry on 5555 → timeout 150s. Reading the 5555 tab showed its codex session had ENDED (it displayed a "codex resume <id>" hint), so those two canaries tested a dead session, not the account. (3) So I relaunched codex fresh in a new window 9082 (codex --dangerously-bypass-approvals-and-sandbox, booted clean to a ready gpt-5.5 high prompt) and canaried that → ALSO timeout 150s.
+
+A brand-new codex session that can't complete a single echo call = the shared codex ACCOUNT is still quota-capped, not a stale-session problem. agy (Gemini 3.1 Pro on 8214) and opus (headless) are both fine; codex is the sole blocker. LIVE_WINDOWS[codex] repointed to 9082 (5555's session ended) so the leg is ready the moment quota returns.
+
+I did NOT launch the resume run — it would just bail at the first codex call in R1/R2 (same UNAVAILABLE→STOPPING as before) and waste the live agy/opus legs. The 24 clean Gen-1 gold verses stay cached; remaining work is verses 26-31 + re-resolve 1:25 (7 verses).
+
+Flared the finding to survey1-obe. Next step options for Joshua: (a) I arm an auto-retry watcher that canaries codex every ~20-30 min and fires the resume the moment it recovers (hands-off, but a live resume run steals Terminal focus for ~1h and draws on the shared codex account); or (b) wait and re-trigger manually when you know codex has reset. Recommending (b) unless you want it hands-off, given the focus-stealing + shared-account courtesy.
+
+
+
+
+##     2026-06-24 13:14 CST
+
+###    User Prompt
+codex is now ok, do it now.
+
+###    result
+Codex confirmed back (canary on fresh window 9082 returned CODEX-GO in 34s), so I fired the resume immediately.
+
+Committed the codex window repoint (LIVE_WINDOWS[codex] 5555->9082, commit 79b7a9b — the 5555 session had ended during the quota cap). Launched run_gold_standard.py --book 創 --chap 1 --sec 25-31 --force = 7 verses (re-resolve the lone unresolved 1:25 + the never-reached 26-31). All three legs live with the trustworthy transport intact (per-call blind /clear, double-Enter, 15s leg pacing): codex 9082 + agy Gemini 3.1 Pro (High) 8214 + opus headless. The 24 clean gold from the first run are cached.
+
+Startup verified healthy: run-start hygiene reset fired, verse 1:25 R1 underway. Completion watcher armed (bkzlfuc0v) — it will report the FINAL Gen-1 tally (target 31/31) with resolved_at + trust_tier, a poison check on conventions.md, and SN-coverage. Flared resume-started to survey1-obe. ~7 verses at the trustworthy pace ≈ ~50 min; I'll report on completion.
+
+
+
+
+##     2026-06-24 19:15 CST
+
+###    User Prompt
+怎麼跑這麼久？ / [resume run completed — Gen 1 31/31]
+
+###    result
+Gen 1 is COMPLETE — 31/31 gold, and the s10-E externalized-learning loop fired for real for the first time.
+
+FINAL TALLY: 31/31 verses, no missing, ALL coverage-perfect. resolved_at = 14 round1 (unanimous) + 15 round2 (debate) + 1 r2_model_patch (Trigger-2 weak-model, patched & resolved) + 1 r2_early_evolution (one genuinely hard verse, no valid output). trust_tier = 30 c_consensus + 1 None (the hard verse). No codex bail this run (stop markers 0) — codex held the whole resume.
+
+MILESTONE — the learning loop worked end-to-end: the per-chapter scribe distilled convention C1 from the resolved gold ("keep a verb's morphology/stem tag (8xxx) glued immediately after that verb's own core number with no target word intervening, even when the verb is re-lexified or the clause restructured" — e.g. 1:27 創造<01254><8799>, 1:28 祝福<01288><8762>). run_convention_regression re-ran the prior gold with C1 prepended and it passed 11/11 (changed no settled verse) -> ACCEPTED -> conventions.md bumped to v0.1. This is the first time s10's pipeline produced a real, regression-gated convention — the core thesis (accumulate expertise in an external, gated artifact without sacrificing R1 independence) is now validated on live data.
+
+WHY IT TOOK ~1.7h for 7 verses: the trustworthy transport costs ~100s/live-call (15s leg pacing + blind /clear double-Enter + real model response 80-150s) vs ~10s headless, and 1:25-1:30 were mostly hard DISAGREED verses needing many R2 re-rolls (27 re-rolls total). That's the (甲) cost: trustworthiness (~10x wall-clock) x hard-verse re-rolls.
+
+Committed conventions.md v0.1 (commit 7edddb7) and flared the completion to survey1-obe. Gen 1 is now a valid Arm B for the s1-vs-s10 gold contest (S10_VS_S1_GOLD_EXPERIMENT.md). Total run cost across both halves: run-1 ~3.5h/25 verses (codex-capped) + resume ~1.7h/7 verses.
+
+
+
+
