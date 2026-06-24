@@ -904,3 +904,38 @@ eng 底下就有 **BSB、YLT** 等多個英文譯本各自一套對齊(alignment
 
 
 
+##     2026-06-25 04:49 CST
+
+###    User Prompt
+先把這兩階段寫進 S10_VS_S1_GOLD_EXPERIMENT.md, 然後準備 /compact
+
+###    result
+已 commit + push(`c183e4d`),設計檔乾淨。(那個 untracked `v1.2_joshua.opus-patch-0.1_Gen_1_25.md` 是創 1 跑出的 Trigger-2 model patch 產物,與本次設計無關,留著。)
+
+---
+
+## 📋 /compact 前狀態總覽(交接錨點)
+
+**專案**:`survey10_s1_but_obe_insteadOf_oneshot`(s1 黃金標準任務 + obe-style,主要與 sibling `survey1_prompt_evolving-obe`(window 1314)協作)
+
+**已完成且驗證**
+- **s10 v2 實作**:conventions.md(D1-E)、per-call 盲審 transport(double-Enter+15s pacing+per-call /clear)、D-deliberation post-C tier、scribe。`run_gold_standard.py` + `conventions.py` + `cli_caller.py` + `consensus.py`。
+- **創 1 跑完 31/31 gold**(30 c_consensus + 1 r2_early_evolution),全 coverage-perfect;**scribe 學會第一條慣例 C1**(gate 11/11 PASS)。
+- **live panel**:codex=**9082**、agy(Pro)=**8214**、opus=headless(舊 5555/5557 已棄)。
+- **自動記錄 hook**:`~/.claude/hooks/ph_lo_stop_reminder.py` —— 回合結束自動從 transcript 抽我的逐字回覆寫進 `response.history`(我不再跑 logoutput);`/ph` 仍手動(我在回合開頭跑)。
+
+**剛鎖定的設計**:`S10_VS_S1_GOLD_EXPERIMENT.md` 的 **A2 兩階段 divide-and-conquer**
+- **Stage 1**(基礎,FHL 內部,零橋接):KJV+SN→UNV,只在 `UNV-FHL ∩ KJV-FHL` 算 placement,排除 09xxx。`build_exclusion.py` 做這層。
+- **Stage 2**(嚴酷,含 09xxx):用 Clear Bible WLC 原文(唯一顯式帶前綴)當 source + 小型 lemma→FHL-09xxx 橋接;**必須 strip gloss2**(中文 gloss 會洩題)。
+- 關鍵 scheme 修正:**09xxx 是 FHL 專有**,WLC 用 H0871a 等擴充編號,兩套不同 → 主評分留 FHL 內部。
+
+**待決下一步(/compact 後接續)**
+1. **動手做 Stage 1 `build_exclusion.py`**(零成本,跑创 1 看排除族分佈)—— 我推薦先做。
+2. 或先跑 **B(创 2)** 累積更多慣例。
+3. 或 A1 暖身對照。
+
+`/compact` 後我會從這裡接續。可以了。
+
+
+
+

@@ -599,3 +599,35 @@ S5 and A2, 我提供兩個面向:
 
 
 
+##     2026-06-25 05:05 CST
+
+###    User Prompt
+1, 先繼續跑完 Gen chap2, 然後就著手
+動手做 Stage 1 build_exclusion.py(零成本,跑创 1 看排除族分佈)
+作完評估 Stage2 或其他
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 三步驟接續計畫：先跑完 Gen ch2，再做 Stage 1 build_exclusion.py（零成本、跑创1看排除族分佈），之後評估 Stage 2 或其他
+- Diff: 啟動 Gen ch2 live run；規劃 build_exclusion.py
+
+
+
+
+##     2026-06-25 05:17 CST
+
+###    User Prompt
+1, 先繼續跑完 Gen chap2, 然後就著手
+動手做 Stage 1 build_exclusion.py(零成本,跑创 1 看排除族分佈)
+作完評估 Stage2 或其他
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Stage 1 build_exclusion.py 完成並驗證 kept-set 公平性（內容詞洩漏 Gen1=0, Gen1-5=1.1%）；Gen ch2 live run 同時在背景跑
+- Diff: 新增 build_exclusion.py + kept_set_gen1-5.json；修正交集為號碼層級（非角色層級）；實驗文件加 Stage-1 實證結果；commit 80908e7 已 push
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/build_exclusion.py`
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+

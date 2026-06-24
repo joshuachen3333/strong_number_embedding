@@ -488,3 +488,129 @@ S5 and A2, 我提供兩個面向:
 
 
 
+##     2026-06-25 03:56 CST
+
+###    User Prompt
+中文詳述
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 要求中文詳述 A2 的 Alignments + 排除清單/交集評分(分而治之)整套設計
+- Diff: 詳述:Alignments 只當 scoring 工具(非 source)、KJV/UNV SN 不對齊根因(9xxx前綴/0853/8xxx)、交集 placement 評分流程、rule-based vs empirical 排除、build_exclusion.py I/O
+
+
+
+
+##     2026-06-25 04:11 CST
+
+###    User Prompt
+這最後部分顯然是 logoutput 作業內容顯示出來的. 這與你的 output 完全一致且看起來醜些, 這部分已經顯示過了, 能遮蔽不顯示嗎？只告知已經計入 response.history 即可
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua:logoutput 寫檔步驟把整段回覆內嵌進 Bash 指令→畫面重複又醜,能否遮蔽只回報已計入
+- Diff: 釐清那是 /logoutput 寫檔(非 Stop end-hook)。提案:把 Stop end-hook 從『提醒』升級成『回合結束自動從 transcript 抽我的逐字回覆+prompt 自己寫檔』→ 我不再跑 logoutput 指令、畫面不重複、且逐字有保證(連帶根除壓平 bug)。等 Joshua 批准
+
+
+
+
+##     2026-06-25 04:17 CST
+
+###    User Prompt
+現在就把它升級成自動記錄
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua:現在就把 Stop end-hook 升級成自動記錄
+- Diff: 改寫 ~/.claude/hooks/ph_lo_stop_reminder.py:回合結束從 transcript 抽我最後的逐字回覆,自動寫進 response.history(我不再跑 logoutput,畫面零重複,逐字保證)。/ph 維持手動(curated Hint/Diff),hook 仍對漏 ph 做 soft-block 提醒。約定:ph 在回合開頭、prose 收尾(最後一則 assistant 文字=可乾淨抽取)
+- File: `/Users/joshua/.claude/hooks/ph_lo_stop_reminder.py`
+
+
+
+
+##     2026-06-25 04:27 CST
+
+###    User Prompt
+先等一下
+你說 10+ language 的alignment 只是作評分的信心參考 (語言越多越有信心)
+但是這  10+ 對應詞庫其實也有各自的已插入聖經經文了不是嗎？就是已經據此完成了各自語言類似 unv+sn 的成品了, 確認一下好嗎？
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 質疑:10+ 語言 alignment 不只是評分信心參考,每個語言其實都有各自已插入經文的成品(等同各語言版 UNV+SN);要我確認
+- Diff: 查證 Alignments 資料結構:每語言是否=target 經文 + word-level 對齊到 source(帶 SN)= 完整的『語言+SN』gold。修正我先前『只當信心 vote』的低估說法;盤點這對 A2 解鎖什麼(多 source 選項/多 target contest/穩健排除清單),以及仍無中文的限制
+
+
+
+
+##     2026-06-25 04:30 CST
+
+###    User Prompt
+據此把 A2 改成「以原文 WLC/SBLGNT 為 SN 答案卷 + alignment 推導排除清單」的更乾淨版本,寫進實驗設計
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua:據此把 A2 改成『以原文 WLC/SBLGNT 為 SN 答案卷 + alignment 推導排除清單』的更乾淨版,寫進實驗設計
+- Diff: 改寫 S10_VS_S1_GOLD_EXPERIMENT.md A2:SN 答案卷改用原文 WLC(希OT)/SBLGNT(希臘NT)的 Strong's(權威、非衍生);排除清單改由 alignment 跨語言覆蓋率推導(少語言對齊=morphology/particle 09xxx/0853→排除);保留中文 arena(對 UNV-FHL 打 placement)+ 新增純 alignment 驗證 arena
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
+##     2026-06-25 04:35 CST
+
+###    User Prompt
+順道一問, 那十幾個翻譯本, 都沒有一本有使用 9xxx 的嗎？
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 順問:那 10+ 譯本裡,沒有一本用到 9xxx(09xxx 前綴)嗎?
+- Diff: 實證查 Alignments 的 WLC/WLCM 原文表是否使用 09xxx 編號(疑為 FHL 專有慣例);若 Clear Bible 用不同 Strong's 方案,alignment-exclusion 需處理 scheme 對應。檢查 Gen 1:1 ב 前綴在 WLC 怎麼編、有無語言對齊到它
+
+
+
+
+##     2026-06-25 04:43 CST
+
+###    User Prompt
+我想分兩階段, 依然照著 divide and conquer 來處理
+1, 排除了 9xxx 是第一層, 作為單純且最嚴謹的基礎對照, 雖然少了 9xxx
+2, clear bible 也有這些前綴 (原文字對應到 fhl 的 9xxx) 這個要好好利用. 拿來當作萬一要考驗 unv 能否插回 sn 這種嚴酷測驗時的輸入 one shot , 考慮是否能拿 clear bible 當輸入.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 兩階段 divide-and-conquer:(1)排除 9xxx 當最嚴謹乾淨基礎對照;(2)Clear Bible 有前綴(對應 FHL 9xxx),拿來當『考驗 UNV 能否插回完整 SN(含前綴)』的嚴酷測驗輸入 one-shot,評估可否用 Clear Bible 當 input
+- Diff: 確認兩階段設計:Stage1=FHL 內部排除 09xxx,score 共有 core,零橋接;Stage2=用 Clear Bible WLC 原文(唯一顯式帶前綴的 source)當投影 input,配小型 lemma→FHL-09xxx 橋接,測含前綴的完整 placement。評估可行(橋接是固定少數希伯來前綴)+ 標註 gloss2 中文 gloss 的潛在洩漏需處理
+
+
+
+
+##     2026-06-25 04:50 CST
+
+###    User Prompt
+先把這兩階段寫進 S10_VS_S1_GOLD_EXPERIMENT.md, 然後準備 /compact
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua:先把兩階段寫進 S10_VS_S1_GOLD_EXPERIMENT.md,然後準備 /compact
+- Diff: 改寫 A2 為兩階段 divide-and-conquer + scheme 修正(09xxx 是 FHL 專有,WLC 用 H0871a 擴充編號→主評分留 FHL 內部);Stage1=FHL 內部排除 09xxx,Stage2=Clear Bible WLC 當 source 含前綴+lemma→09xxx 橋接+strip gloss2。Procedure step1 同步改 FHL 內部。commit c183e4d。給出 /compact 前狀態總覽交接錨點
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
+##     2026-06-25 05:05 CST
+
+###    User Prompt
+1, 先繼續跑完 Gen chap2, 然後就著手
+動手做 Stage 1 build_exclusion.py(零成本,跑创 1 看排除族分佈)
+作完評估 Stage2 或其他
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 三步驟接續計畫：先跑完 Gen ch2，再做 Stage 1 build_exclusion.py（零成本、跑创1看排除族分佈），之後評估 Stage 2 或其他
+- Diff: 啟動 Gen ch2 live run；規劃 build_exclusion.py
+
+
+
+
