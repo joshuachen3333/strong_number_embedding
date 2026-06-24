@@ -176,6 +176,26 @@ H2050b `cj`), so it is the right — and only — input for this test.
 | role | clean, uncontested verdict | upper-bound stress test |
 | cost | lowest (do first) | higher (do after) |
 
+#### 🟢 Stage-2 feasibility CONFIRMED (data inspected 2026-06-25 — NOT yet built)
+
+`Alignments/data/sources/WLC.tsv` exists and carries every column the harsh test
+needs: `id · altId · text · strongs · gloss · gloss2 · lemma · pos · morph`. Gen
+1:1 verified row-by-row:
+- Inseparable prefixes are **separate tokens** with augmented numbering —
+  `בְּ`=`H0871a`(prep), `הַ`=`H1886a`(art), `וְ`=`H2050b`(cj) — and **empty
+  `gloss2`** (no Chinese gloss, since they aren't standalone Chinese words). So the
+  bridge is **by lemma** (בְּ/הַ/וְ/כְּ/לְ/מִן/שֶׁ → FHL 09xxx), NOT by number —
+  confirms the scheme-correction above.
+- `אֵת`=`H0853` matches FHL `0853` directly (no bridge).
+- `gloss2` leak is real (起初/创造/神/诸天/与/地) → **strip `gloss2`** for the
+  no-hint test; `pos`/`morph` are safe non-leaking signal to keep.
+
+Remaining build (when greenlit — this is the **paid** arm, do AFTER ch2/contest):
+1. derive the FHL-09xxx ↔ prefix-lemma map empirically (cross-ref UNV 09xxx
+   positions against WLC lemmas) — a ~7-entry fixed table;
+2. WLC source loader (Hebrew text + strongs→FHL-normalized + pos + morph, gloss2
+   dropped); 3. score on the FULL set incl. 09xxx via the kept_set's complement.
+
 ### Clear Bible as a cross-check (supporting role, both stages)
 The 10+ aligned languages × translations (each a finished **manual** word-level SN
 alignment gold) serve as a **robustness vote** for *why* an SN is excluded: bridge
