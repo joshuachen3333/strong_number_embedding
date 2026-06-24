@@ -115,6 +115,43 @@ stages**, each its own divide-and-conquer, escalating rigor.
   `score_placement(model_output, unv_fhl, shared)`. Cheap (FHL reads, zero model
   cost).
 
+#### ✅ Stage-1 empirical result (`build_exclusion.py`, 2026-06-25 — run BEFORE any paid contest)
+
+Built and run; **the kept set is fair, confirmed.** Key design correction made
+during the build: intersection must be on the **bare Strong's NUMBER**
+(family-agnostic), NOT on (number+role) — in naked mode the model transfers a
+bare number, so an `'A'`-augmented attached form `WAH1961` and a plain `WH1961`
+are the *same* supplyable number. Keying identity on role falsely excluded ~74
+shared numbers; fixed → number-level multiset `shared = min(unv, kjv)`.
+
+| corpus | UNV tags | kept (shared) | excluded (UNV-only) | excl % | content-lemma excess |
+|---|---|---|---|---|---|
+| **Gen 1** | 592 | 409 | 183 | 30.9% | **0** |
+| **Gen 1–5** | 2438 | 1819 | 619 | 25.4% | 7 (1.1%) |
+
+Excluded-family distribution (Gen 1): `prefix_09` 62 · `obj_marker` (את 853) 23 ·
+`morph` (UNV-only 8xxx codes) 24 · `core_function` 74 · **`core_content` 0**.
+
+**Finding — the exclusion is broader than "just 09xxx", and that is the point.**
+FHL's KJV annotation is *sparser* than UNV's because English structurally drops
+Hebrew function words. Verified by hand: 1:3 UNV tags היה(1961) twice
+(要有/就有了) but KJV tags "Let there be" once and leaves "and there was light"
+**untagged**; 1:13 "有晚上有早晨"=1961×2 vs KJV "were" tagged **zero** (its own
+footnote admits "Heb. …was, …was"); 1:31 一切=כל(3605) vs KJV "every thing"
+untagged. So the excluded set = `{09xxx prefixes} ∪ {את} ∪ {UNV-only morph} ∪
+{English-dropped function words: היה/כל/על/בין/אשר/הנה/מן/כן/כי/מה/שם/…}`.
+
+**Fairness is by construction**: `shared = min(unv, kjv)` per number ⇒ every
+KJV-supplyable instance is kept; `excluded` is strictly UNV's *excess*, which the
+KJV source genuinely lacks (whether a function word or one extra count of a
+content lemma like a repeated 神/上帝 where English used a pronoun). Gen 1 has
+**zero** content-lemma excess; Gen 1–5 has 7 (LORD/God/Adam/man/rest/lift, all
+count-mismatch). → **kept_set is a fair placement answer key for the contest.**
+
+Artifacts: `kept_set_gen1-5.json` (per-verse kept + excluded-by-family for the
+138-verse corpus); `score_placement(model_output, shared)` scores number presence
+on the kept set (true *positional* placement defers to `survey4/auto_score.py`).
+
 ### Stage 2 — harsh full test (include 09xxx) with Clear Bible as the source
 The hard tail: can the model place even the **09xxx prefixes**? KJV can't help —
 English has no token for ב/ה/ו. **Clear Bible's WLC is the only source that carries
