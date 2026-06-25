@@ -690,3 +690,17 @@ Read the full task in /tmp/s10_task_codex.txt and complete it. Write ONLY your a
 
 
 
+##     2026-06-25 22:26 CST
+
+###    User Prompt
+1,2,3 依序, 但是連 agy 也改成 headless
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 拍板：1→2→3 依序執行（Stage-1 對照賽 → 建 Stage 2 → 推进创3）；並把 agy 也改 headless（全 headless，棄 live 場面）
+- Diff: cli_caller LIVE_WINDOWS 清空（全 headless）；啟動 A2 對照賽 harness
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/cli_caller.py`
+
+
+
+

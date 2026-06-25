@@ -53,14 +53,15 @@ _extract_json = _s1._extract_json
 # Fix (d): agy relaunched on a fresh window pinned to "Gemini 3.1 Pro (High)"
 # (was 5557 on Flash). codex relaunched fresh (9082) after its 5555 session ended
 # during the quota-capped run.
-# 2026-06-25: codex live leg dropped — its osascript inject stopped landing in
-# the codex TUI input box (31 consecutive fails on Gen ch2), so every codex call
-# burned the full LIVE_TIMEOUT (150s) before falling back to headless. Under the
-# per-call /clear blind design, headless ≡ blind-live (both start blank), so
-# routing codex straight to headless costs zero quality and saves the 150s/call.
-# agy live (w8214) remains reliable (70 ok / 1 fail on the same run). Restore
-# codex here (window id) once its inject path is fixed.
-LIVE_WINDOWS = {"agy": 8214}
+# 2026-06-25: FULLY HEADLESS (Joshua) — live legs dropped entirely. Rationale:
+# the per-call /clear blind design means every live call already starts BLANK, so
+# live ≡ headless in QUALITY (no persistent context either way). The live obe
+# panel only added osascript focus-race fragility (codex: 31 inject fails on ch2,
+# burning 150s/call before fallback) and spectacle. The real s10 deltas vs s1 —
+# externalised conventions.md, the hybrid C/D tier, per-verse blindness — all
+# survive headless. So empty map => call_llm routes EVERY brand to the headless
+# _s1.call_llm path. Restore {"agy": 8214, "codex": 9082} to re-enable live.
+LIVE_WINDOWS = {}
 
 # Cap the live-inject attempt so a hung session falls back to headless quickly
 # instead of burning the full call timeout. The headless fallback then gets the

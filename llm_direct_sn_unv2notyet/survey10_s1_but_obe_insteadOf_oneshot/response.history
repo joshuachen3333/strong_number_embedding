@@ -995,3 +995,44 @@ Resume is working exactly as designed — 2:9, 2:10… loading `convergence cach
 
 
 
+##     2026-06-25 22:22 CST
+
+###    User Prompt
+2, 然後就著手
+動手做 Stage 1 build_exclusion.py(零成本,跑创 1,2 看排除族分佈)
+作完評估 Stage2 或其他
+
+###    result
+## ch2 完成報告 ✅
+
+**Gold：25/25,全部完美 SN coverage。** Trust-tier 分佈:
+- **c_consensus: 24** （共識層解決)
+- r2_early_evolution: 1
+- **d_deliberation: 0** —— 整章不需要動用 D 仲裁,全部在共識層搞定
+
+**Scribe（慣例抽取）:正確地「拒絕」了 ch2 候選慣例。** 抽出的候選跑 regression gate → 13/22、14/22 PASS(低於門檻)→ REGRESSION-FAILED → 不採納。`conventions.md` 維持 C1 不變。這是 gate 在做它該做的事:過擬合、無法跨節推廣的候選被擋下,不污染慣例庫。
+
+**路 B 的提速讓它順利收尾** —— 從停滯的 codex-live 改 headless 後,後半 15 節約 1 小時跑完。
+
+—
+
+順帶把 **Stage 1 跑创 1,2** 的結果也給你(剛做完):
+
+| 章 | 排除率 | 結構性占比 | 內容詞洩漏 |
+|---|---|---|---|
+| 创 1 | 30.9% | 100% | 0 |
+| 创 2 | 27.1% | 98.3% | 2（H5117 歇、H120 人,皆 count-mismatch) |
+
+四大結構族(prefix_09 ל/ב、obj_marker את、core_function כל/מן/היה、UNV-only morph）**跨章穩定** → kept-set 方法可推廣。`kept_set_gen1-2.json` 已生成並 commit。
+
+## 評估 Stage 2 或其他 —— 三條路
+
+1. **跑 Stage-1 對照賽**:kept_set_gen1-2 + s10 ch1+2 gold 都齊了。缺的是 **s1 Arm A(純 s1 共識,無慣例/無 D)** 的同節 gold 當對手。跑出來就能首次量化 H1(s10 ≥ s1?)。
+2. **建 Stage 2**(paid 重活):~7 條 lemma→09xxx bridge + WLC loader,測模型能否連 09xxx 前綴都插對。feasibility 已確認。
+3. **往创 3 推進**:再累積 gold,給 scribe 更多機會抽出能過 gate 的第二條慣例。
+
+我先把 ch2 gold commit 掉。你想先走哪條?我的建議是 **1（對照賽)** —— 資料最接近齊備,能最快得到「s10 到底能不能打 s1」的第一個硬數字。
+
+
+
+
