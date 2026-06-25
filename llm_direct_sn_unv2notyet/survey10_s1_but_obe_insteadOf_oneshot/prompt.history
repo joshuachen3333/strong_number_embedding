@@ -646,3 +646,47 @@ Read the full task in /tmp/s10_task_codex.txt and complete it. Write ONLY your a
 
 
 
+##     2026-06-25 09:13 CST
+
+###    User Prompt
+可以無痛切換到 headless 嗎？how?
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 問能否無痛把 codex 從 live 切到 headless（codex live 注入失敗 31 次拖慢 ch2）
+- Diff: 查明 LIVE_WINDOWS/LIVE_TIMEOUT 在 import 時即入記憶體→無法熱改；但 round caches 讓 stop+resume 零損失（judge.py cache-load 跳過已完成節）
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/cli_caller.py`
+
+
+
+
+##     2026-06-25 09:15 CST
+
+###    User Prompt
+路 B — 停一下 + resume，本次剩餘 16 節提速
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 拍板執行路 B：codex 改走 headless，停 + 無損 resume 加速 ch2 剩餘節
+- Diff: cli_caller.py LIVE_WINDOWS 移除 codex（剩 agy 8214）；停 PID + 不帶 --force resume 從 2:9 續
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/cli_caller.py`
+
+
+
+
+##     2026-06-25 22:21 CST
+
+###    User Prompt
+2, 然後就著手
+動手做 Stage 1 build_exclusion.py(零成本,跑创 1,2 看排除族分佈)
+作完評估 Stage2 或其他
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 指示：build_exclusion.py 跑创 1,2 看排除族分佈，再評估 Stage 2 或其他
+- Diff: 在 ch1 既有結果上補跑 ch2 與 ch1+2 合併分佈
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/build_exclusion.py`
+
+
+
+

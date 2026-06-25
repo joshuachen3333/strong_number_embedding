@@ -127,7 +127,12 @@ shared numbers; fixed → number-level multiset `shared = min(unv, kjv)`.
 | corpus | UNV tags | kept (shared) | excluded (UNV-only) | excl % | content-lemma excess |
 |---|---|---|---|---|---|
 | **Gen 1** | 592 | 409 | 183 | 30.9% | **0** |
+| **Gen 2** | 443 | 323 | 120 | 27.1% | 2 (H5117 rest, H120 man) |
 | **Gen 1–5** | 2438 | 1819 | 619 | 25.4% | 7 (1.1%) |
+
+The family profile is **stable across chapters** (ch1: prefix_09 62 / obj 23 / morph 24
+/ core_func 74; ch2: prefix_09 36 / obj 13 / morph 5 / core_func 64) — same four
+structural classes dominate, so the kept-set methodology generalises verse-to-verse.
 
 Excluded-family distribution (Gen 1): `prefix_09` 62 · `obj_marker` (את 853) 23 ·
 `morph` (UNV-only 8xxx codes) 24 · `core_function` 74 · **`core_content` 0**.

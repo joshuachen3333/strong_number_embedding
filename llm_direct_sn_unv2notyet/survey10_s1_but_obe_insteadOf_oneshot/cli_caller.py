@@ -53,7 +53,14 @@ _extract_json = _s1._extract_json
 # Fix (d): agy relaunched on a fresh window pinned to "Gemini 3.1 Pro (High)"
 # (was 5557 on Flash). codex relaunched fresh (9082) after its 5555 session ended
 # during the quota-capped run.
-LIVE_WINDOWS = {"codex": 9082, "agy": 8214}
+# 2026-06-25: codex live leg dropped — its osascript inject stopped landing in
+# the codex TUI input box (31 consecutive fails on Gen ch2), so every codex call
+# burned the full LIVE_TIMEOUT (150s) before falling back to headless. Under the
+# per-call /clear blind design, headless ≡ blind-live (both start blank), so
+# routing codex straight to headless costs zero quality and saves the 150s/call.
+# agy live (w8214) remains reliable (70 ok / 1 fail on the same run). Restore
+# codex here (window id) once its inject path is fixed.
+LIVE_WINDOWS = {"agy": 8214}
 
 # Cap the live-inject attempt so a hung session falls back to headless quickly
 # instead of burning the full call timeout. The headless fallback then gets the

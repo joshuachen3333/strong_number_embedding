@@ -939,3 +939,59 @@ eng 底下就有 **BSB、YLT** 等多個英文譯本各自一套對齊(alignment
 
 
 
+##     2026-06-25 05:19 CST
+
+###    User Prompt
+1, 先繼續跑完 Gen chap2, 然後就著手
+動手做 Stage 1 build_exclusion.py(零成本,跑创 1 看排除族分佈)
+作完評估 Stage2 或其他
+
+###    result
+WLC data confirms **every** Stage 2 design assumption:
+
+| Assumption | Confirmed |
+|---|---|
+| Explicit separable prefix tokens | ✅ `בְּ`/`הַ`/`וְ` are their own rows |
+| Augmented numbering (≠ FHL 09xxx) | ✅ `בְּ`=`H0871a`, `הַ`=`H1886a`, `וְ`=`H2050b` → lemma bridge needed, as designed |
+| `gloss2` Chinese-leak column | ✅ present (起初/创造/神/诸天/地) — **must strip**; note prefixes have *empty* gloss2 |
+| Bridge anchor available | ✅ `lemma` + `pos` columns (prep/art/cj/om) make the lemma→09xxx bridge clean |
+| `את` already FHL-aligned | ✅ `H0853` matches FHL `0853` exactly (no bridge) |
+
+Let me record the feasibility verdict in the doc's Stage 2 section.
+
+
+
+
+##     2026-06-25 08:47 CST
+
+###    User Prompt
+進度如何？
+
+###    result
+The pace slowed and I found why. Let me confirm the codex live-leg state.
+
+
+
+
+##     2026-06-25 09:13 CST
+
+###    User Prompt
+可以無痛切換到 headless 嗎？how?
+
+###    result
+I have the complete answer. Let me record the prompt, then explain.
+
+
+
+
+##     2026-06-25 09:17 CST
+
+###    User Prompt
+路 B — 停一下 + resume，本次剩餘 16 節提速
+
+###    result
+Resume is working exactly as designed — 2:9, 2:10… loading `convergence cached` + `debate cached` → instant `R2 RESOLVED`, zero recompute. Let me confirm it reaches fresh verses and codex now goes headless.
+
+
+
+
