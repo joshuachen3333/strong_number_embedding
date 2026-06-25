@@ -25,3 +25,16 @@ Canonical structured format (see global CLAUDE.md /ph spec).
 
 
 
+##     2026-06-26 07:48 CST
+
+###    User Prompt
+why do we have 2?
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 質疑雙源重疊：為何 KJV 與 WLC 同時標註非09xxx 內容詞
+- Diff: 引出設計理由：重疊處保留兩源正是為了交叉驗證 WLC，用可被佐證的內容詞信任換取對 WLC 獨供的 09xxx 的信任（純設計討論，無檔案變更）
+
+
+
+
