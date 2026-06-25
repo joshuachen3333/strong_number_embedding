@@ -1036,3 +1036,154 @@ Resume is working exactly as designed — 2:9, 2:10… loading `convergence cach
 
 
 
+##     2026-06-25 22:31 CST
+
+###    User Prompt
+1,2,3 依序, 但是連 agy 也改成 headless
+
+###    result
+6+ min with no per-verse line is slow — let me check whether the `claude` subprocess is actually progressing or hung.
+
+
+
+
+##     2026-06-25 22:34 CST
+
+###    User Prompt
+<task-notification>
+<task-id>bkv1ldxq7</task-id>
+<tool-use-id>toolu_018f24H23AoqYF72Qfh8uMXq</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-joshua-work-strong-number-embedding-llm-direct-sn-unv2notyet-survey10-s1-but-obe-insteadOf-oneshot/d2bd6c0a-922b-49f4-a2b1-8f648536286f/tasks/bkv1ldxq7.output</output-file>
+<status>completed</status>
+<summary>Background command "Run smoke test in background, peek after 60s" completed (exit code 0)</summary>
+</task-notification>
+
+###    result
+I'll wait for the poll to report (notification incoming). The fix is verified in isolation (8/8 on the previously-failing case); the smoke run just confirms it end-to-end across both arms.
+
+
+
+
+##     2026-06-25 22:35 CST
+
+###    User Prompt
+## Settled conventions (s10 conventions.md) — APPLY THESE
+Regression-gated placement rules distilled from resolved gold verses. Apply unless the current verse clearly contradicts them:
+
+- C1 Keep a verb's morphology/stem tag (8xxx) glued immediately after that verb's own core number with no target word intervening, even when the verb is re-lexified or the clause is restructured (e.g. 1:27 創造<WH01254><WTH8799>, 1:28 祝福<WH01288><WTH8762>).   [added v0.1 · gate PASS · Gen ch1 scribe]
+<!-- s10:conventions-preamble -->
+
+You are a Strong's Number alignment expert. You transfer Strong's Number annotations from an annotated source verse onto a parallel target verse, placing each number immediately after the target word it belongs to. Keep the FHL tag format exactly as given in the source.
+
+Here is Gen 1:2 in KJV (plain, no tags):
+
+And the earth was without form, and void; and darkness was upon the face of the deep. And the Spirit of God moved upon the face of the waters.
+
+Here is the same verse in KJV with Strong's Number annotations:
+
+And the earth<WH0776> was<WH01961><WTH8804> without form<WH08414>, and void<WH0922>; and darkness<WH02822> <FI>was<Fi> upon the face<WH06440> of the deep<WH08415>. And the Spirit<WH07307> of God<WH0430> moved<WH07363><WTH8764> upon<WH05921> the face<WH06440> of the waters<WH04325>.<CM>
+
+Here is the same verse in UNV (Chinese Union Version), plain, no annotations:
+
+地是空虛混沌，淵面黑暗；　神的靈運行在水面上。
+
+....
+
+###    result
+地<WH0776>是<WH01961><WTH8804>空虛<WH08414>混沌<WH0922>，淵<WH08415>面<WH06440>黑暗<WH02822>；　神<WH0430>的靈<WH07307>運行<WH07363><WTH8764>在<WH05921>水<WH04325>面<WH06440>上
+
+
+
+
+##     2026-06-25 22:38 CST
+
+###    User Prompt
+You are a Strong's Number alignment expert. You transfer Strong's Number annotations from an annotated source verse onto a parallel target verse, placing each number immediately after the target word it belongs to. Keep the FHL tag format exactly as given in the source.
+
+Here is Gen 1:2 in KJV (plain, no tags):
+
+And the earth was without form, and void; and darkness was upon the face of the deep. And the Spirit of God moved upon the face of the waters.
+
+Here is the same verse in KJV with Strong's Number annotations:
+
+And the earth<WH0776> was<WH01961><WTH8804> without form<WH08414>, and void<WH0922>; and darkness<WH02822> <FI>was<Fi> upon the face<WH06440> of the deep<WH08415>. And the Spirit<WH07307> of God<WH0430> moved<WH07363><WTH8764> upon<WH05921> the face<WH06440> of the waters<WH04325>.<CM>
+
+Here is the same verse in UNV (Chinese Union Version), plain, no annotations:
+
+地是空虛混沌，淵面黑暗；　神的靈運行在水面上。
+
+Using the KJV annotation pair above as your reference, insert the Strong's Number tags into the correct positions in the UNV text. Output ONLY the annotated UNV text on a single line, no commentary, no code fences.
+
+###    result
+地<WH0776>是<WH01961><WTH8804>空虛<WH08414>混沌<WH0922>，淵<WH08415>面<WH06440>黑暗<WH02822>；　神<WH0430>的靈<WH07307>運行<WH07363><WTH8764>在水<WH04325>面<WH06440>上<WH05921>。
+
+
+
+
+##     2026-06-25 22:38 CST
+
+###    User Prompt
+You are a Strong's Number alignment expert. You transfer Strong's Number annotations from an annotated source verse onto a parallel target verse, placing each number immediately after the target word it belongs to. Keep the FHL tag format exactly as given in the source.
+
+Here is Gen 1:3 in KJV (plain, no tags):
+
+And God said, Let there be light: and there was light.
+
+Here is the same verse in KJV with Strong's Number annotations:
+
+And God<WH0430> said<WH0559><WTH8799>, Let there be<WH01961><WTH8799> light<WH0216>: and there was light<WH0216>.
+
+Here is the same verse in UNV (Chinese Union Version), plain, no annotations:
+
+　神說：「要有光」，就有了光。
+
+Using the KJV annotation pair above as your reference, insert the Strong's Number tags into the correct positions in the UNV text. Output ONLY the annotated UNV text on a single line, no commentary, no code fences.
+
+###    result
+神<WH0430>說<WH0559><WTH8799>：「要有<WH01961><WTH8799>光<WH0216>」，就有了光<WH0216>。
+
+
+
+
+##     2026-06-25 22:39 CST
+
+###    User Prompt
+You are a Strong's Number alignment expert. You transfer Strong's Number annotations from an annotated source verse onto a parallel target verse, placing each number immediately after the target word it belongs to. Keep the FHL tag format exactly as given in the source.
+
+Here is Gen 1:2 in KJV (plain, no tags):
+
+And the earth was without form, and void; and darkness was upon the face of the deep. And the Spirit of God moved upon the face of the waters.
+
+Here is the same verse in KJV with Strong's Number annotations:
+
+And the earth<WH0776> was<WH01961><WTH8804> without form<WH08414>, and void<WH0922>; and darkness<WH02822> <FI>was<Fi> upon the face<WH06440> of the deep<WH08415>. And the Spirit<WH07307> of God<WH0430> moved<WH07363><WTH8764> upon<WH05921> the face<WH06440> of the waters<WH04325>.<CM>
+
+Here is the same verse in UNV (Chinese Union Version), plain, no annotations:
+
+地是空虛混沌，淵面黑暗；　神的靈運行在水面上。
+
+Using the KJV annotation pair above as your reference, insert the Strong's Number tags into the correct positions in the UNV text. Output ONLY the annotated UNV text on a single line, no commentary, no code fences.
+
+###    result
+地<WH0776>是<WH01961><WTH8804>空虛<WH08414>混沌<WH0922>，淵<WH08415>面<WH06440>黑暗<WH02822>；　神<WH0430>的靈<WH07307>運行<WH07363><WTH8764>在<WH05921>水<WH04325>面<WH06440>上。
+
+
+
+
+##     2026-06-25 22:41 CST
+
+###    User Prompt
+<task-notification>
+<task-id>bq3u6r9b5</task-id>
+<tool-use-id>toolu_0132vuKaTSmemT53A9fcFMiV</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-joshua-work-strong-number-embedding-llm-direct-sn-unv2notyet-survey10-s1-but-obe-insteadOf-oneshot/d2bd6c0a-922b-49f4-a2b1-8f648536286f/tasks/bq3u6r9b5.output</output-file>
+<status>completed</status>
+<summary>Background command "Poll smoke2 until summary" completed (exit code 0)</summary>
+</task-notification>
+
+###    result
+I'll wait for the smoke3 result (notification incoming). The structured-output path should eliminate the meta-chatter that was zeroing out verses.
+
+
+
+

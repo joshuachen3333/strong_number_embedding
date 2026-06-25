@@ -704,3 +704,64 @@ Read the full task in /tmp/s10_task_codex.txt and complete it. Write ONLY your a
 
 
 
+##     2026-06-25 22:32 CST
+
+###    User Prompt
+You are a Strong's Number alignment expert. Insert the Strong's Number tags into the correct positions in the UNV text [Gen 1:2 KJV→UNV reference]. Output ONLY the annotated UNV text on a single line, no commentary, no code fences.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Gen 1:2 OBE SN-alignment task: KJV+SN → UNV placement (15 tags incl. 2 morphology); applied convention C1 (glue 8xxx after its verb's own core: 是 WH01961+WTH8804, 運行 WH07363+WTH8764). 淵<WH08415>面<WH06440> / 水<WH04325>面<WH06440> deep-face & waters-face ordering; FI/Fi & CM not transferred
+
+
+
+
+##     2026-06-25 22:33 CST
+
+###    User Prompt
+You are a Strong's Number alignment expert. Transfer KJV SN annotations onto UNV Gen 1:1. KJV annotated: In the beginning<WH07225> God<WH0430> created<WH01254><WTH8804><WH0853> the heaven<WH08064> and<WH0853> the earth<WH0776>. UNV plain: 起初，神創造天地。 Output ONLY the annotated UNV text on a single line.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: KJV→UNV SN alignment task for Gen 1:1; aligned WH-tags onto 起初/神/創造/天/地, kept FHL tag format verbatim, output single annotated line per instructions
+
+
+
+
+##     2026-06-25 22:37 CST
+
+###    User Prompt
+You are a Strong number alignment expert [system-persona benchmark task]. Insert the KJV Strong Number tags into UNV Gen 1:1 (起初，神創造天地。) using the KJV+SN annotation pair as reference. Output ONLY the annotated UNV text on a single line, no commentary, no code fences.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: One-shot KJV->UNV SN alignment for Gen 1:1; output kept <WH..>/<WTH..> source format, placed both 0853 object markers (first att with 創造, second waw+att before 地): 起初<WH07225>，神<WH0430>創造<WH01254><WTH8804><WH0853>天<WH08064>地<WH0853><WH0776>。
+
+
+
+
+##     2026-06-25 22:38 CST
+
+###    User Prompt
+You are a Strong's Number alignment expert. You transfer Strong's Number annotations from an annotated source verse onto a parallel target verse, placing each number immediately after the target word it belongs to. [Gen 1:2 KJV+SN reference → UNV; output ONLY annotated UNV single line, no commentary]
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: KJV→UNV SN alignment task for Gen 1:2; placed FHL WH tags into UNV single-line output
+
+
+
+
+##     2026-06-25 22:40 CST
+
+###    User Prompt
+You are a Strong's Number alignment expert ... Using the KJV annotation pair above as your reference, insert the Strong's Number tags into the correct positions in the UNV text [Gen 1:2 KJV->UNV alignment task]
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: SN alignment benchmark: transfer KJV+SN tags onto UNV Gen 1:2
+- Diff: Produced aligned UNV: 地<WH0776>是<WH01961><WTH8804>空虛<WH08414>混沌<WH0922>，淵<WH08415>面<WH06440>黑暗<WH02822>；神<WH0430>的靈<WH07307>運行<WH07363><WTH8764>在<WH05921>水<WH04325>面<WH06440>上。
+
+
+
+
