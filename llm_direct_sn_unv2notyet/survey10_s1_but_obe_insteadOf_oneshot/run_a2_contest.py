@@ -73,6 +73,20 @@ _TAGLINE = re.compile(r"<\s*W?[A-Za-z]*\d{2,5}")
 _CJK = re.compile(r"[一-鿿]")
 
 
+def call_guarded(system, user, model, retries=4):
+    """call_llm but RETRY on empty/error output (e.g. token-window exhaustion),
+    so a run that outlives its 5-hour quota doesn't silently score empties as 0.
+    Returns the cleaned annotated text, or "" if every attempt was empty (caller
+    must then DROP the verse, not score it 0)."""
+    for attempt in range(retries):
+        res = call_llm("claude", model, system, user, target_version="unv", verbose=False)
+        out = clean_output(res.get("unv_sn", "") or "") if isinstance(res, dict) else ""
+        if out and re.search(r"<\s*W?[A-Za-z]*\d", out):
+            return out
+        time.sleep(min(30 * (attempt + 1), 120))   # back off: quota may be resetting
+    return ""
+
+
 def clean_output(raw):
     """Pull the annotated UNV line out of a possibly-chatty model reply.
 
@@ -114,13 +128,18 @@ def run_arm(label, conventions_on, verses, model, verbose, samples=1):
         # noise (opus is stochastic). Per-verse metric = mean over samples.
         sk = []
         for _ in range(samples):
-            res = call_llm("claude", model, system, user, target_version="unv", verbose=False)
-            out = clean_output(res.get("unv_sn", "") or "")
+            out = call_guarded(system, user, model)
+            if not out:
+                continue   # all retries empty (quota) — DROP, don't score 0
             sc = score_verse(out, unv_sn)
             kp = kept_placement(out, unv_sn, kjv_sn)
             sk.append({"placement": sc["placement"], "coverage": sc["coverage"],
                        "exact": sc["exact_match"], "kept_frac": kp["fraction"],
                        "kept_n": kp["total"]})
+        if not sk:
+            if verbose:
+                print(f"  [{label}] {chap}:{sec}  DROPPED (all samples empty)", flush=True)
+            continue
         avg = {k: (sum(s[k] for s in sk) / len(sk)) for k in
                ("placement", "coverage", "kept_frac")}
         avg["exact"] = sum(1 for s in sk if s["exact"]) / len(sk)

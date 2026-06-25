@@ -178,11 +178,16 @@ def run_arm(label, conv_on, verses, model, verbose, samples):
         t0 = time.time()
         fp, n9p, n9t = [], 0, 0
         for _ in range(samples):
-            res = call_llm("claude", model, system, user, target_version="unv", verbose=False)
-            out = A2.clean_output(res.get("unv_sn", "") or "")
+            out = A2.call_guarded(system, user, model)
+            if not out:
+                continue   # quota-exhausted empties — DROP, don't score 0
             full = BX.score_placement(out, BX.tag_multiset(unv_sn)[0])
             p9, t9 = nines_recall(out, unv_sn)
             fp.append(full["fraction"]); n9p += p9; n9t += t9
+        if not fp:
+            if verbose:
+                print(f"  [{label}] {chap}:{sec}  DROPPED (all samples empty)", flush=True)
+            continue
         row = {"chap": chap, "sec": sec, "full_frac": sum(fp) / len(fp),
                "n9_placed": n9p, "n9_total": n9t}
         rows.append(row)
