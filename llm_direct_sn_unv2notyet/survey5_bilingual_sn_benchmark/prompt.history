@@ -1,0 +1,27 @@
+# prompt.history — survey5_bilingual_sn_benchmark
+
+Cross-project / cross-CLI raw prompt provenance for survey5 (雙語 SN 基準測試).
+Started 2026-06-26 when survey5-obe received the Clear Bible handover from
+survey10-obe and Joshua began driving the WLC+KJV dual-source design thread.
+Canonical structured format (see global CLAUDE.md /ph spec).
+
+
+
+
+##     2026-06-26 07:46 CST
+
+###    User Prompt
+我有別的想法
+1, 9000 那些還要靠 wlc, 預設要使用
+2, kjv 畢竟是老牌的現成 ground truth, 也要預設納入
+3, 每次一節把非 9000 的其他 SN 插入法, 以 kjv 為基礎, 對照 wlc 同一部份是否 solid, 如果一致我們就更信任 wlc 了
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 雙語 SN 雙源設計：09xxx 靠 WLC、KJV 預設納入、非09xxx 以 KJV 為基對照 WLC 是否 solid
+- Diff: 確立 survey5 雙源架構方向（KJV+WLC）：WLC 供 09xxx 前綴、KJV 為內容詞可信基底、兩者在非09xxx 重疊處一致即累積對 WLC 的信任（待設計）
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey5_bilingual_sn_benchmark/run_survey5.py`
+
+
+
+
