@@ -1,0 +1,34 @@
+# response.history — survey5_bilingual_sn_benchmark
+
+Dual of prompt.history: records survey5-obe's verbatim final narrative replies
+(reasoning / decisions / findings shown to Joshua). Started 2026-06-26 during the
+WLC+KJV dual-source design thread. Canonical format with `result` field
+(see ~/.claude/skills/logoutput).
+
+
+
+
+##     2026-06-26 07:47 CST
+
+###    User Prompt
+why do we have 2?
+
+###    result
+Pushed (`9c0b987..cd5b590`).
+
+Now — "why do we have 2?" My read: you're asking why **both KJV and WLC carry the same non-09xxx (content-word) tags** — the overlap looks redundant. If that's the question, here's the answer in your own design's terms:
+
+The redundancy on the non-09xxx tags **is the feature, not waste.** It's what makes point 3 possible:
+
+- **WLC alone** can supply *everything* (content words **and** 09xxx prefixes) — so on coverage, KJV looks unnecessary.
+- **But** we can't directly verify WLC's 09xxx placements — KJV has no 09xxx tags to check them against. So WLC's prefix work would be **un-corroborated**.
+- The **overlap** (non-09xxx, where KJV *does* have tags) is the only place the two witnesses can be compared. Every verse where KJV and WLC agree on the content-word tags is a verse where WLC **passed an independent check**.
+- Pass that check enough times → WLC has *earned* trust → we extend that trust to its 09xxx tags, where it stands alone.
+
+So we keep 2 sources **specifically on the overlap** to buy the trust that lets us rely on the 1 source (WLC) where it's the only option. Drop KJV and you save nothing on coverage but lose the entire corroboration argument.
+
+Did I read "2" right — two sources on the same tags? Or did you mean something else (e.g. two of something on your screen)?
+
+
+
+
