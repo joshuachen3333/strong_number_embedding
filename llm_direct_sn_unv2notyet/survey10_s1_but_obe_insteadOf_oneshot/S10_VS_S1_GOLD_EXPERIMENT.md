@@ -295,6 +295,48 @@ Aggregated per arm: mean placement/coverage, exact-match rate, and the
 8. Verdict table (below).
 ```
 
+## ▶ First contest result — B vs B0 (conventions isolation), Gen 1–2, opus (2026-06-26)
+
+Ran `run_a2_contest.py` (the first cut: same single-pass opus annotates each verse
+twice, conventions ON vs OFF; full Arm A = s1 consensus is a later layer). Harness
+validated; two bugs fixed first — raw `claude -p` inherits this repo's CLAUDE.md
+and drifts into project-assistant meta-chatter ("Recorded to prompt.history…") →
+routed through `cli_caller.call_llm` **structured output** (forces clean `{unv_sn}`);
+and `clean_output` now picks the tag-bearing line with the most CJK chars (avoids
+grabbing an echoed C1-example line).
+
+| arm | placement* | coverage* | **kept_place** |
+|---|---|---|---|
+| **B** (conv ON) | 0.7274 | 0.6524 | **0.9971** |
+| **B0** (conv OFF) | 0.7284 | 0.6555 | **0.9914** |
+| **Δ (B − B0)** | −0.0011 | −0.0031 | **+0.0058** |
+
+\* `auto_score.placement`/`coverage` are noisy here (position-shift artifacts from
+KJV-unsupplyable prefixes shifting char offsets); **`kept_place`** (Stage-1 kept-set
+number coverage) is the trustworthy metric.
+
+**Aggregate is tiny but directionally positive; the signal lives in the hard
+verses.** 50/56 verses are at the kept-place ceiling (~1.0) for BOTH arms — opus
+already nails the KJV-supplyable numbers, so conventions have nothing to fix there.
+On the **6 verses where B0 actually erred**, B helped 5:1 — full fixes on 1:6
+(9/10→10/10), 1:17 (7/8→8/8), 1:24 (13/14→14/14), 2:5 (20/21→21/21); partial on
+1:11 (18/20→19/20); tie on 1:28; one regression (1:4). Net +4 kept tags.
+
+**Honest caveats / what this dictates next:**
+1. **Ceiling**: opus on easy Genesis can't discriminate. Use a **weaker model**
+   (more headroom) or **focus on hard verses** to see convention value.
+2. **Sampling noise**: 1 sample/arm/verse + a stochastic model means the 5:1 fix
+   ratio is confounded (a fresh re-run of 1:17 fixed a *different* tag, 0430, not
+   the C1 morph pattern). A rigorous number needs **N samples/verse/arm** (or
+   low-temp) to separate convention-effect from sampling variance.
+3. **One narrow rule**: with only C1 in `conventions.md`, the achievable Δ is
+   small by construction. Effect should compound as the scribe adds gated rules.
+
+→ **Verdict so far: H5 directionally supported (conventions help where the model
+errs, ~zero cost where it doesn't), not yet significant.** The B-vs-B0 design is
+sound but ceiling+noise-limited on opus/Genesis; harden with multi-sample or a
+weaker model before treating the number as decisive.
+
 ## Verdict table (to fill)
 
 | Metric | Arm A (s1) | Arm B (s10-E) | B0 (no conv) | Winner |

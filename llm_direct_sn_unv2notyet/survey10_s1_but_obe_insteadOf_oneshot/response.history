@@ -1187,3 +1187,27 @@ I'll wait for the smoke3 result (notification incoming). The structured-output p
 
 
 
+##     2026-06-25 22:47 CST
+
+###    User Prompt
+<task-notification>
+<task-id>b7s2uki7x</task-id>
+<tool-use-id>toolu_016gegeYRE7AtK2vR4Kjjn8s</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-joshua-work-strong-number-embedding-llm-direct-sn-unv2notyet-survey10-s1-but-obe-insteadOf-oneshot/d2bd6c0a-922b-49f4-a2b1-8f648536286f/tasks/b7s2uki7x.output</output-file>
+<status>completed</status>
+<summary>Background command "Poll smoke3 until summary" completed (exit code 0)</summary>
+</task-notification>
+
+###    result
+The contest is running; I'll be notified when the aggregate lands (~80 min). Summary of this turn's progress on your 1→2→3 plan:
+
+- ✅ **Fully headless** (`LIVE_WINDOWS = {}`) — agy dropped too, as you asked
+- ✅ **ch2 gold** committed (25/25, 24 c_consensus, 0 d_deliberation)
+- 🔨 **Task 1 (contest)**: harness built + validated (2 bugs found and fixed: project-context meta-chatter → structured output; convention-echo line → CJK-max extraction). Full Gen 1–2 B-vs-B0 run in flight.
+- ⏳ **Task 2 (Stage-2 WLC)** and **Task 3 (创 3)** queued next.
+
+I'll report the contest aggregate when it completes, then proceed to Task 2.
+
+
+
+
