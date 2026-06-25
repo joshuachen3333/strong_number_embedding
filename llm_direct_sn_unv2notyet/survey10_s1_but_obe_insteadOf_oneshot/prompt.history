@@ -796,3 +796,42 @@ Q1 少什麼就補什麼,  WLC(Clear Bible 一定要納入來測測看能否對�
 
 
 
+##     2026-06-26 01:12 CST
+
+###    User Prompt
+先等這批跑完, 然後等 7:10 五小時 token reset 後, 把 Stage-2 也擴成完整 Gen 1–2(背景)、並接著推 創 3 4 兩章
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 排程：先等當前批次(opus N=3 對照賽 + Stage-2 smoke)跑完；7:10 五小時 token reset 後再擴 Stage-2 完整 Gen 1-2(背景)+ 推 創 3、4 兩章
+- Diff: 暫不啟動新 run；等批次完成 + 過 7:10 reset 再啟動擴充
+
+
+
+
+##     2026-06-26 01:25 CST
+
+###    User Prompt
+clear bible 可以加強給 survey5 嗎? 他嗷嗷待哺目前只能使用 kjv
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 問能否用 Clear Bible 強化 survey5（目前只能用 KJV 當來源語言）
+- Diff: 評估把 WLC 原文 + 10+ 對齊語言 接入 survey5 當來源；WLC loader 已在 run_stage2_harsh 建好可移植
+
+
+
+
+##     2026-06-26 01:28 CST
+
+###    User Prompt
+s5 onboard. inject a welcome message with message back 座標, telling him that clear bible is his next good stuffs to eat from. and hand over the rest to it where I will be working on with.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 指示：onboard survey5 sibling obe，注入歡迎信(含回信座標)，告知 Clear Bible 是下一道菜，把 survey5 強化工作交接給 s5(Joshua 會親自帶)
+- Diff: 發 /obe 跨 cwd 歡迎 inject 給 s5；交接 Clear Bible Tier1/Tier2 給 survey5 sibling
+
+
+
+
