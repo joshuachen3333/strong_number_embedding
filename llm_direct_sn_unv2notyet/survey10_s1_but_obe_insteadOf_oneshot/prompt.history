@@ -765,3 +765,34 @@ You are a Strong's Number alignment expert ... Using the KJV annotation pair abo
 
 
 
+##     2026-06-26 00:42 CST
+
+###    User Prompt
+甲/乙/丙 call 中文詳述
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 要求中文詳述對照賽後的 甲/乙/丙 岔路（硬化 Task1 / 進 Task2 / 兩者並行）以便定奪
+- Diff: 撰寫三選項的詳細比較與建議（無程式改動）
+
+
+
+
+##     2026-06-26 00:48 CST
+
+###    User Prompt
+我不要用弱模型
+乙 — 照原計劃 一定要做
+Q1 少什麼就補什麼,  WLC(Clear Bible 一定要納入來測測看能否對齊 9xxx
+除了禁用弱模型 其他都做
+快！
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 拍板：禁用弱模型；乙(Stage2/WLC)必做；Q1 用 opus 多樣本(非弱模型)補抽樣雜訊；WLC 一定納入測 9xxx 對齊；全部並行；快
+- Diff: run_a2_contest 加 --samples N(opus 多樣本背景重跑 Gen1-2)；建 Stage-2 WLC：lemma→09xxx bridge + WLC loader + harsh test
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/run_a2_contest.py`
+
+
+
+

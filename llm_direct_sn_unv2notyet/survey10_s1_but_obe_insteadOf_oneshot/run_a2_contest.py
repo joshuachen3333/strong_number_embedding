@@ -102,7 +102,7 @@ def kept_placement(model_output, unv_sn, kjv_sn):
     return BX.score_placement(model_output, shared)
 
 
-def run_arm(label, conventions_on, verses, model, verbose):
+def run_arm(label, conventions_on, verses, model, verbose, samples=1):
     preamble = build_conventions_preamble("unv") if conventions_on else ""
     system = (preamble + SYSTEM_BASE) if preamble else SYSTEM_BASE
     rows = []
@@ -110,21 +110,28 @@ def run_arm(label, conventions_on, verses, model, verbose):
         kjv_plain, unv_plain = strip_sn(kjv_sn), strip_sn(unv_sn)
         user = build_main_prompt(kjv_plain, kjv_sn, unv_plain, book_eng, chap, sec)
         t0 = time.time()
-        # Structured-output path: model MUST return {unv_sn,...} JSON, so it can't
-        # drift into project-assistant meta-chatter ("Recorded to prompt.history…")
-        # the way a raw `claude -p` text call does (it inherits this repo's CLAUDE.md).
-        res = call_llm("claude", model, system, user, target_version="unv", verbose=False)
-        out = clean_output(res.get("unv_sn", "") or "")
-        sc = score_verse(out, unv_sn)
-        kp = kept_placement(out, unv_sn, kjv_sn)
-        rows.append({"chap": chap, "sec": sec, "placement": sc["placement"],
-                     "coverage": sc["coverage"], "exact": sc["exact_match"],
-                     "kept_frac": kp["fraction"], "kept_n": kp["total"],
-                     "output": out})
+        # N samples/verse to separate convention-effect from the model's sampling
+        # noise (opus is stochastic). Per-verse metric = mean over samples.
+        sk = []
+        for _ in range(samples):
+            res = call_llm("claude", model, system, user, target_version="unv", verbose=False)
+            out = clean_output(res.get("unv_sn", "") or "")
+            sc = score_verse(out, unv_sn)
+            kp = kept_placement(out, unv_sn, kjv_sn)
+            sk.append({"placement": sc["placement"], "coverage": sc["coverage"],
+                       "exact": sc["exact_match"], "kept_frac": kp["fraction"],
+                       "kept_n": kp["total"]})
+        avg = {k: (sum(s[k] for s in sk) / len(sk)) for k in
+               ("placement", "coverage", "kept_frac")}
+        avg["exact"] = sum(1 for s in sk if s["exact"]) / len(sk)
+        avg["chap"], avg["sec"], avg["kept_n"] = chap, sec, sk[0]["kept_n"]
+        rows.append(avg)
         if verbose:
-            print(f"  [{label}] {chap}:{sec}  place={sc['placement']:.3f} "
-                  f"cov={sc['coverage']:.3f} kept={kp['fraction']:.3f} "
-                  f"({kp['placed']}/{kp['total']})  {time.time()-t0:.0f}s", flush=True)
+            spread = (max(s["kept_frac"] for s in sk) - min(s["kept_frac"] for s in sk)
+                      ) if samples > 1 else 0.0
+            print(f"  [{label}] {chap}:{sec}  kept={avg['kept_frac']:.3f}"
+                  f"{f' (±{spread:.3f} over {samples})' if samples>1 else ''}  "
+                  f"cov={avg['coverage']:.3f}  {time.time()-t0:.0f}s", flush=True)
     return rows
 
 
@@ -139,6 +146,7 @@ def main():
     ap.add_argument("--sec", default=None, help="verse range, e.g. 1-3")
     ap.add_argument("--model", default="opus")
     ap.add_argument("--arms", default="B,B0", help="comma list of B / B0")
+    ap.add_argument("--samples", type=int, default=1, help="N samples/verse/arm (mean)")
     ap.add_argument("-v", "--verbose", action="store_true", default=True)
     args = ap.parse_args()
 
@@ -159,13 +167,14 @@ def main():
 
     print(f"\n{'='*60}\n  A2 Stage-1 contest — {book_eng} {args.chap}"
           f"{('  v'+args.sec) if args.sec else ''}\n"
-          f"  model={args.model}  verses={len(verses)}  arms={args.arms}\n{'='*60}")
+          f"  model={args.model}  verses={len(verses)}  arms={args.arms}"
+          f"  samples={args.samples}\n{'='*60}")
 
     results = {}
     for arm in [a.strip() for a in args.arms.split(",") if a.strip()]:
         conv_on = (arm == "B")
         print(f"\n── Arm {arm} (conventions {'ON' if conv_on else 'OFF'}) ──", flush=True)
-        results[arm] = run_arm(arm, conv_on, verses, args.model, args.verbose)
+        results[arm] = run_arm(arm, conv_on, verses, args.model, args.verbose, args.samples)
 
     print(f"\n{'='*60}\n  SUMMARY ({len(verses)} verses, {args.model})\n{'='*60}")
     print(f"  {'arm':<6}{'placement':>11}{'coverage':>11}{'kept_place':>12}{'exact':>8}")

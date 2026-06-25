@@ -1211,3 +1211,93 @@ I'll report the contest aggregate when it completes, then proceed to Task 2.
 
 
 
+##     2026-06-26 00:28 CST
+
+###    User Prompt
+<task-notification>
+<task-id>bf0112lo6</task-id>
+<tool-use-id>toolu_018xLMtocDcpSyeY1etyfQ6w</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-joshua-work-strong-number-embedding-llm-direct-sn-unv2notyet-survey10-s1-but-obe-insteadOf-oneshot/d2bd6c0a-922b-49f4-a2b1-8f648536286f/tasks/bf0112lo6.output</output-file>
+<status>completed</status>
+<summary>Background command "Poll full contest until summary (long)" completed (exit code 0)</summary>
+</task-notification>
+
+###    result
+Task 1 first number is in and committed (`b6de153`). 
+
+## 對照賽結果(B vs B0,Gen 1–2,opus)
+
+| arm | kept_place |
+|---|---|
+| B(慣例 ON) | **0.9971** |
+| B0(慣例 OFF) | **0.9914** |
+| **Δ** | **+0.0058** |
+
+**彙總很小,但真正的訊號藏在硬節裡。** 56 節中 50 節兩臂都在天花板(opus 本來就把 KJV 能供應的號碼全插對),慣例無從發揮。但在 **B0 真正出錯的 6 節**,慣例 5:1 幫上忙 —— 全修好 4 節(1:6、1:17、1:24、2:5)、改善 1 節(1:11)、平手 1 節、只回退 1 節(1:4),淨 +4 個 kept 標籤。
+
+## 三個誠實的限制(已寫進文件)
+1. **天花板**:opus 在簡單創世記無法區分。要看慣例價值得換**較弱模型**或**聚焦硬節**。
+2. **抽樣雜訊**:每節每臂只取 1 樣本 + 模型隨機。我重跑 1:17,B 修好的是「不同」的標籤(0430,不是 C1 形態學)→ 5:1 比例有抽樣混淆。嚴謹數字需**每節多樣本**。
+3. **只有一條窄規則 C1**:可達到的 Δ 天生很小,要靠 scribe 累積更多規則才會放大。
+
+**目前判定:H5 方向性成立**(慣例在模型出錯處幫忙、在已對處零成本),**尚未顯著**。設計是對的,但在 opus/創世記上受天花板+雜訊所限。
+
+## 岔路 — 你的選擇
+這個結果揭示一個真實的方法岔口,我想先問你再動 Task 2:
+
+- **(甲) 先硬化 Task 1**:把對照賽換到**較弱模型**(qwen3:32b 或 sonnet,有 headroom)重跑 —— 同樣成本但 B-vs-B0 訊號會清楚得多,能給「慣例到底有沒有用」一個**決定性**數字。便宜、快。
+- **(乙) 照原計畫進 Task 2**:建 Stage-2 harsh test(WLC 源 + lemma→09xxx bridge),把 Task 1 的硬化留到之後。
+- **(丙) 兩者都要**:先跑(甲)的弱模型對照(背景),同時我手動建 Task 2。
+
+我的建議是 **(丙)** —— 弱模型對照賽零邊際成本就能跑在背景,我同時推進 Stage 2,不浪費時間。你要哪個?
+
+
+
+
+##     2026-06-26 00:41 CST
+
+###    User Prompt
+are we done?
+
+###    result
+All background runs are idle; nothing mid-flight. Short answer: **a clean stopping point, but not "done" on the full plan.**
+
+## ✅ Done & committed this session
+- **Gen ch2 gold** — 25/25, 24 c_consensus, 0 d_deliberation
+- **Stage 1** `build_exclusion.py` — 创 1+2, kept-set fairness confirmed (content-leak ~0)
+- **Fully headless** — `LIVE_WINDOWS = {}` (agy too)
+- **Task 1 first cut** — A2 contest harness + B-vs-B0 Gen 1–2 result (Δkept_place **+0.0058**, signal in the 6 hard verses, 5:1 fixes)
+
+## ⏳ Pending (your 甲/乙/丙 call)
+- **Task 1 hardening** — weaker model / multi-sample to make the number *decisive* (currently ceiling+noise-limited on opus)
+- **Task 2** — Stage-2 WLC harsh test (build, not started)
+- **Task 3** — push s10 to 创 3
+- **True Arm A** (s1 consensus) — the current contest is the B-vs-B0 *proxy*, not yet full s1-vs-s10
+
+So nothing is broken or hanging — you *can* stop here safely. But the "1,2,3 依序" plan still has Tasks 2–3 plus the contest-hardening fork I asked about. If you're done for now, I'll leave it clean; if you want to continue, just pick 甲/乙/丙 (I recommended 丙).
+
+Want me to wrap up, or proceed?
+
+
+
+
+##     2026-06-26 00:54 CST
+
+###    User Prompt
+我不要用弱模型
+乙 — 照原計劃 一定要做
+Q1 少什麼就補什麼,  WLC(Clear Bible 一定要納入來測測看能否對齊 9xxx
+除了禁用弱模型 其他都做
+快！
+
+###    result
+I'll wait for the Stage 2 smoke result (notification incoming). Quick status:
+
+- **Q1 rigor**: opus **N=3** contest running in background (no weak model, as you required)
+- **Task 2 / Stage 2 (WLC)**: harness built (`run_stage2_harsh.py`), bridge + 09xxx detection validated and bug-fixed, now smoke-testing whether opus can place the **09xxx prefixes** from the Hebrew WLC source — your explicit "測測看能否對齊 9xxx" ask
+
+Result incoming.
+
+
+
+
