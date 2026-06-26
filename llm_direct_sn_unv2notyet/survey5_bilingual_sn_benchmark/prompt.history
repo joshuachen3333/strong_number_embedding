@@ -351,3 +351,29 @@ Morph 處理機制
 
 
 
+##     2026-06-26 21:28 CST
+
+###    User Prompt
+中文詳述
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 要求中文詳述 morph 機制設計與「誰來放 morph」的決策
+- Diff: 純說明請求，無狀態變更
+
+
+
+
+##     2026-06-26 21:40 CST
+
+###    User Prompt
+確定附加
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 拍板：morph 用「確定性附加」（Option 1）——模型只放詞彙、後處理把 morph 貼在動詞詞彙 tag 後
+- Diff: 鎖定 morph 機制核心＝語義放置(模型)與機械附加(查表)分離；下一步定 WLC-morph→FHL-碼 橋表建法
+
+
+
+
