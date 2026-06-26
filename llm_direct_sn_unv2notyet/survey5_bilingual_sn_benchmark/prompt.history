@@ -38,3 +38,61 @@ why do we have 2?
 
 
 
+##     2026-06-26 07:49 CST
+
+###    User Prompt
+中文詳述 2, 是要比對什麼？
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 要求中文詳述比對層級選項2（UNV 放置層級）到底比對什麼
+- Diff: 澄清提問，導出 option2 = 比對 KJV-source 與 WLC-source 各自經 LLM 放到 UNV 後、同一非09xxx SN 的落點是否一致（純設計討論）
+
+
+
+
+##     2026-06-26 08:01 CST
+
+###    User Prompt
+我其實只想著 選項 1, 考慮 S5 原始設計:
+給定 kjv, kjv+sn
+考考模型能不能插入 unv 成為有標準答案的 unv+sn
+
+只是這裡引入了 wlc, 補足了 9000 的缺漏
+
+因此 s5 變成了
+給定 kjv, kjv+sn, 又給定 wlc, wlc+sn
+考考模型能不能插入 unv 成為有標準答案的 unv+sn
+
+但是每一節先查表比對, 要餵給考生已知之前, 先確認考題的已知條件本身 consistant or not,
+所以做選項 1, 即可
+但是選項1 一樣要比對 a, SN 號碼一致, b, 插入位置一致.
+
+然後才餵給考生, 9000 的取 wlc; 非 9000 一樣給 wlc (此時這部分全等於 kjv 的)
+因此考題會簡化成
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 釐清 S5 雙源重設計：KJV/WLC 先查表做一致性 gate（選項1：a 號碼一致、b 插入位置一致），通過後考題簡化成只餵 WLC（9000 取 WLC、非 9000＝KJV）
+- Diff: 鎖定架構：KJV 退為前置一致性審查員、模型考題收斂為單源 WLC+SN 插入 UNV；待釐清 b「插入位置一致」的跨語言定義（句尾被截斷）
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey5_bilingual_sn_benchmark/run_survey5.py`
+
+
+
+
+##     2026-06-26 08:02 CST
+
+###    User Prompt
+簡化成經過 kjv 與 wlc 比對非 9000 部分, 全等之後
+
+給考生 wlc and wlc + sn
+給定 unv 要作答 unv+sn
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 補完考題簡化式：KJV/WLC 非9000 全等後，只餵 WLC + WLC+SN 給模型，配 UNV 作答 UNV+SN（KJV 退為前置驗證器）
+- Diff: 確認單源考題架構 — gate 通過後 KJV 不進考題、模型僅見 WLC；KJV 角色＝非9000 一致性審查
+
+
+
+
