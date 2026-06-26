@@ -177,3 +177,135 @@ token 快要用完 5hr 100% 了, 請先暫停所有活動
 
 
 
+##     2026-06-26 12:20 CST
+
+###    User Prompt
+請繼續
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 恢復執行 bake-off plan
+- Diff: 解除暫停。先做零模型成本的 Task1(wlc_bridge)＋Task2(gate+test)，到花 opus quota 的 Task3 前 checkpoint
+
+
+
+
+##     2026-06-26 12:35 CST
+
+###    User Prompt
+繼續
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 繼續：核准花 opus 跑 1 節 smoke（Tasks 3-4），不跑 62 呼叫全章
+- Diff: 授權 ~2 opus 呼叫驗證 harness 端到端；Task5 全 Gen1 仍待二次確認
+
+
+
+
+##     2026-06-26 12:38 CST
+
+###    User Prompt
+[system task] Place source SN tags onto plain UNV. Gen 1:1 WLC tagged: bet<09002> reshit<7225> bara<1254> elohim<0430> et<0853> ha<09009> shamayim<8064> we-et<0853> ha<09009> arets<0776>. UNV plain: 起初，神創造天地。 Insert the SN tags into correct UNV positions, INCLUDING 09xxx inseparable-prefix tags where the Chinese expresses them. Output ONLY the annotated UNV line.
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: Benchmark probe: place WLC-tagged SN onto UNV Gen 1:1 incl. 09xxx prefixes
+- Diff: No state change. Answered 起初<09002><07225>，神<0430>創造<1254>{<0853>}天<8064>{<0853>}地<0776>。 — emitted bet-prefix 09002 on 起初, braced 0853 object markers on 天/地; omitted article 09009 + conjunction (not expressed in Chinese).
+
+
+
+
+##     2026-06-26 13:11 CST
+
+###    User Prompt
+中文詳述
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 要求中文詳述 smoke 兩發現（cov=0 殼格式假象、config B 數字層也0%）
+- Diff: 純說明請求，無狀態變更
+
+
+
+
+##     2026-06-26 14:29 CST
+
+###    User Prompt
+好
+就照你的想法
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 核准照我的想法：step1 免費修 scoring（數字層正規化）＋存輸出，step2 花1呼叫診斷 config B
+- Diff: 授權 normalize_tags 去殼評分 + 必存原始輸出 + 1 次 opus 診斷 B
+
+
+
+
+##     2026-06-26 14:32 CST
+
+###    User Prompt
+Using the Hebrew and the KJV annotation pair above as your references, insert the Strong's Number tags into the correct positions in the UNV text, INCLUDING the 09xxx inseparable-prefix tags where the Chinese expresses them. Output ONLY the annotated UNV text on a single line, no commentary.
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: survey5 fwd benchmark: annotate UNV Gen 1:1 from KJV+SN + WLC Hebrew refs, incl 09xxx prefixes
+- Diff: Produced FHL-format UNV+SN line: 起初<WAH09002><WH07225>，神<WH0430>創造<WH01254><WTH8804>{<WH0853>}天<WH08064>{<WH0853>}地<WH0776>。 — kept 09002(בְּ), dropped both 09009(הַ) since Chinese has no article; 0853 obj-markers ride on 天/地
+
+
+
+
+##     2026-06-26 15:18 CST
+
+###    User Prompt
+中文詳述
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 要求中文詳述 config B（及 A）失敗的污染 bug 診斷與隔離修法
+- Diff: 純說明請求，無狀態變更
+
+
+
+
+##     2026-06-26 15:31 CST
+
+###    User Prompt
+確認之
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 核准花 1 次 opus 確認隔離修法（A 配置創1:1）
+- Diff: 授權 1 次確認呼叫，驗證受測模型在乾淨 cwd 真的輸出標註而非 Obe 行為
+
+
+
+
+##     2026-06-26 18:05 CST
+
+###    User Prompt
+Yes run it now
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 核准跑整章 Gen 1 全 bake-off（A vs B，~62 opus 呼叫）
+- Diff: 啟動 Round-1 正式對比：創 1 全章 A(WLC-only) vs B(WLC+KJV)，背景執行，存 run_logs/bakeoff_創1_full_opus.json
+
+
+
+
+##     2026-06-26 20:00 CST
+
+###    User Prompt
+[background-task bopaa0wvg complete] 整章 Gen 1 bake-off (A vs B, 62 opus calls) 跑完，結果待回報
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: Round-1 Gen1 bake-off 完成（背景任務）：A(WLC-only) vs B(WLC+KJV) 結果出爐
+- Diff: 結果：A cov .524/place .552/09xxx 89%/rock 99%/wlc_only 89%/kjv_only 0%；B cov .547/place .516/09xxx 94%/rock 98%/wlc_only 86%/kjv_only 5%。可供應 tag(rock+wlc_only) A=95.7% B=94.3%。結論：英文橋約打平→Round2(BSB)降優先；真正缺口是 91 個 morph 碼(8xxx,兩者皆近0)。待 Joshua 決定 morph 是否納入評分範圍
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey5_bilingual_sn_benchmark/run_logs/bakeoff_創1_full_opus.json`
+
+
+
+
