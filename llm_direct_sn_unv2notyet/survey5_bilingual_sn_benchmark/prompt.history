@@ -309,3 +309,30 @@ Yes run it now
 
 
 
+##     2026-06-26 20:37 CST
+
+###    User Prompt
+中文詳述
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 要求中文詳述 Round-1 bake-off 結果與 morph 範圍決策
+- Diff: 純說明請求，無狀態變更
+
+
+
+
+##     2026-06-26 20:47 CST
+
+###    User Prompt
+WLC only 拍板
+不再需要英文橋
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 拍板：WLC-only 為 Round-1 production 源，不再需要英文橋（KJV/BSB 皆棄）
+- Diff: 鎖定單源 WLC-only；Round2(BSB)取消、config B 退役。剩唯一開放問題：morph(8xxx,91 tag) 範圍——WLC-only 下只能靠擴充 WLC 橋來補，無英文橋路徑
+
+
+
+
