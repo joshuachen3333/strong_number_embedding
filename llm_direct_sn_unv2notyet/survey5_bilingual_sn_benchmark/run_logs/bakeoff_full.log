@@ -1,0 +1,79 @@
+
+========================================================================
+  Survey5 BAKE-OFF — Gen 1 (31 verses)  model=opus  configs=A,B
+========================================================================
+
+── Config A ──
+  [A] 1:1  cov=0.444 place=1.000 09xxx=1/1 45s
+  [A] 1:2  cov=0.750 place=0.938 09xxx=— 95s
+  [A] 1:3  cov=0.667 place=0.333 09xxx=— 25s
+  [A] 1:4  cov=0.000 place=0.500 09xxx=— 96s
+  [A] 1:5  cov=0.684 place=0.421 09xxx=2/2 50s
+  [A] 1:6  cov=0.412 place=0.412 09xxx=1/2 110s
+  [A] 1:7  cov=0.333 place=0.292 09xxx=2/2 192s
+  [A] 1:8  cov=0.714 place=0.286 09xxx=1/1 37s
+  [A] 1:9  cov=0.722 place=0.278 09xxx=— 75s
+  [A] 1:10  cov=0.588 place=0.235 09xxx=2/2 56s
+  [A] 1:11  cov=0.500 place=0.385 09xxx=2/2 210s
+  [A] 1:12  cov=0.375 place=0.917 09xxx=3/3 133s
+  [A] 1:13  cov=0.750 place=1.000 09xxx=— 11s
+  [A] 1:14  cov=0.680 place=0.280 09xxx=5/5 228s
+  [A] 1:15  cov=0.667 place=0.800 09xxx=1/3 108s
+  [A] 1:16  cov=0.571 place=0.905 09xxx=2/2 81s
+  [A] 1:17  cov=0.500 place=0.667 09xxx=2/2 104s
+  [A] 1:18  cov=0.316 place=0.947 09xxx=4/4 31s
+  [A] 1:19  cov=0.750 place=1.000 09xxx=— 15s
+  [A] 1:20  cov=0.667 place=0.222 09xxx=— 117s
+  [A] 1:21  cov=0.586 place=0.276 09xxx=2/2 246s
+  [A] 1:22  cov=0.318 place=0.364 09xxx=3/3 48s
+  [A] 1:23  cov=0.750 place=1.000 09xxx=— 13s
+  [A] 1:24  cov=0.737 place=0.158 09xxx=2/2 103s
+  [A] 1:25  cov=0.435 place=0.783 09xxx=3/3 305s
+  [A] 1:26  cov=0.267 place=0.233 09xxx=4/7 268s
+  [A] 1:27  cov=0.611 place=0.389 09xxx=2/2 86s
+  [A] 1:28  cov=0.515 place=0.333 09xxx=3/4 228s
+  [A] 1:29  cov=0.097 place=0.194 09xxx=3/3 281s
+  [A] 1:30  cov=0.259 place=0.815 09xxx=5/5 117s
+  [A] 1:31  cov=0.579 place=0.737 09xxx=— 76s
+
+── Config B ──
+  [B] 1:1  cov=0.222 place=1.000 09xxx=1/1 48s
+  [B] 1:2  cov=0.688 place=1.000 09xxx=— 78s
+  [B] 1:3  cov=0.667 place=0.333 09xxx=— 21s
+  [B] 1:4  cov=0.000 place=0.500 09xxx=— 64s
+  [B] 1:5  cov=0.684 place=0.210 09xxx=2/2 103s
+  [B] 1:6  cov=0.471 place=0.294 09xxx=2/2 90s
+  [B] 1:7  cov=0.333 place=0.292 09xxx=2/2 105s
+  [B] 1:8  cov=0.714 place=0.286 09xxx=1/1 30s
+  [B] 1:9  cov=0.667 place=0.111 09xxx=— 39s
+  [B] 1:10  cov=0.588 place=0.235 09xxx=2/2 131s
+  [B] 1:11  cov=0.423 place=0.385 09xxx=2/2 100s
+  [B] 1:12  cov=0.500 place=0.917 09xxx=3/3 113s
+  [B] 1:13  cov=0.750 place=1.000 09xxx=— 18s
+  [B] 1:14  cov=0.600 place=0.280 09xxx=5/5 182s
+  [B] 1:15  cov=0.667 place=0.867 09xxx=3/3 79s
+  [B] 1:16  cov=0.143 place=0.905 09xxx=2/2 136s
+  [B] 1:17  cov=0.500 place=0.750 09xxx=2/2 67s
+  [B] 1:18  cov=0.316 place=1.000 09xxx=4/4 54s
+  [B] 1:19  cov=0.750 place=1.000 09xxx=— 26s
+  [B] 1:20  cov=0.667 place=0.222 09xxx=— 155s
+  [B] 1:21  cov=0.655 place=0.379 09xxx=2/2 151s
+  [B] 1:22  cov=0.318 place=0.364 09xxx=3/3 138s
+  [B] 1:23  cov=0.750 place=1.000 09xxx=— 19s
+  [B] 1:24  cov=0.684 place=0.158 09xxx=2/2 99s
+  [B] 1:25  cov=0.565 place=0.261 09xxx=3/3 151s
+  [B] 1:26  cov=0.733 place=0.167 09xxx=6/7 215s
+  [B] 1:27  cov=0.611 place=0.389 09xxx=2/2 114s
+  [B] 1:28  cov=0.424 place=0.303 09xxx=4/4 223s
+  [B] 1:29  cov=0.710 place=0.226 09xxx=3/3 181s
+  [B] 1:30  cov=0.630 place=0.852 09xxx=2/5 155s
+  [B] 1:31  cov=0.526 place=0.316 09xxx=— 74s
+
+========================================================================
+  SUMMARY
+========================================================================
+  cfg       cov   place     fmt       09xxx     rock  wlc_only  kjv_only
+  A       0.524   0.552   0.932 55/62 (89%)      99%       89%        0%
+  B       0.547   0.516   0.932 58/62 (94%)      98%       86%        5%
+
+  wrote run_logs/bakeoff_創1_full_opus.json

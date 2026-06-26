@@ -1,0 +1,61 @@
+{
+  "book": "創",
+  "chap": 1,
+  "sec": "1",
+  "model": "opus",
+  "configs": "A",
+  "results": {
+    "A": [
+      {
+        "chap": 1,
+        "sec": 1,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.2222,
+          "placement": 1.0,
+          "format": 0.8889,
+          "details": {
+            "total_truth_tags": 9,
+            "total_model_tags": 10,
+            "missing": [
+              "<H8804>",
+              "{<H853>}",
+              "{<H853>}"
+            ],
+            "extra": [
+              "<H853>",
+              "<H853>",
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 0,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853"
+            ]
+          }
+        },
+        "n9_placed": 1,
+        "n9_total": 1,
+        "tiers": {
+          "wlc_only": {
+            "placed": 1,
+            "total": 1,
+            "frac": 1.0
+          },
+          "rock": {
+            "placed": 7,
+            "total": 7,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          }
+        },
+        "output": "起初<09002><7225>，　神<0430>創造<1254>天<0853><09009><8064>地<0853><09009><0776>。"
+      }
+    ]
+  }
+}

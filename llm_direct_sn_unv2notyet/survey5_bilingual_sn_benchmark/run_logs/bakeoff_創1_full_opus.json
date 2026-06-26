@@ -1,0 +1,3243 @@
+{
+  "book": "創",
+  "chap": 1,
+  "sec": null,
+  "model": "opus",
+  "configs": "A,B",
+  "results": {
+    "A": [
+      {
+        "chap": 1,
+        "sec": 1,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.4444,
+          "placement": 1.0,
+          "format": 0.8889,
+          "details": {
+            "total_truth_tags": 9,
+            "total_model_tags": 8,
+            "missing": [
+              "{<H853>}",
+              "{<H853>}",
+              "<H8804>"
+            ],
+            "extra": [
+              "<H853>",
+              "<H853>"
+            ],
+            "misplaced": 0,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853"
+            ]
+          }
+        },
+        "n9_placed": 1,
+        "n9_total": 1,
+        "tiers": {
+          "wlc_only": {
+            "placed": 1,
+            "total": 1,
+            "frac": 1.0
+          },
+          "rock": {
+            "placed": 7,
+            "total": 7,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          }
+        },
+        "output": "起初<09002><7225>，　神<0430>創造<1254>天<0853><8064>地<0853><0776>。"
+      },
+      {
+        "chap": 1,
+        "sec": 2,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.75,
+          "placement": 0.9375,
+          "format": 0.9375,
+          "details": {
+            "total_truth_tags": 16,
+            "total_model_tags": 14,
+            "missing": [
+              "<H8764>",
+              "{<H5921>}",
+              "<H8804>"
+            ],
+            "extra": [
+              "<H5921>"
+            ],
+            "misplaced": 1,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H5921"
+            ]
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 0,
+        "tiers": {
+          "rock": {
+            "placed": 14,
+            "total": 14,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 2,
+            "frac": 0.0
+          }
+        },
+        "output": "地<0776>是<1961>空虛<8414>混沌<0922>，淵<8415>面<5921><6440>黑暗<2822>；　神<0430>的靈<7307>運行<7363>在<5921>水<4325>面<6440>上"
+      },
+      {
+        "chap": 1,
+        "sec": 3,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.6667,
+          "placement": 0.3333,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 9,
+            "total_model_tags": 6,
+            "missing": [
+              "<H8799>",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [],
+            "misplaced": 6,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 0,
+        "tiers": {
+          "rock": {
+            "placed": 6,
+            "total": 6,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 3,
+            "frac": 0.0
+          }
+        },
+        "output": "神<0430>說<0559>：「要有<1961>光<0216>」，就有了<1961>光<0216>。"
+      },
+      {
+        "chap": 1,
+        "sec": 4,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.0,
+          "placement": 0.5,
+          "format": 0.7143,
+          "details": {
+            "total_truth_tags": 14,
+            "total_model_tags": 14,
+            "missing": [
+              "{<H430>}",
+              "{<H853>}",
+              "{<H3588>}",
+              "<H8799>",
+              "{<H996>}",
+              "{<H996>}",
+              "<H8686>"
+            ],
+            "extra": [
+              "<H853>",
+              "<H3588>",
+              "<H996>",
+              "<H996>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 7,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853",
+              "H430",
+              "H3588",
+              "H996"
+            ]
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 0,
+        "tiers": {
+          "rock": {
+            "placed": 11,
+            "total": 12,
+            "frac": 0.9166666666666666
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 2,
+            "frac": 0.0
+          }
+        },
+        "output": "神<0430>看<7200>光<0853><09009><0216>是<3588>好<2896>的，就把光<0996><09009><0216>暗<0996><09009><2822>分開<0914>了。"
+      },
+      {
+        "chap": 1,
+        "sec": 5,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.6842,
+          "placement": 0.4211,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 19,
+            "total_model_tags": 17,
+            "missing": [
+              "<H8804>",
+              "<H8799>",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 11,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 11,
+            "total": 11,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 4,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 4,
+            "total": 4,
+            "frac": 1.0
+          }
+        },
+        "output": "神<0430>稱<7121>光<0216>為<09001><09009>「晝」<3117>，稱<7121>暗<2822>為<09001><09009>「夜」<3915>。有<1961>晚上<6153>，有<1961>早晨<1242>，這是頭一<0259>日<3117>。"
+      },
+      {
+        "chap": 1,
+        "sec": 6,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.4118,
+          "placement": 0.4118,
+          "format": 0.7647,
+          "details": {
+            "total_truth_tags": 17,
+            "total_model_tags": 13,
+            "missing": [
+              "{<H1961>}",
+              "{<H4325>}",
+              "<H8688>",
+              "{<H9001>}",
+              "<H8799>",
+              "<H8799>",
+              "{<H8799>}"
+            ],
+            "extra": [
+              "<H1961>",
+              "<H4325>",
+              "<H9009>"
+            ],
+            "misplaced": 10,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H4325",
+              "H1961",
+              "H8799",
+              "H9001"
+            ]
+          }
+        },
+        "n9_placed": 1,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 8,
+            "total": 8,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 4,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 4,
+            "total": 5,
+            "frac": 0.8
+          }
+        },
+        "output": "神<0430>說<0559>：「諸水<09009><4325>之間<09002><8432>要有<1961>空氣<7549>,將<1961>水<4325>分<0914>為<0996>上下<4325>。」"
+      },
+      {
+        "chap": 1,
+        "sec": 7,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.3333,
+          "placement": 0.2917,
+          "format": 0.9167,
+          "details": {
+            "total_truth_tags": 24,
+            "total_model_tags": 26,
+            "missing": [
+              "<H8686>",
+              "{<H853>}",
+              "{<H834>}",
+              "<H4480>",
+              "<H4480>",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H853>",
+              "<H834>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>",
+              "<H9006>",
+              "<H9006>"
+            ],
+            "misplaced": 17,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853",
+              "H834"
+            ]
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 13,
+            "total": 13,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 3,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 6,
+            "total": 6,
+            "frac": 1.0
+          },
+          "orphan": {
+            "placed": 0,
+            "total": 2,
+            "frac": 0.0
+          }
+        },
+        "output": "神<0430>就造出<6213>空氣<0853><09009><7549>，將<0996>空氣<09001><09009><7549>以下<09006><8478>的<0834>水<09009><4325>、空氣<0996><09001><09009><7549>以上<09006><5921>的<0834>水<09009><4325>分開<0914>了。事就這樣<3651>成了<1961>。"
+      },
+      {
+        "chap": 1,
+        "sec": 8,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.7143,
+          "placement": 0.2857,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 14,
+            "total_model_tags": 12,
+            "missing": [
+              "<H8799>",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H9009>"
+            ],
+            "misplaced": 10,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 1,
+        "n9_total": 1,
+        "tiers": {
+          "rock": {
+            "placed": 8,
+            "total": 8,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 3,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 3,
+            "total": 3,
+            "frac": 1.0
+          }
+        },
+        "output": "神<0430>稱<7121>空氣<09001><09009><7549>為「天」<8064>。有<1961>晚上<6153>，有<1961>早晨<1242>，是第二<8145>日<3117>。"
+      },
+      {
+        "chap": 1,
+        "sec": 9,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.7222,
+          "placement": 0.2778,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 18,
+            "total_model_tags": 13,
+            "missing": [
+              "<H4480>",
+              "<H8799>",
+              "<H8799>",
+              "<H8735>",
+              "<H8735>"
+            ],
+            "extra": [],
+            "misplaced": 13,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 0,
+        "tiers": {
+          "rock": {
+            "placed": 10,
+            "total": 10,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 4,
+            "frac": 0.0
+          },
+          "orphan": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 3,
+            "total": 3,
+            "frac": 1.0
+          }
+        },
+        "output": "神<0430>說<0559>：「天<8064>下<8478>的水<4325>要聚<6960>在<0413>一<0259>處<4725>，使旱地<3004>露出來<7200>。」事就這樣<3651>成了<1961>。"
+      },
+      {
+        "chap": 1,
+        "sec": 10,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.5882,
+          "placement": 0.2353,
+          "format": 0.9412,
+          "details": {
+            "total_truth_tags": 17,
+            "total_model_tags": 16,
+            "missing": [
+              "{<H3588>}",
+              "<H8804>",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H3588>",
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 13,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H3588"
+            ]
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 11,
+            "total": 11,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 3,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 3,
+            "total": 3,
+            "frac": 1.0
+          }
+        },
+        "output": "神<0430>稱<7121>旱地<09001><09009><3004>為「地<0776>」，稱<7121>水<09009><4325>的聚處<09001><4723>為「海<3220>」。　神<0430>看著<7200>是<3588>好<2896>的。"
+      },
+      {
+        "chap": 1,
+        "sec": 11,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.5,
+          "placement": 0.3846,
+          "format": 0.8462,
+          "details": {
+            "total_truth_tags": 26,
+            "total_model_tags": 19,
+            "missing": [
+              "<H8802>",
+              "<H8688>",
+              "<H8686>",
+              "{<H776>}",
+              "<H6529>",
+              "{<H834>}",
+              "{<H5921>}",
+              "<H8799>",
+              "<H8799>",
+              "{<H9002>}"
+            ],
+            "extra": [
+              "<H9002>",
+              "<H834>",
+              "<H2050>"
+            ],
+            "misplaced": 16,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H776",
+              "H9002",
+              "H834",
+              "H5921"
+            ]
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 14,
+            "total": 16,
+            "frac": 0.875
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 5,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 4,
+            "total": 5,
+            "frac": 0.8
+          }
+        },
+        "output": "神<0430>說<0559>：「地<0776>要發生<1876>青草<1877>和結<2232>種子<2233>的菜蔬<6212>，並結<6213>果子<6529>的樹木<6086>，各從<09001>其<2050>類<4327>，果子<0834>都包著<09002>核<2233>。」事就這樣<3651>成了<1961>。"
+      },
+      {
+        "chap": 1,
+        "sec": 12,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.375,
+          "placement": 0.9167,
+          "format": 0.875,
+          "details": {
+            "total_truth_tags": 24,
+            "total_model_tags": 25,
+            "missing": [
+              "<H8802>",
+              "<H8688>",
+              "<H8686>",
+              "{<H3588>}",
+              "{<H834>}",
+              "<H8799>",
+              "{<H9002>}"
+            ],
+            "extra": [
+              "<H9002>",
+              "<H3588>",
+              "<H834>",
+              "<H2050>",
+              "<H2050>",
+              "<H1930>",
+              "<H1930>",
+              "<H9009>"
+            ],
+            "misplaced": 2,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H9002",
+              "H3588",
+              "H834"
+            ]
+          }
+        },
+        "n9_placed": 3,
+        "n9_total": 3,
+        "tiers": {
+          "rock": {
+            "placed": 15,
+            "total": 15,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 4,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 5,
+            "total": 5,
+            "frac": 1.0
+          }
+        },
+        "output": "於是地<09009><0776>發生了<3318>青草<1877>和結<2232>種子<2233>的菜蔬<6212>，各從<09001>其<1930>類<4327>；並結<6213>果子<6529>的樹木<6086>，各從<09001>其<1930>類<4327>；果子<0834>都包著<09002><2050>核<2233><2050>。　神<0430>看著<7200>是<3588>好的<2896>。"
+      },
+      {
+        "chap": 1,
+        "sec": 13,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.75,
+          "placement": 1.0,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 8,
+            "total_model_tags": 6,
+            "missing": [
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [],
+            "misplaced": 0,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 0,
+        "tiers": {
+          "wlc_only": {
+            "placed": 2,
+            "total": 2,
+            "frac": 1.0
+          },
+          "orphan": {
+            "placed": 0,
+            "total": 2,
+            "frac": 0.0
+          },
+          "rock": {
+            "placed": 4,
+            "total": 4,
+            "frac": 1.0
+          }
+        },
+        "output": "有<1961>晚上<6153>，有<1961>早晨<1242>，是第三<7992>日<3117>。"
+      },
+      {
+        "chap": 1,
+        "sec": 14,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.68,
+          "placement": 0.28,
+          "format": 0.88,
+          "details": {
+            "total_truth_tags": 25,
+            "total_model_tags": 19,
+            "missing": [
+              "<H8687>",
+              "{<H1961>}",
+              "{<H8804>}",
+              "<H8799>",
+              "<H8799>",
+              "{<H996>}",
+              "{<H996>}"
+            ],
+            "extra": [
+              "<H1961>"
+            ],
+            "misplaced": 18,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H996",
+              "H8804",
+              "H1961"
+            ]
+          }
+        },
+        "n9_placed": 5,
+        "n9_total": 5,
+        "tiers": {
+          "rock": {
+            "placed": 12,
+            "total": 12,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 3,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 7,
+            "total": 9,
+            "frac": 0.7777777777777778
+          },
+          "orphan": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          }
+        },
+        "output": "神<0430>說<0559>：「天<7549><8064>上<09002>要有<1961>光體<3974>，可以<09001>分<0914>晝<3117>夜<3915>，作<1961>記號<09001><0226>，定節令<09001><4150>、日子<09001><3117>、年歲<8141>，"
+      },
+      {
+        "chap": 1,
+        "sec": 15,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.6667,
+          "placement": 0.8,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 15,
+            "total_model_tags": 10,
+            "missing": [
+              "<H9001>",
+              "<H9001>",
+              "<H8804>",
+              "<H8687>",
+              "<H8799>"
+            ],
+            "extra": [],
+            "misplaced": 3,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 1,
+        "n9_total": 3,
+        "tiers": {
+          "wlc_only": {
+            "placed": 5,
+            "total": 7,
+            "frac": 0.7142857142857143
+          },
+          "orphan": {
+            "placed": 0,
+            "total": 2,
+            "frac": 0.0
+          },
+          "rock": {
+            "placed": 5,
+            "total": 5,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          }
+        },
+        "output": "並要<1961>發光<3974>在<09002>天空<7549><8064>，普照<0215>在<5921>地<0776>上。」事就這樣<3651>成了<1961>。"
+      },
+      {
+        "chap": 1,
+        "sec": 16,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.5714,
+          "placement": 0.9048,
+          "format": 0.9048,
+          "details": {
+            "total_truth_tags": 21,
+            "total_model_tags": 16,
+            "missing": [
+              "{<H853>}",
+              "{<H853>}",
+              "{<H853>}",
+              "{<H853>}",
+              "{<H3974>}",
+              "{<H3974>}",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H3974>",
+              "<H3974>"
+            ],
+            "misplaced": 2,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853",
+              "H3974"
+            ]
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 14,
+            "total": 14,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 2,
+            "total": 6,
+            "frac": 0.3333333333333333
+          }
+        },
+        "output": "於是　神<0430>造了<6213>兩個<8147>大<1419>光<3974>，大<1419>的<3974>管<09001><4475>晝<3117>，小<6996>的<3974>管<09001><4475>夜<3915>，又造眾星<3556>，"
+      },
+      {
+        "chap": 1,
+        "sec": 17,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.5,
+          "placement": 0.6667,
+          "format": 0.9167,
+          "details": {
+            "total_truth_tags": 12,
+            "total_model_tags": 12,
+            "missing": [
+              "{<H430>}",
+              "<H8687>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H3963>",
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 4,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H430"
+            ]
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 5,
+            "total": 6,
+            "frac": 0.8333333333333334
+          },
+          "wlc_only": {
+            "placed": 4,
+            "total": 4,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 2,
+            "frac": 0.0
+          }
+        },
+        "output": "就把<0853>這些光<3963>擺列<5414>在<09002>天空<7549><09009><8064>，普照<09001><0215>在<5921>地<09009><0776>上，"
+      },
+      {
+        "chap": 1,
+        "sec": 18,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.3158,
+          "placement": 0.9474,
+          "format": 0.8947,
+          "details": {
+            "total_truth_tags": 19,
+            "total_model_tags": 20,
+            "missing": [
+              "{<H3588>}",
+              "<H8800>",
+              "<H8687>",
+              "<H8799>",
+              "{<H996>}",
+              "{<H996>}"
+            ],
+            "extra": [
+              "<H3588>",
+              "<H996>",
+              "<H996>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 1,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H996",
+              "H3588"
+            ]
+          }
+        },
+        "n9_placed": 4,
+        "n9_total": 4,
+        "tiers": {
+          "wlc_only": {
+            "placed": 7,
+            "total": 7,
+            "frac": 1.0
+          },
+          "rock": {
+            "placed": 9,
+            "total": 9,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 3,
+            "frac": 0.0
+          }
+        },
+        "output": "管理<09001><4910>晝<09002><09009><3117>夜<09002><09009><3915>，分別<09001><0914>明<0996><09009><0216>暗<0996><09009><2822>。　神<0430>看著<7200>是<3588>好<2896>的"
+      },
+      {
+        "chap": 1,
+        "sec": 19,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.75,
+          "placement": 1.0,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 8,
+            "total_model_tags": 6,
+            "missing": [
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [],
+            "misplaced": 0,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 0,
+        "tiers": {
+          "wlc_only": {
+            "placed": 2,
+            "total": 2,
+            "frac": 1.0
+          },
+          "orphan": {
+            "placed": 0,
+            "total": 2,
+            "frac": 0.0
+          },
+          "rock": {
+            "placed": 4,
+            "total": 4,
+            "frac": 1.0
+          }
+        },
+        "output": "有<1961>晚上<6153>，有<1961>早晨<1242>，是第四<7243>日<3117>。"
+      },
+      {
+        "chap": 1,
+        "sec": 20,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.6667,
+          "placement": 0.2222,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 18,
+            "total_model_tags": 18,
+            "missing": [
+              "<H8787>",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H9009>",
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 14,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 0,
+        "tiers": {
+          "rock": {
+            "placed": 15,
+            "total": 15,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 3,
+            "frac": 0.0
+          }
+        },
+        "output": "神<0430>說<0559>：「水<09009><4325>要多多滋生<8317><8318>有生命的<2416>物<5315>；要有雀鳥<5775>飛<5774>在地<09009><0776>面以上<5921>，天<09009><8064>空<7549>之中<5921><6440>。」"
+      },
+      {
+        "chap": 1,
+        "sec": 21,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.5862,
+          "placement": 0.2759,
+          "format": 0.931,
+          "details": {
+            "total_truth_tags": 29,
+            "total_model_tags": 27,
+            "missing": [
+              "<H8802>",
+              "{<H853>}",
+              "{<H853>}",
+              "{<H3588>}",
+              "<H8799>",
+              "<H8799>",
+              "<H8804>"
+            ],
+            "extra": [
+              "<H853>",
+              "<H853>",
+              "<H3588>",
+              "<H1930>",
+              "<H3963>"
+            ],
+            "misplaced": 21,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853",
+              "H3588"
+            ]
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 16,
+            "total": 16,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 4,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 9,
+            "total": 9,
+            "frac": 1.0
+          }
+        },
+        "output": "神<0430>就造出<1254><0853>大<1419>魚<8577>和<0853>水<4325>中所<0834>滋生<8317>各樣<3605>有生命<5315><2416>的動物<7430>，各從<09001>其<3963>類<4327>；又<0853>造出各樣<3605>飛<3671>鳥<5775>，各從<09001>其<1930>類<4327>。　神<0430>看著<7200>是<3588>好<2896>的。"
+      },
+      {
+        "chap": 1,
+        "sec": 22,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.3182,
+          "placement": 0.3636,
+          "format": 0.9545,
+          "details": {
+            "total_truth_tags": 22,
+            "total_model_tags": 21,
+            "missing": [
+              "<H8762>",
+              "<H8800>",
+              "{<H853>}",
+              "{<H853>}",
+              "<H8799>",
+              "<H8798>",
+              "<H8798>",
+              "<H8798>"
+            ],
+            "extra": [
+              "<H853>",
+              "<H853>",
+              "<H3963>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 14,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853"
+            ]
+          }
+        },
+        "n9_placed": 3,
+        "n9_total": 3,
+        "tiers": {
+          "rock": {
+            "placed": 11,
+            "total": 11,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 6,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 5,
+            "total": 5,
+            "frac": 1.0
+          }
+        },
+        "output": "神<0430>就賜福<1288>給這一切<0853><3963>，說<09001><0559>：「滋生<6509>繁多<7235>，充滿<4390>海中<09002><09009><3220>的水<0853><09009><4325>；雀鳥<09009><5775>也要多生<7235>在地上<09002><09009><0776>。」"
+      },
+      {
+        "chap": 1,
+        "sec": 23,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.75,
+          "placement": 1.0,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 8,
+            "total_model_tags": 6,
+            "missing": [
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [],
+            "misplaced": 0,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 0,
+        "tiers": {
+          "wlc_only": {
+            "placed": 2,
+            "total": 2,
+            "frac": 1.0
+          },
+          "orphan": {
+            "placed": 0,
+            "total": 2,
+            "frac": 0.0
+          },
+          "rock": {
+            "placed": 4,
+            "total": 4,
+            "frac": 1.0
+          }
+        },
+        "output": "有<1961>晚上<6153>，有<1961>早晨<1242>，是第五<2549>日<3117>。"
+      },
+      {
+        "chap": 1,
+        "sec": 24,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.7368,
+          "placement": 0.1579,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 19,
+            "total_model_tags": 18,
+            "missing": [
+              "<H8799>",
+              "<H8799>",
+              "<H8686>"
+            ],
+            "extra": [
+              "<H1886>",
+              "<H1886>"
+            ],
+            "misplaced": 16,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 12,
+            "total": 12,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 3,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 4,
+            "total": 4,
+            "frac": 1.0
+          }
+        },
+        "output": "神<0430>說<0559>：「地<0776>要生出<3318>活<2416>物<5315>來，各從<09001>其<1886>類<4327>;牲畜<0929>、昆蟲<7431>、野<0776>獸<2416>,各從<09001>其<1886>類<4327>。」事就這樣<3651>成了<1961>。"
+      },
+      {
+        "chap": 1,
+        "sec": 25,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.4348,
+          "placement": 0.7826,
+          "format": 0.913,
+          "details": {
+            "total_truth_tags": 23,
+            "total_model_tags": 24,
+            "missing": [
+              "{<H853>}",
+              "{<H853>}",
+              "{<H853>}",
+              "{<H3588>}",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H853>",
+              "<H853>",
+              "<H853>",
+              "<H3588>",
+              "<H1886>",
+              "<H1886>",
+              "<H1930>"
+            ],
+            "misplaced": 5,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853",
+              "H3588"
+            ]
+          }
+        },
+        "n9_placed": 3,
+        "n9_total": 3,
+        "tiers": {
+          "rock": {
+            "placed": 13,
+            "total": 13,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 2,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 8,
+            "total": 8,
+            "frac": 1.0
+          }
+        },
+        "output": "於是　神<0430>造出<6213>野<0853><0776>獸<2416>，各從<09001>其<1886>類<4327>；牲<0853>畜<0929>，各從<09001>其<1886>類<4327>；地<0853><0127>上一切<3605>昆蟲<7431>，各從<09001>其<1930>類<4327>。　神<0430>看著<7200>是<3588>好的<2896>。"
+      },
+      {
+        "chap": 1,
+        "sec": 26,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.2667,
+          "placement": 0.2333,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 30,
+            "total_model_tags": 38,
+            "missing": [
+              "<H9002>",
+              "<H9002>",
+              "<H8802>",
+              "<H9003>",
+              "<H8799>",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H5105>",
+              "<H5105>",
+              "<H5105>",
+              "<H1710>",
+              "<H430>",
+              "<H8064>",
+              "<H929>",
+              "<H5775>",
+              "<H1823>",
+              "<H3220>"
+            ],
+            "misplaced": 23,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 4,
+        "n9_total": 7,
+        "tiers": {
+          "rock": {
+            "placed": 16,
+            "total": 16,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 4,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 7,
+            "total": 9,
+            "frac": 0.7777777777777778
+          },
+          "orphan": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          }
+        },
+        "output": "The skill and filesystem aren't accessible here, so I'll apply the annotation directly from the Hebrew↔UNV alignment.\n\nMy placement logic:\n- Lexical tags go on the matching Chinese word (神<0430>, 說<0559>, 形像<6754>=צֶלֶם, 樣式<1823>=דְּמוּת, 魚<1710>, 海<3220>, 鳥<5775>, 空<8064>, 牲畜<0929>, etc.).\n- I follow the source's tags verbatim, including the unusual 我們的<5105> for the נוּ suffix and 按著<3509> for the כְּ.\n- For 09xxx prefixes I apply the rule \"where the Chinese expresses them\": Chinese has no definite article, so the 09009 הַ tags are dropped; the בְּ (09002) is placed only where a real Chinese locative/coverb renders it — 照著, 海**裡**, 空**中**, 地**上**(牲畜) — and dropped on 和全地 / 並…昆蟲 where no locative word carries it (there 上 renders עַל<5921>, a separate lexeme).\n\n神<0430>說<0559>：「我們要照著<09002>我們的<5105>形像<6754>、按著<3509>我們的<5105>樣式<1823>造<6213>人<0120>，使他們管理<7287>海<3220>裡<09002>的魚<1710>、空<8064>中<09002>的鳥<5775>、地上<09002>的牲畜<0929>，和全<3605>地<0776>，並地<0776>上<5921>所爬<7430>的一切<3605>昆蟲<7431>。」"
+      },
+      {
+        "chap": 1,
+        "sec": 27,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.6111,
+          "placement": 0.3889,
+          "format": 0.9444,
+          "details": {
+            "total_truth_tags": 18,
+            "total_model_tags": 13,
+            "missing": [
+              "<H8799>",
+              "{<H853>}",
+              "{<H853>}",
+              "{<H853>}",
+              "<H8804>",
+              "<H8804>"
+            ],
+            "extra": [
+              "<H2050>"
+            ],
+            "misplaced": 11,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853"
+            ]
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 10,
+            "total": 10,
+            "frac": 1.0
+          },
+          "wlc_only": {
+            "placed": 2,
+            "total": 5,
+            "frac": 0.4
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 3,
+            "frac": 0.0
+          }
+        },
+        "output": "神<0430>就照著<09002>自己的<2050>形像<6754>造<1254>人<0120>，乃是照著<09002>他的<0430>形像<6754>造<1254>男<2145>造<1254>女<5347>。"
+      },
+      {
+        "chap": 1,
+        "sec": 28,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.5152,
+          "placement": 0.3333,
+          "format": 0.9394,
+          "details": {
+            "total_truth_tags": 33,
+            "total_model_tags": 27,
+            "missing": [
+              "<H9002>",
+              "<H8802>",
+              "<H8762>",
+              "{<H430>}",
+              "{<H853>}",
+              "<H8799>",
+              "<H8798>",
+              "<H8798>",
+              "<H8798>",
+              "<H8798>"
+            ],
+            "extra": [
+              "<H853>",
+              "<H430>",
+              "<H3963>",
+              "<H3963>",
+              "<H1886>"
+            ],
+            "misplaced": 22,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853",
+              "H430"
+            ]
+          }
+        },
+        "n9_placed": 3,
+        "n9_total": 4,
+        "tiers": {
+          "rock": {
+            "placed": 17,
+            "total": 17,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 8,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 7,
+            "total": 8,
+            "frac": 0.875
+          }
+        },
+        "output": "I could not load the skill's spec (it lives outside this session's allowed directory and the skill execution errored), so I'm completing this from domain expertise per the task's self-contained rules.\n\nKey decisions on the `09xxx` prefixes, applying the instruction's filter \"where the Chinese expresses them\":\n- **09001** (לְ to) → expressed by 對 (對他們說 \"said *to* them\") ✓\n- **09002** (בְּ in) → expressed by 裡 (海裡) and 中 (空中) ✓; the third בְּ on וּבְכָל has no Chinese locative word (location is carried by 地上/5921), so it is omitted.\n- **09009** (הַ the) → Chinese has no definite-article morpheme anywhere, so all five are omitted.\n\nAll non-`09xxx` tags are placed at their natural Chinese positions; the second אֱלֹהִים<0430> (untranslated in 又對他們說) has no Chinese slot and is dropped.\n\n　神<0430>就賜福<1288>給<0853>他們<3963>，又對<09001>他們<3963>說<0559>：「要生養<6509>眾多<7235>，遍滿<4390>地面<0853><0776>，治理<3533>這地<1886>，也要管理<7287>海<3220>裡<09002>的魚<1710>、空<8064>中<09002>的鳥<5775>，和地<0776>上<5921>各樣<3605>行動<7430>的活物<2416>。」"
+      },
+      {
+        "chap": 1,
+        "sec": 29,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.0968,
+          "placement": 0.1935,
+          "format": 0.9677,
+          "details": {
+            "total_truth_tags": 31,
+            "total_model_tags": 47,
+            "missing": [
+              "<H8802>",
+              "<H8802>",
+              "{<H834>}",
+              "<H8804>",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H9002>",
+              "<H6086>",
+              "<H6086>",
+              "<H6086>",
+              "<H834>",
+              "<H834>",
+              "<H5921>",
+              "<H776>",
+              "<H430>",
+              "<H2050>"
+            ],
+            "misplaced": 25,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H834"
+            ]
+          }
+        },
+        "n9_placed": 3,
+        "n9_total": 3,
+        "tiers": {
+          "rock": {
+            "placed": 15,
+            "total": 15,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 5,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 11,
+            "total": 11,
+            "frac": 1.0
+          }
+        },
+        "output": "Looking at this verse, I need to map each Hebrew morpheme's Strong's tag onto its corresponding position in the Chinese, accounting for the considerable word-order reordering (Chinese fronts the locative \"遍地上\" and moves the verb נָתַתִּי to the end as 賜給).\n\nHere is my reasoning for the key alignments:\n- **神<0430>說<0559>** — God/said (verb order flipped from Hebrew)\n- **看哪<2009>** — הִנֵּה\n- The verb נָתַתִּי<5414> lands on **賜給** (kept adjacent to לָכֶם → 你們, mirroring Hebrew נתתי לכם)\n- **遍地上** renders the fronted relative clause עַל פְּנֵי כָל הָאָרֶץ: 遍<3605>地<09009><0776>上<5921><6440>\n- Clause-2 parallel: 所<0834> = אֲשֶׁר, 上<09002><2050> = בּוֹ, 樹<09009><6086> and 果子<6529><6086> carry the two עֵץ\n- The inseparable prefixes (09009 article on 地/樹, 09002 on 樹上, 09001 on 你們/作) are placed where Chinese expresses them\n- The second לָכֶם folds into the single 你們 (not repeated in Chinese), and intensifier 全 / auxiliary 我將 have no Hebrew counterpart\n\n　神<0430>說<0559>：「看哪<2009>,我將遍<3605>地<09009><0776>上<5921><6440>一切<0853><3605>結<2232>種子<2233>的<0834>菜蔬<6212>和<0853>一切<3605>樹<09009><6086>上<09002><2050>所<0834>結<2232>有核<2233>的果子<6529><6086>全賜給<5414>你們<09001><3641>作<1961><09001>食物<0402>。"
+      },
+      {
+        "chap": 1,
+        "sec": 30,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.2593,
+          "placement": 0.8148,
+          "format": 0.8519,
+          "details": {
+            "total_truth_tags": 27,
+            "total_model_tags": 29,
+            "missing": [
+              "{<H3605>}",
+              "{<H3605>}",
+              "{<H3605>}",
+              "<H8802>",
+              "{<H834>}",
+              "{<H9001>}",
+              "{<H9001>}",
+              "<H8799>",
+              "{<H9002>}"
+            ],
+            "extra": [
+              "<H9002>",
+              "<H834>",
+              "<H2050>",
+              "<H9001>",
+              "<H9001>",
+              "<H3605>",
+              "<H3605>",
+              "<H3605>",
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 5,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H9002",
+              "H3605",
+              "H834",
+              "H9001"
+            ]
+          }
+        },
+        "n9_placed": 5,
+        "n9_total": 5,
+        "tiers": {
+          "wlc_only": {
+            "placed": 14,
+            "total": 14,
+            "frac": 1.0
+          },
+          "rock": {
+            "placed": 11,
+            "total": 11,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          },
+          "orphan": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          }
+        },
+        "output": "至於<09001>地上<09009><0776>的走獸<3605><2416>和<09001>空中<09009><8064>的飛鳥<3605><5775>，並<09001>各樣<3605>爬<7430>在<5921>地上<09009><0776>有<0834><09002><2050>生命<5315>的物<2416>，我將<0853>青<3605><3418>草<6212>賜給牠們作<09001>食物<0402>。」事就這樣<3651>成了<1961>。"
+      },
+      {
+        "chap": 1,
+        "sec": 31,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.5789,
+          "placement": 0.7368,
+          "format": 0.8947,
+          "details": {
+            "total_truth_tags": 19,
+            "total_model_tags": 15,
+            "missing": [
+              "{<H2009>}",
+              "{<H853>}",
+              "<H8804>",
+              "<H8799>",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H2009>",
+              "<H9009>"
+            ],
+            "misplaced": 5,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853",
+              "H2009"
+            ]
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 0,
+        "tiers": {
+          "rock": {
+            "placed": 10,
+            "total": 10,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 4,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 4,
+            "total": 5,
+            "frac": 0.8
+          }
+        },
+        "output": "神<0430>看著<7200>一切<3605>所<0834>造<6213>的，都<2009>甚<3966>好<2896>。有<1961>晚上<6153>，有<1961>早晨<1242>，是第<09009>六<8345>日<3117>。"
+      }
+    ],
+    "B": [
+      {
+        "chap": 1,
+        "sec": 1,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.2222,
+          "placement": 1.0,
+          "format": 0.8889,
+          "details": {
+            "total_truth_tags": 9,
+            "total_model_tags": 10,
+            "missing": [
+              "<H8804>",
+              "{<H853>}",
+              "{<H853>}"
+            ],
+            "extra": [
+              "<H9009>",
+              "<H9009>",
+              "<H853>",
+              "<H853>"
+            ],
+            "misplaced": 0,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853"
+            ]
+          }
+        },
+        "n9_placed": 1,
+        "n9_total": 1,
+        "tiers": {
+          "wlc_only": {
+            "placed": 1,
+            "total": 1,
+            "frac": 1.0
+          },
+          "rock": {
+            "placed": 7,
+            "total": 7,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          }
+        },
+        "output": "起初<09002><7225>，　神<0430>創造<1254>天<0853><09009><8064>地<0853><09009><0776>。"
+      },
+      {
+        "chap": 1,
+        "sec": 2,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.6875,
+          "placement": 1.0,
+          "format": 0.9375,
+          "details": {
+            "total_truth_tags": 16,
+            "total_model_tags": 15,
+            "missing": [
+              "<H8764>",
+              "{<H5921>}",
+              "<H8804>"
+            ],
+            "extra": [
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 0,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H5921"
+            ]
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 0,
+        "tiers": {
+          "rock": {
+            "placed": 13,
+            "total": 14,
+            "frac": 0.9285714285714286
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 2,
+            "frac": 0.0
+          }
+        },
+        "output": "地<09009><0776>是<1961>空虛<8414>混沌<0922>，淵<8415>面<6440>黑暗<2822>；　神<0430>的靈<7307>運行<7363>在<5921>水<09009><4325>面<6440>上。"
+      },
+      {
+        "chap": 1,
+        "sec": 3,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.6667,
+          "placement": 0.3333,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 9,
+            "total_model_tags": 6,
+            "missing": [
+              "<H8799>",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [],
+            "misplaced": 6,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 0,
+        "tiers": {
+          "rock": {
+            "placed": 6,
+            "total": 6,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 3,
+            "frac": 0.0
+          }
+        },
+        "output": "神<WH0430>說<WH0559>：「要有<WH01961>光<WH0216>」，就有了<WH01961>光<WH0216>。"
+      },
+      {
+        "chap": 1,
+        "sec": 4,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.0,
+          "placement": 0.5,
+          "format": 0.7143,
+          "details": {
+            "total_truth_tags": 14,
+            "total_model_tags": 15,
+            "missing": [
+              "{<H430>}",
+              "{<H853>}",
+              "{<H3588>}",
+              "<H8799>",
+              "{<H996>}",
+              "{<H996>}",
+              "<H8686>"
+            ],
+            "extra": [
+              "<H853>",
+              "<H3588>",
+              "<H996>",
+              "<H996>",
+              "<H430>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 7,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853",
+              "H430",
+              "H3588",
+              "H996"
+            ]
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 0,
+        "tiers": {
+          "rock": {
+            "placed": 12,
+            "total": 12,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 2,
+            "frac": 0.0
+          }
+        },
+        "output": "神<0430>看<07200>光<0853><09009><0216>是<03588>好的<02896>，就<0430>把光<0996><09009><0216>暗<0996><09009><02822>分開<0914>了。"
+      },
+      {
+        "chap": 1,
+        "sec": 5,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.6842,
+          "placement": 0.2105,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 19,
+            "total_model_tags": 17,
+            "missing": [
+              "<H8804>",
+              "<H8799>",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 15,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 11,
+            "total": 11,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 4,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 4,
+            "total": 4,
+            "frac": 1.0
+          }
+        },
+        "output": "神<0430>稱<7121>光<09001><09009><0216>為「晝<3117>」，稱<7121>暗<09001><09009><2822>為「夜<3915>」。有<1961>晚上<6153>，有<1961>早晨<1242>，這是頭一<0259>日<3117>。"
+      },
+      {
+        "chap": 1,
+        "sec": 6,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.4706,
+          "placement": 0.2941,
+          "format": 0.7647,
+          "details": {
+            "total_truth_tags": 17,
+            "total_model_tags": 16,
+            "missing": [
+              "{<H1961>}",
+              "{<H4325>}",
+              "{<H9001>}",
+              "<H8799>",
+              "{<H8799>}"
+            ],
+            "extra": [
+              "<H9001>",
+              "<H1961>",
+              "<H4325>",
+              "<H9009>"
+            ],
+            "misplaced": 12,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H4325",
+              "H1961",
+              "H8799",
+              "H9001"
+            ]
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 8,
+            "total": 8,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 2,
+            "total": 4,
+            "frac": 0.5
+          },
+          "wlc_only": {
+            "placed": 5,
+            "total": 5,
+            "frac": 1.0
+          }
+        },
+        "output": "神<0430>說<0559><8799>：「諸<09009>水<4325>之間<09002><8432>要有<1961>空氣<7549>,將水<4325>分<1961><0914><8688>為<0996>上下<09001><4325>。」"
+      },
+      {
+        "chap": 1,
+        "sec": 7,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.3333,
+          "placement": 0.2917,
+          "format": 0.9167,
+          "details": {
+            "total_truth_tags": 24,
+            "total_model_tags": 26,
+            "missing": [
+              "<H8686>",
+              "{<H853>}",
+              "{<H834>}",
+              "<H4480>",
+              "<H4480>",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H853>",
+              "<H834>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>",
+              "<H9006>",
+              "<H9006>"
+            ],
+            "misplaced": 17,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853",
+              "H834"
+            ]
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 13,
+            "total": 13,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 3,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 6,
+            "total": 6,
+            "frac": 1.0
+          },
+          "orphan": {
+            "placed": 0,
+            "total": 2,
+            "frac": 0.0
+          }
+        },
+        "output": "神<0430>就造出<6213>空氣<0853><09009><7549>，將空氣<09001><09009><7549>以下<09006><8478>的<0834>水<0996><09009><4325>、空氣<09001><09009><7549>以上<09006><5921>的<0834>水<0996><09009><4325>分開了<0914>。事就這樣<3651>成了<1961>。"
+      },
+      {
+        "chap": 1,
+        "sec": 8,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.7143,
+          "placement": 0.2857,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 14,
+            "total_model_tags": 12,
+            "missing": [
+              "<H8799>",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H9009>"
+            ],
+            "misplaced": 10,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 1,
+        "n9_total": 1,
+        "tiers": {
+          "rock": {
+            "placed": 8,
+            "total": 8,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 3,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 3,
+            "total": 3,
+            "frac": 1.0
+          }
+        },
+        "output": "神<0430>稱<7121>空氣<09001><09009><7549>為「天」<8064>。有<1961>晚上<6153>，有<1961>早晨<1242>，是第二<8145>日<3117>。"
+      },
+      {
+        "chap": 1,
+        "sec": 9,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.6667,
+          "placement": 0.1111,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 18,
+            "total_model_tags": 20,
+            "missing": [
+              "<H4480>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H9006>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 16,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 0,
+        "tiers": {
+          "rock": {
+            "placed": 10,
+            "total": 10,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 3,
+            "total": 4,
+            "frac": 0.75
+          },
+          "orphan": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 3,
+            "total": 3,
+            "frac": 1.0
+          }
+        },
+        "output": "神<0430>說<0559><8799>：「天<09009><8064>下<09006><8478>的水<09009><4325>要聚<6960><8735>在<0413>一<0259>處<4725>，使旱地<09009><3004>露出來<7200><8735>。」事就這樣<3651>成了<1961>。"
+      },
+      {
+        "chap": 1,
+        "sec": 10,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.5882,
+          "placement": 0.2353,
+          "format": 0.9412,
+          "details": {
+            "total_truth_tags": 17,
+            "total_model_tags": 16,
+            "missing": [
+              "{<H3588>}",
+              "<H8804>",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H3588>",
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 13,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H3588"
+            ]
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 11,
+            "total": 11,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 3,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 3,
+            "total": 3,
+            "frac": 1.0
+          }
+        },
+        "output": "神<0430>稱<7121>旱地<09001><09009><3004>為「地<0776>」，稱<7121>水<09009><4325>的聚處<09001><4723>為「海<3220>」。　神<0430>看著<7200>是<3588>好<2896>的。"
+      },
+      {
+        "chap": 1,
+        "sec": 11,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.4231,
+          "placement": 0.3846,
+          "format": 0.8462,
+          "details": {
+            "total_truth_tags": 26,
+            "total_model_tags": 21,
+            "missing": [
+              "<H8802>",
+              "<H8688>",
+              "<H8686>",
+              "{<H776>}",
+              "<H6529>",
+              "{<H834>}",
+              "{<H5921>}",
+              "<H8799>",
+              "<H8799>",
+              "{<H9002>}"
+            ],
+            "extra": [
+              "<H9002>",
+              "<H834>",
+              "<H2050>",
+              "<H2050>",
+              "<H2050>"
+            ],
+            "misplaced": 16,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H776",
+              "H9002",
+              "H834",
+              "H5921"
+            ]
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 14,
+            "total": 16,
+            "frac": 0.875
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 5,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 4,
+            "total": 5,
+            "frac": 0.8
+          }
+        },
+        "output": "神<0430>說<0559>：「地<0776>要發生<1876>青草<1877>和結<2232>種子<2233>的菜蔬<6212>，並結<6213>果子<6529>的樹木<6086>，各從<09001>其<2050>類<4327>，果子<0834>都包著<09002><2050>核<2233><2050>。」事就這樣<3651>成了<1961>。"
+      },
+      {
+        "chap": 1,
+        "sec": 12,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.5,
+          "placement": 0.9167,
+          "format": 0.875,
+          "details": {
+            "total_truth_tags": 24,
+            "total_model_tags": 22,
+            "missing": [
+              "<H8802>",
+              "<H8688>",
+              "<H8686>",
+              "{<H3588>}",
+              "{<H834>}",
+              "<H8799>",
+              "{<H9002>}"
+            ],
+            "extra": [
+              "<H9002>",
+              "<H3588>",
+              "<H834>",
+              "<H1930>",
+              "<H1930>"
+            ],
+            "misplaced": 2,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H9002",
+              "H3588",
+              "H834"
+            ]
+          }
+        },
+        "n9_placed": 3,
+        "n9_total": 3,
+        "tiers": {
+          "rock": {
+            "placed": 15,
+            "total": 15,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 4,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 5,
+            "total": 5,
+            "frac": 1.0
+          }
+        },
+        "output": "於是地<0776>發生了<3318>青草<1877>和結<2232>種子<2233>的菜蔬<6212>，各從<09001>其<1930>類<4327>；並結<6213>果子<6529>的樹木<6086>，各從<09001>其<1930>類<4327>；果子都<0834>包著<09002>核<2233>。　神<0430>看著<7200>是<3588>好的<2896>。"
+      },
+      {
+        "chap": 1,
+        "sec": 13,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.75,
+          "placement": 1.0,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 8,
+            "total_model_tags": 6,
+            "missing": [
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [],
+            "misplaced": 0,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 0,
+        "tiers": {
+          "wlc_only": {
+            "placed": 2,
+            "total": 2,
+            "frac": 1.0
+          },
+          "orphan": {
+            "placed": 0,
+            "total": 2,
+            "frac": 0.0
+          },
+          "rock": {
+            "placed": 4,
+            "total": 4,
+            "frac": 1.0
+          }
+        },
+        "output": "有<1961>晚上<6153>，有<1961>早晨<1242>，是第三<7992>日<3117>。"
+      },
+      {
+        "chap": 1,
+        "sec": 14,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.6,
+          "placement": 0.28,
+          "format": 0.88,
+          "details": {
+            "total_truth_tags": 25,
+            "total_model_tags": 21,
+            "missing": [
+              "<H8687>",
+              "{<H1961>}",
+              "{<H8804>}",
+              "<H8799>",
+              "<H8799>",
+              "{<H996>}",
+              "{<H996>}"
+            ],
+            "extra": [
+              "<H1961>",
+              "<H996>",
+              "<H996>"
+            ],
+            "misplaced": 18,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H996",
+              "H8804",
+              "H1961"
+            ]
+          }
+        },
+        "n9_placed": 5,
+        "n9_total": 5,
+        "tiers": {
+          "rock": {
+            "placed": 12,
+            "total": 12,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 3,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 9,
+            "total": 9,
+            "frac": 1.0
+          },
+          "orphan": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          }
+        },
+        "output": "神<0430>說<0559>：「天<7549><8064>上<09002>要有<1961>光體<3974>，可以分<09001><0914>晝<0996><3117>夜<0996><3915>，作<1961>記號<09001><0226>，定節令<09001><4150>、日子<09001><3117>、年歲<8141>，"
+      },
+      {
+        "chap": 1,
+        "sec": 15,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.6667,
+          "placement": 0.8667,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 15,
+            "total_model_tags": 14,
+            "missing": [
+              "<H8804>",
+              "<H8687>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 2,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 3,
+        "n9_total": 3,
+        "tiers": {
+          "wlc_only": {
+            "placed": 7,
+            "total": 7,
+            "frac": 1.0
+          },
+          "orphan": {
+            "placed": 0,
+            "total": 2,
+            "frac": 0.0
+          },
+          "rock": {
+            "placed": 5,
+            "total": 5,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          }
+        },
+        "output": "並要<1961>發光<09001><3974>在<09002>天空<7549><09009><8064>，普照<09001><0215>在<5921>地上<09009><0776>。」事就這樣<3651>成了<1961>。"
+      },
+      {
+        "chap": 1,
+        "sec": 16,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.1429,
+          "placement": 0.9048,
+          "format": 0.9048,
+          "details": {
+            "total_truth_tags": 21,
+            "total_model_tags": 25,
+            "missing": [
+              "{<H853>}",
+              "{<H853>}",
+              "{<H853>}",
+              "{<H853>}",
+              "{<H3974>}",
+              "{<H3974>}",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H3974>",
+              "<H3974>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 2,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853",
+              "H3974"
+            ]
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 14,
+            "total": 14,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 2,
+            "total": 6,
+            "frac": 0.3333333333333333
+          }
+        },
+        "output": "於是　神<0430>造了<6213>兩個<8147>大<09009><1419>光<09009><3974>，大<09009><1419><09009><3974>的管<09001><4475>晝<09009><3117>，小<09009><6996><09009><3974>的管<09001><4475>夜<09009><3915>，又造眾星<09009><3556>，"
+      },
+      {
+        "chap": 1,
+        "sec": 17,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.5,
+          "placement": 0.75,
+          "format": 0.9167,
+          "details": {
+            "total_truth_tags": 12,
+            "total_model_tags": 12,
+            "missing": [
+              "{<H430>}",
+              "<H8687>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H3963>",
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 3,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H430"
+            ]
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 5,
+            "total": 6,
+            "frac": 0.8333333333333334
+          },
+          "wlc_only": {
+            "placed": 4,
+            "total": 4,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 2,
+            "frac": 0.0
+          }
+        },
+        "output": "就把<0853>這些光<3963>擺列<5414>在<09002>天空<7549><09009><8064>，普照<09001><0215>在<5921>地上<09009><0776>，"
+      },
+      {
+        "chap": 1,
+        "sec": 18,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.3158,
+          "placement": 1.0,
+          "format": 0.8947,
+          "details": {
+            "total_truth_tags": 19,
+            "total_model_tags": 20,
+            "missing": [
+              "{<H3588>}",
+              "<H8800>",
+              "<H8687>",
+              "<H8799>",
+              "{<H996>}",
+              "{<H996>}"
+            ],
+            "extra": [
+              "<H3588>",
+              "<H996>",
+              "<H996>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 0,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H996",
+              "H3588"
+            ]
+          }
+        },
+        "n9_placed": 4,
+        "n9_total": 4,
+        "tiers": {
+          "wlc_only": {
+            "placed": 7,
+            "total": 7,
+            "frac": 1.0
+          },
+          "rock": {
+            "placed": 9,
+            "total": 9,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 3,
+            "frac": 0.0
+          }
+        },
+        "output": "管理<09001><4910>晝<09002><09009><3117>夜<09002><09009><3915>，分別<09001><0914>明<0996><09009><0216>暗<0996><09009><2822>。　神<0430>看著<7200>是<3588>好的<2896>。"
+      },
+      {
+        "chap": 1,
+        "sec": 19,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.75,
+          "placement": 1.0,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 8,
+            "total_model_tags": 6,
+            "missing": [
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [],
+            "misplaced": 0,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 0,
+        "tiers": {
+          "wlc_only": {
+            "placed": 2,
+            "total": 2,
+            "frac": 1.0
+          },
+          "orphan": {
+            "placed": 0,
+            "total": 2,
+            "frac": 0.0
+          },
+          "rock": {
+            "placed": 4,
+            "total": 4,
+            "frac": 1.0
+          }
+        },
+        "output": "有<WH01961>晚上<WH06153>，有<WH01961>早晨<WH01242>，是第四<WH07243>日<WH03117>。"
+      },
+      {
+        "chap": 1,
+        "sec": 20,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.6667,
+          "placement": 0.2222,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 18,
+            "total_model_tags": 18,
+            "missing": [
+              "<H8787>",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H9009>",
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 14,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 0,
+        "tiers": {
+          "rock": {
+            "placed": 15,
+            "total": 15,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 3,
+            "frac": 0.0
+          }
+        },
+        "output": "神<0430>說<0559>：「水<09009><4325>要多多滋生<8317>有<5315>生命<2416>的物<8318>；要有雀鳥<5775>飛<5774>在<5921>地面<09009><0776>以上，天空<7549><09009><8064>之中<5921><6440>。」"
+      },
+      {
+        "chap": 1,
+        "sec": 21,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.6552,
+          "placement": 0.3793,
+          "format": 0.931,
+          "details": {
+            "total_truth_tags": 29,
+            "total_model_tags": 19,
+            "missing": [
+              "<H8802>",
+              "<H853>",
+              "<H834>",
+              "<H7430>",
+              "{<H853>}",
+              "{<H853>}",
+              "{<H3588>}",
+              "<H8799>",
+              "<H8799>",
+              "<H8804>"
+            ],
+            "extra": [],
+            "misplaced": 18,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853",
+              "H3588"
+            ]
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 15,
+            "total": 16,
+            "frac": 0.9375
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 4,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 4,
+            "total": 9,
+            "frac": 0.4444444444444444
+          }
+        },
+        "output": "神<0430>就造出<1254>大<1419>魚<8577>和水<4325>中所滋生<8317>各樣<3605>有生命的<2416>動物<5315>，各從<09001>其類<4327>；又造出各樣<3605>飛<3671>鳥<5775>，各從<09001>其類<4327>。　神<0430>看著<7200>是好的<2896>。"
+      },
+      {
+        "chap": 1,
+        "sec": 22,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.3182,
+          "placement": 0.3636,
+          "format": 0.9545,
+          "details": {
+            "total_truth_tags": 22,
+            "total_model_tags": 21,
+            "missing": [
+              "<H8762>",
+              "<H8800>",
+              "{<H853>}",
+              "{<H853>}",
+              "<H8799>",
+              "<H8798>",
+              "<H8798>",
+              "<H8798>"
+            ],
+            "extra": [
+              "<H853>",
+              "<H853>",
+              "<H3963>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 14,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853"
+            ]
+          }
+        },
+        "n9_placed": 3,
+        "n9_total": 3,
+        "tiers": {
+          "rock": {
+            "placed": 11,
+            "total": 11,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 6,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 5,
+            "total": 5,
+            "frac": 1.0
+          }
+        },
+        "output": "神<WH0430>就賜福<WH01288>給這一切<WH0853><WH03963>，說<WH09001><WH0559>：「滋生<WH06509>繁多<WH07235>，充滿<WH04390>海中<WH09002><WH09009><WH03220>的水<WH0853><WH09009><WH04325>；雀鳥<WH09009><WH05775>也要多生<WH07235>在地上<WH09002><WH09009><WH0776>。」"
+      },
+      {
+        "chap": 1,
+        "sec": 23,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.75,
+          "placement": 1.0,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 8,
+            "total_model_tags": 6,
+            "missing": [
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [],
+            "misplaced": 0,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 0,
+        "tiers": {
+          "wlc_only": {
+            "placed": 2,
+            "total": 2,
+            "frac": 1.0
+          },
+          "orphan": {
+            "placed": 0,
+            "total": 2,
+            "frac": 0.0
+          },
+          "rock": {
+            "placed": 4,
+            "total": 4,
+            "frac": 1.0
+          }
+        },
+        "output": "有<1961>晚上<6153>，有<1961>早晨<1242>，是第五<2549>日<3117>。"
+      },
+      {
+        "chap": 1,
+        "sec": 24,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.6842,
+          "placement": 0.1579,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 19,
+            "total_model_tags": 19,
+            "missing": [
+              "<H8799>",
+              "<H8799>",
+              "<H8686>"
+            ],
+            "extra": [
+              "<H9009>",
+              "<H1886>",
+              "<H1886>"
+            ],
+            "misplaced": 16,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 12,
+            "total": 12,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 3,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 4,
+            "total": 4,
+            "frac": 1.0
+          }
+        },
+        "output": "神<0430>說<0559>：「地<09009><0776>要生出<3318>活<2416>物<5315>來，各從<09001>其<1886>類<4327>；牲畜<0929>、昆蟲<7431>、野<0776>獸<2416>，各從<09001>其<1886>類<4327>。」事就這樣<3651>成了<1961>。"
+      },
+      {
+        "chap": 1,
+        "sec": 25,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.5652,
+          "placement": 0.2609,
+          "format": 0.913,
+          "details": {
+            "total_truth_tags": 23,
+            "total_model_tags": 21,
+            "missing": [
+              "{<H853>}",
+              "{<H853>}",
+              "{<H853>}",
+              "{<H3588>}",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H3588>",
+              "<H1886>",
+              "<H1886>",
+              "<H1930>"
+            ],
+            "misplaced": 17,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853",
+              "H3588"
+            ]
+          }
+        },
+        "n9_placed": 3,
+        "n9_total": 3,
+        "tiers": {
+          "rock": {
+            "placed": 13,
+            "total": 13,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 2,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 5,
+            "total": 8,
+            "frac": 0.625
+          }
+        },
+        "output": "Looking at this verse, I'll map each Hebrew morpheme's Strong's tag onto the corresponding UNV position, using the Hebrew morpheme order and the KJV pair as cross-references. The Chinese expresses לְ (09001) via 從 (\"according to\"), but has no definite article, so הַ/הָ (09009) has no host and is omitted; the object marker אֶת (0853) likewise has no Chinese host.\n\n於是　神<0430>造出<6213>野<0776>獸<2416>，各從<09001>其<1886>類<4327>；牲畜<0929>，各從<09001>其<1886>類<4327>；地<0127>上一切<3605>昆蟲<7431>，各從<09001>其<1930>類<4327>。　神<0430>看著<7200>是<3588>好的<2896>。"
+      },
+      {
+        "chap": 1,
+        "sec": 26,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.7333,
+          "placement": 0.1667,
+          "format": 1.0,
+          "details": {
+            "total_truth_tags": 30,
+            "total_model_tags": 28,
+            "missing": [
+              "<H8802>",
+              "<H9003>",
+              "<H8799>",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H5105>",
+              "<H5105>",
+              "<H3509>"
+            ],
+            "misplaced": 25,
+            "format_issues": [],
+            "brace_mismatches": []
+          }
+        },
+        "n9_placed": 6,
+        "n9_total": 7,
+        "tiers": {
+          "rock": {
+            "placed": 16,
+            "total": 16,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 4,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 9,
+            "total": 9,
+            "frac": 1.0
+          },
+          "orphan": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          }
+        },
+        "output": "神<0430>說<0559>：「我們要照著<09002>我們的<5105>形像<6754>、按著<3509>我們的<5105>樣式<1823>造<6213>人<0120>，使他們管理<7287>海<3220>裡<09002>的魚<1710>、空<8064>中<09002>的鳥<5775>、地上<09002>的牲畜<0929>，和<09002>全<3605>地<0776>，並<09002>地<0776>上<5921>所爬的<7430>一切<3605>昆蟲<7431>。」"
+      },
+      {
+        "chap": 1,
+        "sec": 27,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.6111,
+          "placement": 0.3889,
+          "format": 0.9444,
+          "details": {
+            "total_truth_tags": 18,
+            "total_model_tags": 13,
+            "missing": [
+              "<H8799>",
+              "{<H853>}",
+              "{<H853>}",
+              "{<H853>}",
+              "<H8804>",
+              "<H8804>"
+            ],
+            "extra": [
+              "<H2050>"
+            ],
+            "misplaced": 11,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853"
+            ]
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 2,
+        "tiers": {
+          "rock": {
+            "placed": 10,
+            "total": 10,
+            "frac": 1.0
+          },
+          "wlc_only": {
+            "placed": 2,
+            "total": 5,
+            "frac": 0.4
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 3,
+            "frac": 0.0
+          }
+        },
+        "output": "神<0430>就照著<09002>自己的<2050>形像<6754>造<1254>人<0120>，乃是照著<09002>他的<0430>形像<6754>造<1254>男<2145>造<1254>女<5347>。"
+      },
+      {
+        "chap": 1,
+        "sec": 28,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.4242,
+          "placement": 0.303,
+          "format": 0.9394,
+          "details": {
+            "total_truth_tags": 33,
+            "total_model_tags": 32,
+            "missing": [
+              "<H8802>",
+              "<H8762>",
+              "{<H430>}",
+              "{<H853>}",
+              "<H8799>",
+              "<H8798>",
+              "<H8798>",
+              "<H8798>",
+              "<H8798>",
+              "<H8798>"
+            ],
+            "extra": [
+              "<H853>",
+              "<H3963>",
+              "<H3963>",
+              "<H1886>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>",
+              "<H9009>"
+            ],
+            "misplaced": 23,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853",
+              "H430"
+            ]
+          }
+        },
+        "n9_placed": 4,
+        "n9_total": 4,
+        "tiers": {
+          "rock": {
+            "placed": 16,
+            "total": 17,
+            "frac": 0.9411764705882353
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 8,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 8,
+            "total": 8,
+            "frac": 1.0
+          }
+        },
+        "output": "神<0430>就賜福<1288>給<0853>他們<3963>，又對<09001>他們<3963>說<0559>：「要生養<6509>眾多<7235>，遍滿<4390>地面<0853><09009><0776>，治理<3533>這地<1886>，也要管理<7287>海<09009><3220>裡<09002>的魚<1710>、空<09009><8064>中<09002>的鳥<5775>，和地<09009><0776>上<5921>各樣<09002><3605>行動<09009><7430>的活物<2416>。」"
+      },
+      {
+        "chap": 1,
+        "sec": 29,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.7097,
+          "placement": 0.2258,
+          "format": 0.9677,
+          "details": {
+            "total_truth_tags": 31,
+            "total_model_tags": 28,
+            "missing": [
+              "<H8802>",
+              "<H8802>",
+              "{<H834>}",
+              "<H8804>",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H6086>",
+              "<H834>",
+              "<H3641>"
+            ],
+            "misplaced": 24,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H834"
+            ]
+          }
+        },
+        "n9_placed": 3,
+        "n9_total": 3,
+        "tiers": {
+          "rock": {
+            "placed": 15,
+            "total": 15,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 5,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 11,
+            "total": 11,
+            "frac": 1.0
+          }
+        },
+        "output": "神<0430>說<0559>：「看哪<2009>，我將<0853>遍<3605>地<0776>上<5921><6440>一切<3605>結<2232>種子<2233>的<0834>菜蔬<6212>和<0853>一切<3605>樹<6086>上<09002>所<0834>結<2232>有核<2233>的果子<6529><6086>全賜給<5414>你們<09001><3641>作<1961><09001>食物<0402>。"
+      },
+      {
+        "chap": 1,
+        "sec": 30,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.6296,
+          "placement": 0.8519,
+          "format": 0.8519,
+          "details": {
+            "total_truth_tags": 27,
+            "total_model_tags": 19,
+            "missing": [
+              "{<H3605>}",
+              "{<H3605>}",
+              "{<H3605>}",
+              "<H8802>",
+              "{<H834>}",
+              "{<H9001>}",
+              "{<H9001>}",
+              "<H8799>",
+              "{<H9002>}"
+            ],
+            "extra": [
+              "<H834>"
+            ],
+            "misplaced": 4,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H9002",
+              "H3605",
+              "H834",
+              "H9001"
+            ]
+          }
+        },
+        "n9_placed": 2,
+        "n9_total": 5,
+        "tiers": {
+          "wlc_only": {
+            "placed": 8,
+            "total": 14,
+            "frac": 0.5714285714285714
+          },
+          "rock": {
+            "placed": 11,
+            "total": 11,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          },
+          "orphan": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          }
+        },
+        "output": "至於<09001>地<0776>上的走獸<2416>和空中<8064>的飛鳥<5775>，並各樣<3605>爬<7430>在<5921>地<0776>上有<0834>生命<2416>的物<5315>，我將<0853>青<3418>草<6212>賜給牠們作<09001>食物<0402>。」事就這樣<3651>成了<1961>。"
+      },
+      {
+        "chap": 1,
+        "sec": 31,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.5263,
+          "placement": 0.3158,
+          "format": 0.8947,
+          "details": {
+            "total_truth_tags": 19,
+            "total_model_tags": 16,
+            "missing": [
+              "{<H2009>}",
+              "{<H853>}",
+              "<H8804>",
+              "<H8799>",
+              "<H8799>",
+              "<H8799>"
+            ],
+            "extra": [
+              "<H853>",
+              "<H2009>",
+              "<H9009>"
+            ],
+            "misplaced": 13,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853",
+              "H2009"
+            ]
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 0,
+        "tiers": {
+          "rock": {
+            "placed": 10,
+            "total": 10,
+            "frac": 1.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 4,
+            "frac": 0.0
+          },
+          "wlc_only": {
+            "placed": 5,
+            "total": 5,
+            "frac": 1.0
+          }
+        },
+        "output": "神<0430>看著<7200>一切<0853><3605>所<0834>造<6213>的都<2009>甚<3966>好<2896>。有<1961>晚上<6153>，有<1961>早晨<1242>，是第<09009>六<8345>日<3117>。"
+      }
+    ]
+  }
+}
