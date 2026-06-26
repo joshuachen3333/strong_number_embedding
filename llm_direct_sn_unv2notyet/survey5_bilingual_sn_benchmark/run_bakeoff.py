@@ -14,10 +14,11 @@ import time
 
 import wlc_bridge as W
 import gate as G
+import scoring  # format-agnostic ("naked") scoring — see scoring.py
 # Importing run_survey5 puts the parent dir and survey4 dir on sys.path, so the
 # following imports resolve afterwards.
 from run_survey5 import call_model, detect_brand, fetch_chap_cached  # noqa: E402
-from auto_score import score_verse, strip_sn  # noqa: E402
+from auto_score import strip_sn  # noqa: E402
 from llm_direct_sn_unv2notyet import CHI_TO_ENG, parse_sec_arg  # noqa: E402
 
 SYSTEM = (
@@ -72,7 +73,7 @@ def run_config(label, build_user, verses, book_eng, model, brand):
         if not out:
             print(f"  [{label}] {chap}:{sec}  EMPTY (skip)", flush=True)
             continue
-        sc = score_verse(out, unv_sn)
+        sc = scoring.num_score(out, unv_sn)  # format-agnostic (numbers in position)
         n9p, n9t = W.nines_recall(out, unv_sn)
         tiers = G.tier_recall(out, unv_sn, wlc_source, kjv_sn)
         rows.append({"chap": chap, "sec": sec, "score": sc,
@@ -156,15 +157,17 @@ def main():
 
     print_summary(results)
 
-    if args.out is not None:
-        out_path = args.out or os.path.join(
-            "run_logs", f"bakeoff_{book_chi}{args.chap}_{args.model.replace(':', '_')}.json")
-        os.makedirs(os.path.dirname(out_path), exist_ok=True)
-        with open(out_path, "w", encoding="utf-8") as f:
-            json.dump({"book": book_chi, "chap": args.chap, "model": args.model,
-                       "configs": args.configs, "results": results},
-                      f, ensure_ascii=False, indent=2)
-        print(f"\n  wrote {out_path}")
+    # Always persist raw outputs + scores (never fly blind). --out overrides path.
+    secstr = (args.sec or "all").replace(",", "_").replace("-", "to")
+    out_path = args.out or os.path.join(
+        "run_logs",
+        f"bakeoff_{book_chi}{args.chap}_{secstr}_{args.model.replace(':', '_')}.json")
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump({"book": book_chi, "chap": args.chap, "sec": args.sec,
+                   "model": args.model, "configs": args.configs, "results": results},
+                  f, ensure_ascii=False, indent=2)
+    print(f"\n  wrote {out_path}")
 
 
 if __name__ == "__main__":
