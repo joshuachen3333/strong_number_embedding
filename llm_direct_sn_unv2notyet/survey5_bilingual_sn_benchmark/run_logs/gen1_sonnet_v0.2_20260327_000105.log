@@ -1,0 +1,10 @@
+Survey5: KJV+SN → UNV+SN
+Book: Gen (創)
+Model: sonnet (claude)
+Prompt: 3958 chars
+
+  Gen 1:1         cov=1.00 place=1.00 fmt=1.00 exact=True  KJV=8 UNV=9 diff=1  (0m27s)
+  Gen 1:2         cov=0.00 place=1.00 fmt=0.94 exact=False  KJV=18 UNV=16 diff=2  (1m31s)
+  Gen 1:3         cov=0.78 place=0.22 fmt=1.00 exact=False  KJV=7 UNV=9 diff=2  (0m30s)
+  Gen 1:4         cov=0.36 place=0.14 fmt=0.93 exact=False  KJV=18 UNV=14 diff=4  (1m26s)
+  Gen 1:5         cov=0.68 place=0.32 fmt=1.00 exact=False  KJV=16 UNV=19 diff=3  (0m41s)

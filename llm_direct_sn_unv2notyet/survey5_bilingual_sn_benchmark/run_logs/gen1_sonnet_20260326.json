@@ -1,0 +1,1118 @@
+{
+ "meta": {
+  "task": "survey5_kjv_to_unv",
+  "book": "Gen",
+  "model": "sonnet",
+  "brand": "claude",
+  "match_only": false,
+  "max_diff": null,
+  "total_scored": 31,
+  "timestamp": "2026-03-27 00:03:04"
+ },
+ "verses": [
+  {
+   "ref": "Gen 1:1",
+   "kjv_sn_count": 8,
+   "unv_sn_count": 9,
+   "diff": 1,
+   "model_output": "起初<WAH09002><WH07225>，　神<WH0430>創造<WH01254><WTH8804>{<WH0853>}天<WH08064>{<WH0853>}地<WH0776>。",
+   "score": {
+    "exact_match": true,
+    "coverage": 1.0,
+    "placement": 1.0,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 9,
+     "total_model_tags": 9,
+     "missing": [],
+     "extra": [],
+     "misplaced": 0,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 22.1
+  },
+  {
+   "ref": "Gen 1:2",
+   "kjv_sn_count": 18,
+   "unv_sn_count": 16,
+   "diff": 2,
+   "model_output": "地<WH0776>是<WH01961><WTH8804>空虛<WH08414>混沌<WH0922>，淵<WH08415>面<WH06440>黑暗<WH02822>；　神<WH0430>的靈<WH07307>運行<WH07363><WTH8764>在水<WH04325>面<WH06440>上<WH05921>。\n\n---\n\nAlignment notes (for verification):\n\n| KJV token | SN | UNV token |\n|---|---|---|\n| earth | WH0776 | 地 |\n| was | WH01961 + WTH8804 | 是 |\n| without form | WH08414 | 空虛 |\n| void | WH0922 | 混沌 |\n| deep | WH08415 | 淵 |\n| face (1st) | WH06440 | 面 (淵面) |\n| darkness | WH02822 | 黑暗 |\n| `<FI>was<Fi>` | *(none — KJV italics, implied)* | — |\n| God | WH0430 | 神 |\n| Spirit | WH07307 | 靈 |\n| moved | WH07363 + WTH8764 | 運行 |\n| upon | WH05921 | 上 |\n| face (2nd) | WH06440 | 面 (水面) |\n| waters | WH04325 | 水 |\n\n**Decisions:**\n- `<FI>was<Fi>` — KJV italics = supplied word not in Hebrew, no SN, omitted.\n- 的 (possessive particle) — Chinese grammar glue, no Hebrew equivalent, left bare.\n- 在 — Chinese preposition structuring 在…上, no standalone SN; the \"upon\" meaning is carried by 上`<WH05921>`.\n- No 900x prefixes added — WH05921 (עַל) is a standalone Hebrew preposition, not an inseparable prefix.\n- Both occurrences of face (WH06440) mapped: 淵**面** and 水**面**.",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.625,
+    "placement": 0.9375,
+    "format": 0.9375,
+    "details": {
+     "total_truth_tags": 16,
+     "total_model_tags": 20,
+     "missing": [
+      "{<WAH05921>}"
+     ],
+     "extra": [
+      "<WH05921>",
+      "<FI>",
+      "<FI>",
+      "<Fi>",
+      "<Fi>"
+     ],
+     "misplaced": 1,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH05921"
+     ]
+    }
+   },
+   "time": 52.8
+  },
+  {
+   "ref": "Gen 1:3",
+   "kjv_sn_count": 7,
+   "unv_sn_count": 9,
+   "diff": 2,
+   "model_output": "神<WH0430>說<WH0559><WTH8799>：「要有<WH01961><WTH8799>光<WH0216>」，就有了光<WH0216>。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.7778,
+    "placement": 0.2222,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 9,
+     "total_model_tags": 7,
+     "missing": [
+      "<WTH8799>",
+      "<WAH01961>"
+     ],
+     "extra": [],
+     "misplaced": 7,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 27.0
+  },
+  {
+   "ref": "Gen 1:4",
+   "kjv_sn_count": 18,
+   "unv_sn_count": 14,
+   "diff": 4,
+   "model_output": "神<WH0430>看<WH07200><WTH8799>{<WH0853>}光<WH0216>是<WH03588>好<WH02896>的，就{<WH0430>}把{<WH0996>}光<WH0216>{<WH0996>}暗<WH02822>分開<WH0914><WTH8686>了。\n\n---\n\n**Alignment notes:**\n\n| KJV token | SN | UNV mapping | Decision |\n|---|---|---|---|\n| God (1st) | `<WH0430>` | 神 | Direct |\n| saw | `<WH07200><WTH8799>` | 看 | Direct, morph after core |\n| (object marker) | `<WH0853>` | — | Implicit `{<WH0853>}` |\n| the light (1st) | `<WH0216>` | 光 | Direct |\n| that | `<WH03588>` | 是 | Direct (是...好的 = \"that it was good\") |\n| good | `<WH02896>` | 好 | Direct (的 has no SN) |\n| God (2nd) | `<WH0430>` | — | Implicit `{<WH0430>}` — subject dropped in Chinese |\n| between (1st) | `<WH0996>` | — | Implicit before 光; UNV uses 把...分開 instead of \"between\" |\n| the light (2nd) | `<WH0216>` | 光 | Direct |\n| between (2nd)/from | `<WH0996>` | — | Implicit before 暗 |\n| the darkness | `<WH02822>` | 暗 | Direct |\n| divided | `<WH0914><WTH8686>` | 分開 | Direct, core → morph order |\n| `<RF>...<Rf>` | — | — | Footnote tag, ignored |",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.0,
+    "placement": 0.1429,
+    "format": 0.9286,
+    "details": {
+     "total_truth_tags": 14,
+     "total_model_tags": 32,
+     "missing": [
+      "{<WH03588>}"
+     ],
+     "extra": [
+      "<WH0430>",
+      "<WH0430>",
+      "<WTH8799>",
+      "<WH0914>",
+      "<WTH8686>",
+      "<WH03588>",
+      "<WH03588>",
+      "{<WH0430>}",
+      "<WH0853>",
+      "<RF>"
+     ],
+     "misplaced": 12,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WH03588"
+     ]
+    }
+   },
+   "time": 77.8
+  },
+  {
+   "ref": "Gen 1:5",
+   "kjv_sn_count": 16,
+   "unv_sn_count": 19,
+   "diff": 3,
+   "model_output": "神<WH0430>稱<WH07121><WTH8799>光<WH0216>為「晝<WH03117>」，稱<WH07121><WTH8804>暗<WH02822>為「夜<WH03915>」。有晚上<WH06153>，有早晨<WH01242>，這是頭一<WH0259>日<WH03117>。\n\n**Alignment notes:**\n\n| KJV word | SN | UNV word |\n|---|---|---|\n| God | WH0430 | 神 |\n| called (Qal impf.) | WH07121 + WTH8799 | 稱 (first) |\n| the light | WH0216 | 光 |\n| Day | WH03117 | 晝 |\n| the darkness | WH02822 | 暗 |\n| he called (Qal perf.) | WH07121 + WTH8804 | 稱 (second) |\n| Night | WH03915 | 夜 |\n| the evening | WH06153 | 晚上 |\n| the morning | WH01242 | 早晨 |\n| the first | WH0259 | 頭一 |\n| day | WH03117 | 日 |\n\nNo implicit markers needed — every KJV SN has a clear Chinese equivalent. The `<RF>...<Rf>` footnote tag in KJV was ignored (not an SN). The two `稱` instances correctly receive different morphology tags (WTH8799 Qal imperfect vs. WTH8804 Qal perfect), reflecting the Hebrew tense shift.",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.5789,
+    "placement": 0.3158,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 19,
+     "total_model_tags": 15,
+     "missing": [
+      "<WTH8799>",
+      "<WTH8799>",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WAH01961>",
+      "<WAH01961>"
+     ],
+     "extra": [
+      "<RF>",
+      "<Rf>"
+     ],
+     "misplaced": 13,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 38.2
+  },
+  {
+   "ref": "Gen 1:6",
+   "kjv_sn_count": 12,
+   "unv_sn_count": 17,
+   "diff": 5,
+   "model_output": "神`<WH0430>`說`<WH0559><WTH8799>`：「諸水`<WH04325>`之間`<WH08432>`要有空氣`<WH07549>`，將水`<WH04325>`分`<WH0914><WTH8688>`為上下`<WH04325>`。」\n\n---\n\n**Alignment notes:**\n\n| KJV | SN | UNV |\n|---|---|---|\n| God | `<WH0430>` | 神 |\n| said | `<WH0559><WTH8799>` | 說 |\n| the waters (of) | `<WH04325>` | 諸水 |\n| in the midst | `<WH08432>` | 之間 |\n| firmament | `<WH07549>` | 空氣 |\n| the waters (divide) | `<WH04325>` | 水 (after 將) |\n| let it divide | `<WH0914><WTH8688>` | 分 |\n| from the waters | `<WH04325>` | 上下 (paraphrase) |\n\n**Decisions made:**\n- UNV inverts \"midst of the waters\" → 諸水之間 (waters-first possessive); SNs follow the Chinese word order\n- \"from the waters\" rendered as 上下 in UNV (paraphrase) — `<WH04325>` attached to 上下 rather than made implicit, since it is the semantic landing point\n- `<RF>...<Rf>` footnote dropped (KJV editorial, no UNV equivalent)\n- No 900x prefix added — KJV has none, and 將 is a Chinese syntactic particle with no clear Hebrew inseparable-preposition mapping here",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.0,
+    "placement": 0.4706,
+    "format": 0.7647,
+    "details": {
+     "total_truth_tags": 17,
+     "total_model_tags": 23,
+     "missing": [
+      "{<WAH01961>}",
+      "{<WH04325>}",
+      "<WAH0996>",
+      "<WAH01961>",
+      "<WAH09002>",
+      "{<WTH8799>}",
+      "{<WAH09001>}"
+     ],
+     "extra": [
+      "<WH0914>",
+      "<WH0430>",
+      "<WH08432>",
+      "<RF>",
+      "<Rf>",
+      "<WH04325>",
+      "<WH04325>",
+      "<WH04325>",
+      "<WH04325>",
+      "<WH04325>"
+     ],
+     "misplaced": 9,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WTH8799",
+      "WH04325",
+      "WAH01961",
+      "WAH09001"
+     ]
+    }
+   },
+   "time": 50.5
+  },
+  {
+   "ref": "Gen 1:7",
+   "kjv_sn_count": 19,
+   "unv_sn_count": 24,
+   "diff": 5,
+   "model_output": "Mapping each KJV tagged word to its UNV semantic equivalent:\n\n| KJV word | SN | UNV word |\n|---|---|---|\n| God | `<WH0430>` | 神 |\n| made | `<WH06213><WTH8799>` | 造出 |\n| firmament (×3) | `<WH07549>` | 空氣 (×3) |\n| divided | `<WH0914><WTH8686>` | 分開了 (verb-final in Chinese) |\n| the waters (×2) | `<WH04325>` | 水 (×2) |\n| which (×2) | `<WH0834>` | 的 (×2) |\n| under | `<WH08478>` | 以下 |\n| above | `<WH05921>` | 以上 |\n| it was so | `<WH03651>` | 這樣 |\n\nNote: 就 (connective) and 將 (object-marker particle) carry no SN in KJV, so left untagged. `<WH0914>` is a standard 4-digit SN (H914 בָּדַל = divide), not a 900x prefix.\n\n---\n\n　神`<WH0430>`就造出`<WH06213><WTH8799>`空氣`<WH07549>`，將空氣`<WH07549>`以下`<WH08478>`的`<WH0834>`水`<WH04325>`、空氣`<WH07549>`以上`<WH05921>`的`<WH0834>`水`<WH04325>`分開了`<WH0914><WTH8686>`。事就這樣`<WH03651>`成了。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.0417,
+    "placement": 0.4167,
+    "format": 0.9167,
+    "details": {
+     "total_truth_tags": 24,
+     "total_model_tags": 27,
+     "missing": [
+      "{<WAH0853>}",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WAH0996>",
+      "<WAH0996>",
+      "<WAH04480>",
+      "<WAH04480>",
+      "<WAH0834>",
+      "{<WH0834>}",
+      "<WAH01961>"
+     ],
+     "extra": [
+      "<WH0914>",
+      "<WH0914>",
+      "<WH0430>",
+      "<WTH8686>",
+      "<WH05921>",
+      "<WH08478>",
+      "<WH0834>",
+      "<WH0834>",
+      "<WH0834>",
+      "<WH06213>"
+     ],
+     "misplaced": 14,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WH0834",
+      "WAH0853"
+     ]
+    }
+   },
+   "time": 58.5
+  },
+  {
+   "ref": "Gen 1:8",
+   "kjv_sn_count": 12,
+   "unv_sn_count": 14,
+   "diff": 2,
+   "model_output": "神<WH0430>稱<WH07121><WTH8799>空氣<WH07549>為「天<WH08064>」。有晚上<WH06153>，有早晨<WH01242>，是第二<WH08145>日<WH03117>。\n\n**Alignment notes:**\n- 神 ← God`<WH0430>`\n- 稱 ← called`<WH07121><WTH8799>` (morphology follows core SN)\n- 空氣 ← firmament`<WH07549>`\n- 為 — no SN (Chinese syntactic connector for \"called X as Y\", no Hebrew equivalent)\n- 天 ← Heaven`<WH08064>`\n- 晚上 ← evening`<WH06153>`\n- 早晨 ← morning`<WH01242>`\n- 第二 ← second`<WH08145>`\n- 日 ← day`<WH03117>`\n- 有...有... — no KJV SN (Chinese rendering of \"and... and...\" structure)\n- `<RF>...<Rf><CM>` — footnote markers, not SN tags, skipped\n\nNo implicit markers needed here; all KJV SNs have Chinese correspondents.",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.0,
+    "placement": 0.2857,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 14,
+     "total_model_tags": 21,
+     "missing": [
+      "<WTH8799>",
+      "<WAH09001>",
+      "<WAH01961>",
+      "<WAH01961>"
+     ],
+     "extra": [
+      "<WH0430>",
+      "<WH03117>",
+      "<WH08064>",
+      "<WH06153>",
+      "<RF>",
+      "<WH08145>",
+      "<Rf>",
+      "<CM>",
+      "<WH07549>",
+      "<WH07121>"
+     ],
+     "misplaced": 10,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 23.1
+  },
+  {
+   "ref": "Gen 1:9",
+   "kjv_sn_count": 15,
+   "unv_sn_count": 18,
+   "diff": 3,
+   "model_output": "神<WH0430>說<WH0559><WTH8799>：「天<WH08064>下的水<WH04325>要聚<WH06960><WTH8735>在<WH0413>一<WH0259>處<WH04725>，使旱地<WH03004>露出來<WH07200><WTH8735>。」事就這樣成了。\n\n---\n\nAlignment notes:\n\n| KJV token | SN | UNV placement | Rationale |\n|---|---|---|---|\n| God | WH0430 | 神 | Direct equivalent |\n| said | WH0559+WTH8799 | 說 | Core verb + morphology |\n| waters | WH04325 | 水 | Direct equivalent |\n| heaven | WH08064 | 天 (in 天下) | שָׁמַיִם = heaven; 下 is the spatial particle, no separate KJV SN |\n| gathered together | WH06960+WTH8735 | 聚 | Core verb + morphology |\n| unto | WH0413 | 在 | אֶל = to/unto → locative 在 |\n| one | WH0259 | 一 | Direct equivalent |\n| place | WH04725 | 處 | מָקֹום → 處 |\n| dry (`<FI>land<Fi>`) | WH03004 (only) | 旱地 | יַבָּשָׁה = \"dry ground\" as a noun; italic \"land\" has no SN, so WH03004 covers 旱地 whole |\n| appear | WH07200+WTH8735 | 露出來 | רָאָה niphal = appear/be seen |\n| *and it was so* | *(no SNs in KJV)* | 事就這樣成了 | No tags assigned |",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.6111,
+    "placement": 0.2778,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 18,
+     "total_model_tags": 15,
+     "missing": [
+      "<WTH8799>",
+      "<WAH08478>",
+      "<WAH04480>",
+      "<WAH01961>",
+      "<WAH03651>"
+     ],
+     "extra": [
+      "<FI>",
+      "<Fi>"
+     ],
+     "misplaced": 13,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 75.7
+  },
+  {
+   "ref": "Gen 1:10",
+   "kjv_sn_count": 18,
+   "unv_sn_count": 17,
+   "diff": 1,
+   "model_output": "神<WH0430>稱<WH07121><WTH8799>旱地<WH03004>為「地<WH0776>」，稱<WH07121><WTH8804>水<WH04325>的聚處<WH04723>為「海<WH03220>」。　神<WH0430>看著<WH07200><WTH8799>是好<WH02896>的。\n\n**Alignment notes:**\n- `dry<WH03004>` → 旱地 (Hebrew יַבָּשָׁה = dry land as a unit; KJV's `<FI>land<Fi>` is a translator addition with no SN)\n- `Earth<WH0776>` → 地 inside the quotation marks (the name being assigned)\n- `gathering together<WH04723>` / `waters<WH04325>` → 水 ... 聚處 reordered per Chinese syntax (SN follow their respective words)\n- `called<WH07121><WTH8804>` second occurrence (perfect tense) → second 稱\n- `saw<WH07200><WTH8799>` → 看著 (aspect marker 著 is syntactically Chinese; SN placed after the whole unit)\n- `<FI>it was<Fi>` / 是 → no SN (italics = KJV translator addition)\n- `good<WH02896>` → 好; 的 is a Chinese grammatical particle, no SN",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.0588,
+    "placement": 0.1765,
+    "format": 0.9412,
+    "details": {
+     "total_truth_tags": 17,
+     "total_model_tags": 27,
+     "missing": [
+      "<WAH09001>",
+      "<WAH09001>",
+      "{<WAH03588>}"
+     ],
+     "extra": [
+      "<WTH8799>",
+      "<FI>",
+      "<FI>",
+      "<WH04723>",
+      "<Fi>",
+      "<Fi>",
+      "<WH03004>",
+      "<WH04325>",
+      "<WTH8804>",
+      "<WH0776>"
+     ],
+     "misplaced": 14,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH03588"
+     ]
+    }
+   },
+   "time": 42.1
+  },
+  {
+   "ref": "Gen 1:11",
+   "kjv_sn_count": 26,
+   "unv_sn_count": 26,
+   "diff": 0,
+   "model_output": "神<WH0430>說<WH0559><WTH8799>：「地<WH0776>要發生<WH01876><WTH8686>青草<WH01877>和結<WH02232><WTH8688>種子<WH02233>的菜蔬<WH06212>，並結<WH06213><WTH8802>果子<WH06529>的樹木<WH06086>，各從其類<WH04327>，{<WH0834>}果子<WH06529>都包著核<WH02233>。」{<WH0776>}事就這樣成了。\n\n---\n\nAlignment notes for this verse:\n\n| KJV | SN | UNV |\n|---|---|---|\n| God | WH0430 | 神 |\n| said | WH0559 WTH8799 | 說 |\n| earth (1st) | WH0776 | 地 |\n| bring forth | WH01876 WTH8686 | 發生 |\n| grass | WH01877 | 青草 |\n| herb | WH06212 | 菜蔬 |\n| yielding (herb) | WH02232 WTH8688 | 結 |\n| seed (1st) | WH02233 | 種子 |\n| fruit (in \"fruit tree\") | WH06529 | 果子 (in 結果子的) |\n| tree | WH06086 | 樹木 |\n| yielding (tree) | WH06213 WTH8802 | 結 |\n| kind | WH04327 | 類 |\n| whose | WH0834 | {implicit} |\n| fruit (2nd) | WH06529 | 果子 (in 果子都包著) |\n| seed (2nd) | WH02233 | 核 |\n| earth (2nd) | WH0776 | {implicit} |\n\nTwo decisions worth flagging:\n\n1. **Double WH06529**: Hebrew `עֵץ פְּרִי עֹשֶׂה פְּרִי` (tree-of-fruit making-fruit) appears once in Chinese as `結果子的樹木`. I split the two WH06529 instances across the two natural positions: first to `果子` in `結果子的`, second to `果子` in `果子都包著核`.\n\n2. **Second WH0776** (\"upon the earth\"): absent from UNV, placed as `{<WH0776>}` after the closing quote, before `事就這樣成了`.",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.7308,
+    "placement": 0.2308,
+    "format": 0.9231,
+    "details": {
+     "total_truth_tags": 26,
+     "total_model_tags": 21,
+     "missing": [
+      "<WTH8799>",
+      "{<WAH05921>}",
+      "<WAH09001>",
+      "{<WAH09002>}",
+      "<WAH03651>",
+      "<WAH01961>"
+     ],
+     "extra": [
+      "{<WH0776>}"
+     ],
+     "misplaced": 20,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH09002",
+      "WAH05921"
+     ]
+    }
+   },
+   "time": 115.6
+  },
+  {
+   "ref": "Gen 1:12",
+   "kjv_sn_count": 25,
+   "unv_sn_count": 24,
+   "diff": 1,
+   "model_output": "於是地<WH0776>發生<WH03318><WTH8686>了青草<WH01877>和結<WH02232><WTH8688>種子<WH02233>的菜蔬<WH06212>，各從其類<WAH09001><WH04327>；並結<WH06213><WTH8802>果子<WH06529>的樹木<WH06086>，各從其類<WAH09001><WH04327>；果子都包著核<WH02233>。　神<WH0430>看<WH07200><WTH8799>著是好<WH02896>的。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.875,
+    "placement": 0.7917,
+    "format": 0.875,
+    "details": {
+     "total_truth_tags": 24,
+     "total_model_tags": 21,
+     "missing": [
+      "{<WAH09002>}",
+      "{<WAH03588>}",
+      "{<WAH0834>}"
+     ],
+     "extra": [],
+     "misplaced": 5,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH0834",
+      "WAH09002",
+      "WAH03588"
+     ]
+    }
+   },
+   "time": 56.9
+  },
+  {
+   "ref": "Gen 1:13",
+   "kjv_sn_count": 7,
+   "unv_sn_count": 8,
+   "diff": 1,
+   "model_output": "有晚上<WH06153>，有早晨<WH01242>，是第三<WH07992>日<WH03117>。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.5,
+    "placement": 1.0,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 8,
+     "total_model_tags": 4,
+     "missing": [
+      "<WTH8799>",
+      "<WTH8799>",
+      "<WAH01961>",
+      "<WAH01961>"
+     ],
+     "extra": [],
+     "misplaced": 0,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 16.9
+  },
+  {
+   "ref": "Gen 1:14",
+   "kjv_sn_count": 16,
+   "unv_sn_count": 25,
+   "diff": 9,
+   "model_output": "神<WH0430>說<WH0559><WTH8799>：「天<WH08064>上<WAH09002><WH07549>要有光體<WH03974>，可以分<WH0914><WTH8687>晝<WH03117>夜<WH03915>，作記號<WH0226>，定節令<WH04150>、日子<WH03117>、年歲<WH08141>，\n\n---\n\n**Alignment notes** (for review, not part of output):\n\n| KJV | SN | UNV |\n|---|---|---|\n| God | WH0430 | 神 |\n| said | WH0559 + WTH8799 | 說 |\n| heaven | WH08064 | 天 |\n| firmament | WH07549 | 上 (+ WAH09002 for ב prefix implied by locative 上) |\n| lights | WH03974 | 光體 |\n| divide | WH0914 + WTH8687 | 分 |\n| day (daytime) | WH03117 | 晝 |\n| night | WH03915 | 夜 |\n| signs | WH0226 | 記號 |\n| seasons | WH04150 | 節令 |\n| days | WH03117 | 日子 |\n| years | WH08141 | 年歲 |\n\n**Decisions:**\n- `<RF>...<Rf>` footnote marker dropped (KJV editorial note, no Hebrew)\n- Added `<WAH09002>` before `<WH07549>` on 上: the Hebrew בִּרְקִיעַ has inseparable ב (\"in\"), and Chinese 上 carries that locative sense\n- \"Let there be\" (要有), \"可以\", \"作\", \"定\" have no SN in KJV input, so none added",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.44,
+    "placement": 0.4,
+    "format": 0.88,
+    "details": {
+     "total_truth_tags": 25,
+     "total_model_tags": 19,
+     "missing": [
+      "<WTH8799>",
+      "{<WAH01961>}",
+      "{<WAH0996>}",
+      "{<WAH0996>}",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WAH01961>",
+      "{<WTH8804>}"
+     ],
+     "extra": [
+      "<RF>",
+      "<Rf>",
+      "<WAH09002>",
+      "<WH07549>"
+     ],
+     "misplaced": 15,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WTH8804",
+      "WAH0996",
+      "WAH01961"
+     ]
+    }
+   },
+   "time": 59.7
+  },
+  {
+   "ref": "Gen 1:15",
+   "kjv_sn_count": 6,
+   "unv_sn_count": 15,
+   "diff": 9,
+   "model_output": "並要發光<WH03974>在天空<WAH09002><WH07549>{<WH08064>}，普照<WH0215><WTH8687>在地上<WH0776>。」事就這樣成了。\n\n**Alignment rationale:**\n\n| KJV | SN | UNV | Notes |\n|-----|----|-----|-------|\n| lights | WH03974 | 發光 | \"be for lights\" → Chinese verbal form |\n| firmament | WH07549 | 天空 | WAH09002 added for Hebrew ב prefix (在=in) |\n| heaven | WH08064 | (implicit) | No separate Chinese word for \"of heaven\"; `{<WH08064>}` |\n| give light | WH0215 + WTH8687 | 普照 | Morphology follows core SN |\n| earth | WH0776 | 地上 | 在地上 = upon the earth; עַל not an inseparable prefix, no 900x |",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.2667,
+    "placement": 1.0,
+    "format": 0.9333,
+    "details": {
+     "total_truth_tags": 15,
+     "total_model_tags": 8,
+     "missing": [
+      "<WTH8799>",
+      "<WAH05921>",
+      "<WH08064>",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WAH01961>",
+      "<WAH01961>",
+      "<WTH8804>",
+      "<WAH03651>"
+     ],
+     "extra": [
+      "{<WH08064>}",
+      "{<WH08064>}"
+     ],
+     "misplaced": 0,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WH08064"
+     ]
+    }
+   },
+   "time": 67.7
+  },
+  {
+   "ref": "Gen 1:16",
+   "kjv_sn_count": 19,
+   "unv_sn_count": 21,
+   "diff": 2,
+   "model_output": "於是　神<WH0430>造了<WH06213><WTH8799>兩個<WH08147>大<WH01419>光<WH03974>，大的<WH01419>{<WH03974>}管<WH04475>晝<WH03117>，小的<WH06996>{<WH03974>}管<WH04475>夜<WH03915>，又造眾星<WH03556>，\n\n---\n\n**Alignment notes** (for transparency, not part of output):\n\n| KJV | SN | UNV | Decision |\n|---|---|---|---|\n| And | — | 於是 | No SN in KJV → no tag |\n| God | WH0430 | 神 | Direct match |\n| made | WH06213 + WTH8799 | 造了 | Core + morphology together |\n| two | WH08147 | 兩個 | Direct match |\n| great | WH01419 | 大 (in 大光) | First occurrence |\n| lights | WH03974 | 光 | First occurrence |\n| the greater | WH01419 | 大的 | Second occurrence |\n| light (2nd) | WH03974 | — | No Chinese char → `{<WH03974>}` implicit |\n| to rule | WH04475 | 管 | First instance |\n| the day | WH03117 | 晝 | Direct match |\n| the lesser | WH06996 | 小的 | Direct match |\n| light (3rd) | WH03974 | — | No Chinese char → `{<WH03974>}` implicit |\n| to rule | WH04475 | 管 | Second instance |\n| the night | WH03915 | 夜 | Direct match |\n| `<FI>`he made`<Fi>` | — | 又造 | KJV italic = translator addition, no SN → no tag |\n| the stars | WH03556 | 眾星 | Direct match |",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.5238,
+    "placement": 1.0,
+    "format": 0.9524,
+    "details": {
+     "total_truth_tags": 21,
+     "total_model_tags": 19,
+     "missing": [
+      "{<WAH0853>}",
+      "{<WAH0853>}",
+      "{<WAH0853>}",
+      "{<WAH0853>}",
+      "<WAH09001>",
+      "<WAH09001>"
+     ],
+     "extra": [
+      "{<WH03974>}",
+      "{<WH03974>}",
+      "<FI>",
+      "<Fi>"
+     ],
+     "misplaced": 0,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH0853"
+     ]
+    }
+   },
+   "time": 42.5
+  },
+  {
+   "ref": "Gen 1:17",
+   "kjv_sn_count": 8,
+   "unv_sn_count": 12,
+   "diff": 4,
+   "model_output": "就{<WH0430>}把這些光擺列<WH05414><WTH8799>在天空<WH07549>{<WH08064>}，普照<WH0215><WTH8687>在地<WH0776>上，\n\n**Alignment notes:**\n- `God<WH0430>` → subject dropped in Chinese (implicit subject carried from prior verse) → `{<WH0430>}`\n- `set<WH05414><WTH8799>` → 擺列\n- `firmament<WH07549>` → 天空 (primary mapping; Hebrew רָקִיעַ)\n- `heaven<WH08064>` → implicit `{<WH08064>}` because 天空 already absorbs the compound הַשָּׁמָיִם (UNV collapses \"firmament of the heaven\" into single 天空)\n- `give light<WH0215><WTH8687>` → 普照\n- `earth<WH0776>` → 地",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.0,
+    "placement": 0.8333,
+    "format": 0.75,
+    "details": {
+     "total_truth_tags": 12,
+     "total_model_tags": 18,
+     "missing": [
+      "<WAH05921>",
+      "<WAH09001>",
+      "<WAH09002>",
+      "{<WAH0430>}",
+      "<WAH0853>"
+     ],
+     "extra": [
+      "<WH0430>",
+      "<WTH8799>",
+      "<WTH8687>",
+      "<WH0215>",
+      "{<WH0430>}",
+      "{<WH0430>}",
+      "{<WH08064>}",
+      "{<WH08064>}",
+      "<WH0776>",
+      "<WH07549>"
+     ],
+     "misplaced": 2,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WH0430",
+      "WH08064",
+      "WAH0430"
+     ]
+    }
+   },
+   "time": 38.0
+  },
+  {
+   "ref": "Gen 1:18",
+   "kjv_sn_count": 14,
+   "unv_sn_count": 19,
+   "diff": 5,
+   "model_output": "管理<WH04910><WTH8800>晝<WAH09002><WH03117>夜<WAH09002><WH03915>，分別<WH0914><WTH8687>明<WH0216>暗<WH02822>。　神<WH0430>看著<WH07200><WTH8799>是好<WH02896>的。\n\n**Alignment notes:**\n- `rule<WH04910><WTH8800>` → 管理 (morphology follows core SN)\n- `day<WH03117>` → 晝, `night<WH03915>` → 夜, both with `<WAH09002>` 900x prefix (Hebrew ב inseparable preposition \"over/in\", בַּיּוֹם / בַּלַּיְלָה)\n- `divide<WH0914><WTH8687>` → 分別\n- `light<WH0216>` → 明, `darkness<WH02822>` → 暗\n- `God<WH0430>` → 神\n- `saw<WH07200><WTH8799>` → 看著\n- `good<WH02896>` → 好 (是 and 的 are implied Chinese grammatical particles, no SN)\n- `<FI>it was<Fi>` — KJV italic (implied), no SN to transfer",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.0,
+    "placement": 0.9474,
+    "format": 0.8947,
+    "details": {
+     "total_truth_tags": 19,
+     "total_model_tags": 29,
+     "missing": [
+      "{<WAH0996>}",
+      "{<WAH0996>}",
+      "<WAH09001>",
+      "<WAH09001>",
+      "{<WAH03588>}"
+     ],
+     "extra": [
+      "<WH0914>",
+      "<WH0430>",
+      "<WTH8799>",
+      "<WH03117>",
+      "<WTH8687>",
+      "<WH04910>",
+      "<WH03915>",
+      "<FI>",
+      "<Fi>",
+      "<WH0216>"
+     ],
+     "misplaced": 1,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH03588",
+      "WAH0996"
+     ]
+    }
+   },
+   "time": 36.2
+  },
+  {
+   "ref": "Gen 1:19",
+   "kjv_sn_count": 7,
+   "unv_sn_count": 8,
+   "diff": 1,
+   "model_output": "有晚上<WH06153>，有早晨<WH01242>，是第四<WH07243>日<WH03117>。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.5,
+    "placement": 1.0,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 8,
+     "total_model_tags": 4,
+     "missing": [
+      "<WTH8799>",
+      "<WTH8799>",
+      "<WAH01961>",
+      "<WAH01961>"
+     ],
+     "extra": [],
+     "misplaced": 0,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 12.2
+  },
+  {
+   "ref": "Gen 1:20",
+   "kjv_sn_count": 27,
+   "unv_sn_count": 18,
+   "diff": 9,
+   "model_output": "神<WH0430>說<WH0559><WTH8799>：「水<WH04325>要多多滋生<WH08317><WTH8799>有<WH05315>生命<WH02416>的物<WH08318>；要有雀鳥<WH05775>飛<WH05774><WTH8787>在地面<WH0776>以上<WH05921>，天<WH08064>空<WH07549>之中<WH06440>。」\n\n**Alignment notes:**\n- `WH05315` (נֶפֶשׁ, \"that hath\") → 有 (have/possess)\n- `WH02416` (חַי, \"life\") → 生命\n- `WH08318` (שֶׁרֶץ, \"moving creature\") → 物\n- `WH06440` (פָּנִים, \"open/face of\") → 之中 (the compressed \"face of the firmament\" idea)\n- `WH07549` (רָקִיעַ, \"firmament\") → 空\n- `<FI>that<Fi>` and `<RF>...<Rf>` markers skipped — formatting/footnote only, not SN tags\n- No 900x prefixes added: UNV uses freestanding 在 and 之中 (not inseparable prefix markers)",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.7222,
+    "placement": 0.0556,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 18,
+     "total_model_tags": 21,
+     "missing": [
+      "<WAH05921>"
+     ],
+     "extra": [
+      "<FI>",
+      "<RF>",
+      "<Fi>",
+      "<Rf>"
+     ],
+     "misplaced": 17,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 75.9
+  },
+  {
+   "ref": "Gen 1:21",
+   "kjv_sn_count": 22,
+   "unv_sn_count": 29,
+   "diff": 7,
+   "model_output": "神`<WH0430>`就造出`<WH01254><WTH8799>`大`<WH01419>`魚`<WH08577>`和水`<WH04325>`中所滋生`<WH08317><WTH8804>`各樣有生命的`<WH02416>`動物`<WH05315><WH07430><WTH8802>`，各從其`<WAH09001>`類`<WH04327>`；又造出各樣飛`<WH03671>`鳥`<WH05775>`，各從其`<WAH09001>`類`<WH04327>`。　神`<WH0430>`看著`<WH07200><WTH8799>`是好`<WH02896>`的。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.7586,
+    "placement": 0.2759,
+    "format": 0.931,
+    "details": {
+     "total_truth_tags": 29,
+     "total_model_tags": 22,
+     "missing": [
+      "{<WAH0853>}",
+      "{<WAH0853>}",
+      "<WAH03605>",
+      "<WAH03605>",
+      "{<WAH03588>}",
+      "<WAH0834>",
+      "<WAH0853>"
+     ],
+     "extra": [],
+     "misplaced": 21,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH03588",
+      "WAH0853"
+     ]
+    }
+   },
+   "time": 98.4
+  },
+  {
+   "ref": "Gen 1:22",
+   "kjv_sn_count": 17,
+   "unv_sn_count": 22,
+   "diff": 5,
+   "model_output": "神<WH0430>就賜福<WH01288><WTH8762>給這一切，說<WH0559><WTH8800>：「滋生<WH06509><WTH8798>繁多<WH07235><WTH8798>，充滿<WH04390><WTH8798>海<WH03220>中的水<WH04325>；雀鳥<WH05775>也要多生<WH07235><WTH8799>在地<WH0776>上。」",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.7727,
+    "placement": 0.2273,
+    "format": 0.9545,
+    "details": {
+     "total_truth_tags": 22,
+     "total_model_tags": 17,
+     "missing": [
+      "{<WAH0853>}",
+      "{<WAH0853>}",
+      "<WAH09001>",
+      "<WAH09002>",
+      "<WAH09002>"
+     ],
+     "extra": [],
+     "misplaced": 17,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH0853"
+     ]
+    }
+   },
+   "time": 30.1
+  },
+  {
+   "ref": "Gen 1:23",
+   "kjv_sn_count": 7,
+   "unv_sn_count": 8,
+   "diff": 1,
+   "model_output": "有晚上<WH06153>，有早晨<WH01242>，是第五<WH02549>日<WH03117>。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.5,
+    "placement": 1.0,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 8,
+     "total_model_tags": 4,
+     "missing": [
+      "<WTH8799>",
+      "<WTH8799>",
+      "<WAH01961>",
+      "<WAH01961>"
+     ],
+     "extra": [],
+     "misplaced": 0,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 8.8
+  },
+  {
+   "ref": "Gen 1:24",
+   "kjv_sn_count": 14,
+   "unv_sn_count": 19,
+   "diff": 5,
+   "model_output": "神<WH0430>說<WH0559><WTH8799>：「地<WH0776>要生出<WH03318><WTH8686>活<WH02416>物<WH05315>來，各從其類<WH04327>；牲畜<WH0929>、昆蟲<WH07431>、野獸<WH02416>{<WH0776>}，各從其類<WH04327>。」事就這樣成了。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.6316,
+    "placement": 0.3158,
+    "format": 0.9474,
+    "details": {
+     "total_truth_tags": 19,
+     "total_model_tags": 14,
+     "missing": [
+      "<WTH8799>",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WAH01961>",
+      "<WH0776>",
+      "<WAH03651>"
+     ],
+     "extra": [
+      "{<WH0776>}"
+     ],
+     "misplaced": 13,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WH0776"
+     ]
+    }
+   },
+   "time": 47.2
+  },
+  {
+   "ref": "Gen 1:25",
+   "kjv_sn_count": 18,
+   "unv_sn_count": 23,
+   "diff": 5,
+   "model_output": "於是　神<WH0430>造出<WH06213><WTH8799>野獸<WH02416>{<WH0776>}，各從其類<WH04327>；牲畜<WH0929>，各從其類<WH04327>；地上<WH0127>一切昆蟲<WH07431>，各從其類<WH04327>。　神<WH0430>看著<WH07200><WTH8799>是好的<WH02896>。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.5652,
+    "placement": 1.0,
+    "format": 0.8696,
+    "details": {
+     "total_truth_tags": 23,
+     "total_model_tags": 15,
+     "missing": [
+      "{<WAH0853>}",
+      "{<WAH0853>}",
+      "{<WAH0853>}",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WAH03605>",
+      "<WH0776>",
+      "{<WAH03588>}"
+     ],
+     "extra": [
+      "{<WH0776>}"
+     ],
+     "misplaced": 0,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH03588",
+      "WH0776",
+      "WAH0853"
+     ]
+    }
+   },
+   "time": 30.1
+  },
+  {
+   "ref": "Gen 1:26",
+   "kjv_sn_count": 20,
+   "unv_sn_count": 30,
+   "diff": 10,
+   "model_output": "神<WH0430>說<WH0559><WTH8799>：「我們要照著我們的形像<WAH09002><WH06754>、按著我們的樣式<WAH09003><WH01823>造<WH06213><WTH8799>人<WH0120>，使他們管理<WH07287><WTH8799>海<WH03220>裡的魚<WAH09002><WH01710>、空<WH08064>中的鳥<WAH09002><WH05775>、地上的牲畜<WAH09002><WH0929>，和全地<WAH09002><WH0776>，並地<WH0776>上所爬<WH07430><WTH8802>的一切昆蟲<WAH09002><WH07431>。」\n\n---\n\n**Alignment notes:**\n\n| KJV | SN | UNV | Decision |\n|---|---|---|---|\n| God | WH0430 | 神 | direct |\n| said | WH0559+WTH8799 | 說 | direct |\n| make | WH06213+WTH8799 | 造 | direct |\n| man | WH0120 | 人 | direct |\n| image | WH06754 | 形像 | + WAH09002 for Hebrew בְּ (in) |\n| likeness | WH01823 | 樣式 | + WAH09003 for Hebrew כְּ (after/like) |\n| have dominion | WH07287+WTH8799 | 管理 | direct |\n| sea | WH03220 | 海 | direct |\n| fish | WH01710 | 魚 | + WAH09002 for Hebrew בִדְגַת |\n| air/heaven | WH08064 | 空 | direct (שָּׁמַיִם) |\n| fowl | WH05775 | 鳥 | + WAH09002 for Hebrew וּבְעוֹף |\n| cattle | WH0929 | 牲畜 | + WAH09002 for Hebrew וּבַ |\n| earth (×1) | WH0776 | 全地 | + WAH09002 for Hebrew וּבְכָל |\n| creeping thing | WH07431 | 昆蟲 | + WAH09002 for Hebrew וּבְכָל |\n| creepeth | WH07430+WTH8802 | 爬 | direct |\n| earth (×2) | WH0776 | 地 (並地上…) | עַל-הָאָרֶץ, no ב prefix |\n\nThe 地 in 地上的牲畜 has no Hebrew correspondent (Hebrew has only וּבַבְּהֵמָה — cattle without \"earth\") and receives no SN tag.",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.9,
+    "placement": 0.1333,
+    "format": 1.0,
+    "details": {
+     "total_truth_tags": 30,
+     "total_model_tags": 27,
+     "missing": [
+      "<WAH05921>",
+      "<WAH03605>",
+      "<WAH03605>"
+     ],
+     "extra": [],
+     "misplaced": 26,
+     "format_issues": [],
+     "brace_mismatches": []
+    }
+   },
+   "time": 131.0
+  },
+  {
+   "ref": "Gen 1:27",
+   "kjv_sn_count": 15,
+   "unv_sn_count": 18,
+   "diff": 3,
+   "model_output": "神<WH0430>就照著<WAH09002>自己的形像<WH06754>造<WH01254><WTH8799>人<WH0120>，乃是照著<WAH09002>他{<WH0430>}的形像<WH06754>造<WH01254><WTH8804>男<WH02145>造<WH01254><WTH8804>女<WH05347>。\n\n**Alignment notes:**\n\n| KJV phrase | UNV | SN placed |\n|---|---|---|\n| God (1st) | 神 | `<WH0430>` explicit |\n| in his own image | 照著自己的形像 | `<WAH09002>` (ב inferred) + `<WH06754>` |\n| created (1st, WTH8799) | 造 | `<WH01254><WTH8799>` |\n| man | 人 | `<WH0120>` |\n| in the image of God (2nd) | 照著他的形像 | `<WAH09002>` + `{<WH0430>}` implicit (UNV uses pronoun 他 instead of repeating 神) + `<WH06754>` |\n| created (2nd, WTH8804) | 造 (造男) | `<WH01254><WTH8804>` |\n| male | 男 | `<WH02145>` |\n| created (3rd, WTH8804) | 造 (造女) | `<WH01254><WTH8804>` |\n| female | 女 | `<WH05347>` |\n\nKey decision: KJV repeats \"God\" (`<WH0430>`) explicitly in clause 2 (\"in the image of **God**\"), but UNV substitutes the pronoun 他. Marked as implicit `{<WH0430>}` since no Chinese character directly corresponds to אֱלֹהִים there.",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.0,
+    "placement": 0.1667,
+    "format": 0.8889,
+    "details": {
+     "total_truth_tags": 18,
+     "total_model_tags": 32,
+     "missing": [
+      "{<WAH0853>}",
+      "{<WAH0853>}",
+      "{<WAH0853>}"
+     ],
+     "extra": [
+      "<WH06754>",
+      "<WH06754>",
+      "<WH0430>",
+      "<WTH8799>",
+      "<WH02145>",
+      "{<WH0430>}",
+      "{<WH0430>}",
+      "{<WH0430>}",
+      "<WH0120>",
+      "<WH01254>"
+     ],
+     "misplaced": 15,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WH0430",
+      "WAH0853"
+     ]
+    }
+   },
+   "time": 95.7
+  },
+  {
+   "ref": "Gen 1:28",
+   "kjv_sn_count": 28,
+   "unv_sn_count": 33,
+   "diff": 5,
+   "model_output": "神<WH0430>就賜福<WH01288><WTH8762>給他們，又{<WH0430>}對他們說<WH0559><WTH8799>：「要生養<WH06509><WTH8798>眾多<WH07235><WTH8798>，遍滿<WH04390><WTH8798>地面<WH0776>，治理<WH03533><WTH8798>這地，也要管理<WH07287><WTH8798>海<WH03220>裡的魚<WH01710>、空中<WH08064>的鳥<WH05775>，和地<WH0776>上各樣行動<WH07430><WTH8802>的活物<WH02416>。」",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.7576,
+    "placement": 0.303,
+    "format": 0.9697,
+    "details": {
+     "total_truth_tags": 33,
+     "total_model_tags": 25,
+     "missing": [
+      "<WAH05921>",
+      "{<WAH0853>}",
+      "<WAH09001>",
+      "<WAH03605>",
+      "<WAH09002>",
+      "<WAH09002>",
+      "<WAH09002>",
+      "<WAH0853>"
+     ],
+     "extra": [],
+     "misplaced": 23,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH0853"
+     ]
+    }
+   },
+   "time": 66.2
+  },
+  {
+   "ref": "Gen 1:29",
+   "kjv_sn_count": 29,
+   "unv_sn_count": 31,
+   "diff": 2,
+   "model_output": "神<WH0430>說<WH0559><WTH8799>：「看哪<WH02009>，我將遍地<WH0776>上<WH06440>一切結<WH02232><WTH8802>種子<WH02233>的菜蔬<WH06212>和一切樹<WH06086>上{<WH06086>}所結<WH02232><WTH8802>有核<WH02233>的果子<WH06529>全賜給<WH05414><WTH8804>你們作<WH01961><WTH8799>食物<WH0402>。\n\n---\n\n**Alignment decisions:**\n\n| KJV | SN | UNV | Notes |\n|---|---|---|---|\n| God | WH0430 | 神 | direct |\n| said | WH0559 WTH8799 | 說 | direct |\n| Behold | WH02009 | 看哪 | direct |\n| earth | WH0776 | 地 | 遍地上 = upon all the earth |\n| face | WH06440 | 上 | 地上 = on the face of the earth |\n| bearing | WH02232 WTH8802 | 結 (first) | 結種子的 |\n| seed | WH02233 | 種子 (first) | |\n| herb | WH06212 | 菜蔬 | |\n| tree (1st) | WH06086 | 樹 | 一切樹 |\n| tree (2nd) | WH06086 | {implicit} | UNV doesn't repeat 樹; placed as `{<WH06086>}` |\n| yielding | WH02232 WTH8802 | 所結 (second) | same SN, second occurrence |\n| seed | WH02233 | 有核 | \"having a pit/kernel\" = yielding seed |\n| fruit | WH06529 | 果子 | |\n| given | WH05414 WTH8804 | 賜給 | |\n| shall be | WH01961 WTH8799 | 作 | as/for |\n| meat | WH0402 | 食物 | |",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.5806,
+    "placement": 0.4194,
+    "format": 0.9355,
+    "details": {
+     "total_truth_tags": 31,
+     "total_model_tags": 22,
+     "missing": [
+      "<WAH05921>",
+      "<WAH03605>",
+      "<WAH03605>",
+      "<WAH03605>",
+      "<WAH09001>",
+      "<WAH09001>",
+      "<WAH0834>",
+      "<WAH09002>",
+      "<WAH0853>",
+      "<WAH0853>"
+     ],
+     "extra": [
+      "{<WH06086>}",
+      "{<WH06086>}"
+     ],
+     "misplaced": 18,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH0834",
+      "WH06086"
+     ]
+    }
+   },
+   "time": 86.3
+  },
+  {
+   "ref": "Gen 1:30",
+   "kjv_sn_count": 19,
+   "unv_sn_count": 27,
+   "diff": 8,
+   "model_output": "至於<WAH09001>地<WH0776>上的走獸<WH02416>和空中<WH08064>的飛鳥<WH05775>，並各樣爬<WH07430><WTH8802>在地<WH0776>上有生命<WH02416><WH05315>的物，我將青<WH03418>草<WH06212>賜給牠們作食物<WH0402>。」事就這樣成了。",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.4815,
+    "placement": 0.8519,
+    "format": 0.8519,
+    "details": {
+     "total_truth_tags": 27,
+     "total_model_tags": 13,
+     "missing": [
+      "<WTH8799>",
+      "<WAH05921>",
+      "<WAH09001>",
+      "<WAH03605>",
+      "{<WAH03605>}",
+      "{<WAH03605>}",
+      "{<WAH03605>}",
+      "{<WAH0834>}",
+      "{<WAH09002>}",
+      "<WAH03651>"
+     ],
+     "extra": [],
+     "misplaced": 4,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH0834",
+      "WAH03605",
+      "WAH09002",
+      "WAH09001"
+     ]
+    }
+   },
+   "time": 41.1
+  },
+  {
+   "ref": "Gen 1:31",
+   "kjv_sn_count": 17,
+   "unv_sn_count": 19,
+   "diff": 2,
+   "model_output": "神<WH0430>看<WH07200><WTH8799>著一切所<WH0834>造<WH06213><WTH8804>的都甚<WH03966>好<WH02896>。有晚上<WH06153>，有早晨<WH01242>，是第六<WH08345>日<WH03117>。\n\n**Alignment notes:**\n- `God→神`, `saw→看`, `every thing that→一切所` (WH0834=אשר relative pronoun → 所), `made→造`, `very→甚`, `good→好`\n- `evening→晚上`, `morning→早晨`, `sixth→六` (in 第六), `day→日`\n- `著` (aspect marker), `都`, `有×2`, `是第`, `。，` — no KJV SN counterparts, left bare\n- `<FI>it was<Fi>` (KJV italics = not in Hebrew), `and behold`, `<RF>...<Rf>` footnote — all discarded, no SNs\n- No 900x prefixes added since the Hebrew prepositions implied by 有 aren't tagged in KJV",
+   "score": {
+    "exact_match": false,
+    "coverage": 0.3158,
+    "placement": 0.4211,
+    "format": 0.8947,
+    "details": {
+     "total_truth_tags": 19,
+     "total_model_tags": 16,
+     "missing": [
+      "<WTH8799>",
+      "<WTH8799>",
+      "{<WAH0853>}",
+      "{<WAH02009>}",
+      "<WAH03605>",
+      "<WAH0834>",
+      "<WAH01961>",
+      "<WAH01961>"
+     ],
+     "extra": [
+      "<FI>",
+      "<RF>",
+      "<Fi>",
+      "<WH0834>",
+      "<Rf>"
+     ],
+     "misplaced": 11,
+     "format_issues": [],
+     "brace_mismatches": [
+      "WAH02009",
+      "WAH0853"
+     ]
+    }
+   },
+   "time": 45.7
+  }
+ ]
+}

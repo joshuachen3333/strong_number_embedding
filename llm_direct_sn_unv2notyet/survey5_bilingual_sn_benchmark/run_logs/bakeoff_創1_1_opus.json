@@ -1,0 +1,115 @@
+{
+  "book": "創",
+  "chap": 1,
+  "sec": "1",
+  "model": "opus",
+  "configs": "A,B",
+  "results": {
+    "A": [
+      {
+        "chap": 1,
+        "sec": 1,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.0,
+          "placement": 1.0,
+          "format": 0.8889,
+          "details": {
+            "total_truth_tags": 9,
+            "total_model_tags": 0,
+            "missing": [
+              "<H8804>",
+              "{<H853>}",
+              "{<H853>}",
+              "<H7225>",
+              "<H1254>",
+              "<H8064>",
+              "<H776>",
+              "<H430>",
+              "<H9002>"
+            ],
+            "extra": [],
+            "misplaced": 0,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853"
+            ]
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 1,
+        "tiers": {
+          "wlc_only": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          },
+          "rock": {
+            "placed": 0,
+            "total": 7,
+            "frac": 0.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          }
+        },
+        "output": "The prompt was a benchmark annotation task (me acting as the model-under-test for survey5's KJV/WLC→UNV SN-placement), not a design decision or directive — nothing to curate into prompt.history. Skipping per the Record/Skip rules."
+      }
+    ],
+    "B": [
+      {
+        "chap": 1,
+        "sec": 1,
+        "score": {
+          "exact_match": false,
+          "coverage": 0.0,
+          "placement": 1.0,
+          "format": 0.8889,
+          "details": {
+            "total_truth_tags": 9,
+            "total_model_tags": 0,
+            "missing": [
+              "<H8804>",
+              "{<H853>}",
+              "{<H853>}",
+              "<H7225>",
+              "<H1254>",
+              "<H8064>",
+              "<H776>",
+              "<H430>",
+              "<H9002>"
+            ],
+            "extra": [],
+            "misplaced": 0,
+            "format_issues": [],
+            "brace_mismatches": [
+              "H853"
+            ]
+          }
+        },
+        "n9_placed": 0,
+        "n9_total": 1,
+        "tiers": {
+          "wlc_only": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          },
+          "rock": {
+            "placed": 0,
+            "total": 7,
+            "frac": 0.0
+          },
+          "kjv_only": {
+            "placed": 0,
+            "total": 1,
+            "frac": 0.0
+          }
+        },
+        "output": "Recorded to `prompt.history`. The annotated line is delivered above."
+      }
+    ]
+  }
+}

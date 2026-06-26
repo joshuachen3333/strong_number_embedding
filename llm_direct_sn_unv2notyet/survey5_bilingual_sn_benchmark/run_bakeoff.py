@@ -9,7 +9,9 @@ Spec: docs/superpowers/specs/2026-06-26-survey5-multisource-bakeoff-design.md
 import argparse
 import json
 import os
+import subprocess
 import sys
+import tempfile
 import time
 
 import wlc_bridge as W
@@ -62,6 +64,35 @@ annotated UNV text on a single line, no commentary."""
 
 BUILDERS = {"A": build_a_prompt, "B": build_b_prompt}
 
+# The model-under-test must run in a CLEAN cwd. Running `claude -p` from this repo
+# dir makes it inherit our CLAUDE.md + the /ph and /logoutput skills (activated by
+# prompt.history/response.history existing here) and the hook that injects
+# "[record-prompt-history ACTIVE]" — the model then behaves as Obe (recording to
+# history) instead of doing the annotation. An empty temp cwd has none of those
+# markers, so the subprocess answers the prompt cleanly.
+_ISO_DIR = None
+
+
+def _iso_dir():
+    global _ISO_DIR
+    if _ISO_DIR is None:
+        _ISO_DIR = tempfile.mkdtemp(prefix="s5_bakeoff_iso_")
+    return _ISO_DIR
+
+
+def call_claude_isolated(model, system, user, timeout=600):
+    full = f"{system}\n\n{user}"
+    r = subprocess.run(["claude", "--model", model, "-p", full],
+                       capture_output=True, text=True, timeout=timeout, cwd=_iso_dir())
+    return r.stdout.strip()
+
+
+def call_under_test(model, brand, system, user):
+    """Dispatch to the isolated claude caller; other brands via survey5's call_model."""
+    if brand == "claude":
+        return call_claude_isolated(model, system, user)
+    return call_model(model, brand, None, system, user)
+
 
 def run_config(label, build_user, verses, book_eng, model, brand):
     rows = []
@@ -69,7 +100,7 @@ def run_config(label, build_user, verses, book_eng, model, brand):
         unv_plain = strip_sn(unv_sn)
         user = build_user(wlc_source, kjv_plain, kjv_sn, unv_plain, book_eng, chap, sec)
         t0 = time.time()
-        out = call_model(model, brand, None, SYSTEM, user)
+        out = call_under_test(model, brand, SYSTEM, user)
         if not out:
             print(f"  [{label}] {chap}:{sec}  EMPTY (skip)", flush=True)
             continue
