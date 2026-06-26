@@ -164,3 +164,16 @@ approved
 
 
 
+##     2026-06-26 09:26 CST
+
+###    User Prompt
+token 快要用完 5hr 100% 了, 請先暫停所有活動
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 5hr token 將達 100%，要求暫停所有活動
+- Diff: 暫停指令：不啟動 bake-off 執行（subagent/inline 皆不啟），等 token 視窗恢復。spec+plan 已 commit/push，狀態安全
+
+
+
+
