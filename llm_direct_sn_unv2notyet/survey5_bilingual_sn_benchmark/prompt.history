@@ -136,3 +136,31 @@ oh! 誤會, wlc 是希伯來文啊！ 那只有舊約嗎？
 
 
 
+##     2026-06-26 08:26 CST
+
+###    User Prompt
+同意「先 bake-off 用數據定案」
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 同意先做 bake-off 用數據定架構
+- Diff: 核准 bake-off 方法論，進入寫 spec 階段。預設 round1=A(WLC-only) vs B(WLC+KJV)、全現成；C(BSB,需建)留 round2
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey5_bilingual_sn_benchmark/docs/superpowers/specs/2026-06-26-survey5-multisource-bakeoff-design.md`
+
+
+
+
+##     2026-06-26 08:40 CST
+
+###    User Prompt
+approved
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 核准 bake-off spec（含 §8 四個預設決策：R1=A vs B、opus、gate 只比號碼、gate 不丟節）
+- Diff: spec 通過審查 → 進入 writing-plans 寫實作計畫
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey5_bilingual_sn_benchmark/docs/superpowers/specs/2026-06-26-survey5-multisource-bakeoff-design.md`
+
+
+
+
