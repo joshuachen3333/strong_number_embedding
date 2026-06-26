@@ -110,3 +110,16 @@ oh! 誤會, wlc 是希伯來文啊！ 那只有舊約嗎？
 
 
 
+##     2026-06-26 08:15 CST
+
+###    User Prompt
+那 clear bible 是什麼文翻譯本? 英文嗎？
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 詢問 Clear Bible 是什麼語言的翻譯本／英文嗎
+- Diff: 回答：Clear Bible＝多語對齊語料（非單一譯本）。源=希伯來WLC+希臘SBLGNT(自帶SN)；譯本=英文BSB/YLT＋法葡俄西阿印孟阿薩豪薩共10語、皆人工對齊到原文；無中文譯本。點出可用 BSB+SN 當比 KJV 更乾淨的英文橋＝新選項 C（WLC↔KJV↔BSB 三方 gate）
+
+
+
+
