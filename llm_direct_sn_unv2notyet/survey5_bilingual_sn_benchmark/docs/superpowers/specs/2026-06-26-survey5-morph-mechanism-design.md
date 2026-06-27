@@ -34,7 +34,14 @@ morph) and **learn the bridge from FHL↔WLC alignment** (not hand-coded from th
 
 Goal: produce a frozen `MORPH_BRIDGE` mapping **WLC verb form-key → FHL 8xxx code**.
 
-1. Over a training set of verses (broad OT — see §4), for each verse:
+This is a **one-time sweep over the entire Old Testament** (all 39 books) — the same
+family of work as the hand-coded 09xxx `PREFIX_BRIDGE`: a definitive WLC→FHL bridge
+built once. Sweeping the whole OT (not a subset) guarantees every stem+form
+combination is seen, so there are no "unseen form_key" gaps at apply time. The sweep
+also **re-validates the existing 09xxx PREFIX_BRIDGE** against FHL gold as a free
+by-product (same alignment, prefix tokens instead of verbs).
+
+1. Over **every OT verse**, for each verse:
    - Parse FHL UNV+SN gold into ordered `(lexical_SN, morph_code)` pairs (a morph tag
      `<WTH8804>` binds to the lexical tag immediately before it).
    - Load WLC verb tokens (`pos == "verb"`) in order, each with `(lexical_SN, form_key)`.
@@ -83,13 +90,30 @@ that naked mode already uses.
 
 ## 4. The no-leak discipline
 
-- **Learn the table over a held-out set, freeze, then apply.** The mapping
-  (form → code) is universal, so learning on Gen and testing on Gen is not strictly a
-  leak — but to demonstrate generalization we learn from a **broad OT sample**
-  (Genesis 2–50 + Exodus 1–40 to start) and keep the table fixed when scoring.
+- **One-time whole-OT sweep, freeze, then apply.** The mapping (form → code) is a
+  **universal linguistic fact** — a Qal Perfect is `8804` in every book — so building
+  the table from the whole OT (Gen 1 included) and then scoring Gen 1 is **not a leak**:
+  no verse-specific answer is memorised, only the universal rule. The earlier
+  "held-out subset" hedge is dropped; the full sweep is both simpler and gives
+  complete coverage.
 - **Never read the scored verse's own gold morph at apply time.** Apply uses only the
-  frozen table + the verse's WLC form-keys. (Reading per-verse gold would make morph
-  recall a meaningless 100%.)
+  frozen table + the verse's WLC form-keys — never that verse's UNV+SN gold. (Reading
+  per-verse gold would make morph recall a meaningless 100%.) This is the one and only
+  leak rule; the universal table itself is leak-free.
+
+## 4b. After the table: survey5 runs as the standard pipeline
+
+Once `morph_bridge.json` is frozen, the survey5 morph run is just the normal WLC-only
+flow with one extra deterministic step — no new model behaviour:
+
+```
+WLC+SN  +  UNV (plain)  --model-->  UNV with lexical+09xxx tags placed
+                         --attach_morph(frozen table)-->  UNV+SN (lexical+09xxx+morph)
+                         --score vs FHL UNV+SN gold-->  cov / placement / 09xxx / morph recall
+```
+
+So yes: build the table once, then run survey5 exactly as the bake-off already does,
+plus the `attach_morph()` pass, and score against the answer.
 
 ## 5. Components / files (survey5-local)
 
@@ -105,6 +129,10 @@ that naked mode already uses.
 `(text, lexical_num, pos, morph_str)` (the s10 `load_wlc_verse` returns only
 `(text, fhl_num)`; the bake-off will read the WLC TSV rows directly for pos/morph, or
 add a thin local loader — pinned in the plan).
+
+The whole-OT sweep also needs **all 39 OT book numbers** in a Chinese→WLC-book map
+(s10's `CHI_TO_WLC_BOOK` has only `創:01`); the learner extends it to `01`–`39` with
+the matching Chinese abbrevs for the UNV fetch.
 
 ## 6. Edge cases
 
@@ -127,8 +155,9 @@ add a thin local loader — pinned in the plan).
 
 ## 8. Open decisions (for Joshua at review)
 
-1. **Training set for learning** = Genesis 2–50 + Exodus 1–40 (broad, held-out from
-   Gen 1 test) — assumed. Bigger if coverage gaps appear.
+1. **Learning scope** = **one-time sweep of the entire OT (all 39 books)** — confirmed
+   by Joshua. Gives complete form-key coverage; the universal mapping makes this
+   leak-free even though Gen 1 is included.
 2. **Output shell** = emit morph as `<WTH{code}>` (FHL form) — assumed; scoring is
    shell-agnostic anyway, but production output should match FHL.
 3. **form_key parser** keys on stem+form, PGN/markers stripped — assumed (exact rule
