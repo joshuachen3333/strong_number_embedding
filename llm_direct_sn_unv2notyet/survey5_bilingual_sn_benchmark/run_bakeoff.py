@@ -16,6 +16,7 @@ import time
 
 import wlc_bridge as W
 import gate as G
+import morph as M  # deterministic morph attach — see morph.py
 import scoring  # format-agnostic ("naked") scoring — see scoring.py
 # Importing run_survey5 puts the parent dir and survey4 dir on sys.path, so the
 # following imports resolve afterwards.
@@ -94,7 +95,7 @@ def call_under_test(model, brand, system, user):
     return call_model(model, brand, None, system, user)
 
 
-def run_config(label, build_user, verses, book_eng, model, brand):
+def run_config(label, build_user, verses, book_eng, book2, model, brand, bridge):
     rows = []
     for (chap, sec, unv_sn, wlc_source, kjv_plain, kjv_sn) in verses:
         unv_plain = strip_sn(unv_sn)
@@ -104,42 +105,48 @@ def run_config(label, build_user, verses, book_eng, model, brand):
         if not out:
             print(f"  [{label}] {chap}:{sec}  EMPTY (skip)", flush=True)
             continue
+        # deterministic morph attach (model placed lexical; we glue morph on verbs)
+        out = M.attach_morph(out, M.wlc_verbs_for(book2, chap, sec), bridge)
         sc = scoring.num_score(out, unv_sn)  # format-agnostic (numbers in position)
         n9p, n9t = W.nines_recall(out, unv_sn)
+        mp, mt = G.morph_recall(out, unv_sn)
         tiers = G.tier_recall(out, unv_sn, wlc_source, kjv_sn)
         rows.append({"chap": chap, "sec": sec, "score": sc,
-                     "n9_placed": n9p, "n9_total": n9t, "tiers": tiers,
+                     "n9_placed": n9p, "n9_total": n9t,
+                     "morph_placed": mp, "morph_total": mt, "tiers": tiers,
                      "output": out})
         r9 = f"{n9p}/{n9t}" if n9t else "—"
+        rm = f"{mp}/{mt}" if mt else "—"
         print(f"  [{label}] {chap}:{sec}  cov={sc['coverage']:.3f} "
-              f"place={sc['placement']:.3f} 09xxx={r9} {time.time()-t0:.0f}s",
+              f"place={sc['placement']:.3f} 09xxx={r9} morph={rm} {time.time()-t0:.0f}s",
               flush=True)
     return rows
 
 
 def print_summary(results):
     print(f"\n{'='*72}\n  SUMMARY\n{'='*72}")
-    print(f"  {'cfg':<5}{'cov':>8}{'place':>8}{'fmt':>8}"
-          f"{'09xxx':>12}{'rock':>9}{'wlc_only':>10}{'kjv_only':>10}")
+    print(f"  {'cfg':<5}{'cov':>8}{'place':>8}{'09xxx':>11}{'morph':>11}"
+          f"{'rock':>8}{'wlc_only':>10}")
     for cfg, rows in results.items():
         if not rows:
             continue
         n = len(rows)
         cov = sum(r["score"]["coverage"] for r in rows) / n
         place = sum(r["score"]["placement"] for r in rows) / n
-        fmt = sum(r["score"]["format"] for r in rows) / n
         n9p = sum(r["n9_placed"] for r in rows)
         n9t = sum(r["n9_total"] for r in rows)
         n9 = f"{n9p}/{n9t} ({100*n9p/n9t:.0f}%)" if n9t else "n/a"
+        mp = sum(r.get("morph_placed", 0) for r in rows)
+        mt = sum(r.get("morph_total", 0) for r in rows)
+        mo = f"{mp}/{mt} ({100*mp/mt:.0f}%)" if mt else "n/a"
 
         def tier_frac(tier):
             p = sum(r["tiers"].get(tier, {}).get("placed", 0) for r in rows)
             t = sum(r["tiers"].get(tier, {}).get("total", 0) for r in rows)
             return f"{100*p/t:.0f}%" if t else "—"
 
-        print(f"  {cfg:<5}{cov:>8.3f}{place:>8.3f}{fmt:>8.3f}{n9:>12}"
-              f"{tier_frac('rock'):>9}{tier_frac('wlc_only'):>10}"
-              f"{tier_frac('kjv_only'):>10}")
+        print(f"  {cfg:<5}{cov:>8.3f}{place:>8.3f}{n9:>11}{mo:>11}"
+              f"{tier_frac('rock'):>8}{tier_frac('wlc_only'):>10}")
 
 
 def main():
@@ -158,6 +165,7 @@ def main():
     if not wlc_book:
         sys.exit(f"No WLC book number for {book_chi}; add to s10 CHI_TO_WLC_BOOK.")
     brand = detect_brand(args.model, None)
+    bridge = M.load_bridge()
 
     unv = fetch_chap_cached(book_chi, args.chap, "unv", strong=1)
     kjv = fetch_chap_cached(book_chi, args.chap, "kjv", strong=1)
@@ -184,7 +192,7 @@ def main():
             continue
         print(f"\n── Config {cfg} ──", flush=True)
         results[cfg] = run_config(cfg, BUILDERS[cfg], verses, book_eng,
-                                  args.model, brand)
+                                  wlc_book, args.model, brand, bridge)
 
     print_summary(results)
 

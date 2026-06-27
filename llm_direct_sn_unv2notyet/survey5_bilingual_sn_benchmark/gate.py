@@ -45,6 +45,18 @@ def gold_tiers(unv_sn, wlc_sn, kjv_sn):
     return tiers
 
 
+def morph_recall(model_output, unv_sn):
+    """Number-level recall of the gold's 8xxx morphology tags (family == 'morph')."""
+    gold, fam = BX.tag_multiset(unv_sn)
+    out, _ = BX.tag_multiset(model_output)
+    placed = total = 0
+    for key, need in gold.items():
+        if fam.get(key) == "morph":
+            total += need
+            placed += min(need, out.get(key, 0))
+    return placed, total
+
+
 def tier_recall(model_output, unv_sn, wlc_sn, kjv_sn):
     """Number-level recall of gold tags, grouped by trust tier.
 
