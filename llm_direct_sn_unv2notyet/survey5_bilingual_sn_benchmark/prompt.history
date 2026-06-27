@@ -484,3 +484,55 @@ Morph 處理機制
 
 
 
+##     2026-06-27 23:00 CST
+
+###    User Prompt
+Ａ
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 選 A：接受 morph 表，建 attach_morph＋接 bake-off，量 Gen1 morph 召回
+- Diff: 啟動 morph attach 實作；用已存的 Gen1 config-A 輸出套 attach 重算（零 LLM）量改善，再接進 run_bakeoff 供未來 live 跑
+
+
+
+
+##     2026-06-27 23:06 CST
+
+###    User Prompt
+中文詳述 a b c
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 要求中文詳述收尾三選項 a(收尾doc) b(held-out泛化驗證) c(其他)
+- Diff: 純說明請求，無狀態變更
+
+
+
+
+##     2026-06-27 23:09 CST
+
+###    User Prompt
+好的, 先跑 b
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 好的先跑 b（零 opus leave-one-out 泛化驗證）
+- Diff: 重學排除創世記的表(books 2-39)→套已存 Gen1 config-A 輸出重算 morph 召回，證明 100% 非背答案
+
+
+
+
+##     2026-06-27 23:11 CST
+
+###    User Prompt
+[background-task bz78tnlu9 complete] leave-one-out 泛化驗證跑完，結果待回報
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: leave-one-out 泛化驗證完成（背景任務，零 opus）：排除創世記學表仍 100%
+- Diff: 結果：books 2-39 學的表（無創世記）套 Gen1 saved 輸出 → morph 召回仍 101/101=100%、cov 0.697 不變；Gen1 用的 14 form_keys 全在；創世記只貢獻 1 個獨有 key 且 Gen1 沒用到。證明 form→code 是通用規則、非背答案。下一步進 (a) 收尾 doc
+
+
+
+
