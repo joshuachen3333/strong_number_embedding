@@ -377,3 +377,110 @@ Morph 處理機制
 
 
 
+##     2026-06-26 21:50 CST
+
+###    User Prompt
+直接拿 fhl unv + sn 
+對應 wcl 不行嗎
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 質疑為何要建 morph 橋表——直接拿 FHL UNV+SN 按 Strong's 號對應 WLC 取 morph 不行嗎
+- Diff: 設計挑戰：確認直接對應 FHL-UNV+SN↔WLC 即可取 morph、免解析 ETCBC 記法；但 survey5 拿 gold 對應＝洩漏答案，待釐清「凍結表 vs 即時對應」
+
+
+
+
+##     2026-06-26 22:38 CST
+
+###    User Prompt
+對的
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 確認 morph 設計：FHL↔WLC 對齊學表(詞形→碼)→凍結→WLC 詞形套用＋確定性附加；不抄該節 gold
+- Diff: morph 機制設計定案，進入寫 spec 階段
+
+
+
+
+##     2026-06-27 21:59 CST
+
+###    User Prompt
+中文詳述
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 要求中文詳述 morph 機制 spec（學→凍結→確定性附加）
+- Diff: 純說明請求，無狀態變更
+
+
+
+
+##     2026-06-27 22:07 CST
+
+###    User Prompt
+1, 我以為這個 wcl 與 fhl 9000 是一次性跑完, 而且是全本舊約遍掃, 難道不用嗎
+2, 做好了這張表之後, 不就可以直接拿來跑 s5 (wlc; wlc +sn and unv -> unv + sn 然後對答案,) am I wrong?
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 兩修正：(1) bridge 應一次性全本舊約遍掃（非 Gen2-50+Ex），與 09xxx 同屬一次性 WLC→FHL 建表；(2) 確認表建好後 s5 就是標準 pipeline（WLC+SN+UNV→UNV+SN）+attach_morph 對答案
+- Diff: 修正 spec：訓練集改全 OT 一次掃、移除 held-out 顧慮（映射通用不算洩漏）；確認 morph 表完成後 s5 照常跑
+
+
+
+
+##     2026-06-27 22:16 CST
+
+###    User Prompt
+好的, 中文詳述
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 好的(軟核准方向)＋要求中文詳述完整 morph spec（含全 OT learner、attach、s5 流程）
+- Diff: 純說明請求，無狀態變更
+
+
+
+
+##     2026-06-27 22:22 CST
+
+###    User Prompt
+中文詳述
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 中文詳述（深入詞形對齊）：實跑 Gen1 預覽 learner 輸出表
+- Diff: Gen1 對齊預覽：14 條 form→code、零衝突；vqw(敘述式)→8799 自動與 vqi 同碼，驗證 learn-from-gold 勝過手刻文件表
+
+
+
+
+##     2026-06-27 22:48 CST
+
+###    User Prompt
+那現在可以續跑這張表嗎？跑時不用到 LLM 對吧！
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 核准續跑：建全 OT morph 表（確認零 LLM）
+- Diff: 授權建 learn_morph_bridge.py 並全 OT 掃出 morph_bridge.json（純對齊、無模型呼叫）
+
+
+
+
+##     2026-06-27 22:53 CST
+
+###    User Prompt
+[background-task bhjz9xg9c complete] 全 OT morph 表跑完，結果待回報
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 全 OT morph 表建好（背景任務，零 LLM）：morph_bridge.json
+- Diff: 結果：115 form_keys、62750 verbs aligned、39 卷全覆蓋。常見詞形 98-99% 純度（vqp→8804、vqw→8799…）；~32 個稀有詞形 thin（n=2-13 majority-vote）。2 個小瑕疵：vq! 解析雜訊、vqa 模糊。下一步 morph.py attach+接 run_bakeoff，待 Joshua 選 A(直接接)或 B(先手清 thin keys)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey5_bilingual_sn_benchmark/morph_bridge.json`
+
+
+
+
