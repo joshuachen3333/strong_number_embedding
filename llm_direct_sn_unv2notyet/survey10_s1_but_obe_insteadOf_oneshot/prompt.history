@@ -889,3 +889,30 @@ token 快要用完 5hr 100% 了, 請先暫停所有活動
 
 
 
+##     2026-06-29 08:36 CST
+
+###    User Prompt
+我們用 wlc 來評鑒一下目前的 gold (s1)
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 用 WLC 原文評鑑目前 s1 gold（獨立人工真值破循環,零模型成本）
+- Diff: 建 WLC-vs-gold SN inventory 評估器；比對 gold SN 集合 vs WLC 原文 SN 集合
+
+
+
+
+##     2026-06-29 08:42 CST
+
+###    User Prompt
+但是 s5 有建立起 wlc word to fhl 9000 table, right?
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 提醒 s5 已建 WLC-morph→FHL-8xxx table；據此把 gold-vs-WLC eval 從『排除 morph』改成『用 s5 morph_bridge 納入 morph』
+- Diff: eval_gold_vs_wlc 改用 s5 morph_bridge.json(含 morph)+ 粒子 4480↔9006 等價;errors 從雜訊降到 4 個(982/986 一致)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/eval_gold_vs_wlc.py`
+
+
+
+

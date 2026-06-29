@@ -1710,3 +1710,19 @@ Everything is quiet and saved: all heavy runs stopped per your token pause, prom
 
 
 
+##     2026-06-29 08:33 CST
+
+###    User Prompt
+補上中文版
+
+###    result
+✅ 中文版補上並 commit (`4aa3194`)。
+
+- 新檔:`llm_direct_sn_unv2notyet/CLEAR_BIBLE_CROSS_SURVEY_VALUE.zh.md`(正體中文平行版,內容與英文版一致)
+- 兩份互相 cross-link(英→中、中→英)
+
+純本地寫檔,沒燒模型 token。其餘照舊暫停,等你 token 窗恢復再續 Stage-2 全量 + 创3-4 gold。
+
+
+
+
