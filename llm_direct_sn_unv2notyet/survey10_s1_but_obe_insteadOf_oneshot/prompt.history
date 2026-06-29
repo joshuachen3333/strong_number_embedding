@@ -861,3 +861,17 @@ token 快要用完 5hr 100% 了, 請先暫停所有活動
 
 
 
+##     2026-06-29 08:31 CST
+
+###    User Prompt
+把這個跨-survey 用法寫進某個 doc
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 要求把 Clear Bible 跨-survey 用法(對 s1/s9/s10 的價值分析)寫進一個 doc
+- Diff: 新建 ../CLEAR_BIBLE_CROSS_SURVEY_VALUE.md 存檔跨-survey 分析
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/CLEAR_BIBLE_CROSS_SURVEY_VALUE.md`
+
+
+
+

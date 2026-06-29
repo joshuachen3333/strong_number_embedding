@@ -1634,3 +1634,38 @@ Everything's quiet — all heavy runs stopped per your pause, history is up to d
 
 
 
+##     2026-06-29 08:28 CST
+
+###    User Prompt
+Base directory for this skill: /Users/joshua/.claude/skills/logoutput
+
+# Log Output (/logoutput)
+
+## Purpose
+
+`response.history` is the dual of `prompt.history`: `prompt.history` records **what Joshua
+said**; `response.history` records **what I (the assistant) replied** — my final narrative
+output, for provenance of my reasoning shown to Joshua. `/logoutput` (formerly `/lo`) appends
+to it.
+
+## The one hard rule
+
+**`result` = the final narrative shown to Joshua ONLY.** Never include tool-call intermediate
+content — bash output, editor diffs, file/code contents shown while writing, inject letter
+payloads. Those are *process*, not *output*. (This is why a naive "log everything" would be
+wrong: only the reply prose lands.)
+
+## When to invoke
+
+....
+
+###    result
+✅ `/logoutput` done — committed and pushed (`14a1725`).
+
+Both substantive replies this session (the survey 1–10 overview and the Clear Bible cross-survey analysis) are confirmed in `response.history` — the auto-log hook captured them verbatim; this just committed the pending state.
+
+Everything is quiet and saved: all heavy runs stopped per your token pause, prompt + response history current. Standing by.
+
+
+
+
