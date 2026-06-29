@@ -51,6 +51,27 @@ with open(os.path.join(_S5, "morph_bridge.json"), encoding="utf-8") as _f:
 # Same Hebrew particle, different FHL-vs-WLC numbering → canonicalise both sides.
 EQUIV = {"H9006": "H4480", "H3509": "H9003"}
 
+# Canonical list of FHL-vs-WLC *methodology divergences* — FHL-faithful tags that
+# legitimately differ from WLC original-language morphology. Per the s1 gold ruling
+# (2026-06-29, Gen 2:20), these are NOT gold errors; the WLC answer key must NOT
+# penalise them. Source of truth = survey1's log (s1 is the gold authority).
+DIVERGENCE_LOG = os.path.join(
+    os.path.dirname(_S10), "survey1_prompt_evolving", "FHL_DIVERGENCE_LOG.md")
+
+
+def load_divergences(path=DIVERGENCE_LOG):
+    """Parse '## D<n> — Gen C:V … H<fhl> (FHL) vs H<wlc> (WLC)' → {(chap,sec,'H<fhl>')}."""
+    out = set()
+    if not os.path.isfile(path):
+        return out
+    hdr = re.compile(r"^##\s*D\d+\s*—\s*Gen\s*(\d+):(\d+).*?H0*(\d+)\s*\(FHL\)", re.I)
+    with open(path, encoding="utf-8") as f:
+        for ln in f:
+            m = hdr.match(ln.strip())
+            if m:
+                out.add((int(m.group(1)), int(m.group(2)), f"H{int(m.group(3))}"))
+    return out
+
 
 def _canon(c):
     out = Counter()
@@ -108,8 +129,10 @@ def main():
 
     wlc_book = CHI_TO_WLC_BOOK[args.book]
     book_eng = "Gen"
+    divergences = load_divergences()      # FHL-faithful divergences (NOT errors)
     n_verses = 0
     gold_only_fam = Counter(); wlc_only_fam = Counter(); gold_only_keys = Counter()
+    div_count = 0
     tot_gold = tot_wlc = tot_shared = 0
     error_verses = []
 
@@ -126,16 +149,22 @@ def main():
             n_verses += 1
             tot_gold += sum(g.values()); tot_wlc += sum(w.values())
             tot_shared += sum((g & w).values())
+            def fam_of(k):
+                if (chap, sec, k[1]) in divergences:
+                    return "methodology_divergence"     # FHL-faithful, ruled NOT an error
+                return family_of(k)
             for k, n in gonly.items():
-                fam = family_of(k); gold_only_fam[fam] += n
+                fam = fam_of(k); gold_only_fam[fam] += n
                 gold_only_keys[f"{fam}:{k[1]}"] += n
+                if fam == "methodology_divergence":
+                    div_count += n
             for k, n in wonly.items():
                 wlc_only_fam[family_of(k)] += n
-            cc = sum(n for k, n in gonly.items() if family_of(k) == "core_content")
+            cc = sum(n for k, n in gonly.items() if fam_of(k) == "core_content")
             if cc:
                 error_verses.append((f"{chap}:{sec}", cc))
             if args.verbose and sum(gonly.values()):
-                ex = ", ".join(f"{k[1]}({family_of(k)})x{n}" for k, n in gonly.items())
+                ex = ", ".join(f"{k[1]}({fam_of(k)})x{n}" for k, n in gonly.items())
                 print(f"  {chap}:{sec}  gold-not-in-WLC: {ex}")
 
     print("\n" + "=" * 64)
@@ -143,21 +172,28 @@ def main():
           f"  ({n_verses} verses)\n  gold-dir: {args.gold_dir}")
     print("=" * 64)
     print(f"  gold SNs : {tot_gold}    WLC SNs : {tot_wlc}    shared : {tot_shared}")
-    print("\n  gold − WLC (in gold, NOT in Hebrew) — ERROR signal:")
+    print("\n  gold − WLC (in gold, NOT in Hebrew):")
     for fam in ("core_content", "core_function", "obj_marker", "morph", "prefix_09"):
         if gold_only_fam.get(fam):
-            print(f"    {fam:<14}: {gold_only_fam[fam]}")
+            print(f"    {fam:<22}: {gold_only_fam[fam]}")
+    if gold_only_fam.get("methodology_divergence"):
+        print(f"    {'methodology_divergence':<22}: {gold_only_fam['methodology_divergence']}"
+              f"   (FHL-faithful, ruled NOT errors — per FHL_DIVERGENCE_LOG)")
     print("\n  WLC − gold (in Hebrew, dropped by gold) — expected drops:")
     for fam in ("prefix_09", "obj_marker", "morph", "core_function", "core_content"):
         if wlc_only_fam.get(fam):
             print(f"    {fam:<14}: {wlc_only_fam[fam]}")
     cc_err = gold_only_fam.get("core_content", 0)
-    print(f"\n  >>> CONTENT-WORD errors (gold has a content SN the Hebrew lacks): "
-          f"{cc_err} across {len(error_verses)} verse(s)")
+    if div_count:
+        print(f"\n  methodology divergences (FHL-faithful, excluded from errors): {div_count}"
+              f"  [canonical list: {os.path.relpath(DIVERGENCE_LOG, _S10)}]")
+    print(f"\n  >>> CONTENT-WORD errors (gold has a content SN the Hebrew lacks, "
+          f"divergences excluded): {cc_err} across {len(error_verses)} verse(s)")
     if error_verses:
         print("      verses:", ", ".join(f"{v}({c})" for v, c in error_verses))
     else:
-        print("      → gold content-word inventory fully consistent with the Hebrew.")
+        print("      → gold content-word inventory fully consistent with the Hebrew "
+              "(no errors beyond the ruled methodology divergences).")
     if gold_only_keys:
         print("\n  top gold-only numbers:")
         for k, n in gold_only_keys.most_common(10):

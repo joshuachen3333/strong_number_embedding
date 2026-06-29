@@ -201,6 +201,26 @@ Remaining build (when greenlit — this is the **paid** arm, do AFTER ch2/contes
 2. WLC source loader (Hebrew text + strongs→FHL-normalized + pos + morph, gloss2
    dropped); 3. score on the FULL set incl. 09xxx via the kept_set's complement.
 
+### ⚖️ WLC answer key — methodology-divergence rule (s1 gold ruling, 2026-06-29)
+
+When WLC is used to validate/score gold (`eval_gold_vs_wlc.py`), some FHL-faithful
+tags legitimately differ from WLC original-language morphology — these are
+**methodology divergences, NOT gold errors**, and the WLC key must NOT penalise
+them (else it wrongly punishes FHL-faithful gold and skews the s1-vs-s10 contest).
+
+- **Canonical list**: `../survey1_prompt_evolving/FHL_DIVERGENCE_LOG.md` (s1 is the
+  gold authority; the gold is FHL-faithful — it *transfers* FHL's SN, it does not
+  *correct* FHL with WLC). `eval_gold_vs_wlc.py` reads this log and buckets matches
+  as `methodology_divergence`, excluded from the error count.
+- **Ruled example — D1 / Gen 2:20** 2nd אדם: gold `H0120` ("the man", matches 那人)
+  vs WLC `H0121` ("Adam"). Article-less `וּלְאָדָם` + KJV/ESV/NIV "Adam" make WLC's
+  reading sound, but the Chinese 那人 anchors H0120 → **keep H0120**, log as
+  divergence + FHL-feedback candidate.
+- **Whole-gold WLC check (Gen 1–2, 56 verses)**: 982/986 SN-inventory-consistent
+  (lexical + 09xxx prefix + s5 morph bridge); after excluding the 1 ruled
+  divergence, residual gold-only = an FHL `<WH00>` artifact + a verb-doubling
+  count + an את-companion 854/853 nuance — **zero hallucinated content words**.
+
 ### Clear Bible as a cross-check (supporting role, both stages)
 The 10+ aligned languages × translations (each a finished **manual** word-level SN
 alignment gold) serve as a **robustness vote** for *why* an SN is excluded: bridge

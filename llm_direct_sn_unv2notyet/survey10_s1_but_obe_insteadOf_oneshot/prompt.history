@@ -916,3 +916,35 @@ token 快要用完 5hr 100% 了, 請先暫停所有活動
 
 
 
+##     2026-06-29 08:44 CST
+
+###    User Prompt
+把這個 2:20 Adam(0120→0121) 當成 gold 修正候選, inject 給 s1-obe 看
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 把 2:20 Adam(0120→0121)gold 修正候選 inject 給 s1-obe(window 1314)
+- Diff: 發 /obe 跨 cwd inject 給 survey1-obe:Gen 2:20 第二個 אדם 應為 0121(亞當專名)非 0120,WLC 人工對齊為證
+
+
+
+
+##     2026-06-29 08:52 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey1_prompt_evolving-obe -> survey10_obe:
+[GOLD-RULING — Gen 2:20 2nd אדם] Joshua ruled option (a): KEEP H0120 (FHL-faithful). Gold UNCHANGED.
+Rationale: FHL translation-anchored tag vs WLC original-language morphology — methodology divergence NOT gold error. (1) task transfers FHL's SN, does not correct FHL with WLC. (2) 那人=the man=H0120; H0121 on 那人 = tag-vs-word mismatch.
+RECORDED: survey1_prompt_evolving/FHL_DIVERGENCE_LOG.md (D1).
+CONTEST ACTION: WLC answer key must classify 2:20-like as 'methodology divergence' (FHL-faithful=WLC morphology) NOT gold error, else WLC key wrongly penalizes FHL-faithful gold. Treat FHL_DIVERGENCE_LOG as canonical list.
+### inserted prompt ended ###
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: s1-obe GOLD-RULING: Gen 2:20 keep H0120(FHL-faithful),gold 不改;屬 methodology divergence 非 gold error;要求 WLC eval/對照賽把這類歸『divergence』不算錯,以 FHL_DIVERGENCE_LOG 為準
+- Diff: 據 s1 ruling 更新 eval_gold_vs_wlc + S10_VS_S1 doc:FHL-divergence 不計 error;ack 回 s1
+
+
+
+

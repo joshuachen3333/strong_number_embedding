@@ -1726,3 +1726,56 @@ Everything is quiet and saved: all heavy runs stopped per your token pause, prom
 
 
 
+##     2026-06-29 08:43 CST
+
+###    User Prompt
+我們用 wlc 來評鑒一下目前的 gold (s1)
+
+###    result
+You're right — and using s5's table changed the result materially.
+
+## 是的,s5 建了 `morph_bridge.json`(WLC-morph → FHL-8xxx)
+- form_key = WLC `morph[:3]`(如 `vqp`)→ FHL 碼(如 8804),**leave-one-out 驗證 100%**(普遍語言規則,非過擬合)。
+- 我原本的 eval **排除了 morph**(以為 WLC 沒有 morph 號碼)。**改用 s5 的表把 morph 納入**後,加上把粒子雙重編號規範化(מן: FHL `4480`≡WLC `9006`;כ: `9003`≡`3509`),雜訊全消。
+
+## 用 WLC 評鑑目前 gold 的結果(创 1–2,56 節)— 零模型成本
+
+| | |
+|---|---|
+| gold SN(詞彙+前綴+morph) | 986 |
+| 與原文希伯來一致(shared) | **982** |
+| gold 有、原文沒有(error 訊號) | **僅 4** |
+
+**4 個 gold-only 全部可解釋,零內容詞幻覺:**
+1. **2:20 `H120` vs WLC `H0121`** ⭐ —— 真正的判斷分歧:第二個 אדם,FHL/gold 標「人」(0120),WLC 人工對齊標「**亞當**(專名,0121)」。這正是 WLC 能仲裁、s1 該回看的一節。
+2. **2:9 `H00`** —— FHL 的 UNV 源本身就有的假標 `<WH00>`(非 s1 轉移錯誤,是上游資料瑕疵)。
+3. **2:9 `H6779`** —— 使役動詞 צמח 被中文拆成兩詞(使/長起來)都標 6779,WLC 只一個 → 計數差。
+4. **2:19 `H854`** —— את「與」(854)vs 受詞記號 את(853)的功能分辨差。
+
+## 結論
+**目前 gold 的 SN 清單對原文希伯來 99.6% 忠實(982/986),零內容詞幻覺。** 用 Clear Bible 這個獨立人工真值成功**打破了「只對 FHL 自證」的循環** —— 並且實打實抓到一個值得 s1 修正的判斷分歧(2:20 亞當)。
+
+要不要我把這個 **2:20 Adam(0120→0121)** 當成 gold 修正候選,inject 給 s1-obe 看?(s1 在 window 1314。)或先把這份 WLC-eval 結果寫成一個 doc 存檔?
+
+
+
+
+##     2026-06-29 08:45 CST
+
+###    User Prompt
+把這個 2:20 Adam(0120→0121) 當成 gold 修正候選,inject 給 s1-obe 看
+
+###    result
+✅ **Delivered.** The 2:20 Adam correction candidate landed cleanly in s1-obe's window (1314) — the full fenced `[QUERY]` is visible in its history, submitted to its input. s1 is live (Opus 4.8, 25% context) and will evaluate it as the gold authority.
+
+What I sent s1:
+- **Finding**: Gen 2:20 second אדם — gold/FHL tags `H0120` (generic "man"), WLC human alignment tags `H0121` (Adam, proper name), at the clause וּלְאָדָם...לֹא־מָצָא ("but for Adam there was not found a helper").
+- **Framing**: it's the narrative transition where אדם becomes the proper name; WLC's aligners marked the shift, FHL didn't.
+- **Provenance**: found via `eval_gold_vs_wlc.py` (982/986 gold SNs consistent with the Hebrew, zero content hallucinations — this was the *one* genuine dispute; the other 3 flags were non-corrections).
+- **Reply-back**: window 5544, and I noted it's s1's call (I'm only surfacing WLC evidence).
+
+s1 may ack/decide back into this window. Per the Ack Rule I'll let its `[QUERY]` response come to me rather than pushing further. Everything else stays paused per your token hold.
+
+
+
+
