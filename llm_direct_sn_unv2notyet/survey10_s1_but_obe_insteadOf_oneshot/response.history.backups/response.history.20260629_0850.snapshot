@@ -1444,3 +1444,338 @@ watcher 已掛,兩個都跑完我會回報:Stage-2 的 **09xxx recall 全 Gen 1�
 
 
 
+##     2026-06-26 07:42 CST
+
+###    User Prompt
+我們目前在哪裡？
+
+###    result
+## 我們在哪裡 — 全局地圖(07:42)
+
+### 大方向
+把 **s10**(外部 conventions.md + C/D 雙層 + 每節盲開)從「便宜傳播引擎」升級到「能與 s1 競爭、甚至超越 gold 生產」。用 **A2 兩階段對照**(KJV/WLC→UNV,以 FHL 真值客觀評分)來驗證。
+
+### 已完成 ✅
+| 里程碑 | 結果 |
+|---|---|
+| s10 全 headless | live 場面棄用,品質不變(盲開設計下 headless≡live) |
+| ch2 gold(25/25) | 24 c_consensus,0 d_deliberation |
+| **Stage 1**(kept-set) | 创1+2 公平性確認:排除的全是結構性丟標(09xxx/את/功能詞),內容詞洩漏≈0 |
+| **Task 1 對照賽首數**(B vs B0) | Δkept **+0.0058**;天花板受限,但硬節 5:1 修復 → 慣例「在出錯處幫忙、在已對處零成本」 |
+| **Stage 2 建好+驗證** | opus 餵 WLC 原文 **能對齊 09xxx**(smoke 100%) |
+| **s5 onboard** | Clear Bible 交接給 survey5-obe(WLC+10 語言),已 [ACK],Joshua 親自帶 |
+
+### 進行中 ⏳(背景,07:11 新窗起跑)
+- **Stage-2 full Gen 1–2**:Arm B **13/56**(09xxx recall 持續成功)
+- **创 3–4 gold**:**5/50**(R1 cached,跑 R2 中)
+- 兩者共用 opus 互讓速 → 慢;都有防 token 耗盡的護欄
+
+### 待辦 / 開放問題
+1. **Stage-2 全量數字** + **创3-4 gold**(trust-tier、scribe 第二條慣例?)— 等跑完
+2. **真正的 Arm A(s1 三模共識)vs Arm B** — 目前只有 B-vs-B0 代理,Q2「整套 s10 能否打 s1」還沒正面跑
+3. **Q1 嚴謹數字**:N=3 因跨窗汙染作廢;有效答案仍是單樣本的 +0.0058(已加護欄,要嚴謹可重跑)
+4. **s5 的 Clear Bible**:Tier-1 WLC 接入 survey5(並行,Joshua 帶)
+
+### 一句話
+**地基(Stage1 公平性 + Stage2 可行性)都驗證完、s10 工具鏈全 headless 就緒;現在在「擴量產數據」階段(创3-4 gold + Stage-2 全量),下一個大問號是正面跑 s1 vs s10(Q2)。**
+
+watcher 掛著,兩個 run 跑完我主動回報。
+
+
+
+
+##     2026-06-26 09:26 CST
+
+###    User Prompt
+token 快要用完 5hr 100% 了, 請先暫停所有活動
+
+###    result
+✋ **全部已暫停。** 確認沒有任何 run / opus headless 在跑了。
+
+## 停止的東西
+- Stage-2 full(到 ~13/56)
+- 创 3–4 gold(到 ~5/50)
+- 完成 watcher + 殘留 opus headless 子程序
+
+## 狀態安全、可 resume
+- **创3-4 gold**:round caches 已存盤(创3 round2 已 19 個檔)→ 之後不帶 `--force` resume 會 instant 跳過已完成節,**零重跑、零浪費**(跟 ch2 resume 一樣)。
+- **Stage-2**:無持久化(只印 log),但它便宜、之後重跑即可;已跑的 09xxx recall 都在 log 裡。
+- **沒有任何汙染**:這次是主動 kill,不是跑到 token 耗盡才崩。
+
+## 不動任何會燒 token 的事
+我現在只做本地操作(已記 /ph)。等你 token 窗恢復、給指示再續。
+
+需要我現在把目前的 commit/log 收尾整理一下(純本地、不燒 token),還是就這樣停著等你?
+
+
+
+
+##     2026-06-29 08:17 CST
+
+###    User Prompt
+能不能找到每一個 survey (1-10) 的一句話總結和簡要敘述?
+
+###    result
+All 10 present. Here's each survey — one-line summary + brief description, in lineage order.
+
+## Survey 1–10 一句話總結
+
+**survey1_prompt_evolving** — 一句話:**三模共識造「黃金標準」,並在跑的時候自動演化提示。**
+opus+gemini+gpt 三模,R1 全體一致 → R2 收斂+辯論(2/3 多數)→ R3 選贏家或判定集體錯誤 → 自動演化 prompt。這是**任務的定義者**(昂貴的 consensus gold)。狀態:Active。
+
+**survey2_fhl_sn_format_spec** — 一句話:**FHL Strong's Number 標註格式的權威字典(唯讀)。**
+記錄 FHL 實際產出的所有 SN 記法(`<WH…>`、09xxx 前綴、8xxx 形態、0853 等),所有元件都要符合它。無程式碼。狀態:Reference。
+
+**survey3_whether_feeding_prompt_comment** — 一句話:**A/B 測試:prompt 開頭的註解到底有沒有影響品質。**
+用 `--strip-prompt-comment` 比對有無註解頭的差異。狀態:小實驗。
+
+**survey4_self_supervised_prompt_tuning** — 一句話:**便宜的客觀調參:拿 UNV 自己重標、對 FHL 真值評分,不需共識。**
+`auto_score`(placement/coverage/exact/format)就是這裡來的。狀態:Active(評分工具被 S5/S10 重用)。
+
+**survey5_bilingual_sn_benchmark** — 一句話:**跨語言遷移:KJV+SN → UNV+SN,對 FHL 真值自評。**
+測「模型能否把標註語言的 SN 搬到未標註語言」。狀態:Baseline(**正由 s5 用 Clear Bible 強化**,不再只吃 KJV)。
+
+**survey6_original_lang_benchmark** — 一句話:**單趟塞 5 種輸入(含原文希伯來/希臘)—— 失敗。**
+資訊過載:placement +7pp 但 coverage −10pp。狀態:**放棄**。
+
+**survey7_two_pass_benchmark** — 一句話:**兩趟精修架構 —— 放棄。**
+非退步率只有 68%,遠低於 90% 門檻。狀態:**放棄**(只剩 background.md)。
+
+**survey8_simplest_sn_benchmark** — 一句話:**「去殼」突破:讓模型只放裸數字、格式由查表還原。**
+placement 0.57 → 0.78。把語義放置和格式機制分離,是後續 production 的關鍵。狀態:Active。
+
+**survey9_s1_plus_s8** — 一句話:**Production 線:S1 的任務 + S8 的去殼法,單模型達共識級品質、近零成本。**
+取代昂貴 consensus 跑主線。狀態:**Active / prod**。
+
+**survey10_s1_but_obe_insteadOf_oneshot**(本工作目錄)— 一句話:**S1 的 gold 任務,改用 live obe panel + 外部化 conventions.md(C/D 雙層),目標是用更低成本打平甚至超越 S1。**
+每節盲開、學到的慣例經 regression-gate 才寫進 `conventions.md`、真正模糊的節進 D-deliberation。本 session 已驗證 Stage-1 公平性、Stage-2 能對齊 09xxx,並把 Clear Bible 交接給 s5。狀態:Active(進行中)。
+
+## 來龍去脈一句話
+**S1 定義任務(貴)→ S4 便宜調參 → S5 跨語言 → S6/S7 兩條死路 → S8 去殼突破 → S9 併成 production → S10 再加「外部化學習 + 雙層共識」想正面挑戰 S1。** S2 是貫穿全程的格式聖經,S3 是側邊小實驗。
+
+需要我把這份整理寫成一個 `SURVEYS_OVERVIEW.md` 存檔嗎?(純本地、不燒 token)
+
+
+
+
+##     2026-06-29 08:21 CST
+
+###    User Prompt
+這樣 s5 納入了 clear bible, 對 s1 s10 s9 有什麼幫助？
+
+###    result
+核心:Clear Bible 帶來三樣**別處沒有**的東西 ——
+
+1. **獨立的人工真值**:它是人工逐詞對齊(非 FHL、非任何 LLM)。目前 s1/s9/s10 全部都對著 **FHL(UNV+SN)一個源**驗證 → 有循環風險(LLM 共識 ≠ 真值)。Clear Bible 是**第二個獨立真值,能驗證「驗證者」**。
+2. **完整的原文源**:WLC 帶**每一個** SN,含 KJV/英文丟掉的 09xxx 前綴、第二個 את、功能詞(我 Stage-1 量到 KJV 漏 31%)。
+3. **10+ 語言**:可測跨語言/跨約(舊約↔新約)的泛化,不再只有中文一條線。
+
+---
+
+## 對 S1(共識 gold)
+- **打破循環、當第四位「裁判」**:S1 現在 R2/R3 三模吵架時,只有 LLM 互投。Clear Bible 的人工對齊可當**非-LLM 的仲裁者** —— 原文希伯來這個詞到底綁在哪,human gold 說了算。直接補強 R3 的「選贏家 / 判集體錯」。
+- **驗證 S1 的 gold 是否真對**:把 S1 產出的 gold 拿去和 Clear Bible 對齊比 → 量化「共識 = 真值嗎」。這是 S1 一直缺的外部 sanity check。
+- ⚠️ 注意 survey6 教訓:把 WLC 當額外 one-shot 餵進去**可能反而過載**,要測不能假設。
+
+## 對 S10(慣例 + C/D)— 受益最大
+- **更公平/更強的對照賽源**:A2 對照賽本來用 KJV(漏 31%,不公平)。換 **WLC/BSB 當源**就消掉 count-mismatch → s1-vs-s10 比較更乾淨。**我 Stage-2 已經在用 WLC 了**。
+- **D-deliberation 的證據**:s10 遇到真模糊節進 D 仲裁時,Clear Bible 的人工對齊就是「原文到底怎麼綁」的客觀證據,讓 D 不再只是 LLM 再吵一次。
+- **慣例的外部驗證**:scribe 抽出的慣例,可拿「10 種語言怎麼對齊同一個現象」來背書 —— 慣例若跨語言一致,可信度大增;若只在中文成立,就是過擬合訊號。
+
+## 對 S9(production 去殼)
+- **獨立品質天花板**:s9 的產出目前只能對 FHL 自洽性評分。Clear Bible 給一個**外部真值**,能說「s9 達到的不只是 FHL 一致,而是和人工原文對齊一致」。
+- **難節的額外參照**:UNV+SN 本身模糊的節,WLC 原文可當 s9 naked 流程的補充 reference,幫 `fix_pipeline` 確認哪些 09xxx 是真的。
+- **多語言外推**:s9 的去殼法本身語言無關;Clear Bible 的 10 語言讓「同一套方法搬到非中文目標」有真值可驗。
+
+---
+
+## 一句話 + 誠實限制
+**Clear Bible 對三者的共同價值 = 一個獨立人工真值 + 完整原文源,把「大家都只對 FHL 一個源驗證」的循環打破,並讓 KJV-source 的實驗(尤其 s10 對照賽)變公平。**
+
+**限制**:Clear Bible **沒有中文**(10 語言不含中文),所以它**不能直接當 UNV/LCC 的答案卷** —— 它的力量在**源端(原文/他語)和交叉驗證**,不是中文目標端的 truth。`gloss2` 有中文詞義但會洩題,只能當受控變量。
+
+最大贏家是 **S10**(對照賽直接吃 WLC),其次 **S1**(多一個非-LLM 裁判破循環),**S9** 拿到外部品質天花板。要不要我把這個跨-survey 用法寫進某個 doc 存檔(純本地)?
+
+
+
+
+##     2026-06-29 08:28 CST
+
+###    User Prompt
+Base directory for this skill: /Users/joshua/.claude/skills/record-prompt-history
+
+# Record Prompt History (Claude flavor)
+
+## Purpose
+
+Maintain Joshua's `prompt.history` as a cross-project, cross-CLI raw prompt provenance record. Preserve **what Joshua said, where, and the smallest useful metadata** for future Codex / Gemini / Claude / Agent conclave work.
+
+This skill is the Claude-side companion to the Codex skill at `~/.codex/skills/record-prompt-history/`. The cross-CLI shared rules live at `references/shared-core-spec.md` (symlinked from the Codex skill so spec edits stay unified). The writer at `scripts/append_prompt_history.py` is also symlinked.
+
+## Where to write — the critical default
+
+Write to **the current project's own `prompt.history`** (i.e. `./prompt.history` relative to the session's cwd). **Never explicit-pass `--history` pointing to a different repo.** Each project maintains its own history file.
+
+The `--agent` field is a label (which dog-named agent recorded the entry); the `--history` field is the file location. They are not the same thing.
+
+Default Claude flavor:
+- `--history ./prompt.history` (cwd-relative; let it default)
+- `--agent <cwd-basename>-obe` (auto-derived per /obe skill — Claude IS obe)
+
+....
+
+###    result
+✅ `/ph` done — committed and pushed (`2f90de6`).
+
+Confirmed recorded (last three): the s5-onboard directive, the pause-all directive, and the Clear Bible cross-survey question. The backup-snapshot rotation (old ones pruned, new ones added) came along in the same commit.
+
+Everything's quiet — all heavy runs stopped per your pause, history is up to date. Standing by for when your token window recovers.
+
+
+
+
+##     2026-06-29 08:28 CST
+
+###    User Prompt
+Base directory for this skill: /Users/joshua/.claude/skills/logoutput
+
+# Log Output (/logoutput)
+
+## Purpose
+
+`response.history` is the dual of `prompt.history`: `prompt.history` records **what Joshua
+said**; `response.history` records **what I (the assistant) replied** — my final narrative
+output, for provenance of my reasoning shown to Joshua. `/logoutput` (formerly `/lo`) appends
+to it.
+
+## The one hard rule
+
+**`result` = the final narrative shown to Joshua ONLY.** Never include tool-call intermediate
+content — bash output, editor diffs, file/code contents shown while writing, inject letter
+payloads. Those are *process*, not *output*. (This is why a naive "log everything" would be
+wrong: only the reply prose lands.)
+
+## When to invoke
+
+....
+
+###    result
+✅ `/logoutput` done — committed and pushed (`14a1725`).
+
+Both substantive replies this session (the survey 1–10 overview and the Clear Bible cross-survey analysis) are confirmed in `response.history` — the auto-log hook captured them verbatim; this just committed the pending state.
+
+Everything is quiet and saved: all heavy runs stopped per your token pause, prompt + response history current. Standing by.
+
+
+
+
+##     2026-06-29 08:32 CST
+
+###    User Prompt
+核心:Clear Bible 帶來三樣別處沒有的東西 ——
+
+1. 獨立的人工真值:它是人工逐詞對齊(非 FHL、非任何 LLM)。目前 s1/s9/s10 全部都對著 FHL(UNV+SN)一個源驗證 → 有循環風險(LLM 共識 ≠ 真值)。Clear Bible 是第二個獨立真值,能驗證「驗證者」。
+2. 完整的原文源:WLC 帶每一個 SN,含 KJV/英文丟掉的 09xxx 前綴、第二個 את、功能詞(我 Stage-1 量到 KJV 漏 31%)。
+3. 10+ 語言:可測跨語言/跨約(舊約↔新約)的泛化,不再只有中文一條線。
+
+---
+對 S1(共識 gold)
+
+- 打破循環、當第四位「裁判」:S1 現在 R2/R3 三模吵架時,只有 LLM 互投。Clear Bible 的人工對齊可當非-LLM 的仲裁者 —— 原文希伯來這個詞到底綁在哪,human gold 說了算。直接補強 R3 的「選贏家 / 判集體錯」。
+- 驗證 S1 的 gold 是否真對:把 S1 產出的 gold 拿去和 Clear Bible 對齊比 → 量化「共識 = 真值嗎」。這是 S1 一直缺的外部 sanity check。
+- ⚠️ 注意 survey6 教訓:把 WLC 當額外 one-shot 餵進去可能反而過載,要測不能假設。
+
+對 S10(慣例 + C/D)— 受益最大
+
+- 更公平/更強的對照賽源:A2 對照賽本來用 KJV(漏 31%,不公平)。換 WLC/BSB 當源就消掉 count-mismatch → s1-vs-s10 比較更乾淨。我 Stage-2 已經在用 WLC 了。
+- D-deliberation 的證據:s10 遇到真模糊節進 D 仲裁時,Clear Bible 的人工對齊就是「原文到底怎麼綁」的客觀證據,讓 D 不再只是 LLM 再吵一次。
+- 慣例的外部驗證:scribe 抽出的慣例,可拿「10 種語言怎麼對齊同一個現象」來背書 —— 慣例若跨語言一致,可信度大增;若只在中文成立,就是過擬合訊號。
+
+對 S9(production 去殼)
+....
+
+###    result
+✅ 寫好並 commit 了 (`f26e3b1`)。
+
+新檔:`llm_direct_sn_unv2notyet/CLEAR_BIBLE_CROSS_SURVEY_VALUE.md`(放在跨-survey 的頂層,因為它橫跨 s1/s9/s10)。
+
+內容收錄了:
+- **三樣別處沒有的東西**(獨立人工真值 / 完整原文源 / 10+ 語言)
+- **逐 survey 槓桿**:S1(第四位非-LLM 裁判破循環 + survey6 過載警告)、S10(對照賽吃 WLC、D 仲裁證據、慣例跨語言驗證)、S9(外部品質天花板 + 多語言外推)
+- **一句話 + 誠實限制**(沒中文 → 只能源端/交叉驗證,gloss2 洩題)
+- **可重用 artifacts 指針**(`run_stage2_harsh.py` 的 WLC loader+bridge、`build_exclusion.py`、s5 handover 信)
+
+純本地寫檔、沒燒模型 token。其餘維持暫停,等你 token 窗恢復再續 Stage-2 全量 + 创3-4 gold。
+
+
+
+
+##     2026-06-29 08:33 CST
+
+###    User Prompt
+補上中文版
+
+###    result
+✅ 中文版補上並 commit (`4aa3194`)。
+
+- 新檔:`llm_direct_sn_unv2notyet/CLEAR_BIBLE_CROSS_SURVEY_VALUE.zh.md`(正體中文平行版,內容與英文版一致)
+- 兩份互相 cross-link(英→中、中→英)
+
+純本地寫檔,沒燒模型 token。其餘照舊暫停,等你 token 窗恢復再續 Stage-2 全量 + 创3-4 gold。
+
+
+
+
+##     2026-06-29 08:43 CST
+
+###    User Prompt
+我們用 wlc 來評鑒一下目前的 gold (s1)
+
+###    result
+You're right — and using s5's table changed the result materially.
+
+## 是的,s5 建了 `morph_bridge.json`(WLC-morph → FHL-8xxx)
+- form_key = WLC `morph[:3]`(如 `vqp`)→ FHL 碼(如 8804),**leave-one-out 驗證 100%**(普遍語言規則,非過擬合)。
+- 我原本的 eval **排除了 morph**(以為 WLC 沒有 morph 號碼)。**改用 s5 的表把 morph 納入**後,加上把粒子雙重編號規範化(מן: FHL `4480`≡WLC `9006`;כ: `9003`≡`3509`),雜訊全消。
+
+## 用 WLC 評鑑目前 gold 的結果(创 1–2,56 節)— 零模型成本
+
+| | |
+|---|---|
+| gold SN(詞彙+前綴+morph) | 986 |
+| 與原文希伯來一致(shared) | **982** |
+| gold 有、原文沒有(error 訊號) | **僅 4** |
+
+**4 個 gold-only 全部可解釋,零內容詞幻覺:**
+1. **2:20 `H120` vs WLC `H0121`** ⭐ —— 真正的判斷分歧:第二個 אדם,FHL/gold 標「人」(0120),WLC 人工對齊標「**亞當**(專名,0121)」。這正是 WLC 能仲裁、s1 該回看的一節。
+2. **2:9 `H00`** —— FHL 的 UNV 源本身就有的假標 `<WH00>`(非 s1 轉移錯誤,是上游資料瑕疵)。
+3. **2:9 `H6779`** —— 使役動詞 צמח 被中文拆成兩詞(使/長起來)都標 6779,WLC 只一個 → 計數差。
+4. **2:19 `H854`** —— את「與」(854)vs 受詞記號 את(853)的功能分辨差。
+
+## 結論
+**目前 gold 的 SN 清單對原文希伯來 99.6% 忠實(982/986),零內容詞幻覺。** 用 Clear Bible 這個獨立人工真值成功**打破了「只對 FHL 自證」的循環** —— 並且實打實抓到一個值得 s1 修正的判斷分歧(2:20 亞當)。
+
+要不要我把這個 **2:20 Adam(0120→0121)** 當成 gold 修正候選,inject 給 s1-obe 看?(s1 在 window 1314。)或先把這份 WLC-eval 結果寫成一個 doc 存檔?
+
+
+
+
+##     2026-06-29 08:45 CST
+
+###    User Prompt
+把這個 2:20 Adam(0120→0121) 當成 gold 修正候選,inject 給 s1-obe 看
+
+###    result
+✅ **Delivered.** The 2:20 Adam correction candidate landed cleanly in s1-obe's window (1314) — the full fenced `[QUERY]` is visible in its history, submitted to its input. s1 is live (Opus 4.8, 25% context) and will evaluate it as the gold authority.
+
+What I sent s1:
+- **Finding**: Gen 2:20 second אדם — gold/FHL tags `H0120` (generic "man"), WLC human alignment tags `H0121` (Adam, proper name), at the clause וּלְאָדָם...לֹא־מָצָא ("but for Adam there was not found a helper").
+- **Framing**: it's the narrative transition where אדם becomes the proper name; WLC's aligners marked the shift, FHL didn't.
+- **Provenance**: found via `eval_gold_vs_wlc.py` (982/986 gold SNs consistent with the Hebrew, zero content hallucinations — this was the *one* genuine dispute; the other 3 flags were non-corrections).
+- **Reply-back**: window 5544, and I noted it's s1's call (I'm only surfacing WLC evidence).
+
+s1 may ack/decide back into this window. Per the Ack Rule I'll let its `[QUERY]` response come to me rather than pushing further. Everything else stays paused per your token hold.
+
+
+
+

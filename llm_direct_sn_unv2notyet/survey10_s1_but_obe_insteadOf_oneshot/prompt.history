@@ -948,3 +948,17 @@ CONTEST ACTION: WLC answer key must classify 2:20-like as 'methodology divergenc
 
 
 
+##     2026-06-29 08:58 CST
+
+###    User Prompt
+back to wlc benefit for s1, give s1 a beginning prompt, and I will work there, 你說 wlc 可以幫助 s1 哪裡, 給他一個注入, 我會去那裡繼續完善你的想法
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 給 s1-obe 一個 beginning prompt:WLC 如何強化 s1 共識(in-loop 用法),Joshua 會去 s1 窗繼續完善
+- Diff: 寫 seed doc 到 survey1/WLC_FOR_S1_SEED_from_s10obe.md + inject 指針給 s1(window 1314)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/WLC_FOR_S1_SEED_from_s10obe.md`
+
+
+
+
