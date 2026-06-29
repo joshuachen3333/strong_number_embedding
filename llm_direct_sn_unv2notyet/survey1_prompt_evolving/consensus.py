@@ -71,6 +71,35 @@ def resolve_winner_text(winner_label, verse_key, convergence_results,
     return ""
 
 
+def _annotate_wlc(gold_standard, verse_data):
+    """WLC Phase-A annotation: attach the original-language identity signal +
+    trust_tier to each gold entry. DECOUPLED from resolution (AD-1): reads the wlc
+    result collected in verse_data, NEVER reads or writes ``resolved_at``. Makes
+    WLC's contribution visible/auditable.
+
+    trust_tier:
+      c_consensus+wlc_corroborated    — consensus AND WLC agree (highest)
+      c_consensus_over_wlc_divergence — consensus held on a WLC-contested verse
+      c_consensus                     — consensus; WLC silent / no signal
+      None                            — non-C-tier (prompt_evolution / unresolved …)
+    """
+    _C_TIER = {"round1", "round2", "round3", "r2_model_patch"}
+    for verse_key, gold in gold_standard.items():
+        wlc = (verse_data.get(verse_key) or {}).get("wlc")
+        status = wlc.get("status") if wlc else None
+        gold["wlc_status"] = status            # match | divergence | no_signal | None
+        if wlc:
+            gold["wlc_divergences"] = wlc.get("divergences", [])
+        if gold.get("resolved_at") not in _C_TIER:
+            gold["trust_tier"] = None
+        elif status == "match":
+            gold["trust_tier"] = "c_consensus+wlc_corroborated"
+        elif status == "divergence":
+            gold["trust_tier"] = "c_consensus_over_wlc_divergence"
+        else:
+            gold["trust_tier"] = "c_consensus"
+
+
 def build_gold_standard(unanimous, disagreed, round1_results,
                         convergence_results, round2_judgments,
                         round3_judgments, verse_data,
@@ -326,6 +355,10 @@ def build_gold_standard(unanimous, disagreed, round1_results,
             print(f"\n  §2.1 same-number-different-shell positionally restored "
                   f"({len(flagged)} nodes; occurrence order assumed = source — "
                   f"spot-check if uncertain): {nodes}")
+
+    # WLC Phase-A annotation: trust_tier + wlc_status/divergences on every entry.
+    # Decoupled from resolution (AD-1) — reads verse_data['wlc'], never resolved_at.
+    _annotate_wlc(gold_standard, verse_data)
 
     return gold_standard, unresolved, prompt_evolutions
 

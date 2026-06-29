@@ -238,6 +238,21 @@ from regression import (
     load_gold_standard, select_regression_verses, print_regression_plan,
 )
 
+# ── WLC Phase-A escalator (WLC_INTO_S1_DESIGN.md): independent original-language
+# identity signal from the s10 primitive. Guarded import — a WLC failure degrades to
+# pure consensus and NEVER breaks the run. Pure data provider; AD-1 untouched.
+_S10_DIR = os.path.abspath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "..", "survey10_s1_but_obe_insteadOf_oneshot"))
+if _S10_DIR not in sys.path:
+    sys.path.insert(0, _S10_DIR)
+try:
+    from wlc_check import wlc_check, load_divergences
+    _WLC_OK = True
+except Exception as _wlc_e:  # noqa: BLE001 — degrade gracefully, never block gold
+    print(f"  [WLC] primitive unavailable ({_wlc_e}) — Phase-A escalator OFF (pure consensus)")
+    _WLC_OK = False
+
 
 def parse_range(s):
     """Parse '1-5' or '1,3,5-7' into list of ints."""
@@ -736,6 +751,12 @@ def main():
     all_trigger1 = []   # (verse_key, verse_data_entry, convergence_for_verse)
     all_trigger2 = []   # (verse_key, gold_entry)
 
+    # WLC Phase-A: load the divergence ledger once (ruled cases like 2:20 are
+    # suppressed by the primitive so they never re-escalate).
+    _wlc_divergences = load_divergences() if _WLC_OK else set()
+    if _WLC_OK:
+        print(f"  [WLC] Phase-A escalator ON ({len(_wlc_divergences)} ruled divergence(s) loaded)")
+
     for verse_idx, (chap, sec) in enumerate(verses):
         verse_key = (chap, sec)
         _update_last_verse(book_eng, chap, sec)
@@ -761,6 +782,26 @@ def main():
 
         print(f"  UNV: {unv_sn[:100]}...")
         print(f"  LCC: {target_text[:100]}...")
+
+        # ── WLC Phase-A check (before R1): independent original-language identity
+        # signal on the FHL SOURCE inventory we're about to transfer (UNV+SN as
+        # fhl_sn — there is no gold yet pre-R1). `divergence` => wlc_contested =>
+        # force R2/R3 even on R1-unanimous (catch unanimous-but-wrong-on-identity).
+        # Pure data; never writes gold; failures degrade to pure consensus.
+        wlc = None
+        if _WLC_OK:
+            try:
+                wlc = wlc_check(book_chi, chap, sec, unv_sn,
+                                divergences=_wlc_divergences)
+                verse_data[verse_key]["wlc"] = wlc
+                _tag = {"divergence": "WLC-CONTESTED (escalate)",
+                        "match": "WLC-corroborated",
+                        "no_signal": "WLC-no-signal"}.get(wlc["status"], wlc["status"])
+                print(f"  [WLC] {_tag} (coverage={wlc.get('coverage')})", flush=True)
+            except Exception as _we:  # noqa: BLE001 — degrade to pure consensus
+                print(f"  [WLC] check failed ({_we}) — pure consensus this verse",
+                      flush=True)
+                wlc = None
 
         # ── R1: All 3 models produce output ──
         print(f"\n  ── R1 [{ts()}] ──")
@@ -825,12 +866,19 @@ def main():
         # ── Compare: unanimous? ──
         unanimous_v, disagreed_v = compare_round1(round1_results, sn_field,
                                                    verse_keys=[verse_key])
-        if unanimous_v:
+        # WLC Phase-A escalator (asymmetric — can only ADD scrutiny, never remove
+        # it; WLC is placement-blind so it cannot certify a unanimous placement).
+        wlc_contested = bool(wlc and wlc.get("status") == "divergence")
+        if unanimous_v and not wlc_contested:
             print(f"  → UNANIMOUS [{ts()}]", flush=True)
             all_unanimous.append(verse_key)
             continue
 
-        print(f"  → DISAGREED", flush=True)
+        if unanimous_v and wlc_contested:
+            print(f"  → R1-UNANIMOUS but WLC-CONTESTED → escalating to R2/R3 "
+                  f"(Phase A: catch unanimous-but-wrong-on-identity)", flush=True)
+        else:
+            print(f"  → DISAGREED", flush=True)
         all_disagreed.append(verse_key)
 
         # ── R2 Phase 1: Convergence ──
