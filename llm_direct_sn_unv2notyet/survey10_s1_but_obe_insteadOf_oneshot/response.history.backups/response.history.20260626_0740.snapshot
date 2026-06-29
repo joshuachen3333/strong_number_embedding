@@ -859,3 +859,588 @@ eng 底下就有 **BSB、YLT** 等多個英文譯本各自一套對齊(alignment
 
 
 
+##     2026-06-25 04:44 CST
+
+###    User Prompt
+1, 排除了 9xxx  是第一層, 作為單純且最嚴謹的基礎對照, 雖然少了 9xxx
+2, clear bible 也有這些前綴 (原文字對應到 fhl 的 9xxx) 這個要好好利用. 拿來當作萬一要考驗 unv 能否插回 sn 這種嚴酷測驗時的輸入 one shot , 考慮是否能拿 clear bible 當輸入.
+
+###    result
+確認理解,並把 Stage 2 的可行性查清楚了。
+
+## Stage 1 — 排除 9xxx 的乾淨基礎(最嚴謹、零橋接)
+
+- **source = KJV+SN,target = UNV 去殼,score placement 只在 `UNV-FHL ∩ KJV-FHL`**(共有的 content-word core),把 UNV 獨有的 09xxx 前綴**排除不論**。
+- 全程**留在 FHL 一套編號內**(s1/s10 本來就吐 FHL 標記)→ **零 scheme 橋接、零模型外成本**。
+- 這是「容易的 80%」:乾淨、便宜,先把 s1-vs-s10 在主體 SN 上的 placement 高下定下來。`build_exclusion.py` 就做這層。
+
+## Stage 2 — 嚴酷全測(含 9xxx),用 Clear Bible 當輸入 → **可行**
+
+你問的核心:能不能拿 Clear Bible 當輸入?**能,而且它是唯一能勝任的 source。** 原因:
+
+- **KJV 幫不上前綴**(英文沒有 ב/ה/ו 的獨立詞);而 **Clear Bible 的 WLC 原文把前綴切成顯式 token**,每個都帶號碼+詞性+形態 —— 例 Gen 1:1 `בְּ(在) H0871a prep`、`הַ(the) H1886a art`、`וְ(和) H2050b cj`。**這正是投影前綴所需的「source 端有東西可搬」。**
+- **要配一個小型固定橋接**:Clear Bible 的擴充 Strong's(H0871a…)→ FHL 的 09xxx(09002…)。希伯來不可分前綴就那幾個(בכלמ + ה冠詞 + ו連接 + ש關係),**一次建表、永久可用**,不是大工程。
+- **仍然 leak-free**:source 是希伯來 token,答案是「哪個**中文**字」,中文位置不在 source 裡 → 模型還是得做希伯來→中文對位。
+
+**一個要注意的洩漏點**:WLC.tsv 有個 `gloss2` 欄,裡面是**中文 gloss**(创造/神/起初/地…)。若把 gloss2 一起餵進去,等於給了中文提示,**接近洩題**。嚴酷測驗應**只餵 希伯來詞+號碼+morph,拿掉 gloss2**(或當作另一個「有提示 vs 無提示」的對照變因)。
+
+## 兩階段 divide-and-conquer 總表
+
+| | Stage 1 基礎 | Stage 2 嚴酷 |
+|---|---|---|
+| 測什麼 | 主體 content-word SN 的 placement | **含 09xxx 前綴的完整** placement |
+| source | KJV+SN | **Clear Bible WLC 原文**(顯式帶前綴) |
+| 9xxx | 排除 | **納入**(靠 lemma→09xxx 橋接) |
+| 編號 | 全 FHL,零橋接 | FHL + 小型固定前綴橋接 |
+| 角色 | 乾淨可信的基礎裁決 | 上限壓力測試(模型連前綴都放對嗎) |
+| 成本 | 最低(先做) | 較高(後做) |
+
+**精神**:Stage 1 先把「乾淨、無爭議」的部分用最嚴謹方式分出勝負;Stage 2 再單獨攻「前綴」這塊硬骨頭,而且專門用唯一帶得動前綴的 Clear Bible source。分而治之,層層加嚴。
+
+## 建議
+
+要我**先把這兩階段寫進 `S10_VS_S1_GOLD_EXPERIMENT.md`**(取代我上一版過頭的「WLC 直接當答案卷」),**然後動手做 Stage 1 的 `build_exclusion.py`**(跑创 1 看排除族分佈、確認基礎可信)嗎?Stage 2 的 Clear Bible 橋接表等 Stage 1 站穩再建。
+
+
+
+
+##     2026-06-25 04:49 CST
+
+###    User Prompt
+先把這兩階段寫進 S10_VS_S1_GOLD_EXPERIMENT.md, 然後準備 /compact
+
+###    result
+已 commit + push(`c183e4d`),設計檔乾淨。(那個 untracked `v1.2_joshua.opus-patch-0.1_Gen_1_25.md` 是創 1 跑出的 Trigger-2 model patch 產物,與本次設計無關,留著。)
+
+---
+
+## 📋 /compact 前狀態總覽(交接錨點)
+
+**專案**:`survey10_s1_but_obe_insteadOf_oneshot`(s1 黃金標準任務 + obe-style,主要與 sibling `survey1_prompt_evolving-obe`(window 1314)協作)
+
+**已完成且驗證**
+- **s10 v2 實作**:conventions.md(D1-E)、per-call 盲審 transport(double-Enter+15s pacing+per-call /clear)、D-deliberation post-C tier、scribe。`run_gold_standard.py` + `conventions.py` + `cli_caller.py` + `consensus.py`。
+- **創 1 跑完 31/31 gold**(30 c_consensus + 1 r2_early_evolution),全 coverage-perfect;**scribe 學會第一條慣例 C1**(gate 11/11 PASS)。
+- **live panel**:codex=**9082**、agy(Pro)=**8214**、opus=headless(舊 5555/5557 已棄)。
+- **自動記錄 hook**:`~/.claude/hooks/ph_lo_stop_reminder.py` —— 回合結束自動從 transcript 抽我的逐字回覆寫進 `response.history`(我不再跑 logoutput);`/ph` 仍手動(我在回合開頭跑)。
+
+**剛鎖定的設計**:`S10_VS_S1_GOLD_EXPERIMENT.md` 的 **A2 兩階段 divide-and-conquer**
+- **Stage 1**(基礎,FHL 內部,零橋接):KJV+SN→UNV,只在 `UNV-FHL ∩ KJV-FHL` 算 placement,排除 09xxx。`build_exclusion.py` 做這層。
+- **Stage 2**(嚴酷,含 09xxx):用 Clear Bible WLC 原文(唯一顯式帶前綴)當 source + 小型 lemma→FHL-09xxx 橋接;**必須 strip gloss2**(中文 gloss 會洩題)。
+- 關鍵 scheme 修正:**09xxx 是 FHL 專有**,WLC 用 H0871a 等擴充編號,兩套不同 → 主評分留 FHL 內部。
+
+**待決下一步(/compact 後接續)**
+1. **動手做 Stage 1 `build_exclusion.py`**(零成本,跑创 1 看排除族分佈)—— 我推薦先做。
+2. 或先跑 **B(创 2)** 累積更多慣例。
+3. 或 A1 暖身對照。
+
+`/compact` 後我會從這裡接續。可以了。
+
+
+
+
+##     2026-06-25 05:19 CST
+
+###    User Prompt
+1, 先繼續跑完 Gen chap2, 然後就著手
+動手做 Stage 1 build_exclusion.py(零成本,跑创 1 看排除族分佈)
+作完評估 Stage2 或其他
+
+###    result
+WLC data confirms **every** Stage 2 design assumption:
+
+| Assumption | Confirmed |
+|---|---|
+| Explicit separable prefix tokens | ✅ `בְּ`/`הַ`/`וְ` are their own rows |
+| Augmented numbering (≠ FHL 09xxx) | ✅ `בְּ`=`H0871a`, `הַ`=`H1886a`, `וְ`=`H2050b` → lemma bridge needed, as designed |
+| `gloss2` Chinese-leak column | ✅ present (起初/创造/神/诸天/地) — **must strip**; note prefixes have *empty* gloss2 |
+| Bridge anchor available | ✅ `lemma` + `pos` columns (prep/art/cj/om) make the lemma→09xxx bridge clean |
+| `את` already FHL-aligned | ✅ `H0853` matches FHL `0853` exactly (no bridge) |
+
+Let me record the feasibility verdict in the doc's Stage 2 section.
+
+
+
+
+##     2026-06-25 08:47 CST
+
+###    User Prompt
+進度如何？
+
+###    result
+The pace slowed and I found why. Let me confirm the codex live-leg state.
+
+
+
+
+##     2026-06-25 09:13 CST
+
+###    User Prompt
+可以無痛切換到 headless 嗎？how?
+
+###    result
+I have the complete answer. Let me record the prompt, then explain.
+
+
+
+
+##     2026-06-25 09:17 CST
+
+###    User Prompt
+路 B — 停一下 + resume，本次剩餘 16 節提速
+
+###    result
+Resume is working exactly as designed — 2:9, 2:10… loading `convergence cached` + `debate cached` → instant `R2 RESOLVED`, zero recompute. Let me confirm it reaches fresh verses and codex now goes headless.
+
+
+
+
+##     2026-06-25 22:22 CST
+
+###    User Prompt
+2, 然後就著手
+動手做 Stage 1 build_exclusion.py(零成本,跑创 1,2 看排除族分佈)
+作完評估 Stage2 或其他
+
+###    result
+## ch2 完成報告 ✅
+
+**Gold：25/25,全部完美 SN coverage。** Trust-tier 分佈:
+- **c_consensus: 24** （共識層解決)
+- r2_early_evolution: 1
+- **d_deliberation: 0** —— 整章不需要動用 D 仲裁,全部在共識層搞定
+
+**Scribe（慣例抽取）:正確地「拒絕」了 ch2 候選慣例。** 抽出的候選跑 regression gate → 13/22、14/22 PASS(低於門檻)→ REGRESSION-FAILED → 不採納。`conventions.md` 維持 C1 不變。這是 gate 在做它該做的事:過擬合、無法跨節推廣的候選被擋下,不污染慣例庫。
+
+**路 B 的提速讓它順利收尾** —— 從停滯的 codex-live 改 headless 後,後半 15 節約 1 小時跑完。
+
+—
+
+順帶把 **Stage 1 跑创 1,2** 的結果也給你(剛做完):
+
+| 章 | 排除率 | 結構性占比 | 內容詞洩漏 |
+|---|---|---|---|
+| 创 1 | 30.9% | 100% | 0 |
+| 创 2 | 27.1% | 98.3% | 2（H5117 歇、H120 人,皆 count-mismatch) |
+
+四大結構族(prefix_09 ל/ב、obj_marker את、core_function כל/מן/היה、UNV-only morph）**跨章穩定** → kept-set 方法可推廣。`kept_set_gen1-2.json` 已生成並 commit。
+
+## 評估 Stage 2 或其他 —— 三條路
+
+1. **跑 Stage-1 對照賽**:kept_set_gen1-2 + s10 ch1+2 gold 都齊了。缺的是 **s1 Arm A(純 s1 共識,無慣例/無 D)** 的同節 gold 當對手。跑出來就能首次量化 H1(s10 ≥ s1?)。
+2. **建 Stage 2**(paid 重活):~7 條 lemma→09xxx bridge + WLC loader,測模型能否連 09xxx 前綴都插對。feasibility 已確認。
+3. **往创 3 推進**:再累積 gold,給 scribe 更多機會抽出能過 gate 的第二條慣例。
+
+我先把 ch2 gold commit 掉。你想先走哪條?我的建議是 **1（對照賽)** —— 資料最接近齊備,能最快得到「s10 到底能不能打 s1」的第一個硬數字。
+
+
+
+
+##     2026-06-25 22:31 CST
+
+###    User Prompt
+1,2,3 依序, 但是連 agy 也改成 headless
+
+###    result
+6+ min with no per-verse line is slow — let me check whether the `claude` subprocess is actually progressing or hung.
+
+
+
+
+##     2026-06-25 22:34 CST
+
+###    User Prompt
+<task-notification>
+<task-id>bkv1ldxq7</task-id>
+<tool-use-id>toolu_018f24H23AoqYF72Qfh8uMXq</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-joshua-work-strong-number-embedding-llm-direct-sn-unv2notyet-survey10-s1-but-obe-insteadOf-oneshot/d2bd6c0a-922b-49f4-a2b1-8f648536286f/tasks/bkv1ldxq7.output</output-file>
+<status>completed</status>
+<summary>Background command "Run smoke test in background, peek after 60s" completed (exit code 0)</summary>
+</task-notification>
+
+###    result
+I'll wait for the poll to report (notification incoming). The fix is verified in isolation (8/8 on the previously-failing case); the smoke run just confirms it end-to-end across both arms.
+
+
+
+
+##     2026-06-25 22:35 CST
+
+###    User Prompt
+## Settled conventions (s10 conventions.md) — APPLY THESE
+Regression-gated placement rules distilled from resolved gold verses. Apply unless the current verse clearly contradicts them:
+
+- C1 Keep a verb's morphology/stem tag (8xxx) glued immediately after that verb's own core number with no target word intervening, even when the verb is re-lexified or the clause is restructured (e.g. 1:27 創造<WH01254><WTH8799>, 1:28 祝福<WH01288><WTH8762>).   [added v0.1 · gate PASS · Gen ch1 scribe]
+<!-- s10:conventions-preamble -->
+
+You are a Strong's Number alignment expert. You transfer Strong's Number annotations from an annotated source verse onto a parallel target verse, placing each number immediately after the target word it belongs to. Keep the FHL tag format exactly as given in the source.
+
+Here is Gen 1:2 in KJV (plain, no tags):
+
+And the earth was without form, and void; and darkness was upon the face of the deep. And the Spirit of God moved upon the face of the waters.
+
+Here is the same verse in KJV with Strong's Number annotations:
+
+And the earth<WH0776> was<WH01961><WTH8804> without form<WH08414>, and void<WH0922>; and darkness<WH02822> <FI>was<Fi> upon the face<WH06440> of the deep<WH08415>. And the Spirit<WH07307> of God<WH0430> moved<WH07363><WTH8764> upon<WH05921> the face<WH06440> of the waters<WH04325>.<CM>
+
+Here is the same verse in UNV (Chinese Union Version), plain, no annotations:
+
+地是空虛混沌，淵面黑暗；　神的靈運行在水面上。
+
+....
+
+###    result
+地<WH0776>是<WH01961><WTH8804>空虛<WH08414>混沌<WH0922>，淵<WH08415>面<WH06440>黑暗<WH02822>；　神<WH0430>的靈<WH07307>運行<WH07363><WTH8764>在<WH05921>水<WH04325>面<WH06440>上
+
+
+
+
+##     2026-06-25 22:38 CST
+
+###    User Prompt
+You are a Strong's Number alignment expert. You transfer Strong's Number annotations from an annotated source verse onto a parallel target verse, placing each number immediately after the target word it belongs to. Keep the FHL tag format exactly as given in the source.
+
+Here is Gen 1:2 in KJV (plain, no tags):
+
+And the earth was without form, and void; and darkness was upon the face of the deep. And the Spirit of God moved upon the face of the waters.
+
+Here is the same verse in KJV with Strong's Number annotations:
+
+And the earth<WH0776> was<WH01961><WTH8804> without form<WH08414>, and void<WH0922>; and darkness<WH02822> <FI>was<Fi> upon the face<WH06440> of the deep<WH08415>. And the Spirit<WH07307> of God<WH0430> moved<WH07363><WTH8764> upon<WH05921> the face<WH06440> of the waters<WH04325>.<CM>
+
+Here is the same verse in UNV (Chinese Union Version), plain, no annotations:
+
+地是空虛混沌，淵面黑暗；　神的靈運行在水面上。
+
+Using the KJV annotation pair above as your reference, insert the Strong's Number tags into the correct positions in the UNV text. Output ONLY the annotated UNV text on a single line, no commentary, no code fences.
+
+###    result
+地<WH0776>是<WH01961><WTH8804>空虛<WH08414>混沌<WH0922>，淵<WH08415>面<WH06440>黑暗<WH02822>；　神<WH0430>的靈<WH07307>運行<WH07363><WTH8764>在水<WH04325>面<WH06440>上<WH05921>。
+
+
+
+
+##     2026-06-25 22:38 CST
+
+###    User Prompt
+You are a Strong's Number alignment expert. You transfer Strong's Number annotations from an annotated source verse onto a parallel target verse, placing each number immediately after the target word it belongs to. Keep the FHL tag format exactly as given in the source.
+
+Here is Gen 1:3 in KJV (plain, no tags):
+
+And God said, Let there be light: and there was light.
+
+Here is the same verse in KJV with Strong's Number annotations:
+
+And God<WH0430> said<WH0559><WTH8799>, Let there be<WH01961><WTH8799> light<WH0216>: and there was light<WH0216>.
+
+Here is the same verse in UNV (Chinese Union Version), plain, no annotations:
+
+　神說：「要有光」，就有了光。
+
+Using the KJV annotation pair above as your reference, insert the Strong's Number tags into the correct positions in the UNV text. Output ONLY the annotated UNV text on a single line, no commentary, no code fences.
+
+###    result
+神<WH0430>說<WH0559><WTH8799>：「要有<WH01961><WTH8799>光<WH0216>」，就有了光<WH0216>。
+
+
+
+
+##     2026-06-25 22:39 CST
+
+###    User Prompt
+You are a Strong's Number alignment expert. You transfer Strong's Number annotations from an annotated source verse onto a parallel target verse, placing each number immediately after the target word it belongs to. Keep the FHL tag format exactly as given in the source.
+
+Here is Gen 1:2 in KJV (plain, no tags):
+
+And the earth was without form, and void; and darkness was upon the face of the deep. And the Spirit of God moved upon the face of the waters.
+
+Here is the same verse in KJV with Strong's Number annotations:
+
+And the earth<WH0776> was<WH01961><WTH8804> without form<WH08414>, and void<WH0922>; and darkness<WH02822> <FI>was<Fi> upon the face<WH06440> of the deep<WH08415>. And the Spirit<WH07307> of God<WH0430> moved<WH07363><WTH8764> upon<WH05921> the face<WH06440> of the waters<WH04325>.<CM>
+
+Here is the same verse in UNV (Chinese Union Version), plain, no annotations:
+
+地是空虛混沌，淵面黑暗；　神的靈運行在水面上。
+
+Using the KJV annotation pair above as your reference, insert the Strong's Number tags into the correct positions in the UNV text. Output ONLY the annotated UNV text on a single line, no commentary, no code fences.
+
+###    result
+地<WH0776>是<WH01961><WTH8804>空虛<WH08414>混沌<WH0922>，淵<WH08415>面<WH06440>黑暗<WH02822>；　神<WH0430>的靈<WH07307>運行<WH07363><WTH8764>在<WH05921>水<WH04325>面<WH06440>上。
+
+
+
+
+##     2026-06-25 22:41 CST
+
+###    User Prompt
+<task-notification>
+<task-id>bq3u6r9b5</task-id>
+<tool-use-id>toolu_0132vuKaTSmemT53A9fcFMiV</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-joshua-work-strong-number-embedding-llm-direct-sn-unv2notyet-survey10-s1-but-obe-insteadOf-oneshot/d2bd6c0a-922b-49f4-a2b1-8f648536286f/tasks/bq3u6r9b5.output</output-file>
+<status>completed</status>
+<summary>Background command "Poll smoke2 until summary" completed (exit code 0)</summary>
+</task-notification>
+
+###    result
+I'll wait for the smoke3 result (notification incoming). The structured-output path should eliminate the meta-chatter that was zeroing out verses.
+
+
+
+
+##     2026-06-25 22:47 CST
+
+###    User Prompt
+<task-notification>
+<task-id>b7s2uki7x</task-id>
+<tool-use-id>toolu_016gegeYRE7AtK2vR4Kjjn8s</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-joshua-work-strong-number-embedding-llm-direct-sn-unv2notyet-survey10-s1-but-obe-insteadOf-oneshot/d2bd6c0a-922b-49f4-a2b1-8f648536286f/tasks/b7s2uki7x.output</output-file>
+<status>completed</status>
+<summary>Background command "Poll smoke3 until summary" completed (exit code 0)</summary>
+</task-notification>
+
+###    result
+The contest is running; I'll be notified when the aggregate lands (~80 min). Summary of this turn's progress on your 1→2→3 plan:
+
+- ✅ **Fully headless** (`LIVE_WINDOWS = {}`) — agy dropped too, as you asked
+- ✅ **ch2 gold** committed (25/25, 24 c_consensus, 0 d_deliberation)
+- 🔨 **Task 1 (contest)**: harness built + validated (2 bugs found and fixed: project-context meta-chatter → structured output; convention-echo line → CJK-max extraction). Full Gen 1–2 B-vs-B0 run in flight.
+- ⏳ **Task 2 (Stage-2 WLC)** and **Task 3 (创 3)** queued next.
+
+I'll report the contest aggregate when it completes, then proceed to Task 2.
+
+
+
+
+##     2026-06-26 00:28 CST
+
+###    User Prompt
+<task-notification>
+<task-id>bf0112lo6</task-id>
+<tool-use-id>toolu_018xLMtocDcpSyeY1etyfQ6w</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-joshua-work-strong-number-embedding-llm-direct-sn-unv2notyet-survey10-s1-but-obe-insteadOf-oneshot/d2bd6c0a-922b-49f4-a2b1-8f648536286f/tasks/bf0112lo6.output</output-file>
+<status>completed</status>
+<summary>Background command "Poll full contest until summary (long)" completed (exit code 0)</summary>
+</task-notification>
+
+###    result
+Task 1 first number is in and committed (`b6de153`). 
+
+## 對照賽結果(B vs B0,Gen 1–2,opus)
+
+| arm | kept_place |
+|---|---|
+| B(慣例 ON) | **0.9971** |
+| B0(慣例 OFF) | **0.9914** |
+| **Δ** | **+0.0058** |
+
+**彙總很小,但真正的訊號藏在硬節裡。** 56 節中 50 節兩臂都在天花板(opus 本來就把 KJV 能供應的號碼全插對),慣例無從發揮。但在 **B0 真正出錯的 6 節**,慣例 5:1 幫上忙 —— 全修好 4 節(1:6、1:17、1:24、2:5)、改善 1 節(1:11)、平手 1 節、只回退 1 節(1:4),淨 +4 個 kept 標籤。
+
+## 三個誠實的限制(已寫進文件)
+1. **天花板**:opus 在簡單創世記無法區分。要看慣例價值得換**較弱模型**或**聚焦硬節**。
+2. **抽樣雜訊**:每節每臂只取 1 樣本 + 模型隨機。我重跑 1:17,B 修好的是「不同」的標籤(0430,不是 C1 形態學)→ 5:1 比例有抽樣混淆。嚴謹數字需**每節多樣本**。
+3. **只有一條窄規則 C1**:可達到的 Δ 天生很小,要靠 scribe 累積更多規則才會放大。
+
+**目前判定:H5 方向性成立**(慣例在模型出錯處幫忙、在已對處零成本),**尚未顯著**。設計是對的,但在 opus/創世記上受天花板+雜訊所限。
+
+## 岔路 — 你的選擇
+這個結果揭示一個真實的方法岔口,我想先問你再動 Task 2:
+
+- **(甲) 先硬化 Task 1**:把對照賽換到**較弱模型**(qwen3:32b 或 sonnet,有 headroom)重跑 —— 同樣成本但 B-vs-B0 訊號會清楚得多,能給「慣例到底有沒有用」一個**決定性**數字。便宜、快。
+- **(乙) 照原計畫進 Task 2**:建 Stage-2 harsh test(WLC 源 + lemma→09xxx bridge),把 Task 1 的硬化留到之後。
+- **(丙) 兩者都要**:先跑(甲)的弱模型對照(背景),同時我手動建 Task 2。
+
+我的建議是 **(丙)** —— 弱模型對照賽零邊際成本就能跑在背景,我同時推進 Stage 2,不浪費時間。你要哪個?
+
+
+
+
+##     2026-06-26 00:41 CST
+
+###    User Prompt
+are we done?
+
+###    result
+All background runs are idle; nothing mid-flight. Short answer: **a clean stopping point, but not "done" on the full plan.**
+
+## ✅ Done & committed this session
+- **Gen ch2 gold** — 25/25, 24 c_consensus, 0 d_deliberation
+- **Stage 1** `build_exclusion.py` — 创 1+2, kept-set fairness confirmed (content-leak ~0)
+- **Fully headless** — `LIVE_WINDOWS = {}` (agy too)
+- **Task 1 first cut** — A2 contest harness + B-vs-B0 Gen 1–2 result (Δkept_place **+0.0058**, signal in the 6 hard verses, 5:1 fixes)
+
+## ⏳ Pending (your 甲/乙/丙 call)
+- **Task 1 hardening** — weaker model / multi-sample to make the number *decisive* (currently ceiling+noise-limited on opus)
+- **Task 2** — Stage-2 WLC harsh test (build, not started)
+- **Task 3** — push s10 to 创 3
+- **True Arm A** (s1 consensus) — the current contest is the B-vs-B0 *proxy*, not yet full s1-vs-s10
+
+So nothing is broken or hanging — you *can* stop here safely. But the "1,2,3 依序" plan still has Tasks 2–3 plus the contest-hardening fork I asked about. If you're done for now, I'll leave it clean; if you want to continue, just pick 甲/乙/丙 (I recommended 丙).
+
+Want me to wrap up, or proceed?
+
+
+
+
+##     2026-06-26 00:54 CST
+
+###    User Prompt
+我不要用弱模型
+乙 — 照原計劃 一定要做
+Q1 少什麼就補什麼,  WLC(Clear Bible 一定要納入來測測看能否對齊 9xxx
+除了禁用弱模型 其他都做
+快！
+
+###    result
+I'll wait for the Stage 2 smoke result (notification incoming). Quick status:
+
+- **Q1 rigor**: opus **N=3** contest running in background (no weak model, as you required)
+- **Task 2 / Stage 2 (WLC)**: harness built (`run_stage2_harsh.py`), bridge + 09xxx detection validated and bug-fixed, now smoke-testing whether opus can place the **09xxx prefixes** from the Hebrew WLC source — your explicit "測測看能否對齊 9xxx" ask
+
+Result incoming.
+
+
+
+
+##     2026-06-26 01:05 CST
+
+###    User Prompt
+<task-notification>
+<task-id>bpeigga6j</task-id>
+<tool-use-id>toolu_01HbQa21Twm1zwKDyTSUjoA8</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-joshua-work-strong-number-embedding-llm-direct-sn-unv2notyet-survey10-s1-but-obe-insteadOf-oneshot/d2bd6c0a-922b-49f4-a2b1-8f648536286f/tasks/bpeigga6j.output</output-file>
+<status>completed</status>
+<summary>Background command "Poll Stage 2 smoke until summary" completed (exit code 0)</summary>
+</task-notification>
+
+###    result
+Committed (`e9d838c`). Here's the headline you asked for.
+
+## 🎯 Stage 2(WLC → UNV)能否對齊 9xxx? — **能。**
+
+opus 餵入原文希伯來(WLC,gloss2 中文已剝除)後,在 UNV 有標 09xxx 的節上**全部插對**:
+
+| 節 | 09xxx recall | 說明 |
+|---|---|---|
+| 1:1 | **1/1** | 09002(ב 前綴)插對 |
+| 1:5 | **2/2** | 兩個 09001(ל 前綴「為」)都插對 |
+| 1:2/1:3/1:4 | — | UNV 本身沒標 09xxx(分母 0) |
+
+這就證明了:**KJV 給不了的前綴,改用 Clear Bible 希伯來原文當輸入,模型有能力對齊回 FHL 的 09xxx。** Stage 2 的核心假設成立。
+
+**建構過程修掉兩個 bug**(都在燒模型前用驗證抓到):
+1. bridge 漏掉帶 niqqud 的 lemma(`בְּ` 含母音點)→ 改成剝希伯來點、用裸子音對照(`בְּ→09002`)。
+2. `_nines` 把 0922(בֹהוּ 內容詞)誤判成 09xxx → 改用數值 ≥9000 判定。
+
+## 進度全景
+
+| 項目 | 狀態 |
+|---|---|
+| 全 headless | ✅ |
+| ch2 gold | ✅ |
+| Stage 1(kept-set) | ✅ |
+| **Task 1 — Q1 嚴謹化** | ⏳ opus **N=3** 對照賽背景跑(已到 1:6,kept ±0.000 → opus 在簡單節**多樣本也零波動**,天花板再確認) |
+| **Task 2 — Stage 2 build** | ✅ 建好+驗證(opus 對齊 9xxx 成立) |
+| Task 3 — 创 3 | ⏳ 待 |
+
+兩個背景 opus run 共用 claude CLI、互相讓速,所以稍慢但都在進展。等 N=3 對照賽 + Stage-2 完整 Gen 1–2 跑完,我給你完整數字。要我現在就把 Stage-2 也擴成完整 Gen 1–2(背景)、並接著推 创 3 嗎?還是先等這批跑完?
+
+
+
+
+##     2026-06-26 01:12 CST
+
+###    User Prompt
+先等這批跑完, 然後等 7:10 五小時 token reset 後, 把 Stage-2 也擴成完整 Gen 1–2(背景)、並接著推 創 3 4 兩章
+
+###    result
+`/ph` recorded. Plan locked: **let this batch finish → wait for 7:10 token reset → then launch Stage-2 full Gen 1–2 + 创 3+4.**
+
+Current state (01:12 CST, ~6h to reset):
+- **Stage-2 smoke: DONE** — final: `09xxx_recall B 3/3 (100%), B0 3/3 (100%)`. The 9xxx alignment holds across all Gen 1:1–5 verses that have prefixes. ✅
+- **N=3 contest: running** (arm B at 1:10; kept ±0.000 over 3 samples → opus is perfectly stable at ceiling on easy verses). Will take several hours; may cross 7:10.
+
+Let me set a background watcher that wakes me **only when both conditions hold** (N=3 done AND past 7:10), so I launch the expansion at exactly the right moment without burning tokens early.
+
+
+
+
+##     2026-06-26 01:26 CST
+
+###    User Prompt
+clear bible 可以加強給 survey5 嗎? 他嗷嗷待哺目前只能使用 kjv
+
+###    result
+Good question — and yes, Clear Bible can feed survey5 much more than KJV. Let me record it and scope the alignment data to give you a grounded answer.
+
+
+
+
+##     2026-06-26 01:31 CST
+
+###    User Prompt
+s5 onboard. inject a welcome message with message back 座標, telling him that clear bible is his next good stuffs to eat from. and hand over the rest to it where I will be working on with.
+
+###    result
+The onboarding **landed perfectly**. Reading s5's window confirms it received the full fenced welcome and is already executing the handover autonomously:
+- ✅ Invoked `Skill(obe)` (the protocol directive)
+- ✅ Read `CLEAR_BIBLE_HANDOVER_from_s10obe.md`
+- ✅ Looking for `inject.sh` to ack back to window 5544
+
+Let me commit the handover letter for the audit trail.
+
+
+
+
+##     2026-06-26 07:14 CST
+
+###    User Prompt
+<task-notification>
+<task-id>bknecm0ox</task-id>
+<tool-use-id>toolu_01GDLZ8JiFM7yUwJmSx1k58K</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-joshua-work-strong-number-embedding-llm-direct-sn-unv2notyet-survey10-s1-but-obe-insteadOf-oneshot/d2bd6c0a-922b-49f4-a2b1-8f648536286f/tasks/bknecm0ox.output</output-file>
+<status>completed</status>
+<summary>Background command "Background watcher: wake when N=3 done and past 7:10" completed (exit code 0)</summary>
+</task-notification>
+
+###    result
+Both runs are in flight and the completion watcher is armed (`bidh0114k`). Status:
+
+| Run | Scope | State |
+|---|---|---|
+| **Stage-2 full** | WLC→UNV, Gen 1–2, 09xxx recall | running (guarded against quota-empty corruption) |
+| **创 3–4 gold** | s10 pipeline, fully headless, C1 active | running (3:1, R1 cached) |
+
+Both are now **resilient to token exhaustion** (Stage-2 has the new empty→drop guard; the gold pipeline has its own retry/quota-pause), so even if they cross the next 5-hour boundary they'll pause/retry rather than corrupt like the N=3 run did.
+
+I'll report when both finish: Stage-2 **09xxx recall aggregate** (the "can it align 9xxx" headline at corpus scale) + **创 3–4 gold** counts, trust-tier distribution, and whether the scribe extracted a **second gate-passing convention**. Nothing needed from you meanwhile — s5 has the Clear Bible thread in parallel.
+
+
+
+
+##     2026-06-26 07:37 CST
+
+###    User Prompt
+目前進度如何？
+
+###    result
+進度(07:36,開跑約 25 分鐘):
+
+**兩個 run 都在跑,但因共用 opus headless 互相讓速,偏慢。**
+
+**① Stage-2 full(WLC→UNV)** — Arm B **10/56**
+- 09xxx 對齊持續成功:1:1=1/1、1:8=1/1、1:10=2/2 ✓
+- ~100–250s/節(被 gold run 搶 opus)
+
+**② 创 3–4 gold** — **5/50**(在 3:5)
+- R1 全 cached(沿用舊跑)→ 直接進 R2
+- gold 檔 0(post-loop 一次寫出,正常)
+
+**速度與 token 提醒**:兩者都吃 opus,加上 50 節 gold + 112 Stage-2 calls,很可能再跨 12:11 的下一個 5 小時窗。但這次都有防護:Stage-2 有 empty→drop guard、gold pipeline 有 retry/quota-pause,所以**就算跨窗也只會暫停重試、不會像 N=3 那樣靜默汙染**。
+
+watcher 已掛,兩個都跑完我會回報:Stage-2 的 **09xxx recall 全 Gen 1–2 彙總** + 创3-4 的 gold 數、trust-tier、scribe 有沒有抽出**第二條過 gate 的慣例**。
+
+(s5 那邊 Clear Bible 並行中,不影響這條線。)
+
+
+
+

@@ -570,3 +570,268 @@ S5 and A2, 我提供兩個面向:
 
 
 
+##     2026-06-25 04:43 CST
+
+###    User Prompt
+我想分兩階段, 依然照著 divide and conquer 來處理
+1, 排除了 9xxx 是第一層, 作為單純且最嚴謹的基礎對照, 雖然少了 9xxx
+2, clear bible 也有這些前綴 (原文字對應到 fhl 的 9xxx) 這個要好好利用. 拿來當作萬一要考驗 unv 能否插回 sn 這種嚴酷測驗時的輸入 one shot , 考慮是否能拿 clear bible 當輸入.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 兩階段 divide-and-conquer:(1)排除 9xxx 當最嚴謹乾淨基礎對照;(2)Clear Bible 有前綴(對應 FHL 9xxx),拿來當『考驗 UNV 能否插回完整 SN(含前綴)』的嚴酷測驗輸入 one-shot,評估可否用 Clear Bible 當 input
+- Diff: 確認兩階段設計:Stage1=FHL 內部排除 09xxx,score 共有 core,零橋接;Stage2=用 Clear Bible WLC 原文(唯一顯式帶前綴的 source)當投影 input,配小型 lemma→FHL-09xxx 橋接,測含前綴的完整 placement。評估可行(橋接是固定少數希伯來前綴)+ 標註 gloss2 中文 gloss 的潛在洩漏需處理
+
+
+
+
+##     2026-06-25 04:50 CST
+
+###    User Prompt
+先把這兩階段寫進 S10_VS_S1_GOLD_EXPERIMENT.md, 然後準備 /compact
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua:先把兩階段寫進 S10_VS_S1_GOLD_EXPERIMENT.md,然後準備 /compact
+- Diff: 改寫 A2 為兩階段 divide-and-conquer + scheme 修正(09xxx 是 FHL 專有,WLC 用 H0871a 擴充編號→主評分留 FHL 內部);Stage1=FHL 內部排除 09xxx,Stage2=Clear Bible WLC 當 source 含前綴+lemma→09xxx 橋接+strip gloss2。Procedure step1 同步改 FHL 內部。commit c183e4d。給出 /compact 前狀態總覽交接錨點
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
+##     2026-06-25 05:05 CST
+
+###    User Prompt
+1, 先繼續跑完 Gen chap2, 然後就著手
+動手做 Stage 1 build_exclusion.py(零成本,跑创 1 看排除族分佈)
+作完評估 Stage2 或其他
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 三步驟接續計畫：先跑完 Gen ch2，再做 Stage 1 build_exclusion.py（零成本、跑创1看排除族分佈），之後評估 Stage 2 或其他
+- Diff: 啟動 Gen ch2 live run；規劃 build_exclusion.py
+
+
+
+
+##     2026-06-25 05:17 CST
+
+###    User Prompt
+1, 先繼續跑完 Gen chap2, 然後就著手
+動手做 Stage 1 build_exclusion.py(零成本,跑创 1 看排除族分佈)
+作完評估 Stage2 或其他
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Stage 1 build_exclusion.py 完成並驗證 kept-set 公平性（內容詞洩漏 Gen1=0, Gen1-5=1.1%）；Gen ch2 live run 同時在背景跑
+- Diff: 新增 build_exclusion.py + kept_set_gen1-5.json；修正交集為號碼層級（非角色層級）；實驗文件加 Stage-1 實證結果；commit 80908e7 已 push
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/build_exclusion.py`
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
+##     2026-06-25 06:07 CST
+
+###    User Prompt
+Read the full task in /tmp/s10_task_codex.txt and complete it. Write ONLY your answer to /tmp/s10_ans_codex.json (overwrite it, raw JSON, no markdown fences, no commentary). Then reply with just: done. Do not print the answer in chat.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-lala`
+- Hint: Judge /tmp SN-placement task and write raw JSON answer only
+- Diff: Read /tmp/s10_task_codex.txt; wrote the JSON judgment answer to /tmp/s10_ans_codex.json.
+- File: `/private/tmp/s10_task_codex.txt`
+- File: `/private/tmp/s10_ans_codex.json`
+
+
+
+
+##     2026-06-25 09:13 CST
+
+###    User Prompt
+可以無痛切換到 headless 嗎？how?
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 問能否無痛把 codex 從 live 切到 headless（codex live 注入失敗 31 次拖慢 ch2）
+- Diff: 查明 LIVE_WINDOWS/LIVE_TIMEOUT 在 import 時即入記憶體→無法熱改；但 round caches 讓 stop+resume 零損失（judge.py cache-load 跳過已完成節）
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/cli_caller.py`
+
+
+
+
+##     2026-06-25 09:15 CST
+
+###    User Prompt
+路 B — 停一下 + resume，本次剩餘 16 節提速
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 拍板執行路 B：codex 改走 headless，停 + 無損 resume 加速 ch2 剩餘節
+- Diff: cli_caller.py LIVE_WINDOWS 移除 codex（剩 agy 8214）；停 PID + 不帶 --force resume 從 2:9 續
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/cli_caller.py`
+
+
+
+
+##     2026-06-25 22:21 CST
+
+###    User Prompt
+2, 然後就著手
+動手做 Stage 1 build_exclusion.py(零成本,跑创 1,2 看排除族分佈)
+作完評估 Stage2 或其他
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 指示：build_exclusion.py 跑创 1,2 看排除族分佈，再評估 Stage 2 或其他
+- Diff: 在 ch1 既有結果上補跑 ch2 與 ch1+2 合併分佈
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/build_exclusion.py`
+
+
+
+
+##     2026-06-25 22:26 CST
+
+###    User Prompt
+1,2,3 依序, 但是連 agy 也改成 headless
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 拍板：1→2→3 依序執行（Stage-1 對照賽 → 建 Stage 2 → 推进创3）；並把 agy 也改 headless（全 headless，棄 live 場面）
+- Diff: cli_caller LIVE_WINDOWS 清空（全 headless）；啟動 A2 對照賽 harness
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/cli_caller.py`
+
+
+
+
+##     2026-06-25 22:32 CST
+
+###    User Prompt
+You are a Strong's Number alignment expert. Insert the Strong's Number tags into the correct positions in the UNV text [Gen 1:2 KJV→UNV reference]. Output ONLY the annotated UNV text on a single line, no commentary, no code fences.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Gen 1:2 OBE SN-alignment task: KJV+SN → UNV placement (15 tags incl. 2 morphology); applied convention C1 (glue 8xxx after its verb's own core: 是 WH01961+WTH8804, 運行 WH07363+WTH8764). 淵<WH08415>面<WH06440> / 水<WH04325>面<WH06440> deep-face & waters-face ordering; FI/Fi & CM not transferred
+
+
+
+
+##     2026-06-25 22:33 CST
+
+###    User Prompt
+You are a Strong's Number alignment expert. Transfer KJV SN annotations onto UNV Gen 1:1. KJV annotated: In the beginning<WH07225> God<WH0430> created<WH01254><WTH8804><WH0853> the heaven<WH08064> and<WH0853> the earth<WH0776>. UNV plain: 起初，神創造天地。 Output ONLY the annotated UNV text on a single line.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: KJV→UNV SN alignment task for Gen 1:1; aligned WH-tags onto 起初/神/創造/天/地, kept FHL tag format verbatim, output single annotated line per instructions
+
+
+
+
+##     2026-06-25 22:37 CST
+
+###    User Prompt
+You are a Strong number alignment expert [system-persona benchmark task]. Insert the KJV Strong Number tags into UNV Gen 1:1 (起初，神創造天地。) using the KJV+SN annotation pair as reference. Output ONLY the annotated UNV text on a single line, no commentary, no code fences.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: One-shot KJV->UNV SN alignment for Gen 1:1; output kept <WH..>/<WTH..> source format, placed both 0853 object markers (first att with 創造, second waw+att before 地): 起初<WH07225>，神<WH0430>創造<WH01254><WTH8804><WH0853>天<WH08064>地<WH0853><WH0776>。
+
+
+
+
+##     2026-06-25 22:38 CST
+
+###    User Prompt
+You are a Strong's Number alignment expert. You transfer Strong's Number annotations from an annotated source verse onto a parallel target verse, placing each number immediately after the target word it belongs to. [Gen 1:2 KJV+SN reference → UNV; output ONLY annotated UNV single line, no commentary]
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: KJV→UNV SN alignment task for Gen 1:2; placed FHL WH tags into UNV single-line output
+
+
+
+
+##     2026-06-25 22:40 CST
+
+###    User Prompt
+You are a Strong's Number alignment expert ... Using the KJV annotation pair above as your reference, insert the Strong's Number tags into the correct positions in the UNV text [Gen 1:2 KJV->UNV alignment task]
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: SN alignment benchmark: transfer KJV+SN tags onto UNV Gen 1:2
+- Diff: Produced aligned UNV: 地<WH0776>是<WH01961><WTH8804>空虛<WH08414>混沌<WH0922>，淵<WH08415>面<WH06440>黑暗<WH02822>；神<WH0430>的靈<WH07307>運行<WH07363><WTH8764>在<WH05921>水<WH04325>面<WH06440>上。
+
+
+
+
+##     2026-06-26 00:42 CST
+
+###    User Prompt
+甲/乙/丙 call 中文詳述
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 要求中文詳述對照賽後的 甲/乙/丙 岔路（硬化 Task1 / 進 Task2 / 兩者並行）以便定奪
+- Diff: 撰寫三選項的詳細比較與建議（無程式改動）
+
+
+
+
+##     2026-06-26 00:48 CST
+
+###    User Prompt
+我不要用弱模型
+乙 — 照原計劃 一定要做
+Q1 少什麼就補什麼,  WLC(Clear Bible 一定要納入來測測看能否對齊 9xxx
+除了禁用弱模型 其他都做
+快！
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 拍板：禁用弱模型；乙(Stage2/WLC)必做；Q1 用 opus 多樣本(非弱模型)補抽樣雜訊；WLC 一定納入測 9xxx 對齊；全部並行；快
+- Diff: run_a2_contest 加 --samples N(opus 多樣本背景重跑 Gen1-2)；建 Stage-2 WLC：lemma→09xxx bridge + WLC loader + harsh test
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/run_a2_contest.py`
+
+
+
+
+##     2026-06-26 01:12 CST
+
+###    User Prompt
+先等這批跑完, 然後等 7:10 五小時 token reset 後, 把 Stage-2 也擴成完整 Gen 1–2(背景)、並接著推 創 3 4 兩章
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 排程：先等當前批次(opus N=3 對照賽 + Stage-2 smoke)跑完；7:10 五小時 token reset 後再擴 Stage-2 完整 Gen 1-2(背景)+ 推 創 3、4 兩章
+- Diff: 暫不啟動新 run；等批次完成 + 過 7:10 reset 再啟動擴充
+
+
+
+
+##     2026-06-26 01:25 CST
+
+###    User Prompt
+clear bible 可以加強給 survey5 嗎? 他嗷嗷待哺目前只能使用 kjv
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 問能否用 Clear Bible 強化 survey5（目前只能用 KJV 當來源語言）
+- Diff: 評估把 WLC 原文 + 10+ 對齊語言 接入 survey5 當來源；WLC loader 已在 run_stage2_harsh 建好可移植
+
+
+
+
+##     2026-06-26 01:28 CST
+
+###    User Prompt
+s5 onboard. inject a welcome message with message back 座標, telling him that clear bible is his next good stuffs to eat from. and hand over the rest to it where I will be working on with.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 指示：onboard survey5 sibling obe，注入歡迎信(含回信座標)，告知 Clear Bible 是下一道菜，把 survey5 強化工作交接給 s5(Joshua 會親自帶)
+- Diff: 發 /obe 跨 cwd 歡迎 inject 給 s5；交接 Clear Bible Tier1/Tier2 給 survey5 sibling
+
+
+
+
