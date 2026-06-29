@@ -1599,3 +1599,38 @@ placement 0.57 → 0.78。把語義放置和格式機制分離,是後續 product
 
 
 
+##     2026-06-29 08:28 CST
+
+###    User Prompt
+Base directory for this skill: /Users/joshua/.claude/skills/record-prompt-history
+
+# Record Prompt History (Claude flavor)
+
+## Purpose
+
+Maintain Joshua's `prompt.history` as a cross-project, cross-CLI raw prompt provenance record. Preserve **what Joshua said, where, and the smallest useful metadata** for future Codex / Gemini / Claude / Agent conclave work.
+
+This skill is the Claude-side companion to the Codex skill at `~/.codex/skills/record-prompt-history/`. The cross-CLI shared rules live at `references/shared-core-spec.md` (symlinked from the Codex skill so spec edits stay unified). The writer at `scripts/append_prompt_history.py` is also symlinked.
+
+## Where to write — the critical default
+
+Write to **the current project's own `prompt.history`** (i.e. `./prompt.history` relative to the session's cwd). **Never explicit-pass `--history` pointing to a different repo.** Each project maintains its own history file.
+
+The `--agent` field is a label (which dog-named agent recorded the entry); the `--history` field is the file location. They are not the same thing.
+
+Default Claude flavor:
+- `--history ./prompt.history` (cwd-relative; let it default)
+- `--agent <cwd-basename>-obe` (auto-derived per /obe skill — Claude IS obe)
+
+....
+
+###    result
+✅ `/ph` done — committed and pushed (`2f90de6`).
+
+Confirmed recorded (last three): the s5-onboard directive, the pause-all directive, and the Clear Bible cross-survey question. The backup-snapshot rotation (old ones pruned, new ones added) came along in the same commit.
+
+Everything's quiet — all heavy runs stopped per your pause, history is up to date. Standing by for when your token window recovers.
+
+
+
+
