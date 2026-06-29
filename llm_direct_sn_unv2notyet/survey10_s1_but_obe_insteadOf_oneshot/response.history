@@ -1669,3 +1669,44 @@ Everything is quiet and saved: all heavy runs stopped per your token pause, prom
 
 
 
+##     2026-06-29 08:32 CST
+
+###    User Prompt
+核心:Clear Bible 帶來三樣別處沒有的東西 ——
+
+1. 獨立的人工真值:它是人工逐詞對齊(非 FHL、非任何 LLM)。目前 s1/s9/s10 全部都對著 FHL(UNV+SN)一個源驗證 → 有循環風險(LLM 共識 ≠ 真值)。Clear Bible 是第二個獨立真值,能驗證「驗證者」。
+2. 完整的原文源:WLC 帶每一個 SN,含 KJV/英文丟掉的 09xxx 前綴、第二個 את、功能詞(我 Stage-1 量到 KJV 漏 31%)。
+3. 10+ 語言:可測跨語言/跨約(舊約↔新約)的泛化,不再只有中文一條線。
+
+---
+對 S1(共識 gold)
+
+- 打破循環、當第四位「裁判」:S1 現在 R2/R3 三模吵架時,只有 LLM 互投。Clear Bible 的人工對齊可當非-LLM 的仲裁者 —— 原文希伯來這個詞到底綁在哪,human gold 說了算。直接補強 R3 的「選贏家 / 判集體錯」。
+- 驗證 S1 的 gold 是否真對:把 S1 產出的 gold 拿去和 Clear Bible 對齊比 → 量化「共識 = 真值嗎」。這是 S1 一直缺的外部 sanity check。
+- ⚠️ 注意 survey6 教訓:把 WLC 當額外 one-shot 餵進去可能反而過載,要測不能假設。
+
+對 S10(慣例 + C/D)— 受益最大
+
+- 更公平/更強的對照賽源:A2 對照賽本來用 KJV(漏 31%,不公平)。換 WLC/BSB 當源就消掉 count-mismatch → s1-vs-s10 比較更乾淨。我 Stage-2 已經在用 WLC 了。
+- D-deliberation 的證據:s10 遇到真模糊節進 D 仲裁時,Clear Bible 的人工對齊就是「原文到底怎麼綁」的客觀證據,讓 D 不再只是 LLM 再吵一次。
+- 慣例的外部驗證:scribe 抽出的慣例,可拿「10 種語言怎麼對齊同一個現象」來背書 —— 慣例若跨語言一致,可信度大增;若只在中文成立,就是過擬合訊號。
+
+對 S9(production 去殼)
+....
+
+###    result
+✅ 寫好並 commit 了 (`f26e3b1`)。
+
+新檔:`llm_direct_sn_unv2notyet/CLEAR_BIBLE_CROSS_SURVEY_VALUE.md`(放在跨-survey 的頂層,因為它橫跨 s1/s9/s10)。
+
+內容收錄了:
+- **三樣別處沒有的東西**(獨立人工真值 / 完整原文源 / 10+ 語言)
+- **逐 survey 槓桿**:S1(第四位非-LLM 裁判破循環 + survey6 過載警告)、S10(對照賽吃 WLC、D 仲裁證據、慣例跨語言驗證)、S9(外部品質天花板 + 多語言外推)
+- **一句話 + 誠實限制**(沒中文 → 只能源端/交叉驗證,gloss2 洩題)
+- **可重用 artifacts 指針**(`run_stage2_harsh.py` 的 WLC loader+bridge、`build_exclusion.py`、s5 handover 信)
+
+純本地寫檔、沒燒模型 token。其餘維持暫停,等你 token 窗恢復再續 Stage-2 全量 + 创3-4 gold。
+
+
+
+

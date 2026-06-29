@@ -4,7 +4,8 @@
 > `survey5_bilingual_sn_benchmark/CLEAR_BIBLE_HANDOVER_from_s10obe.md`). This doc
 > records *why it matters beyond survey5* — its leverage on s1 (consensus gold),
 > s9 (production naked), and s10 (conventions + C/D contest). Authored by
-> survey10-obe; survey5-obe owns the survey5 integration itself.
+> survey10-obe; survey5-obe owns the survey5 integration itself. 中文版:
+> `CLEAR_BIBLE_CROSS_SURVEY_VALUE.zh.md`.
 
 ## What Clear Bible is (the data)
 
