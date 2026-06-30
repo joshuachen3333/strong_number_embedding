@@ -46,8 +46,26 @@ as s1.
 | | s1 | s10 |
 |---|---|---|
 | **Model panel** | 3-model consensus (R1→R2→R3) | **same** 3-model consensus (R1→R2→R3) |
-| **Externalized learning** | mutate the **instruction prompt** (`v1.1→v1.2` + model-specific patches) | **same prompt mechanism, PLUS** an added **conventions subsystem** |
+| **Externalized learning** | mutate the **instruction prompt** | **swaps ONE path** (see Trigger table) + adds the conventions subsystem |
 | **s10-only machinery** | — | `conventions.md` **C/D ledger** (atomic gate-PASS rules, prepended to every leg's R1/R2/R3 prompt) + the **scribe** (distils resolved gold → conventions) + **regression gate** (Trigger-1 write-path) + **D-deliberation** (escalation for genuinely ambiguous verses) |
+
+**Precisely which learning path s10 swaps — it swaps only Trigger-1.** Both pipelines
+escalate a verse two ways; s10 replaces the *collective-error* path with conventions
+and leaves the *per-model* path byte-for-byte identical to s1
+(`run_gold_standard.py`: *"Trigger-2's model-patch path is untouched"*):
+
+| Trigger | Fires when | s1 does | s10 does |
+|---|---|---|---|
+| **Trigger-1** | collective error (all 3 models unstable in R2 / R3 declares collective error) | bump the **whole instruction prompt** `+0.1` under a regression gate | **SWAPPED → write a CONVENTION** (per-line, independently gated, revertible); if no candidate passes the gate → **D-deliberation**; run continues (no break, no human prompt-fix) |
+| **Trigger-2** | one model unstable, the other 2 agree (distance ≥ threshold, AD-2) | generate a **model-specific prompt patch** (`{model}-patch-{ver}`) | **IDENTICAL — untouched.** same per-model patch path |
+
+So the headline "s1 iterates prompts, s10 iterates conventions" is true **only for the
+collective-error (Trigger-1) path**. The per-model patch (Trigger-2) is **shared,
+unchanged** — both still patch individual models. **Why swap Trigger-1**: a whole-prompt
+`+0.1` bump is coarse — one global edit can regress many already-settled verses (real
+case: `v1.3 → REGRESSION_FAILED` on 8 verses). Conventions deliver the *same* cross-verse
+learning at **per-line granularity** — each rule independently gated against the settled
+corpus and individually revertible (see [`CONVENTIONS_PIPELINE.md`](CONVENTIONS_PIPELINE.md)).
 
 Infrastructure/truth-source layer is shared bidirectionally (WLC tooling
 [`wlc_check.py`](wlc_check.py)/`eval_gold_vs_wlc.py` + `FHL_DIVERGENCE_LOG` + trust
