@@ -86,19 +86,93 @@ which is circular for comparing two consensus methods.
 **Trick (borrowed from survey5):** run the contest on a task where ground truth
 **does** exist — project onto **UNV** (which has FHL tags) **from a different
 annotated source** so the answer is never shown:
-1. **Source = KJV+SN** (KJV carries its own FHL Strong's; it is *not* the answer).
+1. **Source = WLC + aligned English** (WLC carries *every* FHL SN incl. the 09xxx
+   prefixes; BSB/YLT give a readable English bridge — *not* the answer).
+   **⚡ Updated 2026-06-30 — this supersedes the original `KJV+SN` source; see
+   [§ Source pivot](#-source-pivot-2026-06-30--decouple-from-kjv--wlc--aligned-english)
+   immediately below for why KJV was retired.**
 2. **Target = UNV stripped** of its SN (`strip_shell`).
-3. Have each method (**s1** and **s10-E**) project the Strong's numbers
-   cross-lingually KJV→UNV.
+3. Have each method (**s1** and **s10**) project the Strong's numbers
+   cross-lingually source→UNV.
 4. Score each method's UNV output against UNV's **original FHL tags** with
    `survey4/auto_score.py:score_verse` → objective `{exact, coverage, placement,
    format}` per verse.
 
 The method whose UNV output matches FHL truth more often is the better gold
 producer — no consensus circularity, and (critically) **no answer leak**: the
-projection source is KJV, not the UNV answer. See **A2** below for the leak trap
-this avoids (a naive "strip UNV → re-place onto UNV" hands the model its own
-answer via the projection source + the system-prompt worked examples).
+projection source is WLC+English (non-Chinese), not the UNV answer. See **A2** below
+for the leak trap this avoids (a naive "strip UNV → re-place onto UNV" hands the
+model its own answer via the projection source + the system-prompt worked examples).
+
+## ⚡ Source pivot (2026-06-30): decouple from KJV → WLC + aligned English
+
+> Joshua, 2026-06-30. **The contest's job is unchanged — settle "s1 or s10 produces
+> better gold" objectively. What changes is the *source*: retire KJV, adopt WLC + its
+> aligned English translations.** This supersedes the KJV-based two-stage design that
+> follows (kept below as rationale + the evidence that motivated this pivot).
+
+**Why KJV had to go — it is a structurally crippled source.** KJV is English, and
+English cannot express Hebrew inseparable prefixes / many function words, so KJV's FHL
+annotation **drops ~31 % of UNV's tags** (measured: [Stage-1](#-stage-1-empirical-result-build_exclusionpy-2026-06-25--run-before-any-paid-contest)
+below, Gen 1: 183/592 UNV tags KJV-unsupplyable) — and it carries **none** of the
+09xxx prefixes (FHL 9000-range). A contest run on KJV can therefore only score a
+*subset* of the real task, and needs an awkward two-stage workaround to ever touch the
+09xxx tail.
+
+**Why WLC + English is strictly better.** WLC (Clear Bible's manual Hebrew alignment)
+carries **every** SN — content words, `0853` את, function words, **and** the 09xxx
+prefixes (bridged to FHL by lemma, `run_stage2_harsh.PREFIX_BRIDGE`; verbs' 8xxx morph
+via survey5's `morph_bridge.json`). The catch — WLC is Hebrew, unreadable to the
+projection model — is solved by the **aligned English translation** that replaces KJV's
+old readability role **without** KJV's SN loss:
+
+- **Verified available**: Clear Bible ships **two** English translations word-aligned
+  to WLC, both with `WLCM-{TRANS}-manual.json` manual alignments —
+  **BSB** (Berean Standard, modern/readable) and **YLT** (Young's Literal, tracks
+  Hebrew morphology closely, may surface more prefixes). `eng/targets/{BSB,YLT}` +
+  `eng/alignments/{BSB,YLT}`.
+- **Leak-safe**: the English is *not Chinese* → it cannot hand over "which Chinese
+  token". (The `gloss2` Chinese column stays dropped, as before.)
+
+**The big structural win — the two-stage split collapses into ONE complete contest.**
+The only reason Stage-1/Stage-2 existed was KJV's incompleteness (Stage-1 *excluded*
+09xxx because KJV can't supply them; Stage-2 *added them back* via WLC). With WLC as the
+source, **the full inventory is supplied at once** → a single unified contest scoring
+**everything incl. 09xxx recall**. No `kept_set` exclusion.
+
+| | OLD (KJV, two-stage) | NEW (WLC+English, unified) |
+|---|---|---|
+| Source | KJV+SN (English, drops 31 %) | **WLC** (complete) **+ BSB/YLT** (readable bridge) |
+| 09xxx / FHL-9000 | KJV can't supply → Stage-1 excludes, Stage-2 re-adds | **supplied natively**, scored in one pass (09xxx recall) |
+| Stages | 2 (workaround) | **1 (complete)** |
+| Scoring boundary | `kept_set` = UNV-FHL ∩ KJV-FHL | **full UNV-FHL inventory** |
+
+**Roles of the existing artifacts after the pivot** (nothing wasted):
+- `build_exclusion.py` / `kept_set_*.json` → no longer the *scoring boundary*; becomes
+  the **fairness diagnostic** that *measured* KJV's 31 % gap (the evidence for this
+  pivot) and still partitions tags into families for analysis.
+- `run_stage2_harsh.py` (WLC loader + `PREFIX_BRIDGE` + `morph_bridge`) → promoted from
+  "harsh tail probe" to **THE contest source loader**; needs the **English bridge**
+  added.
+- The [WLC answer-key methodology-divergence rule](#️-wlc-answer-key--methodology-divergence-rule-s1-gold-ruling-2026-06-29)
+  still applies — FHL-faithful tags that differ from WLC morphology are **not** scored
+  as errors (2:20 lesson).
+
+**Two subtleties to keep honest:**
+1. **09xxx is a *sparse-selection* problem (feature, not bug).** WLC carries **every**
+   Hebrew prefix, but UNV tags 09xxx **only where a Chinese token surfaces**. So the
+   model must place the *subset* UNV would tag — that selection IS the genuine
+   difficulty, measured directly by **09xxx recall**. KJV couldn't even pose this.
+2. **English-overload risk (survey6 lesson).** survey6 died of info-overload (+7pp
+   placement, −10pp coverage) from a 5-input prompt. Adding English to the WLC source is
+   +1 input → **test, don't assume**: run **BSB-on vs off** (and **BSB vs YLT**) as an
+   ablation to confirm English *aids readability* rather than *drowns* the signal.
+
+**Build status**: `run_stage2_harsh.py` is ~80 % of the new contest already. Remaining
+(the **paid** arm, gated on token recovery): (a) load `eng/targets` + `WLCM-eng`
+alignment and attach per-token English to the WLC source line; (b) promote to the
+primary contest; (c) wire real **A (s1 consensus) vs B (s10)** arms + **N-sample** to
+beat sampling noise.
 
 ## Two comparison flavors — A1 vs A2 (read before running any contest)
 
@@ -128,27 +202,30 @@ production gold we already have (Gen 1) is **UNV→LCC and LCC has no FHL truth*
 > system-prompt examples literally **contain the answer** → the model just copies
 > the reference. A2 MUST NOT hand the model an annotated copy of the test text.
 
-- **Leak-free design (survey5 framing — source ≠ answer):**
-  - **Source = KJV+SN** (KJV carries its *own* FHL Strong's, English) — *not* the
-    answer being scored.
+- **Leak-free design (survey5 framing — source ≠ answer; post-[pivot](#-source-pivot-2026-06-30--decouple-from-kjv--wlc--aligned-english) 2026-06-30):**
+  - **Source = WLC + aligned English (BSB/YLT)** — WLC carries every FHL SN incl.
+    09xxx; the English is a readable bridge, *non-Chinese* so it is *not* the answer
+    being scored. *(was `KJV+SN` before the pivot.)*
   - **Target = UNV stripped** (SN removed).
-  - Both s1 and s10 **project KJV's SN cross-lingually onto UNV**.
+  - Both s1 and s10 **project the source's SN cross-lingually onto UNV**.
   - **Score the projected UNV-SN against UNV's original FHL tags** with
-    `survey4/auto_score.py:score_verse`. The answer never enters the prompt.
+    `survey4/auto_score.py:score_verse` — now on the **full inventory incl. 09xxx
+    recall** (no `kept_set` exclusion). The answer never enters the prompt.
 - **Worked-example audit (second leak vector):** the prompt's
   *"Worked examples"* must contain **no verse in the test set** (use held-out
   examples, or strip the examples for the contest). Verify before running.
 - **Answers**: *who is more accurate vs ground truth* — mean placement/coverage
   per arm (H1), whether each accepted convention (e.g. C1) **raises** held-out
   placement accuracy (H5, per-convention A/B), false-disagreement reduction (H2).
-- **Honest caveat**: KJV→UNV is **cross-lingual** (English→Chinese), *harder*
-  than production's same-language UNV→LCC. Unavoidable: only UNV/CUV carry FHL SN
-  in Chinese, so two independent *Chinese* annotated texts don't exist — KJV is
-  the only leak-free annotated source. `survey5` already runs this exact setup.
-  The contest is still fair (s1 and s10 face the identical KJV→UNV task).
-- **Key**: a **separate run** — task is KJV→UNV, NOT the UNV→LCC gold we already
+- **Honest caveat**: source→UNV is **cross-lingual** (Hebrew/English→Chinese),
+  *harder* than production's same-language UNV→LCC. Unavoidable: only UNV/CUV carry
+  FHL SN in Chinese, so two independent *Chinese* annotated texts don't exist — WLC
+  (with its English bridge) is the leak-free annotated source that, unlike KJV, is
+  also **complete** (every SN incl. 09xxx). The contest is fair (s1 and s10 face the
+  identical WLC→UNV task).
+- **Key**: a **separate run** — task is WLC→UNV, NOT the UNV→LCC gold we already
   produced; the Gen 1 LCC gold does **not** feed A2.
-- **Cost**: higher (fresh s10 live run + s1 run on KJV→UNV), but the **only**
+- **Cost**: higher (fresh s10 run + s1 run on WLC→UNV), but the **only**
   path that can claim "s10 is as accurate as / beats s1 vs truth."
 - **Use as**: the authoritative credibility verdict (H1–H5 below).
 
@@ -158,6 +235,13 @@ measures correctness (heavier, "who is closer to FHL truth?"). Only A2 uses
 below describe **A2** (the real contest); A1 is the optional warm-up diff.
 
 ## A2 scoring — two-stage divide-and-conquer (Joshua, 2026-06-25)
+
+> **⤳ SUPERSEDED (2026-06-30) by the [§ Source pivot](#-source-pivot-2026-06-30--decouple-from-kjv--wlc--aligned-english)
+> above.** This two-stage KJV design existed only to work around KJV's incompleteness;
+> the pivot to a WLC+English source collapses it into one complete contest. Retained
+> below because (a) its Stage-1 measurement *is* the evidence that KJV drops 31 % (why
+> the pivot happened), and (b) its Stage-2 WLC loader is the foundation the unified
+> contest builds on. Read it as rationale + components, not the current plan.
 
 > **Scheme correction (supersedes an earlier draft).** An earlier draft made the
 > original WLC/SBLGNT the *direct* SN answer key — that over-reached. **FHL's
@@ -311,8 +395,9 @@ is non-Chinese so it does not directly judge the UNV→LCC product.
 | **B — s10-E** | this dir: per-verse `/clear`, blind R1/R2 (C tier), gated D-deliberation (post-C), conventions.md | `conventions.md` (gated, versioned) |
 | **B0 — s10 ablation** (optional) | s10 with `conventions.md` **frozen empty** | none (isolates the conventions contribution) |
 
-A and B see the **same KJV→UNV corpus** (source KJV+SN, target UNV-stripped, score
-vs UNV FHL truth) and the **same panel roster**
+A and B see the **same WLC→UNV corpus** (source = WLC + aligned English (BSB/YLT),
+target UNV-stripped, score vs UNV FHL truth on the **full inventory incl. 09xxx**;
+post-pivot 2026-06-30 — source was KJV+SN before) and the **same panel roster**
 (opus/agy/codex). Only the method differs. B0 isolates how much the conventions
 pipeline itself contributes vs the transport.
 
