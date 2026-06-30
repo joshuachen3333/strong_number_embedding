@@ -30,21 +30,34 @@ preamble. Context isn't *carried*; it's *externalized and re-fed*.
 
 **Consequence — s10 and s1 have converged more than the name implies.** Both are now
 **blind per-call** and both **externalize accumulated learning to disk and re-feed it**.
-The original differentiator (live context-carry) is gone. The genuine remaining
-differences are two axes:
+The original differentiator (live context-carry) is gone.
 
-| Axis | s1 | s10 |
+**⚠️ Same model count — NOT single-vs-multi.** Both s10 and s1 run the **same 3-model
+consensus** (`run_gold_standard.py`: opus / agy / gpt panel; R1 unanimous → R2 debate →
+R3 judge; shared `consensus.py`). A natural-but-wrong simplification is to call s10
+"single model" — that comes from the **A2 contest probe** (`run_a2_contest.py`,
+`run_stage2_harsh.py`), which deliberately runs **one model** (opus, arm B vs B0) to
+*isolate the conventions effect*. That single-model setup is the **measurement
+instrument**, not s10's gold method. s10's gold production is 3-model, same cost base
+as s1.
+
+**The genuine remaining difference is ONE added subsystem — `s10 ⊇ s1`:**
+
+| | s1 | s10 |
 |---|---|---|
-| **Form of externalized learning** | mutate the **instruction prompt** (`v1.1→v1.2`, model-specific patches) | accrete a **separate append-only conventions ledger** (`C/D` tier, regression-gated, scribe→gate pipeline; finer-grained + auditable) |
-| **Model count** | **3-model consensus** (R1 unanimous → R2 debate → R3 judge) | **single model** + externalized conventions, aiming to **match consensus quality at ~0 cost** |
+| **Model panel** | 3-model consensus (R1→R2→R3) | **same** 3-model consensus (R1→R2→R3) |
+| **Externalized learning** | mutate the **instruction prompt** (`v1.1→v1.2` + model-specific patches) | **same prompt mechanism, PLUS** an added **conventions subsystem** |
+| **s10-only machinery** | — | `conventions.md` **C/D ledger** (atomic gate-PASS rules, prepended to every leg's R1/R2/R3 prompt) + the **scribe** (distils resolved gold → conventions) + **regression gate** (Trigger-1 write-path) + **D-deliberation** (escalation for genuinely ambiguous verses) |
 
 Infrastructure/truth-source layer is shared bidirectionally (WLC tooling
 [`wlc_check.py`](wlc_check.py)/`eval_gold_vs_wlc.py` + `FHL_DIVERGENCE_LOG` + trust
 tiers + buckets flowed s10→s1; s10 reads s1's gold as baseline). What still
-distinguishes s10 is **the *form* of externalization + single-vs-multi-model** — **not**
-context-carry. Whether that single-model+ledger bet actually matches s1's consensus is
-exactly **Q2**, still only answered by a B-vs-B0 proxy — the head-on **A-vs-B** contest
-below is unrun. That contest is the final exam for s10's reason to exist.
+distinguishes s10 is therefore **purely the added conventions subsystem** — same panel,
+same per-call blindness, same cost base. s10's bet (Q2): does that extra scribe+ledger+
+gate machinery produce **better gold** and/or **fewer escalations over time** (H4
+"cheaper over time"), earning its keep? Still only answered by a B-vs-B0 proxy — the
+head-on **A-vs-B** contest below is unrun. That contest is the final exam for s10's
+reason to exist.
 
 ## The measurement problem (and the trick)
 
