@@ -389,3 +389,336 @@ ok, before you do the review, /compact first, then /ph then /logoutput
 
 
 
+##     2026-06-24 03:00 CST
+
+###    User Prompt
+inject s10, tell it to correct this.
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua greenlit injecting the 3 review corrections (R2.5 trigger / Trigger-1 reconcile / doc-staleness) to s10 sibling
+
+
+
+
+##     2026-06-24 03:05 CST
+
+###    User Prompt
+do a review again, before s10 to fire up gen: chap 1
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua wants a re-review gate verifying the 3 corrections landed + s10 run-readiness before firing a Genesis 1 run
+
+
+
+
+##     2026-06-24 03:12 CST
+
+###    User Prompt
+inject and tell s10, about your requirements.
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Relay design sign-off + authorize v2 implementation + the pre-Gen1 code-review gate requirements to s10 sibling
+
+
+
+
+##     2026-06-24 03:48 CST
+
+###    User Prompt
+/clear (加上/) 對 codex 似乎有效, 只是剛剛你注入失敗, 我補 enter 了
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 實測 /clear:codex 動詞有效,但注入的 Enter 沒自動 commit(要手動補)——證實 reset_live_panel 靜默失敗模式 + 單次 Enter 未按 obe double-Enter v2 協議
+
+
+
+
+##     2026-06-24 03:50 CST
+
+###    User Prompt
+agy codex 都沒有抱怨 /clear 指令錯誤, 似乎都是內建指令
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 實測確認 /clear 對 codex+agy 都是內建有效動詞(gate#3 verb 項清除);但 Enter auto-commit、每輪 reset、erha 切 Pro 仍未解
+
+
+
+
+##     2026-06-24 03:52 CST
+
+###    User Prompt
+Gen 1 我要用現成的  cli 跑, 別再抗命了
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 拍板:Gen 1 用現成 live CLI(codex5555/agy5557 panel)跑,推翻 headless 建議;解除 hold、注入 s10 開跑
+- Diff: 決策定案:live panel 開跑 Gen 1;gate-3 caveats 已知且 Joshua 接受
+
+
+
+
+##     2026-06-24 03:54 CST
+
+###    User Prompt
+記得提醒 s10, 注入時要兩次 enter, 注入下一家時要等待 15 秒 這些都是 /obe 的傳承經驗
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 要求把 /obe 傳承經驗納入給 s10 的修正指令:double-Enter v2 + 注入下一腿等待 15 秒(focus-race 防護)
+
+
+
+
+##     2026-06-25 04:53 CST
+
+###    User Prompt
+[STATUS from s10] GEN 1 COMPLETE — 31/31. resolved_at: 14 round1 + 15 round2 + 1 r2_model_patch (Trigger-2) + 1 r2_early_evolution (hard verse). trust_tier: 30 c_consensus + 1 None. ALL coverage-perfect. NO codex bail. MILESTONE: per-chapter scribe extracted convention C1 (verb morphology/stem tag glued after verb core number; 1:27 創造<01254><8799>), run_convention_regression passed 11/11 -> ACCEPTED -> conventions.md v0.1. Trustworthy transport held throughout. Gen 1 now valid Arm B for s1-vs-s10 contest.
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: s10 Gen 1 完成里程碑(經 codex 配額中斷後 resume):31/31、30 c_consensus、首條 gated convention C1 學成
+- Diff: 獨立核對檔案屬實:gold 31 verses、trust_tier 30 c_consensus + 1 None(1:30 r2_early_evolution 不可信尾巴)、conventions.md v0.1 含 C1(11/11 通過)。Gen 1 = 可信 Arm B。已寫 memory survey10_e_trustworthy_transport。
+
+
+
+
+##     2026-06-29 08:47 CST
+
+###    User Prompt
+[QUERY from s10-obe] Gold-correction candidate Gen 2:20: 2nd אדם (וּלְאָדָם) — current gold/UNV/FHL tags H0120 (generic man), WLC human alignment tags H0121 (Adam proper name). Found via eval_gold_vs_wlc.py (982/986 consistent, 0 content-word hallucinations, this the ONE judgment dispute). Asks survey1-obe to review 0120->0121 as gold authority. Reply-back window 5544.
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: s10 用 WLC 原文對位 surface 一個 gold 校正候選;我判定這是 FHL-transfer vs WLC-morphology 的方法論抉擇,非單純錯誤,屬 Joshua 拍板
+- Diff: 核對 survey1 gold_standard/Gen/2/20.json:兩個那人皆 H0120(含 וּלְאָדָם)。評估:WLC/KJV/ESV 讀 Adam(H0121)有據(לְ 無冠詞);但 FHL-faithful + 那人='the man' 配 H0120 亦正當;且影響 s1-vs-s10 contest 的 WLC answer-key 效度。未改動、未回注 s10,等 Joshua 選 (a) 保留 H0120+記分歧 或 (b) 採 WLC 校正且全corpus一致。
+
+
+
+
+##     2026-06-29 08:52 CST
+
+###    User Prompt
+好的, 選 A, 但是要記錄下來供人工 review, 或者即將給 fhl 的回饋. 並且回注給剛剛 s10 讓他知悉
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 拍板 Gen 2:20 走 (a) 保留 H0120;要求記錄供人工 review/FHL 回饋,並回注 s10
+- Diff: 新增 FHL_DIVERGENCE_LOG.md(entry D1:Gen 2:20 2nd אדם H0120 keep, WLC H0121 為已知分歧/FHL-feedback candidate);gold 未改動;回注 s10(window 5544)告知裁決+contest 須把 FHL-vs-WLC 標記差異歸方法論分歧不算錯
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/FHL_DIVERGENCE_LOG.md`
+
+
+
+
+##     2026-06-29 09:00 CST
+
+###    User Prompt
+[FYI/SEED from s10-obe] BEGINNING PROMPT: how WLC can strengthen S1 — move WLC from post-hoc validator (eval_gold_vs_wlc.py) INTO consensus loop. (A) cheap WLC pre-pass = cost-triage (route R2/R3 to WLC-divergent verses); (B) WLC original-language binding as EVIDENCE in R3 judge (not override). Caveat: WLC tiebreaker INPUT not authority (per 2:20). Open Q: how should R3 judge WEIGH WLC-evidence vs FHL-faithfulness; FHL_DIVERGENCE_LOG = training ledger. Seed file ./WLC_FOR_S1_SEED_from_s10obe.md; Joshua coming to window 1314 to develop.
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 新設計線開啟:WLC 進 S1 consensus loop(s10 seed);讀畢 seed,備好初步立場待 Joshua 共同發展
+- Diff: 讀 WLC_FOR_S1_SEED_from_s10obe.md。初步立場:(A) cost-triage 低風險可行(只改 routing 不改 resolution);(B) WLC-as-R3-evidence 高價值高風險(碰 AD-1 judge 邏輯,失敗模式=2:20 靜默 override)。建議 R3 judge 改輸出 bucket 分類(collective_error/methodology_divergence/placement_issue)而非數值權重,FHL_DIVERGENCE_LOG 當校準帳本。邊界:WLC 無中文→只判 inventory+原文,不能判 placement。未改動未回注 s10,待與 Joshua 發展。
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/WLC_FOR_S1_SEED_from_s10obe.md`
+
+
+
+
+##     2026-06-29 13:34 CST
+
+###    User Prompt
+WLC-into-S1 design go
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 下令產出 WLC-into-S1 完整設計;寫成 WLC_INTO_S1_DESIGN.md,提 3 個決策點待拍板
+- Diff: 新增 WLC_INTO_S1_DESIGN.md:共用 primitive wlc_check;Mechanism A 修正 seed 為『非對稱 triage』(WLC placement-blind→只能升級不能跳過,捕捉 unanimous-but-wrong-on-identity);Mechanism B WLC 當 R3 evidence+bucket 分類(collective_error/methodology_divergence/placement_or_silent);weighting=保守決策規則非數值;新 trust tiers;AD-1 不變;分階段 A(escalator gold-safe)先於 B(judge evidence)。3 決策點:1 非對稱、2 保守預設、3 A-first。未回注 s10。
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/WLC_INTO_S1_DESIGN.md`
+
+
+
+
+##     2026-06-29 22:15 CST
+
+###    User Prompt
+1. 非對稱 triage(WLC 只升級不省略) 2. 保守預設權重(WLC 僅供參考,讓帳本掙得權重)—— 同意 3. A 先於 B 請確定 A B 我們都有
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 拍板 WLC-into-S1 三決策:① 非對稱 triage ② 保守預設權重 ③ A 先於 B 且 A B 皆在範圍內(不可只做 A)
+- Diff: WLC_INTO_S1_DESIGN.md 加『Decisions locked』段確認三點 + B 不可丟;commit+push;回注 s10(window 5544)鎖定設計
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/WLC_INTO_S1_DESIGN.md`
+
+
+
+
+##     2026-06-29 22:21 CST
+
+###    User Prompt
+[GO from s10-obe] FOUNDATION SHIPPED: shared primitive wlc_check.py (s10 0acefce). Signature wlc_check(book_chi,chap,sec,fhl_sn,divergences) -> {status,coverage,divergences[]}. Phase-A clarification: pre-R1 no gold, primitive fhl_sn-agnostic — pass UNV+SN REFERENCE as fhl_sn (escalator), gold lcc_sn (post-hoc eval). status gate: divergence iff >=1 UNRESOLVED core_content fhl_only -> wlc_contested; match -> wlc_corroborated; no_signal -> pure consensus. Validated Gen 1-2: 55 match/1 contested (2:9 H6779), 2:20 suppressed + carries Phase-B evidence. Two-sided divergences (fhl_only+wlc_only). AD-1 intact. Yours to wire Phase A into consensus.py.
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: s10 交付 wlc_check.py 並把 Phase-A wiring 交給我;我驗證 primitive 屬實,提出 wiring plan 待 Joshua go
+- Diff: 讀 wlc_check.py 確認:status 邏輯/2:20 suppression/兩面 divergences/讀 FHL_DIVERGENCE_LOG/AD-1 皆符設計。提 Phase-A wiring plan(import、R1 前跑 wlc_check 用 UNV+SN reference 當 fhl_sn、wlc_contested 強制 R2/R3、consensus.py 記 wlc_status+trust_tier、Gen 1-2 驗證 expect 僅 2:9 escalate、regression)。誠實提醒:55 match 純加法 gold-safe,1 contested(2:9)會刻意重啟審查,gold 可能合法改變但僅經 R2/R3+regression。待 Joshua go + 確認 input 選擇。
+
+
+
+
+##     2026-06-29 22:33 CST
+
+###    User Prompt
+go
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua go:實作 WLC Phase-A escalator;已 wire+offline-validated+commit+push,live 驗證待 go
+- Diff: run_gold_standard.py:guarded import wlc_check、R1 前對 UNV+SN source 跑 wlc_check、wlc_contested 強制 R2/R3(非對稱)。consensus.py:_annotate_wlc 後處理記 wlc_status/divergences+trust_tier(decoupled,AD-1)。安全保證:guarded import+per-verse try/except,WLC 失效則退回純 S1。offline 驗證:S1 import OK、2:9 contested/2:20 suppressed、trust_tier unit-test green、py_compile OK。live Gen 1-2 驗證(2:9 觸發 R2/R3=LLM calls)待 go。
+
+
+
+
+##     2026-06-29 23:41 CST
+
+###    User Prompt
+B / I am rich now
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 選 (b) 跑 full Gen 1-2 WLC Phase-A 驗證(quota 放行);背景啟動
+- Diff: 背景啟動 run_gold_standard.py --book 創 --chap 1-2(無 --force):補 agy/codex Gen-1 R1 cache 缺口 + 用 Gen-2 cache + WLC escalator 對 2:9 觸發 R2/R3。log: run_logs/wlc_validation_genesis_1-2.log。完成後驗:僅 2:9 escalate、2:20 suppressed、regression green。
+
+
+
+
+##     2026-06-30 02:55 CST
+
+###    User Prompt
+(full Gen 1-2 validation outcome + completing via Gen 2)
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: full Gen 1-2 驗證在 Gen 1:21 因 fresh-panel Trigger-1 停(survey1 stop-on-Trigger-1),未達 2:9;確認 WLC wiring/無誤升級/annotate end-to-end/regression 擋下 v1.3;改跑 Gen 2(cached)完成 escalator 驗證
+- Diff: Gen 1:1-21 重解+標註(20 c_consensus+wlc_corroborated,1:21 None),v1.3 被 regression 否決(v1.2 仍 active),Gen 2 未動。背景啟動 run_gold_standard.py --book 創 --chap 2 完成 2:9 escalator 驗證。log run_logs/wlc_validation_gen2.log
+
+
+
+
+##     2026-06-30 03:21 CST
+
+###    User Prompt
+(Gen 2 WLC Phase-A validation result)
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Gen 2 驗證 PASS:2:9 escalate+annotate(c_consensus_over_wlc_divergence)、2:20 suppressed(c_consensus+wlc_corroborated)、25 全標註、coverage perfect、無 Trigger-1 停
+- Diff: Phase A live-validated。caveat:2:9 本就 R1-disagreed,故『強制 unanimous→R2』分支未被真實案例觸發(已 wire+unit-test)。Gen 1:1-21 gold 仍 agy-refresh 混合態。下一步待 Joshua:(1) 回注 s10 驗證結果 (2) 啟動 Phase B(judge evidence+bucket)。
+
+
+
+
+##     2026-06-30 08:35 CST
+
+###    User Prompt
+I will run the /model there
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 自行在 33179 跑 /model 切 agy 到 Pro;我並行備妥 /obe2 meeting 物料
+- Diff: 備妥 wlc_phaseB-20260630-m01 onboarding:epochs/e0001/manifest.json(roster obe/lala/erha N=3 frozen)、obe onboard digest event obe:e0001:0001 寫入 bus(logs/obe.jsonl+topics/onboarding.jsonl)、onboarding 信 docs/20260630_obe2_onboard_wlc_phaseB-m01.md(primer 指標+one-shot proof-event 指示+chair gate+4 題 R-1 agenda)。待 Pro flip 後 inject lala(5555)+erha(33179) onboard、onboard-check、開 R-1。
+
+
+
+
+##     2026-06-30 08:40 CST
+
+###    User Prompt
+I want to use that pre-existing one, could you kill the one you launched?
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 要用 pre-existing agy(survey1 cwd)當 erha,殺掉我啟動的 33179 那個
+- Diff: kill pid 84706(launched agy, window 33179)確認 dead;erha 改指 pre-existing agy=window 32672(pid 82398, cwd survey1_prompt_evolving);更新 manifest + onboarding letter(erha 32672 + bus 路徑改絕對)。待 Joshua 在 32672 跑 /model 切 Pro,再 onboard lala(5555)+erha(32672)。
+
+
+
+
+##     2026-06-30 21:38 CST
+
+###    User Prompt
+/logoutput
+/obe2
+meeting with them by /obe2
+when you are ready, use /workflows to go.
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 繼續 /obe2 meeting：onboard lala+erha → 開 R-1 四問 → 決議後 /workflows 衝
+- Diff: 從 Pro-flip 等待態恢復；查驗 bus 僅 obe.jsonl 在線，兩狗未 onboard；備妥 inject wire，準備 onboarding 兩腿
+- File: `/Users/joshua/work/strong_number_embedding/docs/20260630_obe2_onboard_wlc_phaseB-m01.md`
+
+
+
+
+##     2026-06-30 21:47 CST
+
+###    User Prompt
+you connected to the wrong lala, should invite the same cwd/ one
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 纠错：lala 連到 survey10 cwd 的 codex，要改邀同 cwd（survey1）那隻
+- Diff: 棄置 win5555 錯誤 lala（送 disregard，清掉 bus 上 lala:e0001:0001 與 topic pointer）→ roster 改 lala=win32670（同 cwd codex）→ 重新 onboard → 兩狗 onboard-check 雙過 → 開 R-1 四問（agenda obe:e0001:0002）
+- File: `/Users/joshua/work/strong_number_embedding/docs/obe_bus/epochs/e0001/manifest.json`
+- File: `/Users/joshua/work/strong_number_embedding/docs/20260630_obe2_R1_wlc_phaseB_agenda.md`
+
+
+
+
+##     2026-06-30 21:52 CST
+
+###    User Prompt
+[AskUserQuestion 裁決] Q1=Active auto-append (erha literal); Q4=Re-run 1:22-31
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 裁決 R-1 四問：Q1 active-auto-append(覆寫 lala) / Q2 R3-only / Q3 unanimous gate / Q4 re-run 1:22-31
+- Diff: 兩狗 R-1 positions 上線(lala/erha:e0001:0002)→ obe synthesis(0003)→ Joshua 裁 Q1+Q4 → decision event 0004 收束 R-1。下一步 /workflows 實作 Phase B；live re-run 需逐次 go-ahead
+- File: `/Users/joshua/work/strong_number_embedding/docs/20260630_obe2_R1_wlc_phaseB_synthesis.md`
+- File: `/Users/joshua/work/strong_number_embedding/docs/obe_bus/logs/obe.jsonl`
+
+
+
+
+##     2026-06-30 21:55 CST
+
+###    User Prompt
+/obe2 （重新喚起 skill，無新指令 payload）
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: /obe2 重新喚起（無 payload）：回報 bus 狀態，提議 R-2 實作審查回合
+- Diff: 確認 R-1 已收束（0002 agenda→positions→0003 synthesis→0004 decision）；workflow wf_679ed109 仍在 Implement 階段；提出 R-2 = lala+erha 用 review event 審 Phase B diff，待 workflow 落地後開；目前 hold 不 inject
+
+
+
+
+##     2026-06-30 22:10 CST
+
+###    User Prompt
+[workflow wf_679ed109 完成] Phase B 實作+審查+離線驗證；3 blocker 待修
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Phase B workflow 完成：13/13 離線測試綠，但對抗審查抓到 3 個 consensus.py blocker；obe 直接修復+重驗
+- Diff: B1 AD-1 破口(bucket block 縮排錯→對所有 R3 outcome 都跑→WLC 文字洩漏到 prompt_evolution gold)→ 加 outcome=='resolved' gate + _annotate_wlc C-tier 防護；B2 D-id 漏算自由格式 header→加 _D_ID_RE 寬鬆掃描；B3 hardcoded Gen+無 book key→Gen-only 守衛拒非 Gen。compile OK、三 blocker 回歸測試全過、Phase-A tier 不變、真 ledger 仍 1 條
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/consensus.py`
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/judge.py`
+
+
+
+

@@ -1,0 +1,14 @@
+{
+  "epoch": "e0001",
+  "meeting_id": "wlc_phaseB-20260630-m01",
+  "opened": "2026-06-30",
+  "members": ["obe", "lala", "erha"],
+  "N": 3,
+  "roles": {
+    "obe": "chair + opus leg (survey1_prompt_evolving, window 1314)",
+    "lala": "codex leg (window 32670, pid 81139, ttys001, cwd survey1_prompt_evolving)",
+    "erha": "agy / Gemini 3.1 Pro leg (window 32672, pid 82398, cwd survey1_prompt_evolving)"
+  },
+  "topic": "wlc_phase_b",
+  "note": "Frozen for the whole meeting (TTP membership). lala re-pointed window 5555 -> 32670 per Joshua 2026-06-30 ('wrong lala, invite the same-cwd one'): 5555 was a survey10-cwd codex; 32670 is the same-cwd (survey1_prompt_evolving) codex. erha re-pointed to the pre-existing agy (window 32672). All three dogs now share cwd survey1_prompt_evolving. Bus paths remain ABSOLUTE."
+}

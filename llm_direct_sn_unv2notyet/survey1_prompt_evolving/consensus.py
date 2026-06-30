@@ -14,8 +14,123 @@ if PARENT_DIR not in sys.path:
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
-from judge import tally_r2_debate, tally_r3_judgments
+from judge import tally_r2_debate, tally_r3_judgments, tally_r3_buckets
 from shared.sn_shell import restore_shells_positional, strip_shell
+
+FHL_DIVERGENCE_LOG = os.path.join(SURVEY_DIR, "FHL_DIVERGENCE_LOG.md")
+
+# Matches existing D-entry headers (mirrors wlc_check.load_divergences' regex) so an
+# auto-appended entry is picked up by the Phase-A ledger on the next run.
+_D_HEADER_RE = re.compile(
+    r"^##\s*D(\d+)\s*—\s*Gen\s*(\d+):(\d+).*?H0*(\d+)\s*\(FHL\)", re.I)
+# Permissive D-id scan: matches ANY `## D<n>` header regardless of body shape, so the
+# id counter never under-counts a human-added / free-form entry (which would otherwise
+# cause a DUPLICATE D-id on the next auto-append). Strict _D_HEADER_RE is used only for
+# the (chap, sec, H<fhl>) idempotency key.
+_D_ID_RE = re.compile(r"^##\s*D(\d+)\b")
+
+
+def _eng_to_chi_book(book_eng):
+    """Reverse lookup English book name -> Chinese abbrev (for log readability)."""
+    try:
+        from llm_direct_sn_unv2notyet import CHI_TO_ENG
+        for chi, eng in CHI_TO_ENG.items():
+            if eng == book_eng:
+                return chi
+    except Exception:  # noqa: BLE001 — log readability only, never block
+        pass
+    return book_eng
+
+
+def append_divergence_entry(book_eng, chap, sec, fhl_num, wlc_num=None,
+                            reason="", source_token=None, wlc_lemma=None,
+                            path=None):
+    """Idempotently append a methodology-divergence D-entry to FHL_DIVERGENCE_LOG.md.
+
+    R-1 Q1 (locked): a >=2/3 methodology_divergence ruling auto-appends a D-entry
+    IMMEDIATELY (suppresses re-escalation; human reviews after the fact).
+
+    Idempotent: skips if any existing D-entry already covers the same
+    (chap, sec, H<fhl_num>). Auto-increments the D-id from the highest present.
+    Matches the existing D-entry markdown format so wlc_check.load_divergences picks
+    it up. Returns the D-id written, or None if skipped (already present).
+
+    fhl_num/wlc_num may be like "H0120"/"H120"/"120"; normalized for comparison and
+    rendered zero-padded to 4 digits to match the D1 style.
+    """
+    if path is None:
+        path = FHL_DIVERGENCE_LOG
+
+    # Gen-only invariant (Blocker 3): the header is rendered as "Gen C:V" and the
+    # idempotency key is book-less (chap, sec, H<fhl>); wlc_check.load_divergences is
+    # likewise Gen-anchored. Writing a non-Gen entry would mislabel the header, break
+    # upstream re-escalation suppression, and collide the book-less key across books.
+    # Until the loader is generalized to capture book, refuse non-Gen rather than
+    # silently mislabel. (Current scope — survey1 Gen 1-2, Q4 Gen 1:22-31 — is Gen.)
+    _bk = (book_eng or "").strip()
+    if _bk.lower() not in ("gen", "genesis") and _bk not in ("創", "创"):
+        print(f"  [WLC] D-entry auto-append is Gen-only (loader is Gen-anchored); "
+              f"refusing book={book_eng!r} at {chap}:{sec}. Widen wlc_check first.")
+        return None
+
+    def _norm(n):
+        if n is None:
+            return None
+        m = re.search(r"(\d+)", str(n))
+        return int(m.group(1)) if m else None
+
+    fhl_n = _norm(fhl_num)
+    if fhl_n is None:
+        return None
+    wlc_n = _norm(wlc_num)
+
+    # Scan existing entries: collect ids + idempotency keys.
+    max_id = 0
+    existing_keys = set()
+    if os.path.isfile(path):
+        with open(path, encoding="utf-8") as f:
+            for ln in f:
+                s = ln.strip()
+                mid = _D_ID_RE.match(s)
+                if mid:  # permissive: count EVERY D<n> header toward max_id
+                    max_id = max(max_id, int(mid.group(1)))
+                m = _D_HEADER_RE.match(s)
+                if m:    # strict: only full FHL-format headers seed the idempotency key
+                    existing_keys.add((int(m.group(2)), int(m.group(3)),
+                                       int(m.group(4))))
+    if (chap, sec, fhl_n) in existing_keys:
+        return None  # already logged — idempotent skip
+
+    new_id = max_id + 1
+    fhl_tag = f"H{fhl_n:04d}"
+    wlc_tag = f"H{wlc_n:04d}" if wlc_n is not None else "(WLC original-language)"
+    book_chi = _eng_to_chi_book(book_eng)
+
+    ev_lines = []
+    if source_token:
+        ev_lines.append(f"  - WLC source token: `{source_token}`")
+    if wlc_lemma:
+        ev_lines.append(f"  - WLC lemma: {wlc_lemma}")
+    ev_block = ("\n" + "\n".join(ev_lines)) if ev_lines else ""
+
+    entry = (
+        f"\n## D{new_id} — Gen {chap}:{sec} — {fhl_tag} (FHL) vs {wlc_tag} (WLC)\n\n"
+        f"- **Verse / clause**: {book_chi} {chap}:{sec} — auto-logged methodology "
+        f"divergence (Phase B R3 ruling).\n"
+        f"- **FHL / current gold**: **{fhl_tag}** (kept — FHL-faithful).\n"
+        f"- **WLC original-language alignment**: **{wlc_tag}**.{ev_block}\n"
+        f"- **R3 bucket ruling**: methodology_divergence (>=2/3 judges). Reason: "
+        f"{reason or '(see R3 round results)'}\n"
+        f"- **DECISION (auto, Phase B): KEEP {fhl_tag} — FHL-faithful.** Gold "
+        f"unchanged; logged so it never re-escalates. **Pending human review.**\n"
+        f"- **Status**: known-divergence · gold unchanged ({fhl_tag}) · "
+        f"auto-logged · **FHL-feedback candidate**.\n"
+        f"- **Found by**: Phase B R3 WLC-evidence bucket vote (auto-append).\n"
+    )
+
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(entry)
+    return new_id
 
 
 def _restore_gold_shells(gold_standard):
@@ -71,26 +186,45 @@ def resolve_winner_text(winner_label, verse_key, convergence_results,
     return ""
 
 
-def _annotate_wlc(gold_standard, verse_data):
+def _annotate_wlc(gold_standard, verse_data, wlc_bucket_overrides=None):
     """WLC Phase-A annotation: attach the original-language identity signal +
     trust_tier to each gold entry. DECOUPLED from resolution (AD-1): reads the wlc
     result collected in verse_data, NEVER reads or writes ``resolved_at``. Makes
     WLC's contribution visible/auditable.
 
+    Phase B: ``wlc_bucket_overrides`` (built in build_gold_standard from the R3 bucket
+    vote) may pin trust_tier for verses where the bucket vote fired:
+      - collective_error (UNANIMOUS) -> "wlc_corrected"
+      - methodology_divergence (>=2/3) -> "c_consensus_over_wlc_divergence" (logged)
+    GUARDED: when empty (no WLC-contested R3 verse), behavior is byte-for-byte Phase A.
+
     trust_tier:
       c_consensus+wlc_corroborated    — consensus AND WLC agree (highest)
       c_consensus_over_wlc_divergence — consensus held on a WLC-contested verse
       c_consensus                     — consensus; WLC silent / no signal
+      wlc_corrected                   — gold corrected toward WLC (R3 collective_error)
       None                            — non-C-tier (prompt_evolution / unresolved …)
     """
     _C_TIER = {"round1", "round2", "round3", "r2_model_patch"}
+    wlc_bucket_overrides = wlc_bucket_overrides or {}
     for verse_key, gold in gold_standard.items():
         wlc = (verse_data.get(verse_key) or {}).get("wlc")
         status = wlc.get("status") if wlc else None
         gold["wlc_status"] = status            # match | divergence | no_signal | None
         if wlc:
             gold["wlc_divergences"] = wlc.get("divergences", [])
-        if gold.get("resolved_at") not in _C_TIER:
+
+        override = wlc_bucket_overrides.get(verse_key)
+        if override and gold.get("resolved_at") in _C_TIER:
+            # Phase B R3 bucket ruling pins the tier and records the bucket verdict.
+            # Defense-in-depth (AD-1): honor the override ONLY for C-tier entries, so a
+            # non-C-tier verse can never receive trust_tier='wlc_corrected' even if an
+            # override leaked into the map.
+            gold["trust_tier"] = override["tier"]
+            gold["wlc_bucket"] = override["bucket"]
+            if override.get("reason"):
+                gold["wlc_bucket_reason"] = override["reason"]
+        elif gold.get("resolved_at") not in _C_TIER:
             gold["trust_tier"] = None
         elif status == "match":
             gold["trust_tier"] = "c_consensus+wlc_corroborated"
@@ -130,6 +264,11 @@ def build_gold_standard(unanimous, disagreed, round1_results,
     gold_standard = {}
     unresolved = []
     prompt_evolutions = []
+    # Phase B (R3-only): per-verse WLC bucket overrides for _annotate_wlc.
+    # {verse_key: {"tier": "wlc_corrected" | "c_consensus_over_wlc_divergence",
+    #              "bucket": str, "reason": str}}. Empty unless a WLC-contested verse
+    # reached R3 and a bucket majority fired — guarded no-op otherwise.
+    wlc_bucket_overrides = {}
 
     # Process unanimous verses
     for verse_key in unanimous:
@@ -283,6 +422,63 @@ def build_gold_standard(unanimous, disagreed, round1_results,
                     for judge_key in round3_with_opinions:
                         round3_with_opinions[judge_key]["opinion"] = details.get(judge_key, "minority")
 
+                # ── Phase B (R3-only): WLC bucket resolution ──
+                # GUARDED: only fires when this verse REACHED A C-TIER RESOLUTION
+                # (outcome == "resolved" → resolved_at == "round3") AND is WLC-contested
+                # AND R3 judges supplied bucket verdicts. The C-tier gate is load-bearing
+                # for AD-1: without it the block runs for prompt_evolution/unresolved
+                # outcomes too, leaking WLC-corrected text into the gold of a verse the
+                # panel could NOT resolve and pinning trust_tier on a non-C-tier entry.
+                _wlc = (verse_data.get(verse_key) or {}).get("wlc")
+                if (outcome == "resolved"
+                        and _wlc and _wlc.get("status") == "divergence"):
+                    bucket, b_details = tally_r3_buckets(r3)
+                    if bucket == "collective_error":
+                        # Q3 UNANIMOUS already enforced in tally_r3_buckets.
+                        # Gold corrected toward WLC: prefer a judge's corrected text
+                        # if any judge supplied one, else keep consensus text (the
+                        # identity fix is recorded in the tier + log; text correction
+                        # requires an explicit corrected output).
+                        _corr = next((j.get("corrected") for j in r3.values()
+                                      if j.get("corrected")), None)
+                        if _corr:
+                            winning_text = _corr
+                        wlc_bucket_overrides[verse_key] = {
+                            "tier": "wlc_corrected",
+                            "bucket": bucket,
+                            "reason": "; ".join(
+                                b_details.get("reasons", {}).get(
+                                    "collective_error", [])),
+                        }
+                    elif bucket == "methodology_divergence":
+                        # Keep FHL consensus; auto-append idempotent D-entry (Q1).
+                        reason = "; ".join(
+                            b_details.get("reasons", {}).get(
+                                "methodology_divergence", []))
+                        for d in _wlc.get("divergences", []):
+                            if (d.get("side") == "fhl_only"
+                                    and d.get("kind") == "unresolved"):
+                                try:
+                                    append_divergence_entry(
+                                        book_eng=vdata.get("book", ""),
+                                        chap=chap, sec=sec,
+                                        fhl_num=d.get("bare_num"),
+                                        wlc_num=d.get("wlc_strong"),
+                                        reason=reason,
+                                        source_token=d.get("source_token"),
+                                        wlc_lemma=d.get("wlc_lemma"),
+                                    )
+                                except Exception as _le:  # noqa: BLE001
+                                    print(f"  [WLC] D-entry append failed for "
+                                          f"{chap}:{sec} {d.get('bare_num')}: {_le}")
+                        wlc_bucket_overrides[verse_key] = {
+                            "tier": "c_consensus_over_wlc_divergence",
+                            "bucket": bucket,
+                            "reason": reason,
+                        }
+                    # placement_or_silent / no majority -> no override (normal
+                    # consensus; WLC abstains — existing behavior).
+
         if resolved_at is None:
             resolved_at = "unresolved"
             unresolved.append(verse_key)
@@ -358,7 +554,9 @@ def build_gold_standard(unanimous, disagreed, round1_results,
 
     # WLC Phase-A annotation: trust_tier + wlc_status/divergences on every entry.
     # Decoupled from resolution (AD-1) — reads verse_data['wlc'], never resolved_at.
-    _annotate_wlc(gold_standard, verse_data)
+    # Phase B: pass R3 bucket overrides (guarded — empty unless a WLC-contested verse
+    # reached R3 and a bucket majority fired).
+    _annotate_wlc(gold_standard, verse_data, wlc_bucket_overrides)
 
     return gold_standard, unresolved, prompt_evolutions
 

@@ -1,0 +1,5 @@
+{"content_ref": "docs/20260630_obe2_R1_wlc_phaseB_agenda.md", "dog": "obe", "event_id": "obe:e0001:0002", "kind": "position", "meeting_id": "wlc_phaseB-20260630-m01"}
+{"content_ref": null, "dog": "lala", "event_id": "lala:e0001:0002", "kind": "position", "meeting_id": "wlc_phaseB-20260630-m01"}
+{"content_ref": null, "dog": "erha", "event_id": "erha:e0001:0002", "kind": "position", "meeting_id": "wlc_phaseB-20260630-m01"}
+{"content_ref": "docs/20260630_obe2_R1_wlc_phaseB_synthesis.md", "dog": "obe", "event_id": "obe:e0001:0003", "kind": "digest", "meeting_id": "wlc_phaseB-20260630-m01"}
+{"content_ref": "docs/20260630_obe2_R1_wlc_phaseB_synthesis.md", "dog": "obe", "event_id": "obe:e0001:0004", "kind": "decision", "meeting_id": "wlc_phaseB-20260630-m01"}

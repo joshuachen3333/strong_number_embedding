@@ -92,7 +92,7 @@ Output C ({model_c}) [convergence: {convergence_c}]:
 
 === Round 2 debate judgments ===
 {round2_judgments_text}
-
+{wlc_evidence_block}
 Based on ALL the above, give your final answer.
 
 Return ONLY a JSON object matching ONE of these formats:
@@ -102,7 +102,7 @@ If picking a winner:
   "verdict": "pick",
   "best": "A" or "B" or "C",
   "corrected": null or "the corrected LCC+SN text",
-  "reasoning": "your final reasoning"
+  "reasoning": "your final reasoning"{bucket_pick_schema}
 }}
 
 If all are wrong:
@@ -110,8 +110,44 @@ If all are wrong:
   "verdict": "all_wrong",
   "error_identified": "specific description of what ALL outputs got wrong",
   "prompt_improvement": "concrete suggestion for fixing the prompt to prevent this",
-  "reasoning": "why this is a prompt deficiency, not a model-specific error"
+  "reasoning": "why this is a prompt deficiency, not a model-specific error"{bucket_allwrong_schema}
 }}"""
+
+# ── WLC evidence block (R3-only; Q2). Only emitted when wlc_status=="divergence".
+# Framed as identity-axis evidence, NOT the answer. When no WLC evidence is shown,
+# every {wlc_*}/{bucket_*} placeholder is "" and the prompt is byte-for-byte today's.
+
+WLC_EVIDENCE_BLOCK = """
+=== WLC EVIDENCE (independent original-language signal — NOT the answer) ===
+The following is independent Hebrew original-language (Clear Bible WLC) evidence on
+the IDENTITY AXIS ONLY (which Strong's number names the word) — it says NOTHING about
+placement. This is EVIDENCE, not the verdict: the project's gold standard is
+FHL-faithful (it transfers FHL's tag), and the FHL-faithful number may STILL be
+correct (e.g. the Chinese rendering anchors a translation-level choice WLC's
+morphology does not see). Weigh it; do not obey it.
+
+Per contested Strong's number, FHL carries it but the Hebrew morphology does not (or
+points to a different number):
+{wlc_contested_lines}
+
+In addition to PICK / ALL_WRONG, classify this WLC divergence into exactly one bucket:
+  - "collective_error": all model outputs share a genuine IDENTITY error that WLC
+    catches (the FHL tag is an apparent mistake, not a defensible translation choice).
+  - "methodology_divergence": FHL's translation-anchored tag legitimately differs from
+    WLC's original-language morphology; the FHL-faithful tag should be KEPT (like the
+    2:20 אָדָם H0120-vs-H0121 case). This is NOT a gold error.
+  - "placement_or_silent": the divergence is not an identity question the judge can
+    resolve here (placement-only, or the Chinese rendering is silent/neutral); WLC
+    abstains.
+Add "bucket" and "bucket_reason" fields to your JSON answer."""
+
+_BUCKET_PICK_SCHEMA = """,
+  "bucket": "collective_error" or "methodology_divergence" or "placement_or_silent",
+  "bucket_reason": "why this bucket (identity-axis justification)\""""
+
+_BUCKET_ALLWRONG_SCHEMA = """,
+  "bucket": "collective_error" or "methodology_divergence" or "placement_or_silent",
+  "bucket_reason": "why this bucket (identity-axis justification)\""""
 
 
 # ── R2 Convergence ───────────────────────────────────────────────────────────
@@ -422,6 +458,46 @@ def run_r2_debate(verses, convergence_results, verse_data, models=None,
 
 # ── R3 Dual-Capability ───────────────────────────────────────────────────────
 
+def _build_wlc_evidence(vdata):
+    """Build the R3 WLC-evidence section (Q2: R3-only) from Phase-A wlc data.
+
+    Returns (wlc_evidence_block, bucket_pick_schema, bucket_allwrong_schema).
+    GUARDED: when there is no wlc data, status != "divergence", or no contested
+    fhl_only number, returns ("", "", "") so the R3 prompt is byte-for-byte today's.
+    """
+    wlc = vdata.get("wlc")
+    if not wlc or wlc.get("status") != "divergence":
+        return "", "", ""
+
+    # Only fhl_only items that are genuine unresolved identity contests matter here
+    # (methodology_divergence_logged ones are already suppressed by the ledger).
+    lines = []
+    for d in wlc.get("divergences", []):
+        if d.get("side") != "fhl_only" or d.get("kind") != "unresolved":
+            continue
+        num = d.get("bare_num", "?")
+        wlc_lemma = d.get("wlc_lemma")
+        wlc_strong = d.get("wlc_strong")
+        src = d.get("source_token")
+        # Pair the fhl_only contested number with any wlc_only substitution evidence
+        # of the same family (best-effort, already attached by wlc_check).
+        ev_bits = []
+        if wlc_strong:
+            ev_bits.append(f"WLC strong={wlc_strong}")
+        if wlc_lemma:
+            ev_bits.append(f"lemma={wlc_lemma}")
+        if src:
+            ev_bits.append(f"source_token={src}")
+        ev = ("; ".join(ev_bits)) if ev_bits else "WLC offers no substitute number"
+        lines.append(f"  - FHL tags {num} here; original-language evidence: {ev}.")
+
+    if not lines:
+        return "", "", ""
+
+    block = WLC_EVIDENCE_BLOCK.format(wlc_contested_lines="\n".join(lines))
+    return block, _BUCKET_PICK_SCHEMA, _BUCKET_ALLWRONG_SCHEMA
+
+
 def build_r3_prompt(verse_key, convergence_results, round2_judgments,
                     verse_data, sn_field="lcc_sn", naked=False):
     """Build R3 prompt with dual capability (pick or all_wrong)."""
@@ -459,6 +535,10 @@ def build_r3_prompt(verse_key, convergence_results, round2_judgments,
         r2_lines.append(f"  Reasoning: {reasoning}")
     round2_text = '\n'.join(r2_lines) if r2_lines else "(no Round 2 judgments)"
 
+    # WLC evidence (R3-only, Q2): guarded — empty strings when no WLC divergence,
+    # making the prompt identical to the pre-Phase-B prompt.
+    wlc_block, bucket_pick_schema, bucket_allwrong_schema = _build_wlc_evidence(vdata)
+
     return ROUND3_PROMPT.format(
         unv_sn=_ref,
         lcc_original=vdata.get("lcc_original", ""),
@@ -466,6 +546,9 @@ def build_r3_prompt(verse_key, convergence_results, round2_judgments,
         output_a=output_a, output_b=output_b, output_c=output_c,
         convergence_a=conv_a, convergence_b=conv_b, convergence_c=conv_c,
         round2_judgments_text=round2_text,
+        wlc_evidence_block=wlc_block,
+        bucket_pick_schema=bucket_pick_schema,
+        bucket_allwrong_schema=bucket_allwrong_schema,
     )
 
 
@@ -546,9 +629,29 @@ def run_round3(verses, convergence_results, round2_judgments, verse_data,
     return all_judgments
 
 
+_VALID_BUCKETS = {"collective_error", "methodology_divergence", "placement_or_silent"}
+
+
+def _wlc_bucket_fields(result):
+    """Extract optional WLC bucket fields (Phase B, R3-only).
+
+    GUARDED: only meaningful when WLC evidence was shown. When the model returns no
+    (valid) bucket — i.e. no WLC evidence in the prompt — returns {} so the judgment
+    dict is byte-for-byte identical to the pre-Phase-B output.
+    """
+    bucket = result.get("bucket")
+    if not isinstance(bucket, str):
+        return {}
+    bucket = bucket.strip().lower()
+    if bucket not in _VALID_BUCKETS:
+        return {}
+    return {"bucket": bucket, "bucket_reason": result.get("bucket_reason", "")}
+
+
 def _parse_r3_judgment(result):
     """Parse R3 response into standardized judgment dict."""
     verdict = result.get("verdict", "").lower()
+    bucket_fields = _wlc_bucket_fields(result)
 
     if verdict == "all_wrong":
         return {
@@ -556,6 +659,7 @@ def _parse_r3_judgment(result):
             "error_identified": result.get("error_identified", ""),
             "prompt_improvement": result.get("prompt_improvement", ""),
             "reasoning": result.get("reasoning", ""),
+            **bucket_fields,
         }
     elif verdict == "pick" or result.get("best"):
         return {
@@ -563,6 +667,7 @@ def _parse_r3_judgment(result):
             "best": result.get("best", "?"),
             "corrected": result.get("corrected"),
             "reasoning": result.get("reasoning", ""),
+            **bucket_fields,
         }
     else:
         # Fallback: try to infer from fields
@@ -572,6 +677,7 @@ def _parse_r3_judgment(result):
                 "error_identified": result.get("error_identified", ""),
                 "prompt_improvement": result.get("prompt_improvement", ""),
                 "reasoning": result.get("reasoning", ""),
+                **bucket_fields,
             }
         return {
             "verdict": "unknown",
@@ -708,6 +814,52 @@ def tally_r3_judgments(judgments_for_verse, convergence_results):
     for judge_key in judgments_for_verse:
         opinion_map[judge_key] = "minority"
     return "unresolved", opinion_map
+
+
+def tally_r3_buckets(judgments_for_verse):
+    """Tally WLC bucket verdicts from R3 judges (Phase B, R3-only).
+
+    GUARDED: returns (None, {}) when no judge supplied a WLC bucket (i.e. the verse
+    was not WLC-contested / no WLC evidence shown) — caller then keeps today's
+    behavior exactly.
+
+    Decision rule (R-1 Q3, locked):
+      - "collective_error" requires UNANIMOUS (all judges who answered + no dissent):
+        only when EVERY judgment carries bucket=="collective_error".
+      - "methodology_divergence" requires >=2/3 of all judges.
+      - otherwise None (placement_or_silent / no majority) -> normal consensus.
+
+    Returns (bucket, details) where bucket in
+      {"collective_error", "methodology_divergence", None} and details has counts
+      + per-judge reasons for the record.
+    """
+    total = len(judgments_for_verse)
+    if total == 0:
+        return None, {}
+
+    counts = {}
+    reasons = {}
+    for judge_key, judgment in judgments_for_verse.items():
+        b = judgment.get("bucket")
+        if b in _VALID_BUCKETS:
+            counts[b] = counts.get(b, 0) + 1
+            reasons.setdefault(b, []).append(judgment.get("bucket_reason", ""))
+
+    if not counts:
+        return None, {}  # no WLC evidence was in play — guarded no-op
+
+    details = {"counts": counts, "reasons": reasons, "total": total}
+
+    # collective_error: UNANIMOUS — every judge must say collective_error.
+    if counts.get("collective_error", 0) == total:
+        return "collective_error", details
+
+    # methodology_divergence: >=2/3 of all judges.
+    threshold = total * 2 / 3
+    if counts.get("methodology_divergence", 0) >= threshold:
+        return "methodology_divergence", details
+
+    return None, details
 
 
 def _check_error_alignment(error_descriptions):

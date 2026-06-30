@@ -1399,8 +1399,19 @@ def main():
         round3_judgments.update(r3j)
 
         # Check R3 result — did it trigger prompt evolution?
-        from judge import tally_r3_judgments
+        from judge import tally_r3_judgments, tally_r3_buckets
         r3 = round3_judgments.get(verse_key, {})
+        # Phase B (R3-only): surface the WLC bucket vote for observability. The
+        # actual resolution (tier pin / D-entry append) happens in
+        # build_gold_standard (AD-1). GUARDED: silent unless WLC-contested R3 verse.
+        if r3 and wlc and wlc.get("status") == "divergence":
+            _bucket, _bdet = tally_r3_buckets(r3)
+            if _bucket:
+                print(f"  [WLC] R3 bucket vote → {_bucket} "
+                      f"(counts={_bdet.get('counts')})", flush=True)
+            elif _bdet.get("counts"):
+                print(f"  [WLC] R3 bucket vote → no majority "
+                      f"(counts={_bdet.get('counts')}) — WLC abstains", flush=True)
         if r3:
             outcome, details = tally_r3_judgments(r3, convergence_results)
             if outcome == "resolved":
