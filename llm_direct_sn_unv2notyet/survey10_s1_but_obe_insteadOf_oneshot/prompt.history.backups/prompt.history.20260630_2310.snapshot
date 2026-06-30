@@ -988,3 +988,243 @@ Shared primitive to build first: lift wlc_check(verse) out of eval_gold_vs_wlc.p
 
 
 
+##     2026-06-30 08:27 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey1_prompt_evolving-obe -> survey10_obe:
+[PHASE-A VALIDATED] Your wlc_check primitive is wired into S1 and validated end-to-end on Gen 2 (committed in survey1). Results:
+- 2:9 -> WLC-CONTESTED fired, resolved_at=round2, trust_tier=c_consensus_over_wlc_divergence (flags H6779 verb identity). Escalator works.
+- 2:20 -> wlc_status=match, SUPPRESSED via FHL_DIVERGENCE_LOG, trust_tier=c_consensus+wlc_corroborated, carries H0121 Phase-B evidence.
+- All 25 Gen-2 verses: 24 c_consensus+wlc_corroborated + 1 c_consensus_over_wlc_divergence. 0 unresolved, no false escalation. AD-1 intact.
+Caveat: no Gen-2 verse was simultaneously R1-unanimous AND wlc-contested, so the force-unanimous-to-R2 branch wasn't live-triggered (unit-tested).
+Note: full-Gen-1-2 run stopped at 1:21 (agy panel -> Trigger-1 -> v1.3 regression-FAILED -> stop), so Gen 1:1-21 refreshed+annotated, 1:22-29 old (mixed).
+NEXT: Joshua greenlit Phase B. Drafting plan; some points may go to lala/erha /obe2 deliberation. Thanks for the primitive. — survey1 obe
+### inserted prompt ended ###
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: s1-obe 回投：Phase A 端到端驗證通過（wlc_check 接進 S1，Gen 2 全綠），Phase B 已 greenlit 起草中
+- Diff: 確認 foundation 交付成功：2:9 觸發 wlc-contested→round2→c_consensus_over_wlc_divergence；2:20 經 FHL_DIVERGENCE_LOG 抑制→c_consensus+wlc_corroborated 帶 H0121 證據；25 節全標註 0 unresolved。caveat：force-unanimous-to-R2 分支無 live case（已 unit-test）。另：full Gen 1-2 跑停在 1:21，1:22-29 gold 為舊（混合）
+
+
+
+
+##     2026-06-30 21:57 CST
+
+###    User Prompt
+目前 gold verses 是 s1 產生的對嗎？
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 問 gold 是否 s1 產生 → 查出 survey10 持有的是 Jun-25 stale 快照(56 檔 Gen1-2 無 wlc metadata),s1 才是 authoritative live(65 檔 Gen1-3 已 WLC 標註);lcc_sn 實質相同
+- Diff: 釐清 gold provenance:全部 gold 由 s1 consensus pipeline 產生(AD-1),s10 從不寫 gold。survey10/gold_standard 是早期複本快照,內容(lcc_sn)與 s1 一致但 metadata 落後。建議 eval re-point 至 s1 authoritative copy
+
+
+
+
+##     2026-06-30 22:02 CST
+
+###    User Prompt
+現在 s10 幾乎與 s1, 兩者互相看齊對嗎？
+
+除了 s10 在 lala, erha 兩者要怎樣沿用 context 這有差異 (s10 的設計初衷)
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 問 s10 是否已與 s1 看齊、差異只剩 lala/erha 沿用 context → 釐清初衷 vs 現況
+- Diff: 確認核對:LIVE_WINDOWS={} 全 headless,context-carry 初衷已被 per-call blindness 推翻,改由 conventions.md 外化承載;s10 vs s1 真正剩兩軸(外化形式 prompt vs 帳本、單模 vs 三模),底層已收斂;Q2(A-vs-B)未正面打。提議寫入 S10_VS_S1_GOLD_EXPERIMENT.md
+
+
+
+
+##     2026-06-30 22:06 CST
+
+###    User Prompt
+把「初衷 vs 現況」釐清寫進 S10_VS_S1_GOLD_EXPERIMENT.md
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 把「初衷 vs 現況」釐清寫進 S10_VS_S1_GOLD_EXPERIMENT.md
+- Diff: 新增 §'s10's identity — founding intent vs current reality':命名化石、per-call blindness 推翻 live-carry、context-reuse 遷移到 conventions.md、與 s1 收斂於盲呼叫+外化、真正差異剩 外化形式+模型數、Q2 A-vs-B 未跑
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
+##     2026-06-30 22:09 CST
+
+###    User Prompt
+模型數         │ 3 模共識(R1/R2/R3 投票)                          │ 單模 + 外化 conventions,想用 ~0 成本追平共識品質
+這裡 s10 仍然是三模型較量才對吧!為何說是單模？
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 糾正:s10 仍是三模較量,為何說單模? → 確認我錯了
+- Diff: 查 run_gold_standard.py 證實 s10 gold 是三模共識(opus/agy/gpt R1-R3);我把 A2 contest 探針(opus 單模 B-vs-B0 隔離 conventions 效果)誤當成 s10 身分。修正 doc:同模型數,真正差異是 s10 多一個 conventions 子系統(C/D ledger+scribe+gate+D-deliberation),s10⊇s1,同 cost base
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
+##     2026-06-30 22:11 CST
+
+###    User Prompt
+所以 s10 比起 s1 目前就是這個迭代差異
+s1 迭代的是共同 prompt 或者個別模型的 prompt; s10 迭代的是 外化 conventions,
+對嗎？
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 確認:s1 迭代共同/個別模型 prompt,s10 迭代外化 conventions,對嗎? → 精修 Trigger-1/Trigger-2 分流
+- Diff: 釐清:s10 只把 Trigger-1(集體錯→共同 prompt+0.1)換成 conventions 寫入;Trigger-2(單模偏→個別模型 patch)兩邊完全相同、沒換。why:整 prompt bump 太粗(v1.3 regress 8 節),conventions 逐行可 gate 可 revert。提議把 Trigger 分流表補進 doc
+
+
+
+
+##     2026-06-30 22:14 CST
+
+###    User Prompt
+把 Trigger-1/Trigger-2 分流表補進 S10_VS_S1_GOLD_EXPERIMENT.md(讓「s10 只換 Trigger-1」這點在 doc 裡精確)。
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 把 Trigger-1/Trigger-2 分流表補進 S10_VS_S1_GOLD_EXPERIMENT.md(讓「s10 只換 Trigger-1」精確)
+- Diff: 新增 Trigger 分流表:Trigger-1 集體錯 s1 整 prompt+0.1 → s10 換 conventions;Trigger-2 單模偏 兩邊相同 model-patch 沒換。釐清 headline 只對 Trigger-1 成立;附 why-swap(v1.3 regress 8 節 vs per-line gated)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
+##     2026-06-30 22:18 CST
+
+###    User Prompt
+Task 1: Stage-1 A2 contest (s1 Arm A vs s10 Arm B, KJV→UNV) 這個主要是想做什麼啊？
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 問 Task 1 (Stage-1 A2 contest s1-A vs s10-B) 主要想做什麼
+- Diff: 解釋 A2 contest 目的:用 KJV→UNV(UNV 有 FHL 真值)逃出共識循環,客觀比 s1 vs s10 誰產的 gold 好;Stage-1 排除 09xxx 只在 kept_set 評分隔離放置能力。澄清現況:只跑了 B-vs-B0 暖身(Δkept+0.0058,H5 方向性成立未顯著),真正 A-vs-B 正賽(Q2)未跑,卡在 token hold。提議濃縮寫進 doc measurement 節
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
+##     2026-06-30 22:23 CST
+
+###    User Prompt
+這個任務就是要比拼, S1 還是 S10 更適合來產出 gold, 
+但是這與 kjv 已經需要脫鉤了. 因為現在我們有 WLC, 更應該把 WLC （以及對應的英文譯本） 拿來幫助判別才是. 比 kjv 多了 fhl 9000 等字
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 策略轉向:A2 contest 與 KJV 脫鉤,改用 WLC + 對應英文譯本(BSB/YLT)當源,因 WLC 多了 FHL 9000 等 KJV 供不出的字
+- Diff: 確認 Clear Bible 有 BSB+YLT 兩個 WLC-aligned 英文譯本可當可讀性 bridge(取代 KJV)。決策:退役 KJV-based Stage-1,用 WLC(完整 SN 含 09xxx)+英文 gloss 當完整公平源,Stage-1/Stage-2 split 收斂成單一 WLC-sourced contest。run_stage2_harsh 已 80% 就位,待加英文 bridge + A-vs-B arms + N-sample
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
+##     2026-06-30 22:28 CST
+
+###    User Prompt
+現在就動 doc 重構
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 現在就動 doc 重構(A2 contest 源 KJV→WLC+英文)
+- Diff: 重構 S10_VS_S1_GOLD_EXPERIMENT.md:新增 §Source pivot(KJV 退役、WLC+BSB/YLT 完整源、兩階段收斂成單一完整 contest、artifact 角色重映、09xxx sparse-selection feature、英文 overload 風險 ablation);舊兩階段節加 superseded banner;A2 leak-free 設計與 Arms corpus 行同步更新
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
+##     2026-06-30 22:32 CST
+
+###    User Prompt
+我們把要用 BSB, YLT, BSB+YLT, BSB+YLT+KJV 這個取用問題留下, 另立 survey11_gold_factory_selection/ 把設計文件移交放進去.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 源取用問題(BSB/YLT/BSB+YLT/+KJV)留作開放;另立 survey11_gold_factory_selection/,設計文件移交進去
+- Diff: 建立 survey11_gold_factory_selection/;把 S10_VS_S1_GOLD_EXPERIMENT.md 移過去(git mv,修相對連結);新增源-config 選型開放問題(4 候選);survey10 留 pointer stub;harness 暫留 survey10 跨 dir 引用
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey11_gold_factory_selection/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
+##     2026-06-30 22:41 CST
+
+###    User Prompt
+就 s10 本身, 還有要自我優化迭代的嗎？例如我們取代了s1共同prompt 迭代, 改成了外部參考慣例的迭代, 那 r2 以後個別模型的迭代(s1) 是否也適合改成個別模型的個別外部慣例的迭代？
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: s10 自我優化:既然 Trigger-1 共同 prompt→共同 conventions,那 Trigger-2 個別模型 patch 是否也該改成個別模型的外部 conventions?
+- Diff: 設計討論:確認對稱性成立——s10 目前只半轉換(T1→conventions done、T2 仍是 s1 遺留的 model-patch blob)。提議把 T2 也轉成 per-model conventions(conventions.{model}.md / M-tier),注入點(per-model prompt 組裝 line 814)+ gate(_run_patch_regression per-model 回測)已存在。bonus:atomic conventions 可比對→cross-model promotion(k 模收斂則升 global)。caveat:T2 patch 已 scoped+gated,granularity 增益較 T1 小;多檔 state。另列其他 s10 自優候選
+
+
+
+
+##     2026-06-30 22:52 CST
+
+###    User Prompt
+一起召開會議與 lala erha 他們定稿一下
+
+[+follow-up] per-model conventions 三個比較點(granularity 增益較小、多 state、promotion 門檻 k/gate/降格)這個比較需要會議議決
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 召開 obe2 會議與 lala/erha 定稿 s10 自我優化(含 per-model conventions 比較議決 + Q-B prompt provenance)
+- Diff: 查證 Q-B:s10=s1 共享 prompt v1.2 凍結快照、per-model patch 自產不繼承。開 obe2 meeting s10_self_opt-20260630-m01(roster obe/lala/erha N=3),寫 agenda 5 決策點(D1 M-tier+promotion、D2 warm-start/freeze、D3 falsification、D4 D→convention、D5 WLC-in-D),注入 lala@5555 + erha@5557,兩狗已 working
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/docs/20260630_obe2_s10_self_opt_agenda.md`
+
+
+
+
+##     2026-06-30 22:53 CST
+
+###    User Prompt
+lala->obe [POINTER]: R1 position written at ../docs/20260630_lala_s10_self_opt_R1.md; votes D1 GO k=2+global gate, D2 freeze/no active s1 warm-start, D3 GO H5 falsify, D4 GO gated D->C, D5 GO WLC evidence-only.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: lala R1 立場(s10 self-opt meeting):D1 GO k=2+global gate / D2 freeze 不 warm-start / D3 GO H5 falsify / D4 GO gated D->C / D5 GO WLC evidence-only
+- Diff: 收到 lala R1 position letter,五項全 GO 含精修(D2 s1 patch 只當 inactive candidate、D3 neutral/neg delta 自動 quarantine、D4 只蒸餾 reusable rule、D5 走 FHL_DIVERGENCE_LOG)。待 erha R1 再綜合
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/docs/20260630_lala_s10_self_opt_R1.md`
+
+
+
+
+##     2026-06-30 22:58 CST
+
+###    User Prompt
+D2 中文詳述
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 要求 D2(prompt provenance/warm-start)中文詳述,作為 ratify 前的釐清
+
+
+
+
+##     2026-06-30 23:07 CST
+
+###    User Prompt
+那我哪天心血來潮
+沒事要 S10 當下去抄錄 S1 最新版 prompt過來 S10
+這會怎樣
+1 對於 S10 當時已完工的經文
+例如已經完工 Gen 1 2
+2 其它影響？
+
+我很有可能常常心血來潮
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 問:若心血來潮把 s1 最新 prompt 抄進 s10,對已完工經文(Gen 1,2)+其它有何影響?且他很可能常常如此
+- Diff: 分析後果:換 prompt 不回頭動已寫 gold(會 skip),除非 --force;真正傷害=語料混血、contest 歸因塌掉、conventions gate 全失效要重測、D3 falsification 基線浮動。因應其『常常心血來潮』提出 re-sync 安全機制(版本化+自動快照+conventions 重 gate,contest pin 凍結快照),建議補進 D2 決議細則
+
+
+
+

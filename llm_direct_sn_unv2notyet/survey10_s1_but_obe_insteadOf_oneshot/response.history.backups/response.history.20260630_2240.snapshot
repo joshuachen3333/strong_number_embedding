@@ -1900,3 +1900,330 @@ s1-obe 把你的 WLC seed 發展成完整設計(`WLC_INTO_S1_DESIGN.md`,三項�
 
 
 
+##     2026-06-30 08:29 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey1_prompt_evolving-obe -> survey10_obe:
+
+[PHASE-A VALIDATED] Your wlc_check primitive is wired into S1 and validated end-to-end on Gen 2 (committed in survey1). Results:
+- 2:9 -> WLC-CONTESTED fired, resolved_at=round2, trust_tier=c_consensus_over_wlc_divergence (flags H6779 verb identity). Escalator works.
+- 2:20 -> wlc_status=match, SUPPRESSED via FHL_DIVERGENCE_LOG (H120 methodology_divergence_logged never tripped divergence), trust_tier=c_consensus+wlc_corroborated, carries H0121 Phase-B evidence. Your divergence-log read works exactly.
+- All 25 Gen-2 verses annotated: 24 c_consensus+wlc_corroborated + 1 c_consensus_over_wlc_divergence. 0 unresolved, perfect coverage, no false escalation. AD-1 intact (pure data provider; build_gold_standard sole authority).
+
+Honest caveat: no Gen-2 verse was simultaneously R1-unanimous AND wlc-contested, so the "force a unanimous verse to R2" branch wasn't triggered by a live case (2:9 was R1-disagreed anyway). Branch is wired + unit-tested; flagging+annotation path fully live-validated.
+
+Note: the earlier full-Gen-1-2 run stopped at 1:21 (fresh agy panel -> Trigger-1 -> v1.3 regression-FAILED -> survey1 stop-on-Trigger-1), so Gen 1:1-21 gold is agy-refreshed+annotated, 1:22-29 old (mixed). Flagged to Joshua.
+
+NEXT: Joshua greenlit Phase B (WLC as R3-judge evidence + bucket classification). I'm drafting the plan for his review. Some design points may go to a lala/erha /obe2 deliberation; will keep you posted. Thanks for the primitive — it's solid. — survey1 obe (window 1314)
+### inserted prompt ended ###
+
+###    result
+Letter committed durably in s1's dir (`e0028ae`). Let me check whether s1 has idled enough to land a 1-line pointer; if still busy, the letter suffices:
+
+
+
+
+##     2026-06-30 21:58 CST
+
+###    User Prompt
+目前 gold verses 是 s1 產生的對嗎？
+
+###    result
+**對 — 所有 gold 都是 s1 產生的**,沒有任何 s10 自己產的 gold(AD-1:`build_gold_standard()` 是唯一權威,s10 從不寫 gold;s10 的 contest arms 產的是對照賽輸出,不是 gold)。
+
+但有個你該知道的**版本差異**——存在兩份 gold:
+
+| | **s1 的**(`survey1_prompt_evolving/gold_standard/`) | **survey10 的**(我 dir 裡的) |
+|---|---|---|
+| 角色 | **權威 live 本**,s1 持續維護 | 早期**快照複本**(約 6/25 拷貝給 s10-vs-s1 實驗用) |
+| 檔數 | 65 檔,**Gen 1/2/3** | 56 檔,**只有 Gen 1/2** |
+| WLC 標註 | ✅ 有 `wlc_status` / `wlc_divergences`,`trust_tier=c_consensus+wlc_corroborated` | ❌ 無 wlc 欄位,舊 `trust_tier=c_consensus` |
+| `lcc_sn` 實質內容 | — | **與 s1 完全相同**(2:20 逐字比對 identical) |
+
+**關鍵點:**
+1. **實質 SN 標註(`lcc_sn`)兩邊一樣** — 真正的 gold 內容是同一份 s1 產物。
+2. **s1 的領先**:多了 Gen 3、多了 Phase A 剛加的 WLC metadata(`wlc_status`/`wlc_divergences`/新 trust_tier)。
+3. 我先前的 `wlc_check` selftest 讀的是 **survey10 的舊快照**——但因 `lcc_sn` 一致,驗證結果仍有效(primitive 邏輯只吃 `lcc_sn`,不吃那些 metadata)。
+
+**建議**:往後我的 `eval_gold_vs_wlc.py` / `wlc_check` 直接 **re-point 到 s1 的 authoritative `gold_standard/`**(而非 survey10 的快照),這樣才是對 live gold 做評鑑。要我現在改成指向 s1 那份嗎?(零成本,一個路徑參數的事)
+
+
+
+
+##     2026-06-30 22:02 CST
+
+###    User Prompt
+現在 s10 幾乎與 s1, 兩者互相看齊對嗎？
+
+除了 s10 在 lala, erha 兩者要怎樣沿用 context 這有差異 (s10 的設計初衷)
+
+###    result
+好問題,這觸及 s10 的本質。讓我先核對當前實作狀態(conventions + headless 模式),確保我講的是現況不是初衷:
+
+
+
+
+##     2026-06-30 22:06 CST
+
+###    User Prompt
+把「初衷 vs 現況」釐清寫進 S10_VS_S1_GOLD_EXPERIMENT.md
+
+###    result
+已寫入並 commit(`441aa9e`)。
+
+在 `S10_VS_S1_GOLD_EXPERIMENT.md` 開頭(intro 之後、measurement problem 之前)新增了一節 **「s10's identity — founding intent vs current reality」**,完整記錄:
+
+1. **命名是化石** — `obe-instead-of-oneshot` 已名實不符。
+2. **初衷**:用 live 可注入 session(lala/erha)取代 oneshot,讓 session 跨節累積 context。
+3. **被自己的發現推翻**:per-call `/clear` blindness → `blind-live ≡ headless` → 全 headless(`LIVE_WINDOWS={}`)→ 放棄 context-carry。
+4. **遷移**:context-reuse 從 session-memory → 外化的 `conventions.md`(regression-gated 帳本,盲呼叫 re-inject)。
+5. **收斂**:s10 與 s1 都已「盲呼叫 + 外化到磁碟 + re-feed」;附上**兩軸差異表**(外化形式 prompt vs 帳本、單模 vs 三模)。
+6. **指向 Q2**:真正差異不是 context-carry,而是外化形式+模型數;而那個賭注成不成立 = A-vs-B 正面對決(仍未跑)= s10 存在意義的最終考題。
+
+這節現在是讀者理解 s10 身分的第一站,也把 Q2 的份量釘在 doc 開頭。重型跑仍暫停待你訊號。
+
+
+
+
+##     2026-06-30 22:09 CST
+
+###    User Prompt
+模型數         │ 3 模共識(R1/R2/R3 投票)                          │ 單模 + 外化 conventions,想用 ~0 成本追平共識品質
+這裡 s10 仍然是三模型較量才對吧!為何說是單模？
+
+###    result
+確認了 —— **我錯了,你對**。我去看了 `run_gold_standard.py`:
+
+- 第 5 行:*"Uses opus, gemini-3-flash-preview, and gpt-5.4"*
+- 第 8 行:*"Round 1: All 3 models produce output. Only UNANIMOUS agreement passes."*
+
+s10 的 gold 生產**就是三模共識**(opus / agy / gpt 三 panel,R1→R2→R3,共用 `consensus.py`)。模型數跟 s1 **一樣**。我把「單模」搞錯了——那個單模其實是 **A2 contest 探針**(`run_a2_contest.py` / `run_stage2_harsh.py` 的 B-vs-B0 只跑 opus 一模,目的是**隔離 conventions 效果**),那是量測儀器,不是 s10 的 gold 方法。我把儀器當成了 s10 的身分。
+
+真正的差異只有**一個子系統**:s10 ⊇ s1 —— 同一套三模共識,**多加**了外化 conventions 層(scribe 蒸餾、regression gate、D-deliberation)。讓我修正 doc:
+
+
+
+
+##     2026-06-30 22:11 CST
+
+###    User Prompt
+所以 s10 比起 s1 目前就是這個迭代差異
+s1 迭代的是共同 prompt 或者個別模型的 prompt; s10 迭代的是 外化 conventions,
+對嗎？
+
+###    result
+基本對,但讓我核對一個關鍵點再給你精確答案:s10 是**只**迭代 conventions,還是 conventions **和** prompt 都迭代?(因為 s10 是從 s1 fork 的,可能兩套都還在。)讓我看 Trigger 的分流邏輯:
+
+
+
+
+##     2026-06-30 22:14 CST
+
+###    User Prompt
+把 Trigger-1/Trigger-2 分流表補進 S10_VS_S1_GOLD_EXPERIMENT.md(讓「s10 只換 Trigger-1」這點在 doc 裡精確)。
+
+###    result
+I'll refine the existing table cell and add the Trigger-routing table right after it:
+
+
+
+
+##     2026-06-30 22:16 CST
+
+###    User Prompt
+commit and push first
+
+###    result
+✅ **Pushed** — `2f6997f..d0397b3 main -> main`(那行 `X11 forwarding request failed` 是 SSH 的無害警告,不影響 push)。
+
+推上去的 4 個 commit(都是這個 session 的 s10 工作):
+- `441aa9e` s10 身分:初衷 vs 現況
+- `c13d0fd` 修正 model-count 錯誤(s10 也是三模)
+- `d9850f9` Trigger-1/Trigger-2 分流表
+- `d0397b3` s10 session state(prompt/response history + Trigger-2 model patches)
+
+**scope 守住了**:只 commit 了 survey10 cwd 內的檔案(已逐項確認無一在 survey10 之外)。sibling dirs 裡那些 in-flight 的東西(s1 的 `consensus.py`/`judge.py`/`run_gold_standard.py`、`obe_bus/`、其他 survey 的 logs)**完全沒碰** —— 那是別的 Obe 正在進行的工作,不該由我掃進來。它們仍是 uncommitted,留給各自的 owner。
+
+(更早這個 session 的 `wlc_check.py` `0acefce` 和給 s1 的 letter `e0028ae` 已先被一次併發 push 帶上去了,所以這次不在清單裡。)
+
+重型跑仍暫停待你訊號。
+
+
+
+
+##     2026-06-30 22:18 CST
+
+###    User Prompt
+Task 1: Stage-1 A2 contest (s1 Arm A vs s10 Arm B, KJV→UNV) 這個主要是想做什麼啊？
+
+###    result
+核對完畢,給你完整圖像。Task 1 是整個 s10 的**最終考題**,但目前只跑了它的「暖身版」。
+
+## 一句話目的
+
+**客觀證明「s1 還是 s10 產的 gold 比較好」——而且要逃出共識循環。**
+
+## 為什麼需要這個實驗(循環陷阱)
+
+生產任務是 **UNV→LCC**,但 **LCC 沒有 FHL 真值**,所以 LCC gold 只能用「共識」評斷。問題是 s1 和 s10 **本身都是共識方法** —— 用共識去評斷兩個共識方法,**循環**,證明不了誰好。
+
+## 解法(借 survey5 的 trick)
+
+換一個**有答案卷**的任務來比:
+1. **源 = KJV+SN**(KJV 自帶 FHL Strong's,但**不是答案**)。
+2. **靶 = UNV 去殼**(`strip_shell`,把 UNV 自己的 SN 拔掉)。
+3. 兩個方法各自把 SN **跨語 KJV→UNV** 投上去。
+4. 拿輸出去對 **UNV 原本的 FHL 標註**評分(`auto_score`)。
+
+→ 誰的 UNV 輸出更接近 FHL 真值 = 誰是更好的 gold producer。**無循環、無洩題**(投影源是 KJV,不是 UNV 答案)。
+
+## 為什麼叫「Stage-1」(乾淨 baseline)
+
+KJV 結構上**供不出 09xxx 前綴**(在創 1 漏掉 ~31% 的 UNV 標籤)。Stage-1 故意**排除 09xxx**,只在 **kept_set**(UNV-FHL ∩ KJV-FHL 都有的號碼)上評分 —— 隔離出純粹的「**語意放置**」能力,不被 scheme-bridge 噪音污染。(09xxx 那條硬尾巴留給 **Stage-2** 用 WLC 源去打。)
+
+## 三個 Arm
+
+| Arm | 是什麼 |
+|---|---|
+| **A — s1** | survey1 共識,原封不動 |
+| **B — s10** | 本 dir:盲呼叫 + conventions + D-deliberation |
+| **B0 — s10 ablation** | s10 但把 `conventions.md` **凍成空的**(隔離 conventions 的貢獻) |
+
+三者看**同一份 KJV→UNV 語料**、**同一個 panel**,只有方法不同。
+
+## ⚠️ 但目前只跑了「暖身版」,不是正賽
+
+| | 設計目標 | 實際跑了的 |
+|---|---|---|
+| 比的是 | **A vs B**(s1 真共識 vs s10 真產出) | **B vs B0**(單模 opus,conventions ON vs OFF) |
+| 回答的 Q | **Q2:s10 到底贏不贏 s1** | 只回答「conventions 這層**本身**有沒有用」 |
+
+**B-vs-B0 首跑結果**(Gen 1-2,opus):`kept_place` Δ = **+0.0058**(B 略勝)。細看:56 節有 50 節兩臂都到天花板(opus 本來就會),**真正的訊號在 6 節難節**——B 在 B0 出錯處 **5:1** 幫上忙(1:6、1:17、1:24、2:5 全補滿,1:11 部分,1 節 regress)。
+
+**誠實結論**:H5「conventions 在模型出錯處有幫助、不出錯處 ~零成本」**方向性成立,但還不顯著**。三個限制:
+1. **天花板**:opus 在簡單創世記分不出差異 → 需**更弱模型**或**只打難節**。
+2. **抽樣噪音**:每節每臂只 1 sample → 5:1 比例被隨機性混淆,需 **N-sample 或低溫**。
+3. **規則太少**:`conventions.md` 目前只有 C1,Δ 注定小;scribe 加更多 gated 規則後效果才會複利。
+
+## 所以這個 task 還沒做完的部分
+
+**真正的 A-vs-B 正面對決(s1 共識 gold vs s10 共識+conventions gold)從沒跑過。** 那一仗 —— 加上 N=3 多 sample 去掉噪音 —— 才是判 s10 存在意義(Q2)的決勝局,也是這個 in_progress task 卡住的點(在你的 token hold 下暫停)。
+
+要不要我把這個「為什麼/暖身版 vs 正賽」也濃縮成一段寫進 doc 開頭的 measurement 節,讓任務目的一眼可讀?
+
+
+
+
+##     2026-06-30 22:24 CST
+
+###    User Prompt
+這個任務就是要比拼, S1 還是 S10 更適合來產出 gold, 
+但是這與 kjv 已經需要脫鉤了. 因為現在我們有 WLC, 更應該把 WLC （以及對應的英文譯本） 拿來幫助判別才是. 比 kjv 多了 fhl 9000 等字
+
+###    result
+完全同意,而且這把實驗從「先天殘缺」升級成「完整公平」。完整圖像:
+
+## 你抓到的核心:KJV 是個殘缺的源
+
+| | KJV(舊源) | WLC + 英文(新源) |
+|---|---|---|
+| SN 完整度 | **漏 ~31%**(英文結構上表達不出希伯來前綴/虛詞) | **每一個 SN 都帶**(含 09xxx / FHL 9000、第二個 את、功能詞) |
+| 09xxx 前綴 | **供不出** | 全有(`PREFIX_BRIDGE` 已驗證) |
+| 可讀性 | 英文本身可讀 ✅ | WLC 是希伯來文,需橋 → **BSB/YLT 補上** |
+
+KJV 唯一的優點是「英文可讀」;但它為此付出 31% 的 SN 殘缺。**WLC + 對齊英文**兩者兼得:**完整的 SN** + **可讀的英文橋**。
+
+## 最大的收穫:Stage-1/Stage-2 的切割消失了
+
+當初為什麼要分兩階段?**就是因為 KJV 供不出 09xxx** ——
+- Stage-1:排除 09xxx(KJV 給不了),只在 kept_set 評分;
+- Stage-2:再用 WLC 把 09xxx 補回來打。
+
+**換成 WLC 當源,這個切割沒必要了。** WLC 一次供出全部,所以變成**一個統一、完整、公平的 contest**,直接在**全 inventory(含 09xxx recall)**上評 s1 vs s10。不再需要 kept_set 排除。
+
+## 新的 contest 設計
+
+```
+源 = WLC 希伯來<FHLnum>  +  逐 token 對齊的英文(BSB 或 YLT)   [無中文,不洩題]
+靶 = UNV 去殼
+評 = vs UNV 原 FHL 真值,全 inventory(含 09xxx recall)
+臂 = A(s1 共識) vs B(s10 共識+conventions)  ×  N-sample 去噪
+```
+
+英文橋是**取代 KJV 的可讀性角色,但 leak-safe**(英文不是中文答案;會洩題的中文 `gloss2` 照樣丟掉)。
+
+## Infra 現況(好消息:八成就位)
+
+- `run_stage2_harsh.py` **已經**做 WLC→UNV,含 09xxx `PREFIX_BRIDGE` + s5 `morph_bridge`。
+- 要加的三件:
+  1. **英文 bridge**:load `eng/targets/{BSB,YLT}` + `WLCM-{TRANS}-manual.json`,把每個 WLC token 的對齊英文詞接進 source 行。
+  2. **升格**:從「harsh 尾巴探針」變成**正式 contest**。
+  3. **真 A-vs-B**:接 s1 共識 vs s10 的臂(目前只有單模 B-vs-B0)+ N-sample。
+
+## 兩個要留意的 subtlety
+
+1. **09xxx 是「稀疏選擇」難題,這是 feature**:WLC 帶**每個**希伯來前綴,但 UNV **只在中文詞浮現處**才標 09xxx。所以模型要放的是 UNV 會標的那個**子集** —— 這個「選哪些」正是真難度,由 **09xxx recall** 直接量。KJV 根本沒資格出這道題。
+
+2. **英文會不會 overload?(survey6 教訓)**:survey6 死於資訊過載(+7pp place、−10pp cov)。加英文是 +1 input,**得測不能假設**。建議把 **BSB-on vs off**(甚至 BSB vs YLT)當成一個 ablation —— 確認英文是「幫助可讀」而非「淹沒」。YLT 逐字直譯可能比 BSB 露出更多前綴,值得比。
+
+## 提議
+
+這是零成本的設計工作:**我現在就把 doc 的 A2 設計改寫成「WLC + 英文源,退役 KJV Stage-1,統一完整 contest」**,把上面這套釘進 `S10_VS_S1_GOLD_EXPERIMENT.md`;**harness 的實作**(英文 bridge + A-vs-B + N-sample)等你 token 恢復再動。
+
+要我現在就動 doc 重構嗎?還是你想先在哪個點上微調方向(例如先定 BSB 還是 YLT、要不要保留 KJV 當第三方對照)?
+
+
+
+
+##     2026-06-30 22:28 CST
+
+###    User Prompt
+現在就動 doc 重構
+
+###    result
+`S10_VS_S1_GOLD_EXPERIMENT.md` 重構完成(commit `3f7f8a4`):
+
+**新增 `## ⚡ Source pivot (2026-06-30)` 權威節**(在 measurement problem 之後),內容:
+- **為什麼 KJV 退役**:結構性殘缺(漏 31% UNV 標籤、零 09xxx/FHL-9000),引用 Stage-1 實測為證。
+- **為什麼 WLC+英文更好**:WLC 帶每個 SN(含 09xxx via PREFIX_BRIDGE、8xxx via s5 morph_bridge);BSB+YLT(都已驗證有 `WLCM-{TRANS}-manual.json` 對齊)取代 KJV 的可讀性角色,leak-safe(英文非中文,gloss2 照丟)。
+- **兩階段收斂成一個完整 contest**:WLC 一次供全 inventory → 不再需要 kept_set 排除,直接評全量含 09xxx recall。附 OLD vs NEW 對照表。
+- **artifact 角色重映**(無一浪費):`build_exclusion`→公平性診斷(它正是量出 31% 的證據);`run_stage2_harsh`→升格為**contest 源 loader**(待加英文 bridge);methodology-divergence 規則續用。
+- **兩個誠實 subtlety**:09xxx sparse-selection(feature,由 recall 量)、英文 overload 風險(survey6 教訓 → BSB-on/off + BSB-vs-YLT ablation)。
+
+**配套更新**:舊兩階段節加 `⤳ SUPERSEDED` banner(保留作 rationale + Stage-2 loader 基礎);A2 leak-free 設計 + Arms corpus 行同步改成 WLC+English;task #2 標題更新。
+
+**未動的(待你 token 恢復)**:harness 實作 —— 載入 `eng/targets`+`WLCM-eng` 接英文 bridge、升格為主 contest、接真 A-vs-B 臂 + N-sample。
+
+doc 現在對「contest 用 WLC+英文、不再用 KJV」是 design-of-record 了。要不要我接著把這個 pivot 也 flare 一句給 s5-obe(它在做 Clear Bible 整合,BSB/YLT bridge 可能跟它的 Tier-2 多語言對齊工作重疊)?
+
+
+
+
+##     2026-06-30 22:35 CST
+
+###    User Prompt
+我們把要用 BSB, YLT, BSB+YLT, BSB+YLT+KJV 這個取用問題留下, 另立 survey11_gold_factory_selection/ 把設計文件移交放進去.
+
+###    result
+✅ **survey11 立起來了**(commit `7e27312`)。
+
+```
+survey11_gold_factory_selection/
+├── CLAUDE.md                      ← survey 定位 + 兩軸 + harness 指標
+└── S10_VS_S1_GOLD_EXPERIMENT.md   ← 移交過來的完整設計(連結已重指向 survey10)
+```
+
+**做了:**
+1. **`git mv`** 設計文件到 survey11,修好所有指向 survey10-local 的相對連結(`run_stage2_harsh.py`、`build_exclusion.py`、`wlc_check.py`、`conventions.md`… 全加 `../survey10_.../` 前綴,驗證無殘留 bare link)。
+2. **新增 `🔀 OPEN QUESTION — which source config?`**:把你留的取用問題寫成 first-class 開放實驗 —— **BSB / YLT / BSB+YLT / BSB+YLT+KJV** 四候選,各自的假設、評分軸(placement/coverage/09xxx recall,防 survey6 overload),以及方法 note(**先單模廉價掃源、選出贏家,再跑昂貴的 A-vs-B**,把「最佳源」和「最佳方法」解耦不互相混淆)。
+3. **`survey11/CLAUDE.md`**:點明 survey11 只**裁判** s1 vs s10(不擁有任一方法),兩軸(method + source)、已鎖決策、harness 指標、與 s1/s5/s10 的關係。
+4. **survey10 留 pointer stub**:incoming 連結(`SURVEY10_DESIGN.md`、`CONVENTIONS_PIPELINE.md`、`build_exclusion.py` 等對它的引用)仍解析得到。
+
+**刻意未動**:harness 程式碼(`run_stage2_harsh` / `build_exclusion` / `wlc_check` / `run_a2_contest`)暫留 survey10,survey11 跨 dir 引用 —— 等正式建 contest 時再評估要不要一起搬。
+
+**未 push**(這輪你沒說 push;上輪是明確指示)。要我 push 嗎?另外要不要把 survey11 的誕生 flare 一句給 s5-obe(BSB/YLT bridge 跟它的 Clear Bible Tier-2 多語言對齊工作高度相關)?
+
+
+
+
