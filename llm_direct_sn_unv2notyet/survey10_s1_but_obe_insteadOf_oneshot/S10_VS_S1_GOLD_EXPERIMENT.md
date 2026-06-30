@@ -5,6 +5,47 @@
 > [`SURVEY10_DESIGN.md`](SURVEY10_DESIGN.md),
 > [`CONVENTIONS_PIPELINE.md`](CONVENTIONS_PIPELINE.md).
 
+## s10's identity — founding intent vs current reality (2026-06-30)
+
+Read this before assuming what s10 *is*. The name is now a fossil.
+
+**Founding intent.** `s10 = s1_but_obe_insteadOf_oneshot` — do s1's gold task, but via
+**live, injectable CLI sessions** (lala=codex, erha=agy) **instead of** s1's stateless
+`oneshot` API calls. The point was that a *live session carries context across verses*,
+so the model would **accumulate learned conventions chapter-by-chapter** like a scribe
+who gets fluent as it copies. "How lala/erha reuse context" was the whole raison d'être.
+
+**What actually happened — the intent was overturned by its own discovery.** The
+**per-call `/clear` blindness** finding (each call must start blank to prevent
+answer-leak / cross-verse contamination) collapsed the premise: blind-live ≡ headless
+in quality, so there is no quality reason to keep the live session. s10 went **fully
+headless** (`cli_caller.LIVE_WINDOWS = {}`). Fully headless = **no session
+context-carry at all** — lala/erha have no cross-verse memory.
+
+**So s10's context-reuse mechanism migrated from session-memory → an externalized
+file.** Cross-verse learning now lives in [`conventions.md`](conventions.md): a
+disk-resident, **regression-gated**, scribe-distilled ledger (one atomic `## C<n>` rule
+per heading, gate-PASS provenance) that is **re-injected into every blind call** as a
+preamble. Context isn't *carried*; it's *externalized and re-fed*.
+
+**Consequence — s10 and s1 have converged more than the name implies.** Both are now
+**blind per-call** and both **externalize accumulated learning to disk and re-feed it**.
+The original differentiator (live context-carry) is gone. The genuine remaining
+differences are two axes:
+
+| Axis | s1 | s10 |
+|---|---|---|
+| **Form of externalized learning** | mutate the **instruction prompt** (`v1.1→v1.2`, model-specific patches) | accrete a **separate append-only conventions ledger** (`C/D` tier, regression-gated, scribe→gate pipeline; finer-grained + auditable) |
+| **Model count** | **3-model consensus** (R1 unanimous → R2 debate → R3 judge) | **single model** + externalized conventions, aiming to **match consensus quality at ~0 cost** |
+
+Infrastructure/truth-source layer is shared bidirectionally (WLC tooling
+[`wlc_check.py`](wlc_check.py)/`eval_gold_vs_wlc.py` + `FHL_DIVERGENCE_LOG` + trust
+tiers + buckets flowed s10→s1; s10 reads s1's gold as baseline). What still
+distinguishes s10 is **the *form* of externalization + single-vs-multi-model** — **not**
+context-carry. Whether that single-model+ledger bet actually matches s1's consensus is
+exactly **Q2**, still only answered by a B-vs-B0 proxy — the head-on **A-vs-B** contest
+below is unrun. That contest is the final exam for s10's reason to exist.
+
 ## The measurement problem (and the trick)
 
 The production gold task is **UNV → LCC**, but **LCC has no FHL Strong's truth**,
