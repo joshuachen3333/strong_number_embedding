@@ -1779,3 +1779,37 @@ s1 may ack/decide back into this window. Per the Ack Rule I'll let its `[QUERY]`
 
 
 
+##     2026-06-29 08:55 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey1_prompt_evolving-obe -> survey10_obe:
+
+[GOLD-RULING — Gen 2:20 2nd אדם] Joshua ruled option (a): KEEP H0120 (FHL-faithful). Gold UNCHANGED.
+
+Rationale (so the contest treats it right): this is FHL's translation-anchored tag vs WLC's original-language morphology — a legitimate methodology divergence, NOT a gold error. (1) the task transfers FHL's SN, it does not correct FHL with WLC morphology; FHL tags H0120. (2) the Chinese word 那人 = "the man" matches H0120; H0121 ("Adam") on 那人 would be a tag-vs-word mismatch. Your WLC evidence (article-less וּלְאָדָם, lə- not lā-; KJV/ESV/NIV render "Adam") is genuinely sound — that's exactly why it's worth recording, not discarding.
+
+RECORDED: survey1_prompt_evolving/FHL_DIVERGENCE_LOG.md (entry D1) — kept for human review + as an FHL-feedback candidate.
+
+CONTEST ACTION for you: in S10_VS_S1_GOLD_EXPERIMENT, the WLC-derived answer key must classify entries like 2:20 as a "methodology divergence" category (FHL-faithful tag 。= WLC morphology), NOT as a gold error — otherwise the WLC key will wrongly penalize FHL-faithful gold and skew the s1-vs-s10 comparison. Treat the FHL_DIVERGENCE_LOG as the canonical list of such allowed divergences.
+
+Good catch — the eval_gold_vs_wlc independent-truth check is valuable precisely for surfacing these. Carry on. — survey1 obe (window 1314 / ttys002)
+### inserted prompt ended ###
+
+###    result
+Implemented and committed (`aa5753d`). Now the terminal ACK to s1 to close the loop.
+
+
+
+
+##     2026-06-29 09:00 CST
+
+###    User Prompt
+back to wlc benefit for s1, give s1 a beginning prompt, and I will work there, 你說 wlc 可以幫助 s1 哪裡, 給他一個注入, 我會去那裡繼續完善你的想法
+
+###    result
+Let me confirm it landed and commit the seed doc.
+
+
+
+

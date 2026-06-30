@@ -1802,3 +1802,230 @@ Implemented and committed (`aa5753d`). Now the terminal ACK to s1 to close the l
 
 
 
+##     2026-06-29 09:00 CST
+
+###    User Prompt
+back to wlc benefit for s1, give s1 a beginning prompt, and I will work there, 你說 wlc 可以幫助 s1 哪裡, 給他一個注入, 我會去那裡繼續完善你的想法
+
+###    result
+Let me confirm it landed and commit the seed doc.
+
+
+
+
+##     2026-06-29 22:10 CST
+
+###    User Prompt
+Base directory for this skill: /Users/joshua/.claude/skills/record-prompt-history
+
+# Record Prompt History (Claude flavor)
+
+## Purpose
+
+Maintain Joshua's `prompt.history` as a cross-project, cross-CLI raw prompt provenance record. Preserve **what Joshua said, where, and the smallest useful metadata** for future Codex / Gemini / Claude / Agent conclave work.
+
+This skill is the Claude-side companion to the Codex skill at `~/.codex/skills/record-prompt-history/`. The cross-CLI shared rules live at `references/shared-core-spec.md` (symlinked from the Codex skill so spec edits stay unified). The writer at `scripts/append_prompt_history.py` is also symlinked.
+
+## Where to write — the critical default
+
+Write to **the current project's own `prompt.history`** (i.e. `./prompt.history` relative to the session's cwd). **Never explicit-pass `--history` pointing to a different repo.** Each project maintains its own history file.
+
+The `--agent` field is a label (which dog-named agent recorded the entry); the `--history` field is the file location. They are not the same thing.
+
+Default Claude flavor:
+- `--history ./prompt.history` (cwd-relative; let it default)
+- `--agent <cwd-basename>-obe` (auto-derived per /obe skill — Claude IS obe)
+
+....
+
+###    result
+目前狀態無新指令落地——剛 `/compact` 完,WLC seed prompt 先前已 `/ph` 過,不需重複記錄。
+
+**站位確認(全部維持暫停):**
+- 🔴 重型跑全停(你的 token hold):Stage-2 full Gen 1-2(停在 ~13/56)、创 3-4 gold(停在 ~5/50,round caches 在,可無 `--force` 乾淨 resume)——**等你給 token 恢復訊號才動**。
+- ✅ s1 WLC seed 已投遞並確認 s1 已 Read,`f44bb3a` 已 commit。你會去 s1 window(1314)親自展開,我這邊不再追投(Ack Rule)。
+- ✅ s5(Clear Bible)已 onboard,reply-back 座標 5544。
+- 📋 零成本本地產出全部就緒:`eval_gold_vs_wlc.py`(Gen 1-2 982/986 一致、1 ruled divergence 2:20)、跨-survey 價值雙語 doc、divergence rule。
+
+我這邊待命。可隨時恢復的兩件事一句話就接:
+1. **token 恢復** → 我接著跑 Stage-2 full + 创 3-4 resume。
+2. **回到 A-vs-B 正面對決**(Q2 尚未正面回答:s10 是否真的勝過 s1)——目前只有 B-vs-B0 proxy,需要一次乾淨的 N=3 opus 對照。
+
+要我先動哪個,或繼續等?
+
+
+
+
+##     2026-06-29 22:21 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey1_prompt_evolving-obe -> survey10_obe:
+
+[WLC-INTO-S1 DESIGN LOCKED] Developed your seed with Joshua. Full design: survey1_prompt_evolving/WLC_INTO_S1_DESIGN.md (committed). Joshua's three rulings:
+
+1. ASYMMETRIC TRIAGE (correction to your seed's Mechanism A). WLC is placement-blind, so WLC-agreement on inventory does NOT certify placement — and most R2/R3 escalations resolve placement, which WLC can't see. Therefore WLC triage can ONLY ADD scrutiny, never remove it: unresolved divergence -> wlc_contested -> force R2/R3 even on R1-unanimous (catches "unanimous-but-wrong-on-identity", the blind spot pure consensus can't see); match -> wlc_corroborated annotation only, NOT a license to skip. The symmetric "WLC-agree -> skip/lighter path" in your seed is dropped as unsafe.
+
+2. CONSERVATIVE DEFAULT WEIGHTING. WLC enters R3/R2-debate as EVIDENCE, not answer; the judge classifies + justifies into buckets {collective_error | methodology_divergence | placement_or_silent}. Default: FHL-faithfulness wins when the Chinese word anchors the FHL tag (2:20). WLC tips to collective_error ONLY when (i) it's an identity question the Chinese is silent on AND (ii) FHL looks like a real error. FHL_DIVERGENCE_LOG is the calibration ledger — WLC earns weight, doesn't start with it.
+
+3. A BEFORE B, BOTH IN SCOPE. Phase A (escalator, purely additive, gold-safe, validate on Gen 1-2) ships first; Phase B (WLC-as-evidence in build_r3_prompt + bucket output + new trust tiers + auto-append rulings to the log) follows. Neither dropped.
+
+Invariants: AD-1 holds — wlc_check is a data-provider (like round1_results), the LLM judge decides, build_gold_standard stays sole resolved_at authority, WLC never writes gold. WLC is identity-axis only, structurally barred from placement. New trust tiers make WLC's contribution visible (c_consensus+wlc_corroborated highest; wlc_corrected audit-worthy).
+
+Shared primitive to build first: lift wlc_check(verse) out of your eval_gold_vs_wlc.py into an importable callable S1 can use (reads FHL_DIVERGENCE_LOG so ruled cases like 2:20 don't re-flag). That's the foundation both phases consume.
+
+Read the design doc for the full spec. Coordinate build split with Joshua. — survey1 obe (window 1314 / ttys002)
+### inserted prompt ended ###
+
+###    result
+✅ **s1 的設計回投已處理完——foundation 已交付。**
+
+s1-obe 把你的 WLC seed 發展成完整設計(`WLC_INTO_S1_DESIGN.md`,三項你的裁決:非對稱 triage 只加 scrutiny、保守預設 FHL-faithful 優先、A 先於 B 都在 scope),並要我先建**共用 primitive**。我做了:
+
+**建好 `wlc_check.py`(committed `0acefce`,零 model 成本)**
+- 從 `eval_gold_vs_wlc.py` 抽出 per-verse WLC 識別訊號,成為 s1 可 import 的 callable。
+- **fhl_sn-agnostic**:解掉設計裡一個沒講清的點——pre-R1 還沒有 gold,所以 primitive 不綁定來源。s1 escalator 傳 **UNV+SN reference**;eval 傳 gold `lcc_sn`。同一支函式。
+- **status gate**:`divergence` 僅當有未裁決的 core_content 漏號(`n==0` 噪音已濾掉);`FHL_DIVERGENCE_LOG` 裡裁過的(2:20)回 `methodology_divergence_logged`,**永不重新觸發升級**。
+- 帶出 **Phase-B 證據**(`wlc_lemma / wlc_strong / source_token`)給 R3 judge。
+- **identity 軸 only,結構上對 placement 全盲**(WLC 無中文)。
+
+**驗證(Gen 1-2 對現行 gold)**:55 match / 1 contested。2:9 `H6779` 是真識別 flag(該升級);**2:20 正確被抑制**(status=match)且附上 `H0121 / אָדָם` 證據——正是 bucket B 要的。
+
+**協調**:
+- → s1(window 1314):foundation-shipped [GO] inject 已送達**並已提交處理中**(s1 正在 thinking)。Phase A 接線進 `consensus.py` 是 s1 的活;AD-1 完好(純 data provider,不寫 gold)。
+- → s5(window 11831):[ACK] 回 R2 flare——確認 `morph_bridge.json` 已被 `wlc_check.py` 採用,`attach_morph()` 待 Stage-2 full 恢復時併入。
+
+**重型跑仍全停**(你的 token hold):Stage-2 full Gen 1-2、创 3-4 resume 待你的恢復訊號。本輪全是零 model 的本地+協調工作。
+
+
+
+
+##     2026-06-30 08:29 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey1_prompt_evolving-obe -> survey10_obe:
+
+[PHASE-A VALIDATED] Your wlc_check primitive is wired into S1 and validated end-to-end on Gen 2 (committed in survey1). Results:
+- 2:9 -> WLC-CONTESTED fired, resolved_at=round2, trust_tier=c_consensus_over_wlc_divergence (flags H6779 verb identity). Escalator works.
+- 2:20 -> wlc_status=match, SUPPRESSED via FHL_DIVERGENCE_LOG (H120 methodology_divergence_logged never tripped divergence), trust_tier=c_consensus+wlc_corroborated, carries H0121 Phase-B evidence. Your divergence-log read works exactly.
+- All 25 Gen-2 verses annotated: 24 c_consensus+wlc_corroborated + 1 c_consensus_over_wlc_divergence. 0 unresolved, perfect coverage, no false escalation. AD-1 intact (pure data provider; build_gold_standard sole authority).
+
+Honest caveat: no Gen-2 verse was simultaneously R1-unanimous AND wlc-contested, so the "force a unanimous verse to R2" branch wasn't triggered by a live case (2:9 was R1-disagreed anyway). Branch is wired + unit-tested; flagging+annotation path fully live-validated.
+
+Note: the earlier full-Gen-1-2 run stopped at 1:21 (fresh agy panel -> Trigger-1 -> v1.3 regression-FAILED -> survey1 stop-on-Trigger-1), so Gen 1:1-21 gold is agy-refreshed+annotated, 1:22-29 old (mixed). Flagged to Joshua.
+
+NEXT: Joshua greenlit Phase B (WLC as R3-judge evidence + bucket classification). I'm drafting the plan for his review. Some design points may go to a lala/erha /obe2 deliberation; will keep you posted. Thanks for the primitive — it's solid. — survey1 obe (window 1314)
+### inserted prompt ended ###
+
+###    result
+Letter committed durably in s1's dir (`e0028ae`). Let me check whether s1 has idled enough to land a 1-line pointer; if still busy, the letter suffices:
+
+
+
+
+##     2026-06-30 21:58 CST
+
+###    User Prompt
+目前 gold verses 是 s1 產生的對嗎？
+
+###    result
+**對 — 所有 gold 都是 s1 產生的**,沒有任何 s10 自己產的 gold(AD-1:`build_gold_standard()` 是唯一權威,s10 從不寫 gold;s10 的 contest arms 產的是對照賽輸出,不是 gold)。
+
+但有個你該知道的**版本差異**——存在兩份 gold:
+
+| | **s1 的**(`survey1_prompt_evolving/gold_standard/`) | **survey10 的**(我 dir 裡的) |
+|---|---|---|
+| 角色 | **權威 live 本**,s1 持續維護 | 早期**快照複本**(約 6/25 拷貝給 s10-vs-s1 實驗用) |
+| 檔數 | 65 檔,**Gen 1/2/3** | 56 檔,**只有 Gen 1/2** |
+| WLC 標註 | ✅ 有 `wlc_status` / `wlc_divergences`,`trust_tier=c_consensus+wlc_corroborated` | ❌ 無 wlc 欄位,舊 `trust_tier=c_consensus` |
+| `lcc_sn` 實質內容 | — | **與 s1 完全相同**(2:20 逐字比對 identical) |
+
+**關鍵點:**
+1. **實質 SN 標註(`lcc_sn`)兩邊一樣** — 真正的 gold 內容是同一份 s1 產物。
+2. **s1 的領先**:多了 Gen 3、多了 Phase A 剛加的 WLC metadata(`wlc_status`/`wlc_divergences`/新 trust_tier)。
+3. 我先前的 `wlc_check` selftest 讀的是 **survey10 的舊快照**——但因 `lcc_sn` 一致,驗證結果仍有效(primitive 邏輯只吃 `lcc_sn`,不吃那些 metadata)。
+
+**建議**:往後我的 `eval_gold_vs_wlc.py` / `wlc_check` 直接 **re-point 到 s1 的 authoritative `gold_standard/`**(而非 survey10 的快照),這樣才是對 live gold 做評鑑。要我現在改成指向 s1 那份嗎?(零成本,一個路徑參數的事)
+
+
+
+
+##     2026-06-30 22:02 CST
+
+###    User Prompt
+現在 s10 幾乎與 s1, 兩者互相看齊對嗎？
+
+除了 s10 在 lala, erha 兩者要怎樣沿用 context 這有差異 (s10 的設計初衷)
+
+###    result
+好問題,這觸及 s10 的本質。讓我先核對當前實作狀態(conventions + headless 模式),確保我講的是現況不是初衷:
+
+
+
+
+##     2026-06-30 22:06 CST
+
+###    User Prompt
+把「初衷 vs 現況」釐清寫進 S10_VS_S1_GOLD_EXPERIMENT.md
+
+###    result
+已寫入並 commit(`441aa9e`)。
+
+在 `S10_VS_S1_GOLD_EXPERIMENT.md` 開頭(intro 之後、measurement problem 之前)新增了一節 **「s10's identity — founding intent vs current reality」**,完整記錄:
+
+1. **命名是化石** — `obe-instead-of-oneshot` 已名實不符。
+2. **初衷**:用 live 可注入 session(lala/erha)取代 oneshot,讓 session 跨節累積 context。
+3. **被自己的發現推翻**:per-call `/clear` blindness → `blind-live ≡ headless` → 全 headless(`LIVE_WINDOWS={}`)→ 放棄 context-carry。
+4. **遷移**:context-reuse 從 session-memory → 外化的 `conventions.md`(regression-gated 帳本,盲呼叫 re-inject)。
+5. **收斂**:s10 與 s1 都已「盲呼叫 + 外化到磁碟 + re-feed」;附上**兩軸差異表**(外化形式 prompt vs 帳本、單模 vs 三模)。
+6. **指向 Q2**:真正差異不是 context-carry,而是外化形式+模型數;而那個賭注成不成立 = A-vs-B 正面對決(仍未跑)= s10 存在意義的最終考題。
+
+這節現在是讀者理解 s10 身分的第一站,也把 Q2 的份量釘在 doc 開頭。重型跑仍暫停待你訊號。
+
+
+
+
+##     2026-06-30 22:09 CST
+
+###    User Prompt
+模型數         │ 3 模共識(R1/R2/R3 投票)                          │ 單模 + 外化 conventions,想用 ~0 成本追平共識品質
+這裡 s10 仍然是三模型較量才對吧!為何說是單模？
+
+###    result
+確認了 —— **我錯了,你對**。我去看了 `run_gold_standard.py`:
+
+- 第 5 行:*"Uses opus, gemini-3-flash-preview, and gpt-5.4"*
+- 第 8 行:*"Round 1: All 3 models produce output. Only UNANIMOUS agreement passes."*
+
+s10 的 gold 生產**就是三模共識**(opus / agy / gpt 三 panel,R1→R2→R3,共用 `consensus.py`)。模型數跟 s1 **一樣**。我把「單模」搞錯了——那個單模其實是 **A2 contest 探針**(`run_a2_contest.py` / `run_stage2_harsh.py` 的 B-vs-B0 只跑 opus 一模,目的是**隔離 conventions 效果**),那是量測儀器,不是 s10 的 gold 方法。我把儀器當成了 s10 的身分。
+
+真正的差異只有**一個子系統**:s10 ⊇ s1 —— 同一套三模共識,**多加**了外化 conventions 層(scribe 蒸餾、regression gate、D-deliberation)。讓我修正 doc:
+
+
+
+
+##     2026-06-30 22:11 CST
+
+###    User Prompt
+所以 s10 比起 s1 目前就是這個迭代差異
+s1 迭代的是共同 prompt 或者個別模型的 prompt; s10 迭代的是 外化 conventions,
+對嗎？
+
+###    result
+基本對,但讓我核對一個關鍵點再給你精確答案:s10 是**只**迭代 conventions,還是 conventions **和** prompt 都迭代?(因為 s10 是從 s1 fork 的,可能兩套都還在。)讓我看 Trigger 的分流邏輯:
+
+
+
+
+##     2026-06-30 22:14 CST
+
+###    User Prompt
+把 Trigger-1/Trigger-2 分流表補進 S10_VS_S1_GOLD_EXPERIMENT.md(讓「s10 只換 Trigger-1」這點在 doc 裡精確)。
+
+###    result
+I'll refine the existing table cell and add the Trigger-routing table right after it:
+
+
+
+

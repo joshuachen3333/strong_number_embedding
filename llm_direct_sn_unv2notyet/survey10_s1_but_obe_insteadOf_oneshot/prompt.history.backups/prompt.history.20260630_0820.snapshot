@@ -848,3 +848,143 @@ token 快要用完 5hr 100% 了, 請先暫停所有活動
 
 
 
+##     2026-06-29 08:21 CST
+
+###    User Prompt
+這樣 s5 納入了 clear bible, 對 s1 s10 s9 有什麼幫助？
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 問 s5 納入 Clear Bible 後對 s1/s9/s10 的幫助（跨 survey 價值分析）
+- Diff: 分析 Clear Bible 作為獨立人工真值 + 完整原文源 + 多語言 對 s1/s9/s10 的具體用途
+
+
+
+
+##     2026-06-29 08:31 CST
+
+###    User Prompt
+把這個跨-survey 用法寫進某個 doc
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 要求把 Clear Bible 跨-survey 用法(對 s1/s9/s10 的價值分析)寫進一個 doc
+- Diff: 新建 ../CLEAR_BIBLE_CROSS_SURVEY_VALUE.md 存檔跨-survey 分析
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/CLEAR_BIBLE_CROSS_SURVEY_VALUE.md`
+
+
+
+
+##     2026-06-29 08:32 CST
+
+###    User Prompt
+補上中文版
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 要求補上 Clear Bible 跨-survey 價值 doc 的中文版
+- Diff: 新建 ../CLEAR_BIBLE_CROSS_SURVEY_VALUE.zh.md(正體中文平行版)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/CLEAR_BIBLE_CROSS_SURVEY_VALUE.zh.md`
+
+
+
+
+##     2026-06-29 08:36 CST
+
+###    User Prompt
+我們用 wlc 來評鑒一下目前的 gold (s1)
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 用 WLC 原文評鑑目前 s1 gold（獨立人工真值破循環,零模型成本）
+- Diff: 建 WLC-vs-gold SN inventory 評估器；比對 gold SN 集合 vs WLC 原文 SN 集合
+
+
+
+
+##     2026-06-29 08:42 CST
+
+###    User Prompt
+但是 s5 有建立起 wlc word to fhl 9000 table, right?
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 提醒 s5 已建 WLC-morph→FHL-8xxx table；據此把 gold-vs-WLC eval 從『排除 morph』改成『用 s5 morph_bridge 納入 morph』
+- Diff: eval_gold_vs_wlc 改用 s5 morph_bridge.json(含 morph)+ 粒子 4480↔9006 等價;errors 從雜訊降到 4 個(982/986 一致)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/eval_gold_vs_wlc.py`
+
+
+
+
+##     2026-06-29 08:44 CST
+
+###    User Prompt
+把這個 2:20 Adam(0120→0121) 當成 gold 修正候選, inject 給 s1-obe 看
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 把 2:20 Adam(0120→0121)gold 修正候選 inject 給 s1-obe(window 1314)
+- Diff: 發 /obe 跨 cwd inject 給 survey1-obe:Gen 2:20 第二個 אדם 應為 0121(亞當專名)非 0120,WLC 人工對齊為證
+
+
+
+
+##     2026-06-29 08:52 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey1_prompt_evolving-obe -> survey10_obe:
+[GOLD-RULING — Gen 2:20 2nd אדם] Joshua ruled option (a): KEEP H0120 (FHL-faithful). Gold UNCHANGED.
+Rationale: FHL translation-anchored tag vs WLC original-language morphology — methodology divergence NOT gold error. (1) task transfers FHL's SN, does not correct FHL with WLC. (2) 那人=the man=H0120; H0121 on 那人 = tag-vs-word mismatch.
+RECORDED: survey1_prompt_evolving/FHL_DIVERGENCE_LOG.md (D1).
+CONTEST ACTION: WLC answer key must classify 2:20-like as 'methodology divergence' (FHL-faithful=WLC morphology) NOT gold error, else WLC key wrongly penalizes FHL-faithful gold. Treat FHL_DIVERGENCE_LOG as canonical list.
+### inserted prompt ended ###
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: s1-obe GOLD-RULING: Gen 2:20 keep H0120(FHL-faithful),gold 不改;屬 methodology divergence 非 gold error;要求 WLC eval/對照賽把這類歸『divergence』不算錯,以 FHL_DIVERGENCE_LOG 為準
+- Diff: 據 s1 ruling 更新 eval_gold_vs_wlc + S10_VS_S1 doc:FHL-divergence 不計 error;ack 回 s1
+
+
+
+
+##     2026-06-29 08:58 CST
+
+###    User Prompt
+back to wlc benefit for s1, give s1 a beginning prompt, and I will work there, 你說 wlc 可以幫助 s1 哪裡, 給他一個注入, 我會去那裡繼續完善你的想法
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 給 s1-obe 一個 beginning prompt:WLC 如何強化 s1 共識(in-loop 用法),Joshua 會去 s1 窗繼續完善
+- Diff: 寫 seed doc 到 survey1/WLC_FOR_S1_SEED_from_s10obe.md + inject 指針給 s1(window 1314)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/WLC_FOR_S1_SEED_from_s10obe.md`
+
+
+
+
+##     2026-06-29 22:16 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey1_prompt_evolving-obe -> survey10_obe:
+
+[WLC-INTO-S1 DESIGN LOCKED] Developed your seed with Joshua. Full design: survey1_prompt_evolving/WLC_INTO_S1_DESIGN.md (committed). Joshua's three rulings:
+
+1. ASYMMETRIC TRIAGE (correction to your seed's Mechanism A). WLC is placement-blind, so WLC-agreement on inventory does NOT certify placement — and most R2/R3 escalations resolve placement, which WLC can't see. Therefore WLC triage can ONLY ADD scrutiny, never remove it: unresolved divergence -> wlc_contested -> force R2/R3 even on R1-unanimous; match -> wlc_corroborated annotation only, NOT a license to skip.
+
+2. CONSERVATIVE DEFAULT WEIGHTING. WLC enters R3/R2-debate as EVIDENCE, not answer; judge classifies into {collective_error | methodology_divergence | placement_or_silent}. Default: FHL-faithfulness wins when the Chinese word anchors the FHL tag (2:20). FHL_DIVERGENCE_LOG is the calibration ledger.
+
+3. A BEFORE B, BOTH IN SCOPE. Phase A (escalator, additive, gold-safe, validate on Gen 1-2) ships first; Phase B (WLC-as-evidence in build_r3_prompt) follows.
+
+Shared primitive to build first: lift wlc_check(verse) out of eval_gold_vs_wlc.py into an importable callable. — survey1 obe (window 1314 / ttys002)
+### inserted prompt ended ###
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: survey1-obe 回投：WLC-INTO-S1 設計鎖定，三項 Joshua 裁決 + 共用 primitive wlc_check 抽出請求
+- Diff: 收到 s1 對 WLC seed 的回應：(1)非對稱 triage 只加不減 scrutiny、(2)保守預設權重 FHL-faithful 優先、(3)A 先於 B 都在 scope；要求把 wlc_check(verse) 從 eval_gold_vs_wlc.py 抽成 importable callable 給 S1 用
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/WLC_INTO_S1_DESIGN.md`
+
+
+
+

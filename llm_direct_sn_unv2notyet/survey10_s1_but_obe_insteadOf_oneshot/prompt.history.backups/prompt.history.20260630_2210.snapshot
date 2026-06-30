@@ -861,3 +861,209 @@ token 快要用完 5hr 100% 了, 請先暫停所有活動
 
 
 
+##     2026-06-29 08:31 CST
+
+###    User Prompt
+把這個跨-survey 用法寫進某個 doc
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 要求把 Clear Bible 跨-survey 用法(對 s1/s9/s10 的價值分析)寫進一個 doc
+- Diff: 新建 ../CLEAR_BIBLE_CROSS_SURVEY_VALUE.md 存檔跨-survey 分析
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/CLEAR_BIBLE_CROSS_SURVEY_VALUE.md`
+
+
+
+
+##     2026-06-29 08:32 CST
+
+###    User Prompt
+補上中文版
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 要求補上 Clear Bible 跨-survey 價值 doc 的中文版
+- Diff: 新建 ../CLEAR_BIBLE_CROSS_SURVEY_VALUE.zh.md(正體中文平行版)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/CLEAR_BIBLE_CROSS_SURVEY_VALUE.zh.md`
+
+
+
+
+##     2026-06-29 08:36 CST
+
+###    User Prompt
+我們用 wlc 來評鑒一下目前的 gold (s1)
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 用 WLC 原文評鑑目前 s1 gold（獨立人工真值破循環,零模型成本）
+- Diff: 建 WLC-vs-gold SN inventory 評估器；比對 gold SN 集合 vs WLC 原文 SN 集合
+
+
+
+
+##     2026-06-29 08:42 CST
+
+###    User Prompt
+但是 s5 有建立起 wlc word to fhl 9000 table, right?
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 提醒 s5 已建 WLC-morph→FHL-8xxx table；據此把 gold-vs-WLC eval 從『排除 morph』改成『用 s5 morph_bridge 納入 morph』
+- Diff: eval_gold_vs_wlc 改用 s5 morph_bridge.json(含 morph)+ 粒子 4480↔9006 等價;errors 從雜訊降到 4 個(982/986 一致)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/eval_gold_vs_wlc.py`
+
+
+
+
+##     2026-06-29 08:44 CST
+
+###    User Prompt
+把這個 2:20 Adam(0120→0121) 當成 gold 修正候選, inject 給 s1-obe 看
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 把 2:20 Adam(0120→0121)gold 修正候選 inject 給 s1-obe(window 1314)
+- Diff: 發 /obe 跨 cwd inject 給 survey1-obe:Gen 2:20 第二個 אדם 應為 0121(亞當專名)非 0120,WLC 人工對齊為證
+
+
+
+
+##     2026-06-29 08:52 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey1_prompt_evolving-obe -> survey10_obe:
+[GOLD-RULING — Gen 2:20 2nd אדם] Joshua ruled option (a): KEEP H0120 (FHL-faithful). Gold UNCHANGED.
+Rationale: FHL translation-anchored tag vs WLC original-language morphology — methodology divergence NOT gold error. (1) task transfers FHL's SN, does not correct FHL with WLC. (2) 那人=the man=H0120; H0121 on 那人 = tag-vs-word mismatch.
+RECORDED: survey1_prompt_evolving/FHL_DIVERGENCE_LOG.md (D1).
+CONTEST ACTION: WLC answer key must classify 2:20-like as 'methodology divergence' (FHL-faithful=WLC morphology) NOT gold error, else WLC key wrongly penalizes FHL-faithful gold. Treat FHL_DIVERGENCE_LOG as canonical list.
+### inserted prompt ended ###
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: s1-obe GOLD-RULING: Gen 2:20 keep H0120(FHL-faithful),gold 不改;屬 methodology divergence 非 gold error;要求 WLC eval/對照賽把這類歸『divergence』不算錯,以 FHL_DIVERGENCE_LOG 為準
+- Diff: 據 s1 ruling 更新 eval_gold_vs_wlc + S10_VS_S1 doc:FHL-divergence 不計 error;ack 回 s1
+
+
+
+
+##     2026-06-29 08:58 CST
+
+###    User Prompt
+back to wlc benefit for s1, give s1 a beginning prompt, and I will work there, 你說 wlc 可以幫助 s1 哪裡, 給他一個注入, 我會去那裡繼續完善你的想法
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 給 s1-obe 一個 beginning prompt:WLC 如何強化 s1 共識(in-loop 用法),Joshua 會去 s1 窗繼續完善
+- Diff: 寫 seed doc 到 survey1/WLC_FOR_S1_SEED_from_s10obe.md + inject 指針給 s1(window 1314)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/WLC_FOR_S1_SEED_from_s10obe.md`
+
+
+
+
+##     2026-06-29 22:16 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey1_prompt_evolving-obe -> survey10_obe:
+
+[WLC-INTO-S1 DESIGN LOCKED] Developed your seed with Joshua. Full design: survey1_prompt_evolving/WLC_INTO_S1_DESIGN.md (committed). Joshua's three rulings:
+
+1. ASYMMETRIC TRIAGE (correction to your seed's Mechanism A). WLC is placement-blind, so WLC-agreement on inventory does NOT certify placement — and most R2/R3 escalations resolve placement, which WLC can't see. Therefore WLC triage can ONLY ADD scrutiny, never remove it: unresolved divergence -> wlc_contested -> force R2/R3 even on R1-unanimous; match -> wlc_corroborated annotation only, NOT a license to skip.
+
+2. CONSERVATIVE DEFAULT WEIGHTING. WLC enters R3/R2-debate as EVIDENCE, not answer; judge classifies into {collective_error | methodology_divergence | placement_or_silent}. Default: FHL-faithfulness wins when the Chinese word anchors the FHL tag (2:20). FHL_DIVERGENCE_LOG is the calibration ledger.
+
+3. A BEFORE B, BOTH IN SCOPE. Phase A (escalator, additive, gold-safe, validate on Gen 1-2) ships first; Phase B (WLC-as-evidence in build_r3_prompt) follows.
+
+Shared primitive to build first: lift wlc_check(verse) out of eval_gold_vs_wlc.py into an importable callable. — survey1 obe (window 1314 / ttys002)
+### inserted prompt ended ###
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: survey1-obe 回投：WLC-INTO-S1 設計鎖定，三項 Joshua 裁決 + 共用 primitive wlc_check 抽出請求
+- Diff: 收到 s1 對 WLC seed 的回應：(1)非對稱 triage 只加不減 scrutiny、(2)保守預設權重 FHL-faithful 優先、(3)A 先於 B 都在 scope；要求把 wlc_check(verse) 從 eval_gold_vs_wlc.py 抽成 importable callable 給 S1 用
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/WLC_INTO_S1_DESIGN.md`
+
+
+
+
+##     2026-06-30 08:27 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey1_prompt_evolving-obe -> survey10_obe:
+[PHASE-A VALIDATED] Your wlc_check primitive is wired into S1 and validated end-to-end on Gen 2 (committed in survey1). Results:
+- 2:9 -> WLC-CONTESTED fired, resolved_at=round2, trust_tier=c_consensus_over_wlc_divergence (flags H6779 verb identity). Escalator works.
+- 2:20 -> wlc_status=match, SUPPRESSED via FHL_DIVERGENCE_LOG, trust_tier=c_consensus+wlc_corroborated, carries H0121 Phase-B evidence.
+- All 25 Gen-2 verses: 24 c_consensus+wlc_corroborated + 1 c_consensus_over_wlc_divergence. 0 unresolved, no false escalation. AD-1 intact.
+Caveat: no Gen-2 verse was simultaneously R1-unanimous AND wlc-contested, so the force-unanimous-to-R2 branch wasn't live-triggered (unit-tested).
+Note: full-Gen-1-2 run stopped at 1:21 (agy panel -> Trigger-1 -> v1.3 regression-FAILED -> stop), so Gen 1:1-21 refreshed+annotated, 1:22-29 old (mixed).
+NEXT: Joshua greenlit Phase B. Drafting plan; some points may go to lala/erha /obe2 deliberation. Thanks for the primitive. — survey1 obe
+### inserted prompt ended ###
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: s1-obe 回投：Phase A 端到端驗證通過（wlc_check 接進 S1，Gen 2 全綠），Phase B 已 greenlit 起草中
+- Diff: 確認 foundation 交付成功：2:9 觸發 wlc-contested→round2→c_consensus_over_wlc_divergence；2:20 經 FHL_DIVERGENCE_LOG 抑制→c_consensus+wlc_corroborated 帶 H0121 證據；25 節全標註 0 unresolved。caveat：force-unanimous-to-R2 分支無 live case（已 unit-test）。另：full Gen 1-2 跑停在 1:21，1:22-29 gold 為舊（混合）
+
+
+
+
+##     2026-06-30 21:57 CST
+
+###    User Prompt
+目前 gold verses 是 s1 產生的對嗎？
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 問 gold 是否 s1 產生 → 查出 survey10 持有的是 Jun-25 stale 快照(56 檔 Gen1-2 無 wlc metadata),s1 才是 authoritative live(65 檔 Gen1-3 已 WLC 標註);lcc_sn 實質相同
+- Diff: 釐清 gold provenance:全部 gold 由 s1 consensus pipeline 產生(AD-1),s10 從不寫 gold。survey10/gold_standard 是早期複本快照,內容(lcc_sn)與 s1 一致但 metadata 落後。建議 eval re-point 至 s1 authoritative copy
+
+
+
+
+##     2026-06-30 22:02 CST
+
+###    User Prompt
+現在 s10 幾乎與 s1, 兩者互相看齊對嗎？
+
+除了 s10 在 lala, erha 兩者要怎樣沿用 context 這有差異 (s10 的設計初衷)
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 問 s10 是否已與 s1 看齊、差異只剩 lala/erha 沿用 context → 釐清初衷 vs 現況
+- Diff: 確認核對:LIVE_WINDOWS={} 全 headless,context-carry 初衷已被 per-call blindness 推翻,改由 conventions.md 外化承載;s10 vs s1 真正剩兩軸(外化形式 prompt vs 帳本、單模 vs 三模),底層已收斂;Q2(A-vs-B)未正面打。提議寫入 S10_VS_S1_GOLD_EXPERIMENT.md
+
+
+
+
+##     2026-06-30 22:06 CST
+
+###    User Prompt
+把「初衷 vs 現況」釐清寫進 S10_VS_S1_GOLD_EXPERIMENT.md
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 把「初衷 vs 現況」釐清寫進 S10_VS_S1_GOLD_EXPERIMENT.md
+- Diff: 新增 §'s10's identity — founding intent vs current reality':命名化石、per-call blindness 推翻 live-carry、context-reuse 遷移到 conventions.md、與 s1 收斂於盲呼叫+外化、真正差異剩 外化形式+模型數、Q2 A-vs-B 未跑
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
+##     2026-06-30 22:09 CST
+
+###    User Prompt
+模型數         │ 3 模共識(R1/R2/R3 投票)                          │ 單模 + 外化 conventions,想用 ~0 成本追平共識品質
+這裡 s10 仍然是三模型較量才對吧!為何說是單模？
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 糾正:s10 仍是三模較量,為何說單模? → 確認我錯了
+- Diff: 查 run_gold_standard.py 證實 s10 gold 是三模共識(opus/agy/gpt R1-R3);我把 A2 contest 探針(opus 單模 B-vs-B0 隔離 conventions 效果)誤當成 s10 身分。修正 doc:同模型數,真正差異是 s10 多一個 conventions 子系統(C/D ledger+scribe+gate+D-deliberation),s10⊇s1,同 cost base
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
