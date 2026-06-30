@@ -2,7 +2,9 @@
 
 - **meeting_id**: `s10_self_opt-20260630-m01` · roster obe/lala/erha (N=3)
 - **inputs**: lala R1 (`20260630_lala_s10_self_opt_R1.md`), erha R1 (`20260630_erha_s10_self_opt_R1.md`)
-- **status**: synthesized by chair (obe); **awaiting Joshua ratification**, then dogs notified.
+- **status**: 🔒 **LOCKED 2026-07-01** — chair-synthesized, both dogs endorsed (lala [ACK] +
+  erha [ACK], no objections), Joshua ratified. D1–D5 + D2-X final. Build spec folded into
+  `../survey10_s1_but_obe_insteadOf_oneshot/CONVENTIONS_PIPELINE.md`; build gated on token recovery.
 
 **Result: 4/5 unanimous GO; D2 had the one split (warm-start), reconciled below.**
 Closed design = **frozen prompt, zero prompt mutation, all learning in atomic gated

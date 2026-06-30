@@ -201,3 +201,56 @@ case: **Gen 3:11** (Trigger-1 evolution regression-failed).
 | **D conflated with Trigger-2** (fires on stable weak-model verses, double-fires with patch) | pin D strictly to "C exhausted" (R3 unresolved / Trigger-1 regression-fail); keep Trigger-2's patch path separate |
 | D over-fires (cost, anchoring) | D is terminal — it only sees the *genuine-ambiguity tail* that C could not resolve; the stable majority never reaches it |
 | conventions.md becomes single trust-point | per-line revertible; versioned snapshots; same gate as s1's prompt; one unified gated write-path |
+
+## 🔒 LOCKED build spec — s10 self-opt round 2 (D1–D5 + D2-X)
+
+> obe2 meeting `s10_self_opt-20260630-m01`, LOCKED 2026-07-01 (chair-synthesized; lala +
+> erha endorsed; Joshua ratified). Full record + reasoning:
+> [`../docs/20260630_obe_s10_self_opt_decision.md`](../docs/20260630_obe_s10_self_opt_decision.md).
+> This is the actionable spec; **build gated on token recovery.** Build order: D1+D2(+D2-X) →
+> D3 → D4 → D5.
+
+### D1 — Per-model conventions (M-tier) + cross-model promotion
+- Convert **Trigger-2**'s per-model prompt-patch → `conventions.{model}.md` (M-tier). This
+  makes s10 **fully conventions-based, ZERO prompt mutation** (Trigger-1 already swapped;
+  this closes the asymmetry).
+- Inject per-model conventions via `build_conventions_preamble(target, model=<name>)` at the
+  per-model prompt assembly (`run_gold_standard.py:~814`, replacing the `model_patch` append).
+- **Promotion**: an M-rule appearing independently in **≥ k = roster-majority** models
+  (k=2 at N=3) → promote to a global `C<n>`. Promotion **must pass the global regression gate**
+  (no regression on the non-promoting model). Atomic conventions are *comparable* → this
+  detection is mechanical (patches were not).
+- **Demotion**: symmetric + automated — measure the M-rule against **that model's own
+  FHL-truth delta** first; prune when neutral/negative after the support window.
+- Gate reuse: `_run_patch_regression` (the existing per-model minor 回測) gates M-candidates.
+
+### D2 — Prompt freeze + reconciled warm-start
+- **Shared prompt FROZEN at v1.2** — never auto-re-synced to s1's evolving prompt (contest
+  hygiene: measured gains must belong to s10's conventions).
+- **Warm-start**: import s1's per-model patches **converted to M-tier candidates but
+  INACTIVE** — each must pass the standard gate before activation. (Head-start without
+  pre-enabled inheritance.)
+
+### D2-X — Re-sync safeguard (manual re-sync is a versioned event, never a silent copy)
+A human prompt re-sync MUST atomically: (1) **auto-snapshot** current state (gold +
+`conventions*.md` + baseline version) — **the contest always pins a frozen snapshot**;
+(2) **bump baseline version** + **provenance-tag every gold file**; (3) **re-run the full
+convention regression** against the new prompt → auto-quarantine failures. Whim → controlled
+fork, never silent corpus/convention/contest corruption.
+
+### D3 — Falsification loop wired to measured accuracy
+Wire convention falsification to **per-convention A/B on FHL-truth delta (H5)**: **automated**
+quarantine/demotion for neutral/negative deltas; manual override **only** for explicitly
+documented theological / text-critical exceptions. (Supersedes the spec-only Step-5 note.)
+
+### D4 — D-deliberation → convention closed loop
+A D-deliberation outcome produces a **candidate convention ONLY when it exposes a reusable /
+general rule** (never verse-specific hardcoding); the candidate passes the **standard gate**
+before activation; the originating D case is stored as **provenance** for later regression
+citation.
+
+### D5 — WLC evidence into D-deliberation
+Feed `wlc_check` (built + validated, `../survey10_s1_but_obe_insteadOf_oneshot/wlc_check.py`)
+into D-deliberation as **independent evidence, not an override**: preserve the FHL-faithful
+default; route real WLC/FHL tensions through `../survey1_prompt_evolving/FHL_DIVERGENCE_LOG.md`.
+(Mirrors s1's Phase B guardrail.)
