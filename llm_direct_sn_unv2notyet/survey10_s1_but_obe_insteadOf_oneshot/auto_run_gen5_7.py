@@ -107,9 +107,15 @@ for it in range(1, MAX_ITERS + 1):
     log(f"post-iter {it}: total_done {before}->{after} rc={f['rc']} "
         f"rate_limit={f['rate_limit']} trigger1={f['trigger1']}")
 
+    # NOTE (s10 fix): survey1's wrapper stops on Trigger-1 because there it means
+    # prompt-evolution needing human review. In survey10, "Trigger 1 confirmed" is a
+    # ROUTINE convention/D-deliberation write-path (it does NOT halt the run or need a
+    # human). Copying s1's trigger1->exit3 caused a FALSE stop at Gen 6:14 whose real
+    # cause was an opus rate-limit. So here we only LOG trigger1 and fall through to the
+    # rate-limit backoff / no-progress checks below.
     if f["trigger1"]:
-        log(f"TRIGGER-1 (prompt evolution) — STOP for human review. {f['unavail']}")
-        print("WRAPPER_STATUS=TRIGGER1"); sys.exit(3)
+        log("Trigger-1 seen (s10 routine conventions/D-deliberation path) — not a stop; "
+            "continuing to rate-limit/progress checks.")
 
     if missing_first_chapter()[0] is None:
         log("ALL verses present after iter — DONE"); print("WRAPPER_STATUS=DONE"); sys.exit(0)
