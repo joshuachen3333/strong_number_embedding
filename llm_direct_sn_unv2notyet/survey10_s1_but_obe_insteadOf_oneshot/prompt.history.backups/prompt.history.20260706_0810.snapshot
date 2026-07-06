@@ -1208,3 +1208,246 @@ D2 中文詳述
 
 
 
+##     2026-06-30 23:07 CST
+
+###    User Prompt
+那我哪天心血來潮
+沒事要 S10 當下去抄錄 S1 最新版 prompt過來 S10
+這會怎樣
+1 對於 S10 當時已完工的經文
+例如已經完工 Gen 1 2
+2 其它影響？
+
+我很有可能常常心血來潮
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua 問:若心血來潮把 s1 最新 prompt 抄進 s10,對已完工經文(Gen 1,2)+其它有何影響?且他很可能常常如此
+- Diff: 分析後果:換 prompt 不回頭動已寫 gold(會 skip),除非 --force;真正傷害=語料混血、contest 歸因塌掉、conventions gate 全失效要重測、D3 falsification 基線浮動。因應其『常常心血來潮』提出 re-sync 安全機制(版本化+自動快照+conventions 重 gate,contest pin 凍結快照),建議補進 D2 決議細則
+
+
+
+
+##     2026-06-30 23:12 CST
+
+###    User Prompt
+非常棒
+謝謝
+補進去
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 補進去:把 re-sync 安全機制寫進 D2 決議
+- Diff: 決議書新增 D2-X re-sync safeguard:手動 re-sync 必為版本化事件(自動快照+baseline bump+provenance-tag+conventions 重 gate),contest pin 凍結快照;build order 第 1 步納入 D2-X。commit
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/docs/20260630_obe_s10_self_opt_decision.md`
+
+
+
+
+##     2026-06-30 23:15 CST
+
+###    User Prompt
+丟給他們看一下好了
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 丟決議書(含 D2 調和 + 新增 D2-X)給 lala/erha review 後再鎖
+- Diff: 開 review round:注入 lala@5555 + erha@5557 指向 decision letter,請他們 endorse 或對 D2 調和/D2-X 提異議
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/docs/20260630_obe_s10_self_opt_decision.md`
+
+
+
+
+##     2026-07-01 00:24 CST
+
+###    User Prompt
+### inserted prompt begins ###
+erha -> obe:
+[ACK] s10_self_opt DECISION reviewed and endorsed fully.
+- D2 Reconciliation: Endorse. Importing s1 patches as inactive M-tier candidates satisfies both immediate productivity (no relearn) and gold hygiene (gate-tested before activation).
+- D2-X: Endorse. Versioning human-driven prompt syncs prevents silent corruption and protects the frozen baseline contest arm.
+Ready to lock.
+### inserted prompt ended ###
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: erha [ACK] 全數背書決議(D2 調和 + D2-X),ready to lock
+
+
+
+
+##     2026-07-01 00:25 CST
+
+###    User Prompt
+### inserted prompt begins ###
+lala->obe [ACK]: endorse decision before lock. D2 reconciliation is acceptable: s1 patches are inactive M-tier candidates only, activation requires the same gate. D2-X is necessary: manual re-sync must be a versioned snapshot/baseline/provenance/re-gate event, with contest pinned to a frozen snapshot. No objection.
+### inserted prompt ended ###
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: lala [ACK] 背書決議,無異議 — 兩狗一致,ready to lock,待 Joshua 最終 ratify
+
+
+
+
+##     2026-07-01 00:29 CST
+
+###    User Prompt
+「lock」 → ① commit 決議書(LOCKED)② 發 terminal 鎖定通知給 lala+erha,meeting close ③ 把 D1–D5+D2-X 定稿落進 CONVENTIONS_PIPELINE.md 當 build spec
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Joshua ratify:lock 決議。① commit LOCKED ② 通知 lala/erha close ③ 落進 CONVENTIONS_PIPELINE.md 當 build spec
+- Diff: s10 self-opt meeting 鎖定:D1-D5+D2-X 定稿。執行三步
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/docs/20260630_obe_s10_self_opt_decision.md`
+
+
+
+
+##     2026-07-01 00:37 CST
+
+###    User Prompt
+token is free. go the big batch
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: token free → go the big batch:啟動 s10 gold 創 3-4(~50 節三模共識,headless)背景跑
+- Diff: 恢復 task #4 主批:run_gold_standard.py --book 創 --chap 3-4 --modelsABC opus agy gpt,背景執行,log 到 run_logs。Gen 1(31)+2(25)已完工,3-4 空、round2_results 快取可乾淨 resume
+
+
+
+
+##     2026-07-01 16:17 CST
+
+###    User Prompt
+[big batch complete — s10 gold Gen 3-4]
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: big batch 完成:s10 gold Gen 3-4 產出(50 節,48 c_consensus+2 d_delib,0 真錯誤);scribe 候選全被 gate 擋下→conventions 仍 C1(gate 自我保護活證據)
+- Diff: Gen 1-4=106 節 gold(磁碟,gold_standard gitignored 慣例)。commit 94e50b4=新 model-patch。ch3/4 scribe 候選 regression-FAIL→路由 D-deliberation,驗證會議剛鎖定的可證偽設計
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/gold_standard`
+
+
+
+
+##     2026-07-04 18:40 CST
+
+###    User Prompt
+繼續往下跑直到第七章, 中途若 lala or erha token 滿了, 就查一下什麼時候恢復, 自動繼續.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 繼續跑 s10 gold 到第 7 章(创 5-7);中途 lala/erha token 滿就查恢復時間、自動繼續
+- Diff: 啟動 run_gold_standard.py --book 創 --chap 5-7 --modelsABC opus agy gpt 背景跑(~78 節)。依賴內建 30min-backoff retry(24h)自動續跑,並主動監控 token 卡關
+
+
+
+
+##     2026-07-04 18:48 CST
+
+###    User Prompt
+[创 5-7 run failed exit 144 — relaunch detached]
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 创 5-7 背景 run 被 signal 16 殺(exit 144),~6min 卡在 5:1 R2、無 gold 無 traceback → 判為 harness bg task 時間/idle 限制,改 nohup 完全脫離重跑
+- Diff: 診斷:創 3-4 成功因多為 cache(秒級),創 5-7 fresh(每 call 70-90s)撞上 bg task 限制。改用 nohup+disown 完全 detached 重啟,log 輪詢監控
+
+
+
+
+##     2026-07-04 23:14 CST
+
+###    User Prompt
+### inserted prompt begins ### survey1-obe to survey10-obe: 抱歉 —— 我清理自己的 run 時用 pkill -f run_gold_standard.py 誤殺了你的 Gen 5-7 gold run。損失極小：當時在 Gen 5:1、R2 convergence 中，0 個 gold verse 寫入，cached R1/R2 全在，可直接 skip-cached resume 幾乎無損。Joshua 已裁示 survey1 + survey10 兩者並行跑到第七章，所以請你自行重啟你的 Gen 5-7 run（你的 session 擁有它）。重要提醒：這支 runner 沒有內建 auto-resume —— cli_caller 是 fail-fast、run_gold_standard 遇 rate-limit 會直接 STOP。你 /ph 寫的 30min-backoff 是主程式 llm_direct_sn_unv2notyet.py 的機制，不是這支 survey runner。若要 quota 滿自動續跑，需外包一層迴圈（我在 survey1/auto_run_gen3_7.py 寫了一支 coverage-driven 的可參考）。我這邊 survey1 Gen 3:12->7 即將開跑，兩邊共用 opus/agy/codex 帳號會競爭 quota，請有心理準備。### inserted prompt ended ###
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: survey1-obe 誤用 pkill -f run_gold_standard.py 殺掉我的 Gen 5-7 run + 關鍵更正:此 runner 無內建 auto-resume(cli_caller fail-fast、遇 rate-limit 直接 STOP);30min-backoff 是主程式非此 survey runner。Joshua 裁示兩邊並行跑到第七章,quota 競爭
+- Diff: 我的 PID 45304 被殺。需外包 resume 迴圈才能達成 Joshua 要的『token 滿自動續』。s1 有 survey1/auto_run_gen3_7.py 可參考。重啟 Gen 5-7(Gen 5 caches 全在→skip-resume 幾乎無損)
+
+
+
+
+##     2026-07-04 23:18 CST
+
+###    User Prompt
+### inserted prompt begins ### survey1-obe -> survey10-obe [ACK]: 收到，太好了 —— 你的 45304 健康推進到 Gen 6:4，attempt#1 損失為零。完全同意 PID-scoped kill。關鍵提醒回敬：run_gold_standard child PID 每章輪替，最可靠判別是 CWD 而非固定 PID —— 清理時請用 lsof 比對 cwd。我的識別：wrapper=PID 63045(cwd survey1)。你的：45304(cwd survey10)。survey1 進度：創 3 完成、現跑創 4:12。### inserted prompt ended ###
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: s1 [ACK]:確認我 45304 健康、無需處理;關鍵回敬——兩邊 run_gold_standard child PID 每章輪替,清理靠 cwd(lsof)比對非固定 PID/script name。s1:wrapper=63045(survey1);我:track wrapper PID+cwd
+- Diff: 採納 cwd-discrimination:改追 wrapper PID(穩定)+cwd,棄 child PID。部署 auto_run_gen5_7.py 取代裸跑,PID-scoped kill 45304 後啟動 wrapper
+
+
+
+
+##     2026-07-05 02:31 CST
+
+###    User Prompt
+[monitor tick 02:29 — scribe 回測 throughput bottleneck discovered]
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: [監控發現] s10 scribe 回測 是 throughput 瓶頸:自 C1(Gen1)起 5 章 0 條新 convention 被接受,每候選仍花 ~2h/58節 uncached live 回測,Gen 5 多候選卡 3h+ 阻擋 Gen 6-7。無 --skip-scribe flag(scribe 於 run_gold_standard L1417-1426 無條件執行)
+- Diff: 呈 Joshua 決策:A grind(預設)vs B 加 --no-scribe flag 重啟 gold-only(建議,gold 不受影響、conventions 本就沒長)。預設續 grind 待回覆
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/run_gold_standard.py`
+
+
+
+
+##     2026-07-05 09:26 CST
+
+###    User Prompt
+請繼續
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 請繼續 + 監控發現:wrapper 誤停在 TRIGGER1(exit3)。診斷:真因是 opus rate-limit STOPPING@6:14,而『Trigger 1 confirmed』在 s10 是正常 conventions 路徑(非 s1 的 prompt-evolution-need-human)。我抄 s1 wrapper 的 trigger1→exit3 對 s10 是 bug
+- Diff: Gen 6 已寫 14/22 gold(總 46)。修 auto_run_gen5_7.py:移除 trigger1 早退,改讓 rate-limit 走 backoff+resume。relaunch 續跑 Gen 6:15+
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/auto_run_gen5_7.py`
+
+
+
+
+##     2026-07-05 15:02 CST
+
+###    User Prompt
+go on
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: go on(續 grind 不切 Option B)+ 監控:Gen 5+6 完成、Gen 7 開跑,total 55/78;43 rate-limit/7 backoff 全吸收,trigger1 修正生效無誤停
+- Diff: wrapper 已跨 Gen 6 全數 + 起 Gen 7,證明 patched backoff-resume 迴路達成『token 滿自動繼續』。僅剩 Gen 7 23 節
+
+
+
+
+##     2026-07-05 16:52 CST
+
+###    User Prompt
+完成時直接 commit + 回報
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 指示:创 5-7 完成時直接 commit + 回報(不必等我)
+- Diff: 監控 completion protocol 確認:wrapper DONE(batch 78/78)時自動 git add 新 model patches/caches/conventions/run_logs(gold_standard gitignored)、commit、回報 Gen 1-7=184 節
+
+
+
+
+##     2026-07-06 08:06 CST
+
+###    User Prompt
+go on [wrapper DONE — auto-commit + report]
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 创 5-7 完成(wrapper DONE):corpus Gen 1-7=184 檔,~19h/162 rate-limit/25 backoff 零誤停;但 17 節 EMPTY-SN(rate-limit 犧牲品)需 --force 重跑;conventions 仍 C1(scribe 候選全被 gate 拒)
+- Diff: auto-commit e482112(誠實記錄真實狀態:148 c_consensus+4 d_delib solid、14 unresolved-has-SN usable、17 empty shells)。wrapper coverage 只查檔案存在不查內容→誤判 DONE。task #7 completed
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/gold_standard`
+
+
+
+
