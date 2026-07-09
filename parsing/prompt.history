@@ -20,3 +20,46 @@ Started 2026-07-10. Canonical structured format (per global /ph spec).
 
 
 
+##     2026-07-10 03:47 CST
+
+###    User Prompt
+很好, 這裡 response.history 有原始的姓名等細節, 我可以日後參照, 請把它列入 .gitignore 裡面
+
+###    
+- Agent: `parsing-obe`
+- Hint: response.history 保留原始姓名供本地參照,請列入 .gitignore
+- Diff: root .gitignore 新增 parsing/response.history + response.history.backups/;git rm --cached 使其 untrack(本地檔保留)
+- File: `/Users/joshua/work/strong_number_embedding/.gitignore`
+
+
+
+
+##     2026-07-10 03:49 CST
+
+###    User Prompt
+now, do 
+1. commit 這份新檔(parsing/ 首個檔案)?
+2. 在 survey2 的 FHL_SN_FORMAT_REFERENCE.md 頂端加一行反向連結指到這份根基文件,讓兩份互相對照?
+
+###    
+- Agent: `parsing-obe`
+- Hint: 執行前述兩項:commit 根基新檔、survey2 加反向連結
+- Diff: PARSING_FOUNDATIONS.md 進版控;survey2 FHL_SN_FORMAT_REFERENCE.md 頂端加反向連結指向根基文件(概念層↔機械層互相對照)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey2_fhl_sn_format_spec/FHL_SN_FORMAT_REFERENCE.md`
+
+
+
+
+##     2026-07-10 03:51 CST
+
+###    User Prompt
+已經commit 進去的, 如果因為 prompt.history 內容有暴露出 姓名的, 要處理一下
+
+###    
+- Agent: `parsing-obe`
+- Hint: 已 push 的 prompt.history 暴露姓名,徹底處理遠端歷史
+- Diff: 淨化 prompt.history Diff 為角色;經確認後 git reset --soft a082aef 摺成單一乾淨 commit(e3c6716)+ force-push;reflog expire + gc;全歷史掃描確認無姓名
+
+
+
+
