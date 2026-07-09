@@ -63,3 +63,17 @@ now, do
 
 
 
+##     2026-07-10 03:56 CST
+
+###    User Prompt
+但是我要 local 的 檔案留下剛才 15 picture 裡面有帶著姓名的你的回應洞見, either create a (file).md and put them in, or leave a names restored response.history, but all these should be excluded by .gitignore.
+
+###    
+- Agent: `parsing-obe`
+- Hint: 本地保留帶姓名的 15 圖分析洞見,但需被 .gitignore 排除
+- Diff: 以 03:38 response entry 為源建立 parsing/PARSING_FOUNDATIONS.local.md(帶真實姓名+頂部警語);.gitignore 新增 parsing/*.local.md;check-ignore 驗證排除;response.history 本地帶名版並存
+- File: `/Users/joshua/work/strong_number_embedding/.gitignore`
+
+
+
+
