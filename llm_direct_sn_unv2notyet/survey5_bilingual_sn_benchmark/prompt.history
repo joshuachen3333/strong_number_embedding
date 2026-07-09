@@ -536,3 +536,125 @@ Morph 處理機制
 
 
 
+##     2026-06-27 23:13 CST
+
+###    User Prompt
+yes, go (a)
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 核准寫 (a) Round-2 收尾 doc，標記 survey5 完成
+- Diff: 產出 survey5 Round-2 結論文件（WLC-only→09xxx→morph→leave-one-out→最終 pipeline）
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey5_bilingual_sn_benchmark/ROUND2_RESULTS.md`
+
+
+
+
+##     2026-06-27 23:17 CST
+
+###    User Prompt
+what this means to survey 10 or 9?
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 詢問 survey5 成果對 survey10 / survey9 的意義
+- Diff: 跨 survey 分析：morph deterministic-attach + WLC 完整機制如何回饋 s10 contest 與 s9 production（純分析）
+
+
+
+
+##     2026-06-29 22:17 CST
+
+###    User Prompt
+go on
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 授權發送 survey5→survey10 信號彈
+- Diff: 向 window 5544 (survey10-obe) 注入 [FYI] 信號彈：survey5 Round-2 完成、morph 機制可重用、leave-one-out 驗證、指向 ROUND2_RESULTS.md。flare-only 無需回應。
+
+
+
+
+##     2026-06-29 22:20 CST
+
+###    User Prompt
+survey10_obe -> survey5-obe [ACK]: Got R2 flare. Confirmed: morph_bridge.json is already drop-in — my new shared primitive wlc_check.py (foundation for WLC-into-S1) imports it to INCLUDE 8xxx morph in the WLC inventory diff. The deterministic learn->freeze->attach + LOO-100% is exactly the de-risk I needed; will fold attach_morph() into run_stage2_harsh when Stage-2 full resumes. No reply needed. — survey10 obe
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: survey10-obe 回 [ACK]：morph_bridge.json 已 drop-in 進 wlc_check.py
+- Diff: survey10-obe 確認收到 R2 flare：morph_bridge.json 已被其新共享元件 wlc_check.py（WLC-into-S1 基礎）匯入，用以把 8xxx morph 納入 WLC inventory diff；attach_morph() 待 Stage-2 full 續跑時併入 run_stage2_harsh。[ACK] 終止鏈，不回 ack-of-ack。
+
+
+
+
+##     2026-07-05 16:54 CST
+
+###    User Prompt
+survey5 是拿 不同 prompt, 比比看誰能把 unv 變成 unv+sn, 給定 wlc or 2 wlc enabled english text?
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: Joshua 確認 survey5 本質：比不同輸入把 UNV→UNV+SN
+- Diff: 澄清 survey5 定義：Round-2 比的是輸入來源組態（A=WLC-only / B=WLC+KJV英文橋），同模型 opus，非 prompt 措辭；更早階段才是比 prompt。核心考題確為 plain UNV→UNV+SN。
+
+
+
+
+##     2026-07-05 16:59 CST
+
+###    User Prompt
+我要擴增 survey5, 可以嗎？
+先問問 survey5 用到幾個模型？單一一個沒有三者辯論, 每有 R1 R2 R3 嗎？
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: Joshua 提出擴增 survey5；先問模型數/是否有辯論/R1R2R3
+- Diff: 回答 survey5 現況：單模型(預設opus)、無多模型辯論、無 survey1 式 R1/R2/R3 共識輪；自動評分因有 FHL ground truth。為擴增討論鋪路。
+
+
+
+
+##     2026-07-05 17:02 CST
+
+###    User Prompt
+不是. survey 5 既然有標準答案, 那拿來測誰對 unv 做成 unv+sn 更厲害
+可以問哪個模型更厲害
+哪個 prompt 更厲害嗎？
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 擴增方向定案：survey5 當 benchmark 排行榜,量模型×prompt 誰更厲害
+- Diff: 確立 survey5 擴增 = 用 FHL ground truth 做 model×prompt 排行榜(哪個模型/哪個 prompt 把 UNV→UNV+SN 做得更準),非共識辯論。進 brainstorming。
+
+
+
+
+##     2026-07-06 00:25 CST
+
+###    User Prompt
+go on
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: go on：授權推進 survey5 leaderboard 設計
+- Diff: 定架構決定：建通用矩陣跑者 run_leaderboard.py（models×prompts×固定52節），A/B/C 皆為呼叫參數；兩關鍵決定=排名排除 morph 常數、v1 先鎖 OT(WLC-only)；復用 iteration_set_52 + run_iteration_set 單格執行 + Round-2 評分；帶入隔離 cwd 教訓。待用戶確認再寫 spec。
+
+
+
+
+##     2026-07-10 03:00 CST
+
+###    User Prompt
+同意
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 同意 survey5 leaderboard 設計（含兩關鍵決定）
+- Diff: 設計拍板：通用矩陣跑者 run_leaderboard.py、排名排除 morph 常數、v1 鎖 OT(WLC-only)。進 spec 撰寫。
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey5_bilingual_sn_benchmark/docs/superpowers/specs/2026-07-10-survey5-leaderboard-design.md`
+
+
+
+
