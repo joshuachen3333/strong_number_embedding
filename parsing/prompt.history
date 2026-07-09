@@ -77,3 +77,45 @@ now, do
 
 
 
+##     2026-07-10 04:16 CST
+
+###    User Prompt
+為我確認一下, 有沒有任何規格 (1.8 or earlier) 需要更正增補的, 尤其是小馬提到 fhl 有 parsing code, 這個 code 如何取得, 拿到有什麼基石作用可錨定我們的 插入 工作的; 或者剛才的 fhl 對話, 有要增補進去實作的有益處的. 為我盤點一下
+1, specifications
+2, fhl api to get parsing code
+3, help or 增加 surveyN* 有貢獻的
+
+###    
+- Agent: `parsing-obe`
+- Hint: 盤點:規格是否需增補 parsing code 概念、FHL API 如何取 parsing code、對 surveyN 的貢獻
+
+
+
+
+##     2026-07-10 04:30 CST
+
+###    User Prompt
+四個全做.  以 /workflows 來實作, 設計審查時使用 /advisor, 結果也讓 advisor 確認, 作完要在相關的子目錄中 （例如 surveyN＊） 當中留下 aboarding 文件讓他們能夠跟上
+
+###    
+- Agent: `parsing-obe`
+- Hint: 四項全做:用 Workflow 實作,設計與結果皆過 advisor,各 surveyN* 子目錄留 onboarding 文件
+- Diff: 啟動 qp/parsing-code 增補計畫:①survey2 文件 ②spec v1.8 增補 S1-S4 ③金標管線餵 qp 詞表 ④survey5 leaderboard ± enrichment 軸;以 /workflows 多代理實作,/advisor 審設計與驗結果,子目錄留 onboarding
+
+
+
+
+##     2026-07-10 04:36 CST
+
+###    User Prompt
+把設計寫成一份 parsing/QP_ENRICHMENT_PLAN.md 草稿, 然後探測一次 advisor 是否回來了.
+
+###    
+- Agent: `parsing-obe`
+- Hint: 把 qp 增補設計寫成 parsing/QP_ENRICHMENT_PLAN.md,並授權單次探測 advisor
+- Diff: 新建 QP_ENRICHMENT_PLAN.md(4 項範圍、qp API 實測證據、Workflow 形狀、onboarding、待決三問);之後單次呼叫 advisor 測試是否恢復
+- File: `/Users/joshua/work/strong_number_embedding/parsing/QP_ENRICHMENT_PLAN.md`
+
+
+
+
