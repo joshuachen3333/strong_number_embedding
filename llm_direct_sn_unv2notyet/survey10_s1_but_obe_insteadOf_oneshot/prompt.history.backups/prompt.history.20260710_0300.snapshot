@@ -1397,3 +1397,98 @@ token is free. go the big batch
 
 
 
+##     2026-07-05 09:26 CST
+
+###    User Prompt
+請繼續
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 請繼續 + 監控發現:wrapper 誤停在 TRIGGER1(exit3)。診斷:真因是 opus rate-limit STOPPING@6:14,而『Trigger 1 confirmed』在 s10 是正常 conventions 路徑(非 s1 的 prompt-evolution-need-human)。我抄 s1 wrapper 的 trigger1→exit3 對 s10 是 bug
+- Diff: Gen 6 已寫 14/22 gold(總 46)。修 auto_run_gen5_7.py:移除 trigger1 早退,改讓 rate-limit 走 backoff+resume。relaunch 續跑 Gen 6:15+
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/auto_run_gen5_7.py`
+
+
+
+
+##     2026-07-05 15:02 CST
+
+###    User Prompt
+go on
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: go on(續 grind 不切 Option B)+ 監控:Gen 5+6 完成、Gen 7 開跑,total 55/78;43 rate-limit/7 backoff 全吸收,trigger1 修正生效無誤停
+- Diff: wrapper 已跨 Gen 6 全數 + 起 Gen 7,證明 patched backoff-resume 迴路達成『token 滿自動繼續』。僅剩 Gen 7 23 節
+
+
+
+
+##     2026-07-05 16:52 CST
+
+###    User Prompt
+完成時直接 commit + 回報
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 指示:创 5-7 完成時直接 commit + 回報(不必等我)
+- Diff: 監控 completion protocol 確認:wrapper DONE(batch 78/78)時自動 git add 新 model patches/caches/conventions/run_logs(gold_standard gitignored)、commit、回報 Gen 1-7=184 節
+
+
+
+
+##     2026-07-06 08:06 CST
+
+###    User Prompt
+go on [wrapper DONE — auto-commit + report]
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 创 5-7 完成(wrapper DONE):corpus Gen 1-7=184 檔,~19h/162 rate-limit/25 backoff 零誤停;但 17 節 EMPTY-SN(rate-limit 犧牲品)需 --force 重跑;conventions 仍 C1(scribe 候選全被 gate 拒)
+- Diff: auto-commit e482112(誠實記錄真實狀態:148 c_consensus+4 d_delib solid、14 unresolved-has-SN usable、17 empty shells)。wrapper coverage 只查檔案存在不查內容→誤判 DONE。task #7 completed
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/gold_standard`
+
+
+
+
+##     2026-07-06 08:16 CST
+
+###    User Prompt
+①重跑 17 空殼補實(task #8)②push
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 拍板下一步:重跑 17 空殼 + push
+- Diff: 啟動 task #8(17 節空殼 --force 重跑)並 push commit e482112
+
+
+
+
+##     2026-07-06 15:13 CST
+
+###    User Prompt
+[monitor tick→介入] 6:17 卡~2h(兩輪 R2a-R2h + D-deliberation,opus 無法收斂),判定病態迴圈,DEFER 延後讓其餘 11 節先跑
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 6:17 病態迴圈 → DEFER 介入,延後單節不拖垮整批
+- Diff: rerun_empty_shells.py 加 DEFER={(6,17)} + missing_first_chapter 兩階段;PID-scoped 殺 44501/40388/53957;重啟 PID 54550 從 6:18 續(5/17 已填有 cache)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/rerun_empty_shells.py`
+
+
+
+
+##     2026-07-06 22:55 CST
+
+###    User Prompt
+[monitor tick→收官] 判定 6:17 phase2:病態迴圈確認 → accept-empty、16/17 完成 → commit + push + 回報
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 17 空殼重跑收官:16/17 補實,6:17 accept-empty,commit+push
+- Diff: 6:17 phase2 病態確認(11+ R2 全 differs)→ PID-scoped kill 54550 樹 → 標記 6:17 accept_empty=true+reason → commit 648df4e → push e482112..648df4e
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/gold_standard/Gen/6/17.json`
+
+
+
+

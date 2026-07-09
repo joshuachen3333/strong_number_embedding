@@ -3454,3 +3454,59 @@ PID 44501 存活(4h05m),codex 仍全 ERROR,Joshua codex 決定未回。4/17 自�
 
 
 
+##     2026-07-06 22:55 CST
+
+###    User Prompt
+[monitor tick→收官] 判定 6:17 phase2:病態迴圈確認 → accept-empty、16/17 完成 → commit + push + 回報
+
+###    result
+17 空殼重跑收官 — 16/17 補實,6:17 accept-empty。task #8 完成,commit 648df4e 已 push(e482112..648df4e)。
+
+成果:補實 16/17(1:30、2:23、6:4、6:13、6:14、6:18-22、7:1、7:7、7:8、7:21、7:22、7:23);accept-empty 僅 6:17(已標 accept_empty=true+reason 於 gold JSON);全程 ~14h;信度全部 opus+agy 兩模 Unresolved(codex 整輪 rate-limit,0 次 OK)。
+
+兩個關鍵事件:(1) codex 全程死,拖著每輪 30min backoff;「拿掉 codex 快跑」取捨攤給 Joshua 多次未回,遵守不擅自推翻自己提的問題,照原樣磨到完,輸出品質不受影響。(2) 6:17 病態迴圈 → 唯一主動介入(純調度):兩次獨立 --force 各 11+ 次 R2 全 differs 從不 STABLE(iter6 ~1h50m + phase2 ~40min),R1 opus timeout(ERROR 300s);首次發現加 DEFER={(6,17)} 延後+重啟讓其餘 16 節先跑完,最後複驗仍病態 → accept-empty 收尾。一節不拖垮整批。
+
+剩下 6:17 不是資料錯誤,是 opus 對這節(挪亞洪水宣告,長句多 SN)當前無法穩定收斂,gold JSON 已自我文件化,待 quota+穩定度恢復可單獨重試。問 Joshua:現在單獨再賭一次 6:17,還是就收 16/17?codex 兩模快跑選項也備著。
+
+
+
+
+##     2026-07-10 03:01 CST
+
+###    User Prompt
+quota limit is reset, retry that.
+
+###    result
+Quota reset,retry 6:17。啟動 wrapper PID 16055 —— DEFER 邏輯讓 phase 1 略過已填的 16 節(cache 秒過),phase 2 直接 --force 打 6:17,現 R1 已起。quota reset 後 opus/codex 都可能新鮮:若 opus 這次收斂→17/17 全清(commit+push+回報);若又病態迴圈(多輪 R2 全 differs)→ 判定真正 irreducible、重新 accept-empty 收尾;codex 若恢復或得真 3 模共識。task #8 轉回 in_progress,排 25min 監控。
+
+
+
+
+##     2026-07-10 03:27 CST
+
+###    User Prompt
+[monitor tick] retry 6:17:收斂→17/17;又病態→irreducible accept-empty。codex 是否恢復
+
+###    result
+關鍵變化:codex 回來了 —— quota reset 生效,這次 R1 codex OK(conf=0.91, 20s),是真正的 3 模 panel(opus+agy+codex 全答)。但 opus 對 6:17 仍病態 —— R2a→R2f 全 differs,即使新鮮 quota 也無法收斂。這是第三次獨立驗證 opus 對這節的非收斂性,證明不是 quota 問題,是這節本身。
+
+不過這次有轉機:上輪 codex 全死,走到 D-deliberation 無 panel 可仲裁才失敗;這次 codex 在,若 opus R2 撐不住走到 R3 judge / D-deliberation,有完整 3 模可裁決,解出機會比上次高。PID 16055 存活(26min),6:17 現 R2f。還不到判定 —— 這次要看 R3/D 用完整 panel 能否救回,跟上次沒 codex 不同。延長觀察 25min。
+
+
+
+
+##     2026-07-10 03:54 CST
+
+###    User Prompt
+[monitor tick] retry 6:17:看 R3/D 用完整 panel(codex 已回)能否解出;否則定案 irreducible accept-empty
+
+###    result
+opus 病態性確認無疑 —— 這次 fresh quota + codex 在場,opus 仍 R2a→R2m(13 次)全 differs,連一次 STABLE 都沒有。三次獨立驗證,證明與 quota、codex 無關,是 opus 對這節本身無法自我收斂。
+
+但它還沒走到 D-deliberation —— 卡在 R2 收斂迴圈。上輪 R2 在 R2k 後轉 D(但當時 codex 死,無 panel 仲裁才失敗)。這次 codex 在,所以關鍵是:等它 R2 觸頂進 D-deliberation 後,完整 3 模 panel 能否救回 —— 這是唯一跟前兩次不同的變數,值得等。PID 16055 存活(52min),6:17 現 R2m,尚未進 D。
+
+判定策略:再給一窗口讓它 R2 觸頂 → D-deliberation,看完整 panel 能否仲裁。進 D 且解出→17/17;進 D 仍失敗 or R2 空轉→定案 irreducible、accept-empty。續排監控 25min。
+
+
+
+

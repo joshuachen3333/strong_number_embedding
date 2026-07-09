@@ -3419,3 +3419,79 @@ PID 44501 存活(4h05m),codex 仍全 ERROR,Joshua codex 決定未回。4/17 自�
 
 
 
+##     2026-07-06 20:35 CST
+
+###    User Prompt
+[monitor tick] 監控 rerun_empty_shells.py (PID 54550):累積填實 / 6:17 DEFER / codex / alive-DONE-STOP
+
+###    result
+進度 14/17(+7:21)。現 codex backoff 睡到 ~20:51。PID 54550 存活(5h23m)。剩 2 節真跑(7:22, 7:23)+ 6:17 殿後 = 3 空。codex 仍全死,Joshua codex 決定未回。再一兩輪就清完 7 章、進到 6:17 決戰(phase 2)。續排監控 45min —— 下輪很可能就是 6:17 病態複驗:若再度無法收斂,列為唯一 accept-empty、其餘 16/17 補實完成後回報。
+
+
+
+
+##     2026-07-06 21:21 CST
+
+###    User Prompt
+[monitor tick] 監控:6:17 phase 2 是否進到 / 是否仍病態 / 累積填實 / codex / alive-DONE-STOP
+
+###    result
+進度 15/17(+7:22)。現 codex backoff 睡到 ~21:23。PID 54550 存活(6h09m)。剩 1 節真跑(7:23)+ 6:17 殿後 = 2 空。尚未進到 6:17。codex 仍全死,Joshua codex 決定未回。收尾在望 —— 下輪 7:23 落地後就進 6:17 決戰。下次檢查稍拉長(~50min),好在同一 tick 內同時看到 7:23 完成 + 6:17 phase 2 病態複驗,一次判定 6:17 命運(收斂→17/17 全清;仍病態→列唯一 accept-empty、16/17 完成)。
+
+
+
+
+##     2026-07-06 22:13 CST
+
+###    User Prompt
+[monitor tick] 判定 6:17 phase 2:病態→kill+accept-empty(16/17);收斂→17/17。皆 commit+回報
+
+###    result
+進度 16/17 —— +7:23,所有 rate-limit 空殼(除 6:17)全數補實。現 6:17 進到 phase 2 決戰(22:05 起 R1)。PID 54550 存活(7h00m)。只剩 6:17 一節。6:17 這次 R1 opus 剛 ERROR 300s(逾時)—— 病態複驗才起 5 分鐘,還不到「兩輪 R2 無收斂」判定門檻,現在殺太早。codex 仍全死,Joshua codex 決定未回。
+
+判定策略:給 6:17 phase 2 約 40 分鐘 bounded window。下輪若又陷 R2 病態迴圈→ kill + 列唯一 accept-empty + commit 16/17 + 回報;若收斂→17/17 全清 + commit + 回報。先不 commit,等 6:17 塵埃落定一次乾淨收尾。續排監控 40min。
+
+
+
+
+##     2026-07-06 22:55 CST
+
+###    User Prompt
+[monitor tick→收官] 判定 6:17 phase2:病態迴圈確認 → accept-empty、16/17 完成 → commit + push + 回報
+
+###    result
+17 空殼重跑收官 — 16/17 補實,6:17 accept-empty。task #8 完成,commit 648df4e 已 push(e482112..648df4e)。
+
+成果:補實 16/17(1:30、2:23、6:4、6:13、6:14、6:18-22、7:1、7:7、7:8、7:21、7:22、7:23);accept-empty 僅 6:17(已標 accept_empty=true+reason 於 gold JSON);全程 ~14h;信度全部 opus+agy 兩模 Unresolved(codex 整輪 rate-limit,0 次 OK)。
+
+兩個關鍵事件:(1) codex 全程死,拖著每輪 30min backoff;「拿掉 codex 快跑」取捨攤給 Joshua 多次未回,遵守不擅自推翻自己提的問題,照原樣磨到完,輸出品質不受影響。(2) 6:17 病態迴圈 → 唯一主動介入(純調度):兩次獨立 --force 各 11+ 次 R2 全 differs 從不 STABLE(iter6 ~1h50m + phase2 ~40min),R1 opus timeout(ERROR 300s);首次發現加 DEFER={(6,17)} 延後+重啟讓其餘 16 節先跑完,最後複驗仍病態 → accept-empty 收尾。一節不拖垮整批。
+
+剩下 6:17 不是資料錯誤,是 opus 對這節(挪亞洪水宣告,長句多 SN)當前無法穩定收斂,gold JSON 已自我文件化,待 quota+穩定度恢復可單獨重試。問 Joshua:現在單獨再賭一次 6:17,還是就收 16/17?codex 兩模快跑選項也備著。
+
+
+
+
+##     2026-07-10 03:01 CST
+
+###    User Prompt
+quota limit is reset, retry that.
+
+###    result
+Quota reset,retry 6:17。啟動 wrapper PID 16055 —— DEFER 邏輯讓 phase 1 略過已填的 16 節(cache 秒過),phase 2 直接 --force 打 6:17,現 R1 已起。quota reset 後 opus/codex 都可能新鮮:若 opus 這次收斂→17/17 全清(commit+push+回報);若又病態迴圈(多輪 R2 全 differs)→ 判定真正 irreducible、重新 accept-empty 收尾;codex 若恢復或得真 3 模共識。task #8 轉回 in_progress,排 25min 監控。
+
+
+
+
+##     2026-07-10 03:27 CST
+
+###    User Prompt
+[monitor tick] retry 6:17:收斂→17/17;又病態→irreducible accept-empty。codex 是否恢復
+
+###    result
+關鍵變化:codex 回來了 —— quota reset 生效,這次 R1 codex OK(conf=0.91, 20s),是真正的 3 模 panel(opus+agy+codex 全答)。但 opus 對 6:17 仍病態 —— R2a→R2f 全 differs,即使新鮮 quota 也無法收斂。這是第三次獨立驗證 opus 對這節的非收斂性,證明不是 quota 問題,是這節本身。
+
+不過這次有轉機:上輪 codex 全死,走到 D-deliberation 無 panel 可仲裁才失敗;這次 codex 在,若 opus R2 撐不住走到 R3 judge / D-deliberation,有完整 3 模可裁決,解出機會比上次高。PID 16055 存活(26min),6:17 現 R2f。還不到判定 —— 這次要看 R3/D 用完整 panel 能否救回,跟上次沒 codex 不同。延長觀察 25min。
+
+
+
+
