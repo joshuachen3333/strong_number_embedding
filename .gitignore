@@ -15,6 +15,9 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
+# Local coworker correspondence and notes
+coworkers/*
+
 # LLM-direct SN transfer output (large, machine-generated)
 output/
 
@@ -37,6 +40,11 @@ llm_direct_sn_unv2notyet/survey1_prompt_evolving/.codex_last_message.txt
 # Large binary database files
 original_text_preparation/source_sqlite/*.db
 original_text_preparation/source_sqlite/*.zip
+
+# parsing/ response.history — retains raw names/details for local reference only
+parsing/response.history
+parsing/response.history.backups/
+parsing/prompt.history.backups/
 
 # Showoff review system — credentials, sessions, user data
 showoff_finished_4review/smtp_config.json

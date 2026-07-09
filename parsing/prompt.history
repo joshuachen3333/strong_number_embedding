@@ -1,0 +1,22 @@
+# prompt.history — parsing/
+
+Cross-project raw prompt provenance for the `parsing/` sub-project (SN insertion foundations).
+Started 2026-07-10. Canonical structured format (per global /ph spec).
+
+
+
+
+##     2026-07-10 03:42 CST
+
+###    User Prompt
+請依照檔名創建編號順序讀一下這些有關 fhl parsing 的討論, 詳細為我說明 parsing 的意義與用法, 這很關鍵, 將成為我們做 SN 加插的根基.
+
+###    
+- Agent: `parsing-obe`
+- Hint: 依檔名順序讀 15 張 FHL parsing 討論截圖,詳解 parsing 意義與用法作為 SN 加插根基
+- Diff: 讀完 S__14229521→536 全串對話(站方架構者 歷史/對齊協作者 理論/UI 工程師 雙標籤/貢獻者 四例操作規則);萃取三層 parsing(L1 詞形/L2 lemma-SN/L3 treebank)、Parsing vs Alignment 分野、SN+ParsingCode 雙標籤系統;經確認後新建 PARSING_FOUNDATIONS.md(七節,外部聯絡人去識別化,交叉引用 survey2 格式參考)
+- File: `/Users/joshua/work/strong_number_embedding/parsing/PARSING_FOUNDATIONS.md`
+
+
+
+

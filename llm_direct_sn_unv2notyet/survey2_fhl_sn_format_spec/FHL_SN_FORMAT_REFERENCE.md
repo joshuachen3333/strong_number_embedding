@@ -2,6 +2,8 @@
 
 Authoritative reference for the Strong's Number notation system used by FHL (bible.fhl.net) and implemented across this repository.
 
+> **Conceptual companion.** For *why* these tags exist and *what task we perform* when inserting them — the three levels of "parsing", the SN + Parsing Code two-tag system, and the decisive Parsing-vs-Alignment distinction — see [`../../parsing/PARSING_FOUNDATIONS.md`](../../parsing/PARSING_FOUNDATIONS.md). This file is the mechanical tag-syntax layer; that file is the conceptual layer above it.
+
 ## 1. What is a Strong's Number?
 
 A Strong's Number is a unique identifier assigned to each Hebrew (OT) or Greek (NT) root word in the Bible. James Strong's original concordance numbers Hebrew words H1-H8674 and Greek words G1-G5624. FHL extends this with morphology codes (8xxx) and inseparable prefix markers (09xxx).
