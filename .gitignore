@@ -45,6 +45,8 @@ original_text_preparation/source_sqlite/*.zip
 parsing/response.history
 parsing/response.history.backups/
 parsing/prompt.history.backups/
+# Local names-retained companions (real names/handles — never commit)
+parsing/*.local.md
 
 # Showoff review system — credentials, sessions, user data
 showoff_finished_4review/smtp_config.json
