@@ -306,7 +306,8 @@ def handle_collective_error(verse_key, reason, error_descriptions,
     gold_entry = run_d_deliberation(
         verse_key, round1_results, verse_data, models, target_version, sn_field,
         reason=f"{reason}: convention-evolution regression-fail/none",
-        naked=naked, verbose=verbose)
+        naked=naked, verbose=verbose, book_chi=book_chi,
+        gate_ctx={"system_prompt": system_prompt, "book_eng": book_eng})
     return ("deliberation", gold_entry)
 
 
@@ -366,25 +367,61 @@ _D_DELIB_SYS = (
 )
 
 
+def _wlc_evidence_block(book_chi, chap, sec, fhl_sn):
+    """D5: independent WLC (Clear Bible Hebrew alignment) identity evidence for the
+    verse — NOT an override. Returns a short evidence string ("" if unavailable or
+    book_chi unknown). Real WLC/FHL tensions are surfaced (routed to FHL_DIVERGENCE_LOG
+    by wlc_check itself), never used to override the FHL-faithful default."""
+    if not book_chi:
+        return ""
+    try:
+        from wlc_check import wlc_check
+        r = wlc_check(book_chi, chap, sec, fhl_sn)
+    except Exception:
+        return ""
+    status = r.get("status")
+    if status == "no_signal":
+        return ""
+    if status == "match":
+        return ("WLC identity evidence: the Hebrew lemma/SN inventory MATCHES the FHL "
+                f"reference (coverage {r.get('coverage', 0):.2f}). No identity tension — "
+                "decide placement on the Chinese text alone.")
+    divs = r.get("divergences", [])[:3]
+    lines = [f"    · {d.get('side')} {d.get('bare_num')} ({d.get('kind')}): "
+             f"WLC={d.get('wlc_lemma')}/{d.get('wlc_strong')} vs FHL token "
+             f"{d.get('source_token')}" for d in divs]
+    return ("WLC identity evidence (independent, NOT an override — keep the FHL "
+            "reference authoritative; this only flags where the Hebrew source and FHL "
+            "differ on lemma identity):\n" + "\n".join(lines))
+
+
 def run_d_deliberation(verse_key, round1_results, verse_data, models,
                        target_version, sn_field, reason, naked=False,
-                       verbose=False):
+                       verbose=False, book_chi=None, gate_ctx=None):
     """Reveal the sealed R1 bids and ask each leg to hold or revise, then tally.
 
     Returns a ``gold_entry`` dict (resolved_at='d_deliberation', trust_tier=
     'd_deliberation') when ≥2 legs converge, else ``None`` (→ human / unresolved).
     The sealed R1 bids are reused verbatim — no new independent round is run, so
     independence was already spent untainted before this tier.
+
+    D5: ``book_chi`` enables WLC identity evidence in each leg's prompt.
+    D4: ``gate_ctx`` (dict with ``system_prompt``, ``book_eng``) enables the
+        D-deliberation → convention closed loop — on resolution, a reusable rule is
+        distilled from the D outcome and pushed through the SAME scribe gate.
     """
     chap, sec = verse_key
     vdata = verse_data.get(verse_key, {})
     unv_ref = vdata.get("unv_sn", "")
+    fhl_sn_for_wlc = unv_ref
     if naked:
         try:
             from shared.sn_shell import strip_shell
             unv_ref = strip_shell(unv_ref, markers=False)
         except Exception:
             pass
+
+    wlc_evidence = _wlc_evidence_block(book_chi, chap, sec, fhl_sn_for_wlc)  # D5
 
     bids = {}
     for mi in models:
@@ -393,6 +430,8 @@ def run_d_deliberation(verse_key, round1_results, verse_data, models,
 
     bid_block = "\n".join(f"  [{n}] {t}" for n, t in bids.items())
     print(f"\n  ── D-DELIBERATION [{reason}] {chap}:{sec} ──", flush=True)
+    if wlc_evidence and verbose:
+        print(f"    [D5 WLC] {wlc_evidence.splitlines()[0]}", flush=True)
 
     revised = {}
     for mi in models:
@@ -402,7 +441,8 @@ def run_d_deliberation(verse_key, round1_results, verse_data, models,
             f"UNV+SN reference:\n{unv_ref}\n\n"
             f"Target ({target_version}) original:\n{vdata.get('lcc_original','')}\n\n"
             f"The three INDEPENDENT first answers (sealed bids) were:\n{bid_block}\n\n"
-            "This verse is genuinely ambiguous (voting failed; no convention fixes "
+            + (f"{wlc_evidence}\n\n" if wlc_evidence else "")
+            + "This verse is genuinely ambiguous (voting failed; no convention fixes "
             "it). Considering the three answers, give your FINAL placement and the "
             "single rule that decides it. Output ONLY the final annotated target "
             "text (same tag format as the bids)."
@@ -431,6 +471,17 @@ def run_d_deliberation(verse_key, round1_results, verse_data, models,
         return None
 
     print(f"  → D-DELIBERATION RESOLVED {chap}:{sec}", flush=True)
+
+    # D4: D-deliberation → convention closed loop. Only a REUSABLE rule earns a
+    # candidate; it must pass the SAME scribe gate; the D case is its provenance.
+    if gate_ctx:
+        try:
+            _d_to_convention(verse_key, winner_text, unv_ref, reason, models,
+                             target_version, sn_field, book_chi, gate_ctx, naked,
+                             verbose)
+        except Exception as e:
+            print(f"  [D4] convention extraction skipped ({e})", flush=True)
+
     return {
         "book": vdata.get("book", ""), "chap": chap, "sec": sec,
         "lcc_sn": winner_text,
@@ -439,8 +490,38 @@ def run_d_deliberation(verse_key, round1_results, verse_data, models,
         "resolved_at": "d_deliberation",
         "trust_tier": "d_deliberation",
         "d_reason": reason,
+        "wlc_evidence": wlc_evidence or None,
         "round1": {n: {"lcc_sn": bids.get(n, ""), "opinion": "sealed_bid"}
                    for n in bids},
         "d_deliberation": {n: revised.get(n, "") for n in revised},
         "round2": None, "round3": None,
     }
+
+
+def _d_to_convention(verse_key, winner_text, unv_ref, reason, models,
+                     target_version, sn_field, book_chi, gate_ctx, naked, verbose):
+    """D4 closed loop: distill a reusable convention from a resolved D outcome and
+    push it through the standard scribe gate. No-op unless a generalizable rule is
+    found; verse-specific facts are penalized by the scribe prompt."""
+    ctx = (f"A previously-ambiguous verse {verse_key[0]}:{verse_key[1]} was resolved "
+           f"by D-deliberation ({reason}).\n"
+           f"UNV+SN reference: {unv_ref[:160]}\n"
+           f"Resolved placement (GOLD): {winner_text[:160]}\n"
+           "What GENERALIZABLE placement rule does this resolution expose?")
+    existing = conventions_text()
+    candidates = _dedup(
+        extract_candidate_conventions(ctx, existing, models, target_version, verbose),
+        existing)
+    book_eng = gate_ctx.get("book_eng", "")
+    system_prompt = gate_ctx.get("system_prompt", "")
+    for cand in candidates:
+        accepted, _ = try_evolve_convention(
+            cand, system_prompt, verse_key, book_chi or "", book_eng, models,
+            target_version, sn_field,
+            provenance=f"{book_eng} {verse_key[0]}:{verse_key[1]} D4-deliberation",
+            verbose=verbose)
+        if accepted:
+            print(f"  [D4] convention distilled from D-deliberation "
+                  f"{verse_key[0]}:{verse_key[1]}", flush=True)
+            return True
+    return False

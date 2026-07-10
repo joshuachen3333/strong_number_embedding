@@ -203,7 +203,7 @@ if REPO_ROOT not in sys.path:
 
 from llm_direct_sn_unv2notyet import (
     fetch_sec_pair, fetch_chap_cached, build_user_prompt, build_naked_user_prompt,
-    load_system_prompt, verify_sn_coverage, CHI_TO_ENG,
+    load_system_prompt, verify_sn_coverage, CHI_TO_ENG, parse_sec_arg,
 )
 from shared.sn_shell import strip_shell, build_shell_lookup, restore_shell_lookup
 from shared.data.book_data_loader import load_books
@@ -241,6 +241,7 @@ from regression import (
 # s10 v2 deltas: externalized conventions (D1-E), the scribe (D3), D-deliberation.
 import conventions as conv_mod
 from conventions import build_conventions_preamble, load_conventions
+import conventions_mtier as mtier_mod  # D1/D2/D2-X/D3: per-model M-tier conventions
 
 
 def parse_range(s):
@@ -400,6 +401,17 @@ def strip_prompt_comments(text):
             start = i
             break
     return '\n'.join(lines[start:]).strip()
+
+
+def _resolve_system_prompt(args, target_version):
+    """Resolve the active system prompt the same way the main run does — used by the
+    D2-X re-sync standalone op so it re-gates conventions against the REAL prompt."""
+    if args.prompt_file:
+        return load_prompt_file(args.prompt_file)
+    latest_path, _ = detect_latest_prompt()
+    if latest_path:
+        return load_prompt_file(latest_path)
+    return load_system_prompt(target_version)
 
 
 def load_prompt_file(prompt_file):
@@ -587,6 +599,18 @@ def main():
                         help="Verses that triggered prompt change: '1:4,1:16'")
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="Verbose output")
+    # ── s10 self-opt round-2 operational entry points (D2 / D2-X / D3) ──
+    parser.add_argument("--warm-start-s1-patches", action="store_true",
+                        help="D2: import s1 per-model patches as INACTIVE M-tier "
+                             "candidates (each must still pass the gate), then exit.")
+    parser.add_argument("--resync-baseline", default=None, metavar="VER",
+                        help="D2-X: versioned prompt re-sync — snapshot + baseline "
+                             "bump + provenance-tag gold + re-gate conventions, then exit.")
+    parser.add_argument("--falsify-conventions", action="store_true",
+                        help="D3: run the objective FHL-truth-delta falsification "
+                             "over active conventions (quarantine Δ≤0), then exit.")
+    parser.add_argument("--falsify-dry-run", action="store_true",
+                        help="D3: compute deltas but do NOT quarantine (report only).")
 
     args = parser.parse_args()
 
@@ -604,6 +628,32 @@ def main():
         model_trio = build_panel(args.modelsABC)
     else:
         model_trio = DEFAULT_MODELS
+
+    # ── s10 self-opt round-2 standalone ops (run & exit) ──
+    if args.warm_start_s1_patches:  # D2
+        staged = mtier_mod.import_s1_patches_as_inactive(
+            model_trio, prompt_version=args.prompt_version or "v1.2", verbose=True)
+        print(f"  [D2] warm-start: staged {sum(len(v) for v in staged.values())} "
+              f"INACTIVE M-candidate(s) across {len(staged)} model(s). "
+              f"Each must pass the gate before activation.")
+        return
+    if args.resync_baseline:  # D2-X
+        base_prompt = (build_conventions_preamble(target_version)
+                       + _resolve_system_prompt(args, target_version))
+        mtier_mod.versioned_resync(
+            args.resync_baseline, model_trio, base_prompt, book_chi, book_eng,
+            target_version, sn_field, gold_dir=args.gold_dir, verbose=args.verbose)
+        return
+    if args.falsify_conventions:  # D3
+        report = mtier_mod.falsify_conventions(
+            model_trio, target_version, sn_field, sample_book=book_chi,
+            sample_chaps=tuple(parse_sec_arg([args.chap.replace("-", ",")]))
+            if args.chap else (1,),
+            verbose=args.verbose, dry_run=args.falsify_dry_run)
+        print(f"  [D3] evaluated {report['evaluated']}, "
+              f"quarantined {len(report['quarantined'])}, kept {len(report['kept'])}"
+              f"{' (dry-run)' if args.falsify_dry_run else ''}")
+        return
 
     # Show summary
     if args.show_summary:
@@ -811,7 +861,14 @@ def main():
                     round1_results[model_name][verse_key] = json.load(f)
                 print(f"  [ {model_label} ] cached", flush=True)
                 continue
-            model_prompt = system_prompt + ("\n\n" + model_patch if model_patch else "")
+            # D1: inject this model's M-tier conventions (conventions.{model}.md) —
+            # the per-model learning artifact that REPLACES the Trigger-2 prompt
+            # patch. legacy `model_patch` is still appended during the transition;
+            # it naturally empties as Trigger-2 stops writing patch files.
+            model_prompt = (system_prompt
+                            + ("\n\n" + model_patch if model_patch else "")
+                            + mtier_mod.build_model_conventions_preamble(
+                                model_name, target_version))
             print(f"  [ {model_label} ] calling...", end=" ", flush=True)
 
             t_start = time.time()
@@ -1228,6 +1285,23 @@ def main():
                         os.remove(patch_path)
                     else:
                         print(f"  Patch REGRESSION TEST PASSED for {unstable_model}")
+                        # D1: persist the gate-PASSED per-model learning as an M-tier
+                        # convention (conventions.{model}.md) — the durable, injectable
+                        # artifact. It cleared the SAME per-model 回測 that gates M-rules,
+                        # so it activates immediately.
+                        try:
+                            m_title = (mtier_mod._first_directive(patch_text)
+                                       or f"stabilize {unstable_model} placement "
+                                          f"(from {chap}:{sec})")
+                            mtier_mod.append_model_convention(
+                                unstable_model,
+                                m_title + "\n" + patch_text.strip()[:400],
+                                provenance=f"{book_eng} {chap}:{sec} Trigger-2",
+                                active=True)
+                            print(f"  [M-tier] {unstable_model} convention persisted "
+                                  f"(D1)", flush=True)
+                        except Exception as _e:
+                            print(f"  [M-tier] persist skipped ({_e})", flush=True)
 
                 # Use the 2 agreeing models' output as gold standard
                 # Mark as r2_model_patch resolved
@@ -1382,7 +1456,8 @@ def main():
                 d_entry = conv_mod.run_d_deliberation(
                     verse_key, round1_results, verse_data, model_trio,
                     target_version, sn_field, reason="R3-unresolved",
-                    naked=args.naked, verbose=args.verbose)
+                    naked=args.naked, verbose=args.verbose, book_chi=book_chi,
+                    gate_ctx={"system_prompt": system_prompt, "book_eng": book_eng})
                 all_deliberation.append((verse_key, d_entry))
                 continue
 
@@ -1424,6 +1499,19 @@ def main():
             target_version, sn_field, verbose=args.verbose)
         if accepted:
             print(f"  [scribe] ch{_c}: {len(accepted)} new convention(s) accepted")
+
+    # ── s10 D1 promotion: an M-rule that emerged independently in ≥ k=roster-
+    # majority models is promoted to a global C<n> (via the GLOBAL gate). Runs after
+    # the scribe so both channels' learning is settled before cross-model promotion.
+    try:
+        promoted = mtier_mod.check_promotions(
+            model_trio, system_prompt, book_chi, book_eng, target_version,
+            sn_field, verbose=args.verbose)
+        if promoted:
+            print(f"  [promote] {len(promoted)} M-rule(s) → global C: "
+                  f"{', '.join(g for g, _t in promoted)}")
+    except Exception as _e:
+        print(f"  [promote] skipped ({_e})")
 
     # Verify SN coverage on gold standard
     print(f"\n  Verifying SN coverage on gold standard...")

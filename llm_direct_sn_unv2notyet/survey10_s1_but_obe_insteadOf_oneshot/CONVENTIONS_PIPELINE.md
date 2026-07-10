@@ -210,6 +210,26 @@ case: **Gen 3:11** (Trigger-1 evolution regression-failed).
 > This is the actionable spec; **build gated on token recovery.** Build order: D1+D2(+D2-X) →
 > D3 → D4 → D5.
 
+> **✅ BUILT 2026-07-11** (quota recovered → Joshua "Go"). Implementation:
+> - **D1** `conventions_mtier.py` (M-tier per-model conventions.{model}.md; load/build/
+>   append/version/activate/demote; `run_mtier_regression` reuses `_run_patch_regression`;
+>   `check_promotions` k-majority→global C via the global gate). Wired: `run_gold_standard.py`
+>   line ~814 injects `build_model_conventions_preamble`; a gate-PASSED Trigger-2 patch is
+>   ALSO persisted as an M-rule; `check_promotions` runs post-scribe.
+> - **D2** freeze (already v1.2) + `import_s1_patches_as_inactive` (`--warm-start-s1-patches`).
+> - **D2-X** `versioned_resync` (`--resync-baseline VER`): snapshot + baseline bump +
+>   provenance-tag gold + re-gate → auto-quarantine.
+> - **D3** `fhl_truth_delta.convention_fhl_delta` (objective Stage-2 harsh A/B on FHL truth)
+>   + `falsify_conventions` (`--falsify-conventions [--falsify-dry-run]`): Δ≤0 → quarantine.
+> - **D4** `conventions._d_to_convention`: a resolved D-deliberation distills a reusable rule
+>   through the SAME scribe gate (provenance = the D case).
+> - **D5** `conventions._wlc_evidence_block`: `wlc_check` feeds D-deliberation as independent
+>   evidence (not an override); tensions route to `FHL_DIVERGENCE_LOG`.
+>
+> All pure-logic paths smoke-tested (append/load/version/activate/demote/promotion-match/
+> warm-start discovery/argparse); LLM-driven paths validated by module load + wiring review.
+> Live end-to-end validation deferred to the next gold run (needs panel calls).
+
 ### D1 — Per-model conventions (M-tier) + cross-model promotion
 - Convert **Trigger-2**'s per-model prompt-patch → `conventions.{model}.md` (M-tier). This
   makes s10 **fully conventions-based, ZERO prompt mutation** (Trigger-1 already swapped;
