@@ -139,6 +139,10 @@ the pre-validator, no change to `resolved_at` authority.
 - `survey1_prompt_evolving/` — how qp evidence enters consensus; the pre-validator; the flag.
 - `survey5_*/` — the ±enrichment axis and how to read it.
 - `sn_within_unv_selfgroup_segmentation/` — v1.9 increments, lemma field, OT/NT asymmetry.
+- `survey10_s1_but_obe_insteadOf_oneshot/` — s10 is a **fork** of survey1 (own
+  consensus/judge/run_gold_standard copies, already diverged); qp capability landed in
+  survey1 only, s10's copies untouched by design (mid-batch). Its onboarding doc records
+  the porting path and that s10 is the planned track for the QP_AB_DESIGN run.
 Each cross-links `parsing/PARSING_FOUNDATIONS.md` as the conceptual root.
 
 ---

@@ -203,3 +203,17 @@ advisor 好了,開始 qp 增補計畫
 
 
 
+##     2026-07-10 15:58 CST
+
+###    User Prompt
+記得
+Survey1 survey10 也有關聯
+
+###    
+- Agent: `parsing-obe`
+- Hint: 提醒:survey1 與 survey10 也有關聯,qp 增補需涵蓋 s10
+- Diff: survey10 是 survey1 金標管線的消費者:補 survey10 的 ONBOARDING_qp_parsing.md 並寫入長期記憶
+
+
+
+
