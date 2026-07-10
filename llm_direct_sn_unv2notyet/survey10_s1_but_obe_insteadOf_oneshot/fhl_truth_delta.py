@@ -23,12 +23,9 @@ if S10_DIR not in sys.path:
 import build_exclusion as BX
 import run_a2_contest as A2
 from run_stage2_harsh import (load_wlc_verse, build_wlc_source, build_harsh_prompt,
-                              nines_recall)
-from llm_direct_sn_unv2notyet import fetch_chap_cached, CHI_TO_ENG
+                              nines_recall, CHI_TO_WLC_BOOK)
+from llm_direct_sn_unv2notyet import fetch_chap_cached
 from auto_score import strip_sn
-
-# 創 → WLC book id map (Stage-2 harsh uses the same; kept local to avoid a cycle).
-_WLC_BOOK = {"創": "Gen", "出": "Exod", "利": "Lev", "民": "Num", "申": "Deut"}
 
 
 def _rule_preamble(rule_text):
@@ -41,22 +38,23 @@ def _rule_preamble(rule_text):
 
 
 def _sample_verses(book_chi, chaps):
-    """Yield (wlc_book, chap, sec, unv_sn) for verses that have BOTH FHL SN and WLC."""
-    book_eng = CHI_TO_ENG.get(book_chi, book_chi)
-    wlc_book = _WLC_BOOK.get(book_chi)
+    """Yield (wlc_book, chap, sec, unv_sn) for verses that have BOTH FHL SN and WLC.
+
+    Mirrors run_stage2_harsh: WLC book is the 2-digit numeric code (創→"01"), and
+    fetch_chap_cached(version="unv", strong=1) returns a {sec: unv_sn} dict.
+    """
+    wlc_book = CHI_TO_WLC_BOOK.get(book_chi)
     if not wlc_book:
         return []
     out = []
     for chap in chaps:
         try:
-            recs = fetch_chap_cached(book_chi, chap, strong=1)
+            unv = fetch_chap_cached(book_chi, chap, "unv", strong=1)
         except Exception:
             continue
-        for r in recs:
-            sec = int(r.get("sec", 0))
-            unv_sn = r.get("bible_text", "")
-            if sec and unv_sn and load_wlc_verse(wlc_book, chap, sec):
-                out.append((wlc_book, chap, sec, unv_sn))
+        for sec, unv_sn in sorted(unv.items()):
+            if unv_sn and load_wlc_verse(wlc_book, chap, sec):
+                out.append((wlc_book, chap, int(sec), unv_sn))
     return out
 
 

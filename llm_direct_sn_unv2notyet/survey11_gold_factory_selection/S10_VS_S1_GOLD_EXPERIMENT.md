@@ -174,12 +174,21 @@ alignment and attach per-token English to the WLC source line; (b) promote to th
 primary contest; (c) wire real **A (s1 consensus) vs B (s10)** arms + **N-sample** to
 beat sampling noise.
 
-## 🔀 OPEN QUESTION — which source config? (the survey11 question, Joshua 2026-06-30)
+## 🔀 ~~OPEN QUESTION~~ → RESOLVED: **WLC + YLT** (Joshua 2026-07-11)
+
+**Decision: source config = WLC + YLT.** Joshua chose the *literal* bridge: YLT tracks
+Hebrew morphology/word-order closest, surfacing prefixes/particles for better 09xxx
+selection, while a single English gloss avoids survey6-style multi-input overload (BSB+YLT
+and +KJV rejected on that risk; KJV also structurally crippled). Implementation landed
+2026-07-11 in `../survey10_s1_but_obe_insteadOf_oneshot/`: `ylt_bridge.py` (Clear Bible
+manual WLC↔YLT alignment → per-morpheme literal gloss + full YLT verse) + `run_a2_wlc_ylt.py`
+(Arm B vs B0 on the WLC+YLT source, scored on UNV FHL truth). The four-config table below is
+kept as the rationale record.
 
 The pivot settles "WLC instead of KJV", but **which readable bridge** rides along with
-WLC is **deliberately left open** — it is *the* question this survey (survey11) exists to
-answer empirically. **WLC supplies the SN inventory in every config; the variable is the
-English/KJV bridge layered on for readability.** Four candidate configs:
+WLC *was* left open — the question this survey (survey11) existed to answer. **WLC supplies
+the SN inventory in every config; the variable is the English/KJV bridge layered on for
+readability.** Four candidate configs (YLT chosen):
 
 | Config | Source line per WLC token | Hypothesis it tests |
 |---|---|---|
