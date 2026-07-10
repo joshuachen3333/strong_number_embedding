@@ -119,3 +119,72 @@ now, do
 
 
 
+##     2026-07-10 04:40 CST
+
+###    User Prompt
+advisor 好了,開始 qp 增補計畫
+
+###    
+- Agent: `parsing-obe`
+- Hint: advisor 恢復,啟動 qp 增補計畫:設計交 advisor 審再進 Workflow
+- Diff: 以 QP_ENRICHMENT_PLAN.md 為設計基準,呼叫 advisor 審 4 項範圍與待決三問,依回饋建置 Workflow
+
+
+
+
+##     2026-07-10 04:41 CST
+
+###    User Prompt
+好了,開始 qp 增補計畫
+
+###    
+- Agent: `parsing-obe`
+- Hint: kick off QP enrichment plan implementation
+- Diff: starting work on QP_ENRICHMENT_PLAN.md draft
+
+
+
+
+##     2026-07-10 14:46 CST
+
+###    User Prompt
+查修一下
+包含必要時
+測試 spawn 一隻 obe 測試advisor 功能
+
+###    
+- Agent: `parsing-obe`
+- Hint: 查修 advisor 不可用;必要時 spawn 子代理(obe)實測 advisor 功能
+- Diff: 診斷 advisor unavailable 根因(疑似綁定 Fable 5 而 Fable 促銷/配額已到期);查 settings advisor 設定;spawn 子代理呼叫 advisor 回報
+
+
+
+
+##     2026-07-10 14:54 CST
+
+###    User Prompt
+你先把預設advisory 模型的設定改為 opus
+我待會再重啟 session
+
+###    
+- Agent: `parsing-obe`
+- Hint: 確認/設定 advisor 預設模型為 opus,待重啟 session 生效
+- Diff: ~/.claude/settings.json advisorModel: fable→opus(上一回合查修時已改),JSON 驗證通過;本 session binding 快取無法熱更新,需重啟 session 才綁 opus
+- File: `/Users/joshua/.claude/settings.json`
+
+
+
+
+##     2026-07-10 15:14 CST
+
+###    User Prompt
+/workflows, do the qp tasks for all related sub surveys and more.
+
+###    
+- Agent: `parsing-obe`
+- Hint: 以 /workflows 執行 qp 增補計畫全部四項(survey2 文件/spec v1.9/金標管線/survey5 軸)+ onboarding 文件
+- Diff: 啟動 Workflow(Draft→Review→Apply→Verify)實作 QP_ENRICHMENT_PLAN.md 四項;設計先過 advisor,結果亦交 advisor 確認
+
+
+
+
