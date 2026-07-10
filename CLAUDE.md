@@ -28,7 +28,7 @@ python3 run_parser_temp.py --no-write 1 1   # preview without saving
 python3 generate_manifest.py
 ```
 
-**Authoritative spec**: `SPECIFICATION_v1.8.md` (standalone, self-contained).
+**Authoritative spec**: `SPECIFICATION_v1.9.md` (standalone, self-contained; additive superset of v1.8 — the parser `parse_verse_v1_8.py` still loads and validates `SPECIFICATION_v1.8.md`, whose behavior is unchanged under v1.9).
 
 **Token classification** (non-overlapping):
 - Core (Strong's 1–8999): `<dddd>` or `{<dddd>}`

@@ -235,16 +235,61 @@ Response: `{record: [{sec, bible_text}, ...]}` where `bible_text` contains the i
 GET https://bible.fhl.net/json/qp.php?engs=Gen&chap=1&sec=1
 ```
 
-Response: array of word records, each containing:
+Response envelope: `{"status": "success", "record_count": N, "next": {...}, "prev": {...}, "record": [...]}` — `record` is the word array; `next`/`prev` carry adjacent-verse coordinates. Note that `record_count` **includes** the `wid=0` overview row (§9.2.1): Gen 1:1 returns `record_count: 8` = 1 overview + 7 words.
+
+Key fields of each word record (`wid >= 1`):
 
 | Field | Description | Example |
 |-------|-------------|---------|
-| `wid` | Word position index | `3` |
-| `word` | Hebrew/Greek word form | `מִלִּפְנֵי` |
-| `sn` | Strong's number (may differ from qb) | `03942` |
-| `wform` | Part-of-speech + morphology in Chinese | `"介系詞 מִן + 介系詞 לִפְנֵי"` |
-| `remark` | Extended notes (compound etymology, etc.) | `"לִפְנֵי 從介系詞 לְ + 名詞 פָּנֶה (臉, SN 6440)"` |
-| `exp` | Dictionary meaning | `"在…之前"` |
+| `wid` | Word position index, in **original word order** (`wid=0` is a whole-verse overview row — see §9.2.1) | `3` |
+| `word` | Hebrew/Greek word form as inflected in the verse | `מִלִּפְנֵי` |
+| `sn` | Strong's number, zero-padded, no H/G prefix (may differ from qb — see §11.4) | `03942` |
+| `pro` | Part of speech — NT only; always the empty string in OT, and JSON `null` on NT placeholder rows (see §9.2.1, §9.2.2) | `動詞` (John 3:16 ἠγάπησεν) |
+| `wform` | Morphology in Chinese — OT: POS + morphology together; NT: inflection only (see §9.2.2) | `"介系詞 מִן + 介系詞 לִפְנֵי"` |
+| `orig` | Lemma / dictionary headword. May differ from `word` — prefixes stripped (Gen 1:1: `word` בְּרֵאשִׁית → `orig` רֵאשִׁית); NT may list spelling variants space-separated (John 3:16: `"οὕτω οὕτως"`) | `בָּרָא` (Gen 1:1) |
+| `remark` | Extended notes (compound etymology, dictionary cross-references like `[#2.25#]`) | `"לִפְנֵי 從介系詞 לְ + 名詞 פָּנֶה (臉, SN 6440)"` |
+| `exp` | Dictionary meaning / gloss | `"在…之前"` |
+
+Every record additionally carries verse-coordinate metadata — `id`, `engs`, `chap`, `sec` — with identical values for all records of a verse; these are omitted from the table above. Field values may carry trailing whitespace (John 3:16 wid=3 returns `wform` ending in a space) — consumers should strip before comparing; examples in this document are shown trimmed.
+
+#### 9.2.1 The `wid=0` Whole-Verse Overview Row
+
+Every verse's `record` array begins with a `wid=0` row that is **not a word record**:
+
+- `word` — the full original-language verse text (line layout may be irregular)
+- `exp` — a whole-verse Chinese rendering (not UNV; e.g., Gen 1:1 reads 「起初，上帝創造天和地。」 — note 上帝, not 神)
+- `chineses` / `chinesef` — book-name metadata (`創` / `創世記`)
+- **no `sn`, `pro`, `wform`, or `orig` keys at all**
+
+Verified example (Gen 1:1, trimmed):
+
+```json
+{"wid": 0,
+ "word": "בָּרָא אֱלֹהִים … בְּרֵאשִׁית",
+ "exp": "起初，\r\n上帝創造天和地。",
+ "chineses": "創", "chinesef": "創世記"}
+```
+
+**Consumers must skip this row** — iterate `wid >= 1` only. (The repo helper `survey6_original_lang_benchmark/run_survey6.py::fetch_qp_verse()` already does this.)
+
+**NT placeholder rows.** NT data contains a second non-word record type: textual-critical omission markers with `word: "+"`, `sn: "00000"`, `pro: null`, and empty `wform`/`orig`/`exp` (verified live: Matt 3:2 wid 1, 2, 4). These pass a `wid >= 1` filter and DO carry an `sn` key, so a wid filter alone is not sufficient — consumers must also skip records with `sn == "00000"` (or `word == "+"`) before treating the remainder as alignable words.
+
+#### 9.2.2 OT/NT Field Asymmetry (`pro` vs `wform`)
+
+OT and NT records distribute part-of-speech and morphology **differently** (verified live, Gen 1:1 / John 3:16 / Matt 3:2, 2026-07-10):
+
+| | OT (Hebrew/Aramaic) | NT (Greek) |
+|---|---------------------|------------|
+| `pro` | always the empty string `""` | part of speech: `動詞`, `名詞`, `連接詞`, `副詞`, … (`null` on placeholder rows, §9.2.1) |
+| `wform` | POS **and** morphology together | inflection only; **empty string for indeclinables** |
+| Example (verb) | `wform: "動詞，Qal 完成式 3 單陽"` (Gen 1:1 בָּרָא) | `pro: "動詞"`, `wform: "第一簡單過去 主動 直說語氣 第三人稱 單數"` (John 3:16 ἠγάπησεν) |
+| Example (non-verb) | `wform: "介系詞 בְּ + 名詞，陰性單數"` (Gen 1:1 בְּרֵאשִׁית) — POS still leads `wform` | `pro: "副詞"`, `wform: ""` (John 3:16 Οὕτως) |
+
+Consequences for consumers:
+
+1. **A POS test must check both fields.** "Is this the verb-sense record?" is `pro == "動詞" or wform.startswith("動詞")`. Code that greps `wform` alone is **OT-centric** and silently misses every NT record.
+2. **An empty NT `wform` on a real word record is normal** (indeclinable word), not missing data — but on the placeholder rows of §9.2.1, empty `wform` really is absent data; filter those out first.
+3. The asymmetry is structural, not incidental: Hebrew inflection is fused into the root and was historically encoded in Chinese, while Greek inflection is affixal and standardized — see [`../../parsing/PARSING_FOUNDATIONS.md`](../../parsing/PARSING_FOUNDATIONS.md) §4.
 
 ### 9.3 Key Divergence: Compound Prepositions
 
@@ -360,3 +405,19 @@ Additionally, 11 real verses were fetched from the live FHL API (Genesis 1:1–1
 | qb/qp SN disagreement edge case                                 | §11.4         | SPEC v1.8 §7.8                              |
 
 Document grew from 237 to 335 lines. Not merged (parser-specific, not format): grouping rules, brace-prep decision tree, config profiles, pseudo-code, logging system, FAQ.
+
+### A.3 qp.php Field Enrichment — orig, pro, wid=0, OT/NT Asymmetry (2026-07-10)
+
+Enriched §9.2's field documentation from fresh live API probes (Genesis 1:1 OT; John 3:16 and Matthew 3:2 NT), per Item 1 of [`../../parsing/QP_ENRICHMENT_PLAN.md`](../../parsing/QP_ENRICHMENT_PLAN.md).
+
+**Changes made:**
+
+| Addition                                                         | Section       | Source                                       |
+|------------------------------------------------------------------|---------------|----------------------------------------------|
+| `orig` (lemma) and `pro` (part of speech) rows in field table   | §9.2          | Live API (Gen 1:1, John 3:16)                |
+| Response envelope (`next`/`prev`); `record_count` includes the overview row; per-record verse-coordinate metadata; trailing-whitespace caveat | §9.2 | Live API |
+| `wid=0` whole-verse overview row — consumers must skip it       | New §9.2.1    | Live API                                     |
+| NT placeholder rows (`word: "+"`, `sn: "00000"`, `pro: null`) — skip alongside `wid=0` | New §9.2.1 | Live API (Matt 3:2) |
+| OT/NT field asymmetry (`pro` empty on OT; POS split on NT; empty `wform` for NT indeclinables) | New §9.2.2 | Live API |
+
+Document grew from 362 to 423 lines.

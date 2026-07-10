@@ -253,6 +253,18 @@ except Exception as _wlc_e:  # noqa: BLE001 — degrade gracefully, never block 
     print(f"  [WLC] primitive unavailable ({_wlc_e}) — Phase-A escalator OFF (pure consensus)")
     _WLC_OK = False
 
+# ── QP evidence (parsing/QP_ENRICHMENT_PLAN.md §3): FHL qp parsing-code table +
+# deterministic morph pre-validator. Flag-gated (--qp-evidence, DEFAULT OFF).
+# Guarded import — a failure degrades to pure consensus and NEVER breaks the run.
+# Pure data provider; AD-1 untouched (build_gold_standard stays the sole
+# resolved_at authority; consensus.py is not modified).
+try:
+    from qp_evidence import build_qp_table, validate_morph_attachment, is_verb_record
+    _QP_OK = True
+except Exception as _qp_e:  # noqa: BLE001 — degrade gracefully, never block gold
+    print(f"  [QP] evidence module unavailable ({_qp_e}) — qp evidence OFF")
+    _QP_OK = False
+
 
 def parse_range(s):
     """Parse '1-5' or '1,3,5-7' into list of ints."""
@@ -580,6 +592,14 @@ def main():
                              "shells restored zero-loss by lookup at save time. "
                              "DEFAULT ON (2026-06-14, Joshua). Use --no-naked for "
                              "the legacy shelled path.")
+    parser.add_argument("--qp-evidence", action=argparse.BooleanOptionalAction,
+                        default=False,
+                        help="inject the FHL qp parsing-code table (word/lemma/"
+                             "morph/gloss) into R2 debate + R3 judge context and "
+                             "run the deterministic morph pre-validator on model "
+                             "outputs. Judges-only; R1 producers never see it. "
+                             "DEFAULT OFF pending the A/B measurement "
+                             "(QP_AB_DESIGN.md). Never touches resolved_at.")
     parser.add_argument("--strip-prompt-comment", action="store_true",
                         help="Strip # comment headers from prompt before feeding to models (survey3 experiment)")
     parser.add_argument("--force", action="store_true",
@@ -730,6 +750,8 @@ def main():
     if args.prompt_file:
         print(f"  Prompt file: {args.prompt_file}")
     print(f"  Max R2 retries: {args.max_r2_retries}")
+    if args.qp_evidence:
+        print(f"  QP evidence: {'ON (R2/R3 judge context only)' if _QP_OK else 'requested but module unavailable — OFF'}")
     if args.verse_count is not None:
         print(f"  Verse count:  {args.verse_count}")
     print(f"  Verses: {len(verses)}")
@@ -782,6 +804,29 @@ def main():
 
         print(f"  UNV: {unv_sn[:100]}...")
         print(f"  LCC: {target_text[:100]}...")
+
+        # ── QP evidence (flag-gated, DEFAULT OFF): per-word parsing-code table
+        # for R2/R3 judge context + deterministic morph pre-validation of model
+        # outputs (parsing/QP_ENRICHMENT_PLAN.md §3). Judges-only: R1 producers
+        # and R2 convergence never see it. Pure data; never writes gold;
+        # failures degrade to no-evidence for this verse.
+        qp_records = None
+        if args.qp_evidence and _QP_OK:
+            try:
+                qp_records = build_qp_table(book_eng, chap, sec)
+            except Exception as _qe:  # noqa: BLE001 — degrade to no evidence
+                print(f"  [QP] table failed ({_qe}) — no qp evidence this verse",
+                      flush=True)
+                qp_records = None
+            if qp_records:
+                verse_data[verse_key]["qp"] = {"records": qp_records}
+                _n_verbs = sum(1 for r in qp_records
+                               if r.get("sn") and is_verb_record(r))
+                print(f"  [QP] parsing table ON ({len(qp_records)} words, "
+                      f"{_n_verbs} verb-sense)", flush=True)
+            else:
+                print(f"  [QP] no parsing data for {book_eng} {chap}:{sec} — "
+                      f"no qp evidence this verse", flush=True)
 
         # ── WLC Phase-A check (before R1): independent original-language identity
         # signal on the FHL SOURCE inventory we're about to transfer (UNV+SN as
@@ -853,6 +898,21 @@ def main():
                 status = "ERROR" if result.get("error") else "empty"
 
             print(f"conf={result.get('confidence', '?')} {status} {elapsed_s}s", flush=True)
+
+            # QP deterministic pre-validation — annotation + console signal only
+            # (judges re-validate the R2 STABLE outputs at prompt-build time in
+            # judge._build_qp_evidence; this never influences resolution).
+            if qp_records and output_sn and not result.get("error"):
+                _shelled = output_sn
+                if args.naked:
+                    _shelled = restore_shell_lookup(
+                        output_sn, build_shell_lookup(unv_sn))
+                _morph_errs = validate_morph_attachment(_shelled, qp_records)
+                if _morph_errs:
+                    result["_qp_morph_errors"] = _morph_errs
+                    for _e in _morph_errs:
+                        print(f"    [QP] {model_name}: {_e['message']}",
+                              flush=True)
 
             round1_results[model_name][verse_key] = result
 

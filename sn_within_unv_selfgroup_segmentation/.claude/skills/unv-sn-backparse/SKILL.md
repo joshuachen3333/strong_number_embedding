@@ -327,7 +327,8 @@ wc -l output/compound_prep_plus_noun.txt
 ## Files and Dependencies
 
 **Core Files**:
-- `SPECIFICATION_v1.8.md` - Authoritative parsing rules (standalone, includes all previous versions)
+- `SPECIFICATION_v1.9.md` - Authoritative parsing rules (additive superset of v1.8; qp-enrichment annotations)
+- `SPECIFICATION_v1.8.md` - Implemented baseline loaded by `parse_verse_v1_8.py` (immutable; do not edit)
 - `Batch_Parsing_SOP.md` - Batch processing workflow
 - `UNV_SN_Output_Format_Gen_1_1.md` - Output format specification
 - `fetch_text.sh` - API wrapper script

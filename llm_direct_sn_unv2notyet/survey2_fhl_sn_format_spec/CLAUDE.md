@@ -20,9 +20,10 @@ Textbook-level reference for the Strong's Number notation system used by FHL (bi
   - Normalization pipeline
   - Cross-codebase regex reference
   - qb.php vs qp.php: two data sources, analytic vs synthetic annotation styles
-  - qp.php field structure (wform, remark, sn, word) and compound indicator patterns
+  - qp.php field structure (wid, word, sn, pro, wform, orig, exp, remark), the wid=0 overview row, NT placeholder rows, OT/NT field asymmetry, and compound indicator patterns
   - Compound prepositions: 3 structural patterns with verified Genesis examples
   - Discrepancies and edge cases (including qb/qp SN disagreement)
+- `ONBOARDING_qp_parsing.md` — orientation for qp.php parsing-data work: field summary, why qp matters for SN insertion (the four bedrock uses), repo access paths, links to the conceptual root (`parsing/PARSING_FOUNDATIONS.md`) and governing plan (`parsing/QP_ENRICHMENT_PLAN.md`)
 
 ## Relationship to Other Components
 

@@ -23,7 +23,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**UNV+SN Parsing System** - Parses Chinese Union Version (UNV) biblical text with Strong's Numbers into structured semantic groups. This system processes verses from the FHL (Faith, Hope, Love) API at `bible.fhl.net`, tokenizes Strong's numbers, morphology codes, and prefixes, then outputs formatted data according to specification SPECIFICATION_v1.8.md.
+**UNV+SN Parsing System** - Parses Chinese Union Version (UNV) biblical text with Strong's Numbers into structured semantic groups. This system processes verses from the FHL (Faith, Hope, Love) API at `bible.fhl.net`, tokenizes Strong's numbers, morphology codes, and prefixes, then outputs formatted data according to specification SPECIFICATION_v1.9.md (additive superset of v1.8; the v1.8 parser's behavior is unchanged).
 
 ## Core Architecture
 
@@ -161,7 +161,8 @@ PROFILE = {
 
 ## File Responsibilities
 
-- **SPECIFICATION_v1.8.md**: Authoritative parsing rules (standalone, includes all previous versions)
+- **SPECIFICATION_v1.9.md**: Authoritative parsing rules (standalone; adds qp-enrichment annotations S1–S4 on top of v1.8, additive-only)
+- **SPECIFICATION_v1.8.md**: Implemented baseline loaded/validated by `parse_verse_v1_8.py` — DO NOT EDIT (immutable version file)
 - **dangling_prefixes.md**: Analysis report for懸空 900x 前綴問題 (translation artifacts, not parser errors)
 - **dangling_brace_preps.md**: Analysis report for懸空 brace 介系詞問題 (translation artifacts, similar to dangling_prefixes)
 - **dangling_object_markers.md**: Analysis report for懸空受詞標記問題 (translation artifacts for אֵת)

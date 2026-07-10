@@ -28,7 +28,7 @@ UNV+SN (source of truth for which SNs exist):
 
 LCC original (unannotated):
 {lcc_original}
-
+{qp_evidence_block}
 Output A ({model_a}) [convergence: {convergence_a}]:
 {output_a}
 
@@ -79,7 +79,7 @@ UNV+SN (source of truth):
 
 LCC original (unannotated):
 {lcc_original}
-
+{qp_evidence_block}
 === Round 1 stable outputs ===
 Output A ({model_a}) [convergence: {convergence_a}]:
 {output_a}
@@ -340,6 +340,44 @@ def run_r2_convergence(verses, round1_results, verse_data, models=None,
 
 # ── R2 Debate ────────────────────────────────────────────────────────────────
 
+def _build_qp_evidence(vdata, convergence_results=None, verse_key=None,
+                       naked=False):
+    """Build the R2/R3 qp parsing-code evidence block (QP_ENRICHMENT_PLAN §3).
+
+    GUARDED: returns "" whenever verse_data carries no qp records (flag off,
+    module unavailable, or no data for this verse), keeping the prompt
+    byte-for-byte identical to the no-evidence prompt (same pattern as
+    _build_wlc_evidence).
+
+    When convergence_results are given, also runs the deterministic morph
+    pre-validator on each candidate STABLE output (labels A/B/C in the same
+    key order the prompt uses) so judges receive rule-decided violations
+    instead of spending debate rounds rediscovering them.  Deterministic and
+    read-only — never touches resolution (AD-1).
+    """
+    qp = (vdata or {}).get("qp") or {}
+    records = qp.get("records")
+    if not records:
+        return ""
+    from qp_evidence import format_qp_evidence, validate_morph_attachment
+    findings = None
+    if convergence_results and verse_key:
+        findings = {}
+        ref = vdata.get("unv_sn", "")
+        for i, model_name in enumerate(convergence_results.keys()):
+            label = chr(ord("A") + i)
+            text = convergence_results[model_name].get(
+                verse_key, {}).get("stable_result", "")
+            if not text:
+                continue
+            if naked:
+                from shared.sn_shell import (build_shell_lookup,
+                                             restore_shell_lookup)
+                text = restore_shell_lookup(text, build_shell_lookup(ref))
+            findings[label] = validate_morph_attachment(text, records)
+    return format_qp_evidence(records, findings)
+
+
 def build_r2_debate_prompt(verse_key, convergence_results, verse_data,
                            sn_field="lcc_sn", naked=False):
     """Build the R2 debate prompt showing stable outputs + convergence info."""
@@ -375,6 +413,8 @@ def build_r2_debate_prompt(verse_key, convergence_results, verse_data,
         model_a=model_a, model_b=model_b, model_c=model_c,
         output_a=output_a, output_b=output_b, output_c=output_c,
         convergence_a=conv_a, convergence_b=conv_b, convergence_c=conv_c,
+        qp_evidence_block=_build_qp_evidence(
+            vdata, convergence_results, verse_key, naked=naked),
     )
 
 
@@ -549,6 +589,8 @@ def build_r3_prompt(verse_key, convergence_results, round2_judgments,
         wlc_evidence_block=wlc_block,
         bucket_pick_schema=bucket_pick_schema,
         bucket_allwrong_schema=bucket_allwrong_schema,
+        qp_evidence_block=_build_qp_evidence(
+            vdata, convergence_results, verse_key, naked=naked),
     )
 
 
