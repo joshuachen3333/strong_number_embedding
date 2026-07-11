@@ -5,6 +5,38 @@
 > [`SURVEY10_DESIGN.md`](../survey10_s1_but_obe_insteadOf_oneshot/SURVEY10_DESIGN.md),
 > [`CONVENTIONS_PIPELINE.md`](../survey10_s1_but_obe_insteadOf_oneshot/CONVENTIONS_PIPELINE.md).
 
+## 🏛️ Cornerstone source — LOCKED (Joshua 2026-07-11)
+
+**Whole-canon base = macula-hebrew / WLC (OT, books 01–39) + macula-greek / SBLGNT
+(NT, books 40–66); the BSB English bridge spans both testaments.**
+
+- **OT** — `Alignments/data/sources/WLC.tsv` (macula-hebrew: strongs `H0871a`, morph, lemma).
+  NB our SN extractor consumes **WLC.tsv**, not `WLCM.tsv` (WLCM's schema — no lemma,
+  `H`-less strongs, full-word pos — breaks `_bridge_number`; WLC/WLCM share ids ~99.3%).
+- **NT** — `Alignments/data/sources/SBLGNT.tsv` (macula-greek: strongs `G0976`, Robinson/
+  MorphGNT morph `N-NSF`). Bridge: `SBLGNT-BSB-manual.json`.
+- **Bridge** — BSB default across both (`english_bridge.SOURCES`; YLT optional).
+
+Implemented end-to-end 2026-07-11: OT (WLC+BSB) + NT (SBLGNT/BGNT selectable + macula-greek,
+built via /workflows). Selectable dims: OT `WLC.tsv` · NT `--nt-source {SBLGNT,BGNT}` ·
+bridge `--eng-source {BSB,YLT}`.
+
+### Source files we use (`Alignments/data/sources/`) — recorded 2026-07-11
+
+| 檔案 | 是什麼 | strongs 格式 | 我們用嗎 |
+|---|---|---|---|
+| `WLC.tsv` | OT 希伯來(馬所拉/列寧格勒) | `H0871a` + lemma | ✅ 用這個 |
+| `SBLGNT.tsv` | NT 希臘(**批判** / 亞歷山大系,≈NA/UBS) | `G0976` + lemma | ✅ NT 預設 |
+| `BGNT.tsv` | NT 希臘(**拜占庭** / 公認經文家族代理) | `G0976` + lemma | ✅ `--nt-source BGNT` |
+
+NOT used: `WLCM.tsv`/`WLCM+required.tsv` (schema breaks `_bridge_number`: no lemma, `H`-less
+strongs, full-word pos), `SBLGNT+required.tsv`. **TR (公認經文) is NOT local** — Byzantine
+family, KJV's base; BGNT is our proxy (BGNT ≠ literal TR: no Comma Johanneum). Family tree:
+Alexandrian/critical WH→NA/UBS→**SBLGNT**; Byzantine **BGNT**(modern majority)+ TR(early
+printed)→KJV. Alignments: BSB has `WLCM-BSB`(OT)/`SBLGNT-BSB`/`BGNT-BSB`(NT); YLT has
+`WLC-YLT`(OT)/`SBLGNT-YLT` (Clear Bible's own naming is inconsistent — both OT files align to
+`WLC.tsv`).
+
 ## s10's identity — founding intent vs current reality (2026-06-30)
 
 Read this before assuming what s10 *is*. The name is now a fossil.
