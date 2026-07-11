@@ -58,8 +58,13 @@ clean quota). PAIRED deltas (same-verse only), full_frac vs UNV FHL truth:
 
 | Factor | delta | reading |
 |---|---|---|
-| **s10 conventions** Δ(B − B0) | **−0.0014** (n=31) | **neutral / zero** — conventions.md at C1, no measured lift (matches the scribe's fruitless-回測 observation) |
-| **BSB bridge** Δ(B − B_noeng) | **−0.0210** (n=28→31) | **HARMFUL** — WLC-only (0.791) *beats* WLC+BSB (0.770) by ~2pp |
+| **s10 conventions** Δ(B − B0) | **−0.0014** (n=31, FINAL) | **neutral / zero** — conventions.md at C1, no measured lift (matches the scribe's fruitless-回測 observation) |
+| **BSB bridge** Δ(B − B_noeng) | **−0.0227** (n=31, FINAL) | **HARMFUL** — WLC-only *beats* WLC+BSB on BOTH metrics |
+
+Final arm means (n=31): `B` (WLC+BSB, conv ON) full=0.774 09xxx=0.935 · `B0` (WLC+BSB, conv
+OFF) full=0.775 09xxx=0.887 · **`B_noeng` (WLC-only) full=0.797 09xxx=0.984** ← best on both.
+So on Gen 1 the bare WLC+SN source is the *strongest*; adding the BSB gloss costs both full
+placement and 09xxx-prefix recall.
 
 **Contrast with the earlier YLT probe** (Gen 1, opus): YLT bridge Δ = **+0.0385** (n=24) —
 *helpful*. So the two English bridges point OPPOSITE ways:
