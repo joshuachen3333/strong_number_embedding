@@ -37,6 +37,20 @@ printed)→KJV. Alignments: BSB has `WLCM-BSB`(OT)/`SBLGNT-BSB`/`BGNT-BSB`(NT); 
 `WLC-YLT`(OT)/`SBLGNT-YLT` (Clear Bible's own naming is inconsistent — both OT files align to
 `WLC.tsv`).
 
+**Literal-TR sources (GitHub, for the backlog — blocked on a missing TR-BSB alignment):** the
+`byztxt` org (Robinson / Sandborg-Petersen — likely our BGNT's own ecosystem) is the home.
+
+| Repo | 內容 | 適用 |
+|---|---|---|
+| [byztxt/greektext-textus-receptus](https://github.com/byztxt/greektext-textus-receptus) | TR + 形態解析 + Strong's | ⭐ 要的就是這個 |
+| [byztxt/greektext-elzevir](https://github.com/byztxt/greektext-elzevir) | Elzevir TR + morph + Strong's | 另一版 TR |
+| [byztxt/greektext-scrivener](https://github.com/byztxt/greektext-scrivener) | Scrivener 1894 TR(純文本,無 Strong's) | 純底本 |
+| [STEPBible/STEPBible-Data](https://github.com/STEPBible/STEPBible-Data) | TAGNT:Strong's+morph+TR/Byz/critical 標記,CC-BY | 綜合、含變異標記 |
+| [Center-for-New-Testament-Restoration/KJTR](https://github.com/Center-for-New-Testament-Restoration/KJTR) | KJV Textus Receptus | KJV 對應版 |
+
+Org home: [github.com/byztxt](https://github.com/byztxt) — multiple Byzantine + TR editions,
+public domain.
+
 ## s10's identity — founding intent vs current reality (2026-06-30)
 
 Read this before assuming what s10 *is*. The name is now a fossil.
