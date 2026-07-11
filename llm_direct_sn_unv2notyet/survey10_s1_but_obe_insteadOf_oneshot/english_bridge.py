@@ -57,14 +57,30 @@ SOURCES = {
         "align": os.path.join(_ALIGN, "alignments", "BSB", "WLCM-BSB-manual.json"),
         "wlc_tsv": os.path.join(_SOURCES_DIR, "WLC.tsv"),   # WLCM schema breaks _bridge_number → use WLC
         "label": "Berean Standard Bible, full verse",
-        # NT (A2 cornerstone: SBLGNT Greek + BSB bridge). Same TSV/JSON schemas as OT,
-        # so `drop`/`text_col` are reused; only the source (Greek) tsv and target/align
-        # files differ, plus the source id prefix 'o'→'n' (handled in _load/alignment).
+        # NT (A2 cornerstone: Greek + BSB bridge). Same TSV/JSON schemas as OT, so
+        # `drop`/`text_col` are reused; only the English NT target differs here — the
+        # Greek source (SBLGNT critical vs BGNT Byzantine) + its alignment are selected
+        # per-run via NT_GREEK below (see `greek_source`).
         "nt_tsv": os.path.join(_ALIGN, "targets", "BSB", "nt_BSB.tsv"),
-        "nt_align": os.path.join(_ALIGN, "alignments", "BSB", "SBLGNT-BSB-manual.json"),
-        "greek_tsv": os.path.join(_SOURCES_DIR, "SBLGNT.tsv"),
     },
 }
+
+# Selectable NT Greek source (Joshua 2026-07-11 — keep the Received/Byzantine tradition
+# available, not just the critical text). Same TSV schema; the BSB alignment file follows
+# the pattern {greek}-{eng}-manual.json (SBLGNT-BSB-manual.json / BGNT-BSB-manual.json).
+NT_GREEK = {
+    "SBLGNT": {"greek_tsv": os.path.join(_SOURCES_DIR, "SBLGNT.tsv"),
+               "label": "SBLGNT critical text (≈NA28/UBS family)"},
+    "BGNT":   {"greek_tsv": os.path.join(_SOURCES_DIR, "BGNT.tsv"),
+               "label": "Byzantine Majority text (Received-tradition family)"},
+}
+DEFAULT_NT_GREEK = "SBLGNT"
+
+
+def _nt_align_path(eng_name, greek_source):
+    """NT alignment = eng/alignments/{eng}/{greek}-{eng}-manual.json."""
+    return os.path.join(_ALIGN, "alignments", eng_name,
+                        f"{greek_source}-{eng_name}-manual.json")
 
 
 def _is_nt(book):
@@ -77,8 +93,10 @@ def _is_nt(book):
 _CACHE = {}   # (name, testament) -> (words {id:text}, src2tgt {morph_id:[tgt_id]})
 
 
-def _load(name, testament="ot"):
-    ckey = (name, testament)
+def _load(name, testament="ot", greek_source=DEFAULT_NT_GREEK):
+    # OT is greek-source-agnostic; keep its cache key stable so the Hebrew path never
+    # re-loads when the NT greek source changes.
+    ckey = (name, testament, greek_source if testament == "nt" else None)
     if ckey in _CACHE:
         return _CACHE[ckey]
     cfg = SOURCES.get(name)
@@ -86,9 +104,10 @@ def _load(name, testament="ot"):
         raise ValueError(f"unknown english source '{name}' (have {list(SOURCES)})")
     if testament == "nt":
         tsv_path = cfg.get("nt_tsv")
-        align_path = cfg.get("nt_align")
-        if not (tsv_path and align_path):
-            raise ValueError(f"english source '{name}' has no NT data (nt_tsv/nt_align)")
+        align_path = _nt_align_path(name, greek_source)
+        if not (tsv_path and os.path.isfile(align_path)):
+            raise ValueError(f"english source '{name}' has no NT data for "
+                             f"greek={greek_source} ({align_path})")
     else:
         tsv_path = cfg["tsv"]
         align_path = cfg["align"]
@@ -112,26 +131,28 @@ def _verse_prefix(book, chap, sec):
     return f"{book}{int(chap):03d}{int(sec):03d}"
 
 
-def verse_text(name, book, chap, sec):
+def verse_text(name, book, chap, sec, greek_source=DEFAULT_NT_GREEK):
     """The English sentence for one verse (ordered words). '' if unavailable.
 
     Target ids (ot_BSB/nt_BSB) carry NO source prefix (bare BBCCCVVVWWW) in both
     testaments, so this path is prefix-agnostic — only the loaded target file differs.
+    (English target is greek-source-agnostic; greek_source only affects the alignment.)
     """
     testament = "nt" if _is_nt(book) else "ot"
-    words, _ = _load(name, testament)
+    words, _ = _load(name, testament, greek_source)
     pref = _verse_prefix(book, chap, sec)
     ids = sorted(wid for wid in words if wid.startswith(pref))
     return " ".join(words[i] for i in ids).strip()
 
 
-def alignment(name, book, chap, sec):
+def alignment(name, book, chap, sec, greek_source=DEFAULT_NT_GREEK):
     """{source_morph_id: 'aligned english words'} for the verse.
 
-    Source ids carry a single-char prefix: 'o' (WLC/OT) or 'n' (SBLGNT/NT).
+    Source ids carry a single-char prefix: 'o' (WLC/OT) or 'n' (Greek/NT). For NT the
+    alignment is the {greek_source}-{name} manual alignment.
     """
     testament = "nt" if _is_nt(book) else "ot"
-    words, m = _load(name, testament)
+    words, m = _load(name, testament, greek_source)
     pref = ("n" if testament == "nt" else "o") + _verse_prefix(book, chap, sec)
     out = {}
     for morph_id, tgt_ids in m.items():
@@ -142,24 +163,25 @@ def alignment(name, book, chap, sec):
     return out
 
 
-def build_wlc_eng_source(name, tokens_with_ids, book, chap, sec, per_morph=True):
+def build_wlc_eng_source(name, tokens_with_ids, book, chap, sec, per_morph=True,
+                         greek_source=DEFAULT_NT_GREEK):
     """Render the combined <original>+<English> source block: each tagged morpheme
     with its aligned English gloss, plus the full English verse. Source-only fallback
-    if the English source lacks the verse. Testament-aware header (WLC Hebrew vs
-    SBLGNT Greek); the per-morph tag render is identical (the num string already
+    if the English source lacks the verse. Testament-aware header (WLC Hebrew vs the
+    selected Greek text); the per-morph tag render is identical (the num string already
     carries its testament letter for Greek, e.g. 'G976')."""
-    align = alignment(name, book, chap, sec) if per_morph else {}
+    align = alignment(name, book, chap, sec, greek_source) if per_morph else {}
     parts = []
     for morph_id, text, num in tokens_with_ids:
         piece = f"{text}<{num}>" if num else text
         gloss = align.get(morph_id, "")
         parts.append(f"{piece} ⟨{gloss}⟩" if gloss else piece)
     src_line = "  ".join(parts)
-    eng_line = verse_text(name, book, chap, sec)
+    eng_line = verse_text(name, book, chap, sec, greek_source)
     label = SOURCES[name]["label"]
     if _is_nt(book):
-        header = (f"SBLGNT (Greek, each word tagged with its FHL Strong's Number, "
-                  f"⟨…⟩ = {name} English gloss):\n{src_line}")
+        header = (f"{greek_source} (Greek, each word tagged with its FHL Strong's "
+                  f"Number, ⟨…⟩ = {name} English gloss):\n{src_line}")
     else:
         header = (f"WLC (Hebrew, each morpheme tagged with its FHL Strong's Number, "
                   f"⟨…⟩ = {name} English gloss):\n{src_line}")
@@ -221,14 +243,15 @@ def _bridge_number_greek(strongs):
 _GRK_CACHE = {}   # (tsv_path, book) -> {(chap,sec): [row,...]}
 
 
-def load_greek_verse_with_ids(sbl_book, chap, sec, source="BSB"):
-    """SBLGNT Greek words WITH morph id (needed to align to the English source).
-    Reads the Greek source tsv pinned by `source` (SBLGNT.tsv). Source ids are
-    'n'+BB(40..66)+CCC+VVV+WWW (offsets identical to WLC, only the prefix is 'n' vs
-    'o'). Returns [(morph_id, greek, fhl_num)] where fhl_num is e.g. 'G976'."""
-    tsv = SOURCES.get(source, SOURCES["BSB"]).get("greek_tsv")
-    if not tsv:
-        raise ValueError(f"english source '{source}' has no greek_tsv (NT source)")
+def load_greek_verse_with_ids(sbl_book, chap, sec, greek_source=DEFAULT_NT_GREEK):
+    """Greek words WITH morph id (needed to align to the English source). Reads the
+    Greek text tsv selected by `greek_source` (SBLGNT critical | BGNT Byzantine).
+    Source ids are 'n'+BB(40..66)+CCC+VVV+WWW (offsets identical to WLC, only the prefix
+    is 'n' vs 'o'). Returns [(morph_id, greek, fhl_num)] where fhl_num is e.g. 'G976'."""
+    gcfg = NT_GREEK.get(greek_source)
+    if not gcfg:
+        raise ValueError(f"unknown greek source '{greek_source}' (have {list(NT_GREEK)})")
+    tsv = gcfg["greek_tsv"]
     key = (tsv, sbl_book)
     rows = _GRK_CACHE.get(key)
     if rows is None:

@@ -79,9 +79,9 @@ Here is the same verse in UNV (Chinese Union Version), plain, no annotations:
 line, no commentary, no code fences."""
 
 
-def build_greek_harsh_prompt(src_line, unv_plain, book_eng, chap, sec):
-    """WLC-only-style prompt for the Greek (no-English) arm — SBLGNT source, no 09xxx."""
-    return f"""Here is {book_eng} {chap}:{sec} in the original Greek (SBLGNT), each \
+def build_greek_harsh_prompt(src_line, unv_plain, book_eng, chap, sec, greek_source="SBLGNT"):
+    """Source-only prompt for the Greek (no-English) arm — Greek source, no 09xxx."""
+    return f"""Here is {book_eng} {chap}:{sec} in the original Greek ({greek_source}), each \
 word tagged with its FHL Strong's Number:
 
 {src_line}
@@ -94,7 +94,8 @@ Insert the Strong's Number tags into the correct positions in the UNV text. \
 Output ONLY the annotated UNV text on a single line, no commentary."""
 
 
-def run_arm(label, conv_on, eng_on, eng_name, verses, model, verbose, samples):
+def run_arm(label, conv_on, eng_on, eng_name, verses, model, verbose, samples,
+            greek_source="SBLGNT"):
     preamble = build_conventions_preamble("unv") if conv_on else ""
     system = (preamble + A2.SYSTEM_BASE) if preamble else A2.SYSTEM_BASE
     rows = []
@@ -102,22 +103,24 @@ def run_arm(label, conv_on, eng_on, eng_name, verses, model, verbose, samples):
         unv_plain = strip_sn(unv_sn)
         nt = _is_nt(src_book)
         if nt:
-            toks = load_greek_verse_with_ids(src_book, chap, sec, source=eng_name)
+            toks = load_greek_verse_with_ids(src_book, chap, sec, greek_source=greek_source)
         else:
             toks = load_wlc_verse_with_ids(src_book, chap, sec, source=eng_name)
         if not toks:
             if verbose:
-                src = "SBLGNT" if nt else "WLC"
+                src = greek_source if nt else "WLC"
                 print(f"  [{label}] {chap}:{sec}  (no {src} — skip)", flush=True)
             continue
         if eng_on:
-            source_block = build_wlc_eng_source(eng_name, toks, src_book, chap, sec)
+            source_block = build_wlc_eng_source(eng_name, toks, src_book, chap, sec,
+                                                greek_source=greek_source)
             user = build_wlc_eng_prompt(source_block, unv_plain, book_eng, chap, sec,
                                         eng_name, nt=nt)
         else:
             src_line = build_wlc_source([(t, n) for _mid, t, n in toks])  # source-only
             if nt:
-                user = build_greek_harsh_prompt(src_line, unv_plain, book_eng, chap, sec)
+                user = build_greek_harsh_prompt(src_line, unv_plain, book_eng, chap, sec,
+                                                greek_source=greek_source)
             else:
                 user = build_harsh_prompt(src_line, unv_plain, book_eng, chap, sec)
         shared = BX.tag_multiset(unv_sn)[0]
@@ -163,6 +166,9 @@ def main():
     ap.add_argument("--model", default="opus")
     ap.add_argument("--eng-source", default="BSB", choices=["BSB", "YLT"],
                     help="readable-English bridge (default BSB — survey11 base)")
+    ap.add_argument("--nt-source", default="SBLGNT", choices=["SBLGNT", "BGNT"],
+                    help="NT Greek text: SBLGNT (critical, default) or BGNT (Byzantine "
+                         "Majority / Received-tradition family). Ignored for OT books.")
     ap.add_argument("--arms", default="B,B0,B_noeng",
                     help="comma list of B / B0 / B_noeng")
     ap.add_argument("--samples", type=int, default=1)
@@ -188,7 +194,9 @@ def main():
         for sec in secs:
             verses.append((book_chi, book_eng, src_book, chap, sec, unv[sec]))
 
-    print(f"\n{'='*60}\n  A2 CONTEST (WLC+{eng_name} → UNV) — {book_eng} {args.chap}  "
+    is_nt = _is_nt(src_book)
+    orig = args.nt_source if is_nt else "WLC"
+    print(f"\n{'='*60}\n  A2 CONTEST ({orig}+{eng_name} → UNV) — {book_eng} {args.chap}  "
           f"model={args.model}  verses={len(verses)}  arms={args.arms}  "
           f"samples={args.samples}\n{'='*60}")
 
@@ -197,9 +205,9 @@ def main():
     for arm in arms:
         conv_on, eng_on = ARMS.get(arm, (arm == "B", True))
         print(f"\n  ── Arm {arm} (conventions {'ON' if conv_on else 'OFF'}, "
-              f"source {'WLC+'+eng_name if eng_on else 'WLC-only'}) ──")
+              f"source {orig+'+'+eng_name if eng_on else orig+'-only'}) ──")
         results[arm] = run_arm(arm, conv_on, eng_on, eng_name, verses, args.model,
-                               args.verbose, args.samples)
+                               args.verbose, args.samples, greek_source=args.nt_source)
 
     print(f"\n{'='*60}\n  RESULTS ({eng_name})\n{'='*60}")
     for arm in arms:
