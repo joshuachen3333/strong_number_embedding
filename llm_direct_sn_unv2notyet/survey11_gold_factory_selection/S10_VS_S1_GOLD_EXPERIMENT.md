@@ -15,11 +15,14 @@
   `H`-less strongs, full-word pos — breaks `_bridge_number`; WLC/WLCM share ids ~99.3%).
 - **NT** — `Alignments/data/sources/SBLGNT.tsv` (macula-greek: strongs `G0976`, Robinson/
   MorphGNT morph `N-NSF`). Bridge: `SBLGNT-BSB-manual.json`.
-- **Bridge** — BSB default across both (`english_bridge.SOURCES`; YLT optional).
+- **Bridge** — **NONE by default (WLC-only)** as of the Gen 1 result below: the bare
+  original+SN source scored best; BSB *hurt* placement and 09xxx recall, so the readable
+  English gloss is retired to an **optional** experiment (`--eng-source {none(default),BSB,YLT}`).
 
-Implemented end-to-end 2026-07-11: OT (WLC+BSB) + NT (SBLGNT/BGNT selectable + macula-greek,
-built via /workflows). Selectable dims: OT `WLC.tsv` · NT `--nt-source {SBLGNT,BGNT}` ·
-bridge `--eng-source {BSB,YLT}`.
+Implemented end-to-end 2026-07-11: OT (WLC) + NT (SBLGNT/BGNT selectable + macula-greek, built
+via /workflows). Selectable dims: OT `WLC.tsv` · NT `--nt-source {SBLGNT,BGNT}` · bridge
+`--eng-source {none (default),BSB,YLT}`. **Default source = WLC-only** (Joshua 2026-07-11,
+per the Gen 1 contest).
 
 ### Source files we use (`Alignments/data/sources/`) — recorded 2026-07-11
 

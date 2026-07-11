@@ -111,7 +111,8 @@ def run_arm(label, conv_on, eng_on, eng_name, verses, model, verbose, samples,
                 src = greek_source if nt else "WLC"
                 print(f"  [{label}] {chap}:{sec}  (no {src} — skip)", flush=True)
             continue
-        if eng_on:
+        use_eng = eng_on and eng_name != "none"   # eng_source=none → WLC-only everywhere
+        if use_eng:
             source_block = build_wlc_eng_source(eng_name, toks, src_book, chap, sec,
                                                 greek_source=greek_source)
             user = build_wlc_eng_prompt(source_block, unv_plain, book_eng, chap, sec,
@@ -138,11 +139,11 @@ def run_arm(label, conv_on, eng_on, eng_name, verses, model, verbose, samples,
                 print(f"  [{label}] {chap}:{sec}  DROPPED (all samples empty)", flush=True)
             continue
         rows.append({"chap": chap, "sec": sec, "full_frac": sum(fp) / len(fp),
-                     "n9_placed": n9p, "n9_total": n9t, "eng_used": eng_on})
+                     "n9_placed": n9p, "n9_total": n9t, "eng_used": use_eng})
         if verbose:
             r9 = f"{n9p}/{n9t}" if n9t else "—"
             print(f"  [{label}] {chap}:{sec}  full={rows[-1]['full_frac']:.3f}  "
-                  f"09xxx={r9}  {'+'+eng_name if eng_on else 'WLConly'}  "
+                  f"09xxx={r9}  {'+'+eng_name if use_eng else 'srconly'}  "
                   f"{time.time()-t0:.0f}s", flush=True)
     return rows
 
@@ -164,8 +165,9 @@ def main():
     ap.add_argument("--chap", default="1")
     ap.add_argument("--sec", default=None, help="verse range, e.g. 1-5")
     ap.add_argument("--model", default="opus")
-    ap.add_argument("--eng-source", default="BSB", choices=["BSB", "YLT"],
-                    help="readable-English bridge (default BSB — survey11 base)")
+    ap.add_argument("--eng-source", default="none", choices=["none", "BSB", "YLT"],
+                    help="English bridge: none = WLC-only (DEFAULT — Gen1 showed the bare "
+                         "source scores best); BSB / YLT layer a readable gloss (optional).")
     ap.add_argument("--nt-source", default="SBLGNT", choices=["SBLGNT", "BGNT"],
                     help="NT Greek text: SBLGNT (critical, default) or BGNT (Byzantine "
                          "Majority / Received-tradition family). Ignored for OT books.")
@@ -196,7 +198,8 @@ def main():
 
     is_nt = _is_nt(src_book)
     orig = args.nt_source if is_nt else "WLC"
-    print(f"\n{'='*60}\n  A2 CONTEST ({orig}+{eng_name} → UNV) — {book_eng} {args.chap}  "
+    src_label = f"{orig}+{eng_name}" if eng_name != "none" else f"{orig}-only"
+    print(f"\n{'='*60}\n  A2 CONTEST ({src_label} → UNV) — {book_eng} {args.chap}  "
           f"model={args.model}  verses={len(verses)}  arms={args.arms}  "
           f"samples={args.samples}\n{'='*60}")
 
@@ -204,8 +207,9 @@ def main():
     results = {}
     for arm in arms:
         conv_on, eng_on = ARMS.get(arm, (arm == "B", True))
+        use_eng = eng_on and eng_name != "none"
         print(f"\n  ── Arm {arm} (conventions {'ON' if conv_on else 'OFF'}, "
-              f"source {orig+'+'+eng_name if eng_on else orig+'-only'}) ──")
+              f"source {orig+'+'+eng_name if use_eng else orig+'-only'}) ──")
         results[arm] = run_arm(arm, conv_on, eng_on, eng_name, verses, args.model,
                                args.verbose, args.samples, greek_source=args.nt_source)
 
