@@ -61,7 +61,7 @@ def run_arm(label, conv_on, eng_on, eng_name, verses, model, verbose, samples):
     rows = []
     for (book_chi, book_eng, wlc_book, chap, sec, unv_sn) in verses:
         unv_plain = strip_sn(unv_sn)
-        toks = load_wlc_verse_with_ids(wlc_book, chap, sec)
+        toks = load_wlc_verse_with_ids(wlc_book, chap, sec, source=eng_name)
         if not toks:
             if verbose:
                 print(f"  [{label}] {chap}:{sec}  (no WLC — skip)", flush=True)

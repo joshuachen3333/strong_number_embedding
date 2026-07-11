@@ -29,17 +29,32 @@ def _ylt_drop(row):
     return (row.get("isPunc") or "").lower() == "true"
 
 
+_SOURCES_DIR = os.path.join(os.path.dirname(_S10), "Alignments", "data", "sources")
+
+# `wlc_tsv` = the HEBREW source whose morph ids the alignment keys on, AND whose SN
+# extraction `_bridge_number` understands.
+#
+# The BSB alignment nominally targets WLCM ids, but WLCM.tsv has an INCOMPATIBLE schema
+# (no `lemma` column; strongs without the `H` prefix like `0871a`; full-word pos like
+# `preposition`) that `_bridge_number` cannot parse → it would drop EVERY SN. WLC.tsv
+# and WLCM.tsv share ids for ~99.3% of Genesis morphs, so loading WLC.tsv keeps SN
+# extraction correct and still resolves the WLCM-BSB gloss on the shared 99.3%; only the
+# ~0.7% divergent morphs miss their BSB gloss (SN inventory — the graded content —
+# unaffected). So BOTH OT sources load WLC.tsv. (NT will pin SBLGNT.tsv here — the reason
+# this stays a per-source field.)
 SOURCES = {
     "YLT": {
         "tsv": os.path.join(_ALIGN, "targets", "YLT", "ot_YLT.tsv"),
         "text_col": "text", "drop": _ylt_drop,
         "align": os.path.join(_ALIGN, "alignments", "YLT", "WLC-YLT-manual.json"),
+        "wlc_tsv": os.path.join(_SOURCES_DIR, "WLC.tsv"),
         "label": "Young's Literal Translation, full verse",
     },
     "BSB": {
         "tsv": os.path.join(_ALIGN, "targets", "BSB", "ot_BSB.tsv"),
         "text_col": "text", "drop": _bsb_drop,
         "align": os.path.join(_ALIGN, "alignments", "BSB", "WLCM-BSB-manual.json"),
+        "wlc_tsv": os.path.join(_SOURCES_DIR, "WLC.tsv"),   # WLCM schema breaks _bridge_number → use WLC
         "label": "Berean Standard Bible, full verse",
     },
 }
@@ -114,20 +129,26 @@ def build_wlc_eng_source(name, wlc_tokens_with_ids, wlc_book, chap, sec, per_mor
     return block
 
 
-def load_wlc_verse_with_ids(wlc_book, chap, sec):
-    """WLC morphemes WITH morph id (needed to align to any English source).
-    Returns list of (morph_id, hebrew_text, fhl_num_or_None)."""
-    from run_stage2_harsh import _WLC_CACHE, WLC_TSV, _bridge_number
-    rows = _WLC_CACHE.get(wlc_book)
+_HEB_CACHE = {}   # (tsv_path, book) -> {(chap,sec): [row,...]}
+
+
+def load_wlc_verse_with_ids(wlc_book, chap, sec, source="BSB"):
+    """WLC/WLCM morphemes WITH morph id (needed to align to the English source).
+    Loads from the HEBREW TSV pinned by `source` (BSB→WLCM.tsv, YLT→WLC.tsv) so the
+    morph ids match that source's alignment. Returns [(morph_id, hebrew, fhl_num)]."""
+    from run_stage2_harsh import _bridge_number
+    tsv = SOURCES.get(source, SOURCES["BSB"])["wlc_tsv"]
+    key = (tsv, wlc_book)
+    rows = _HEB_CACHE.get(key)
     if rows is None:
         rows = defaultdict(list)
-        with open(WLC_TSV, encoding="utf-8") as f:
+        with open(tsv, encoding="utf-8") as f:
             for row in csv.DictReader(f, delimiter="\t"):
                 i = row["id"]
                 if not i.startswith("o" + wlc_book):
                     continue
                 rows[(int(i[3:6]), int(i[6:9]))].append(row)
-        _WLC_CACHE[wlc_book] = rows
+        _HEB_CACHE[key] = rows
     out = []
     for row in rows.get((int(chap), int(sec)), []):
         num = _bridge_number(row["lemma"], row["strongs"], row["pos"])
