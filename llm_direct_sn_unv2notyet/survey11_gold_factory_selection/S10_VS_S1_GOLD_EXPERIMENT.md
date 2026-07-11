@@ -51,6 +51,33 @@ printed)→KJV. Alignments: BSB has `WLCM-BSB`(OT)/`SBLGNT-BSB`/`BGNT-BSB`(NT); 
 Org home: [github.com/byztxt](https://github.com/byztxt) — multiple Byzantine + TR editions,
 public domain.
 
+## 📊 First contest run — Gen 1, opus, WLC+BSB (2026-07-11)
+
+`run_a2_wlc_eng.py --book 創 --chap 1 --arms B,B0,B_noeng --model opus` (31 verses, 0 drops,
+clean quota). PAIRED deltas (same-verse only), full_frac vs UNV FHL truth:
+
+| Factor | delta | reading |
+|---|---|---|
+| **s10 conventions** Δ(B − B0) | **−0.0014** (n=31) | **neutral / zero** — conventions.md at C1, no measured lift (matches the scribe's fruitless-回測 observation) |
+| **BSB bridge** Δ(B − B_noeng) | **−0.0210** (n=28→31) | **HARMFUL** — WLC-only (0.791) *beats* WLC+BSB (0.770) by ~2pp |
+
+**Contrast with the earlier YLT probe** (Gen 1, opus): YLT bridge Δ = **+0.0385** (n=24) —
+*helpful*. So the two English bridges point OPPOSITE ways:
+
+| bridge | Δ | why (hypothesis) |
+|---|---|---|
+| **YLT** (literal, tracks Hebrew word order) | **+0.039** helps | per-morpheme gloss aligns with WHERE the SN goes |
+| **BSB** (natural, readable English) | **−0.021** hurts | natural word-order diverges from Hebrew → gloss misleads placement |
+
+**Implication:** the objective SN-placement score **challenges the BSB pivot and vindicates the
+original YLT choice.** A readable-but-word-order-misaligned bridge actively costs placement
+accuracy — the survey6 "info-overload" / bridge-quality lesson, measured.
+
+**Caveat (not yet apples-to-apples):** YLT and BSB deltas come from *different runs* (different
+verse subsets, single-model single-sample). Direction is clear (+0.039 vs −0.021) but a rigorous
+confirmation needs a **single run with both bridges as arms** (WLC+YLT vs WLC+BSB vs WLC-only).
+→ recommended next step.
+
 ## s10's identity — founding intent vs current reality (2026-06-30)
 
 Read this before assuming what s10 *is*. The name is now a fossil.
