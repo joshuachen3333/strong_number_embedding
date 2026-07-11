@@ -28,7 +28,8 @@ from conventions import build_conventions_preamble
 from auto_score import strip_sn
 from run_stage2_harsh import (nines_recall, CHI_TO_WLC_BOOK, build_wlc_source,
                               build_harsh_prompt)
-from english_bridge import load_wlc_verse_with_ids, build_wlc_eng_source, verse_text
+from english_bridge import (load_wlc_verse_with_ids, load_greek_verse_with_ids,
+                            build_wlc_eng_source, verse_text, _is_nt)
 from llm_direct_sn_unv2notyet import fetch_chap_cached, CHI_TO_ENG, parse_sec_arg
 
 # (conventions_on, eng_on) per arm. Deltas isolate each factor.
@@ -38,8 +39,34 @@ ARMS = {
     "B_noeng": (True,  False),   # WLC-only, conventions ON  (English control — s5 lesson)
 }
 
+# NT (Greek/SBLGNT) book map — Chinese abbrev → SBLGNT 2-digit book number (40..66),
+# the same BB field used in SBLGNT.tsv ids and the FHL qb.php `chineses` param.
+# OT books stay in run_stage2_harsh.CHI_TO_WLC_BOOK (創 → '01'); no overlap.
+CHI_TO_SBL_BOOK = {
+    "太": "40", "可": "41", "路": "42", "約": "43", "徒": "44",
+    "羅": "45", "林前": "46", "林後": "47", "加": "48", "弗": "49",
+    "腓": "50", "西": "51", "帖前": "52", "帖後": "53", "提前": "54",
+    "提後": "55", "多": "56", "門": "57", "來": "58", "雅": "59",
+    "彼前": "60", "彼後": "61", "約一": "62", "約二": "63", "約三": "64",
+    "猶": "65", "啟": "66",
+}
 
-def build_wlc_eng_prompt(source_block, unv_plain, book_eng, chap, sec, eng_name):
+
+def build_wlc_eng_prompt(source_block, unv_plain, book_eng, chap, sec, eng_name, nt=False):
+    if nt:
+        # Greek: no 09xxx inseparable prefixes; SBLGNT is the authoritative tag set.
+        instruction = (
+            f"Insert the Strong's Number tags into the correct positions in the UNV "
+            f"text. Use the SBLGNT Greek for the authoritative tag set and the "
+            f"{eng_name} English to disambiguate which Chinese word each tag belongs "
+            f"to.")
+    else:
+        instruction = (
+            f"Insert the Strong's Number tags into the correct positions in the UNV "
+            f"text, INCLUDING the 09xxx inseparable-prefix tags where the Chinese "
+            f"expresses them. Use the WLC Hebrew for the authoritative tag set and the "
+            f"{eng_name} English to disambiguate which Chinese word each tag belongs "
+            f"to.")
     return f"""Here is {book_eng} {chap}:{sec}.
 
 {source_block}
@@ -48,31 +75,51 @@ Here is the same verse in UNV (Chinese Union Version), plain, no annotations:
 
 {unv_plain}
 
-Insert the Strong's Number tags into the correct positions in the UNV text, \
-INCLUDING the 09xxx inseparable-prefix tags where the Chinese expresses them. Use the \
-WLC Hebrew for the authoritative tag set and the {eng_name} English to disambiguate \
-which Chinese word each tag belongs to. Output ONLY the annotated UNV text on a single \
+{instruction} Output ONLY the annotated UNV text on a single \
 line, no commentary, no code fences."""
+
+
+def build_greek_harsh_prompt(src_line, unv_plain, book_eng, chap, sec):
+    """WLC-only-style prompt for the Greek (no-English) arm — SBLGNT source, no 09xxx."""
+    return f"""Here is {book_eng} {chap}:{sec} in the original Greek (SBLGNT), each \
+word tagged with its FHL Strong's Number:
+
+{src_line}
+
+Here is the same verse in UNV (Chinese Union Version), plain, no annotations:
+
+{unv_plain}
+
+Insert the Strong's Number tags into the correct positions in the UNV text. \
+Output ONLY the annotated UNV text on a single line, no commentary."""
 
 
 def run_arm(label, conv_on, eng_on, eng_name, verses, model, verbose, samples):
     preamble = build_conventions_preamble("unv") if conv_on else ""
     system = (preamble + A2.SYSTEM_BASE) if preamble else A2.SYSTEM_BASE
     rows = []
-    for (book_chi, book_eng, wlc_book, chap, sec, unv_sn) in verses:
+    for (book_chi, book_eng, src_book, chap, sec, unv_sn) in verses:
         unv_plain = strip_sn(unv_sn)
-        toks = load_wlc_verse_with_ids(wlc_book, chap, sec, source=eng_name)
+        nt = _is_nt(src_book)
+        if nt:
+            toks = load_greek_verse_with_ids(src_book, chap, sec, source=eng_name)
+        else:
+            toks = load_wlc_verse_with_ids(src_book, chap, sec, source=eng_name)
         if not toks:
             if verbose:
-                print(f"  [{label}] {chap}:{sec}  (no WLC — skip)", flush=True)
+                src = "SBLGNT" if nt else "WLC"
+                print(f"  [{label}] {chap}:{sec}  (no {src} — skip)", flush=True)
             continue
         if eng_on:
-            source_block = build_wlc_eng_source(eng_name, toks, wlc_book, chap, sec)
+            source_block = build_wlc_eng_source(eng_name, toks, src_book, chap, sec)
             user = build_wlc_eng_prompt(source_block, unv_plain, book_eng, chap, sec,
-                                        eng_name)
+                                        eng_name, nt=nt)
         else:
-            wlc_line = build_wlc_source([(t, n) for _mid, t, n in toks])  # WLC-only
-            user = build_harsh_prompt(wlc_line, unv_plain, book_eng, chap, sec)
+            src_line = build_wlc_source([(t, n) for _mid, t, n in toks])  # source-only
+            if nt:
+                user = build_greek_harsh_prompt(src_line, unv_plain, book_eng, chap, sec)
+            else:
+                user = build_harsh_prompt(src_line, unv_plain, book_eng, chap, sec)
         shared = BX.tag_multiset(unv_sn)[0]
         t0 = time.time()
         fp, n9p, n9t = [], 0, 0
@@ -124,9 +171,11 @@ def main():
 
     book_chi = args.book
     book_eng = CHI_TO_ENG.get(book_chi, book_chi)
-    wlc_book = CHI_TO_WLC_BOOK.get(book_chi)
-    if not wlc_book:
-        sys.exit(f"No WLC book number for {book_chi}; add to CHI_TO_WLC_BOOK.")
+    # OT → WLC number (創→'01'); NT → SBLGNT number (太→'40' … 啟→'66').
+    src_book = CHI_TO_WLC_BOOK.get(book_chi) or CHI_TO_SBL_BOOK.get(book_chi)
+    if not src_book:
+        sys.exit(f"No source book number for {book_chi}; add to CHI_TO_WLC_BOOK (OT) "
+                 f"or CHI_TO_SBL_BOOK (NT).")
     eng_name = args.eng_source
 
     verses = []
@@ -137,7 +186,7 @@ def main():
             want = set(parse_sec_arg([args.sec]))
             secs = [s for s in secs if s in want]
         for sec in secs:
-            verses.append((book_chi, book_eng, wlc_book, chap, sec, unv[sec]))
+            verses.append((book_chi, book_eng, src_book, chap, sec, unv[sec]))
 
     print(f"\n{'='*60}\n  A2 CONTEST (WLC+{eng_name} → UNV) — {book_eng} {args.chap}  "
           f"model={args.model}  verses={len(verses)}  arms={args.arms}  "

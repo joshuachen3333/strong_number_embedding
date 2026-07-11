@@ -13,6 +13,7 @@ WLC.tsv ids (o+BBCCCVVVWWWm), so the same load_wlc_verse_with_ids feeds all.
 """
 
 import os
+import re
 import csv
 import json
 from collections import defaultdict
@@ -56,50 +57,82 @@ SOURCES = {
         "align": os.path.join(_ALIGN, "alignments", "BSB", "WLCM-BSB-manual.json"),
         "wlc_tsv": os.path.join(_SOURCES_DIR, "WLC.tsv"),   # WLCM schema breaks _bridge_number → use WLC
         "label": "Berean Standard Bible, full verse",
+        # NT (A2 cornerstone: SBLGNT Greek + BSB bridge). Same TSV/JSON schemas as OT,
+        # so `drop`/`text_col` are reused; only the source (Greek) tsv and target/align
+        # files differ, plus the source id prefix 'o'→'n' (handled in _load/alignment).
+        "nt_tsv": os.path.join(_ALIGN, "targets", "BSB", "nt_BSB.tsv"),
+        "nt_align": os.path.join(_ALIGN, "alignments", "BSB", "SBLGNT-BSB-manual.json"),
+        "greek_tsv": os.path.join(_SOURCES_DIR, "SBLGNT.tsv"),
     },
 }
 
-_CACHE = {}   # name -> (words {id:text}, wlc2tgt {morph_id:[tgt_id]})
+
+def _is_nt(book):
+    """Book number ≥ 40 ⇒ New Testament (Greek/SBLGNT path)."""
+    try:
+        return int(book) >= 40
+    except (TypeError, ValueError):
+        return False
+
+_CACHE = {}   # (name, testament) -> (words {id:text}, src2tgt {morph_id:[tgt_id]})
 
 
-def _load(name):
-    if name in _CACHE:
-        return _CACHE[name]
+def _load(name, testament="ot"):
+    ckey = (name, testament)
+    if ckey in _CACHE:
+        return _CACHE[ckey]
     cfg = SOURCES.get(name)
     if not cfg:
         raise ValueError(f"unknown english source '{name}' (have {list(SOURCES)})")
+    if testament == "nt":
+        tsv_path = cfg.get("nt_tsv")
+        align_path = cfg.get("nt_align")
+        if not (tsv_path and align_path):
+            raise ValueError(f"english source '{name}' has no NT data (nt_tsv/nt_align)")
+    else:
+        tsv_path = cfg["tsv"]
+        align_path = cfg["align"]
     words = {}
-    with open(cfg["tsv"], encoding="utf-8") as f:
+    with open(tsv_path, encoding="utf-8") as f:
         for row in csv.DictReader(f, delimiter="\t"):
             if cfg["drop"](row):
                 continue
             words[row["id"]] = row[cfg["text_col"]]
     m = defaultdict(list)
-    with open(cfg["align"], encoding="utf-8") as f:
+    with open(align_path, encoding="utf-8") as f:
         for r in json.load(f).get("records", []):
             for src in r.get("source", []):
                 for tgt in r.get("target", []):
                     m[src].append(tgt)
-    _CACHE[name] = (words, m)
-    return _CACHE[name]
+    _CACHE[ckey] = (words, m)
+    return _CACHE[ckey]
 
 
-def _verse_prefix(wlc_book, chap, sec):
-    return f"{wlc_book}{int(chap):03d}{int(sec):03d}"
+def _verse_prefix(book, chap, sec):
+    return f"{book}{int(chap):03d}{int(sec):03d}"
 
 
-def verse_text(name, wlc_book, chap, sec):
-    """The English sentence for one verse (ordered words). '' if unavailable."""
-    words, _ = _load(name)
-    pref = _verse_prefix(wlc_book, chap, sec)
+def verse_text(name, book, chap, sec):
+    """The English sentence for one verse (ordered words). '' if unavailable.
+
+    Target ids (ot_BSB/nt_BSB) carry NO source prefix (bare BBCCCVVVWWW) in both
+    testaments, so this path is prefix-agnostic — only the loaded target file differs.
+    """
+    testament = "nt" if _is_nt(book) else "ot"
+    words, _ = _load(name, testament)
+    pref = _verse_prefix(book, chap, sec)
     ids = sorted(wid for wid in words if wid.startswith(pref))
     return " ".join(words[i] for i in ids).strip()
 
 
-def alignment(name, wlc_book, chap, sec):
-    """{wlc_morph_id: 'aligned english words'} for the verse."""
-    words, m = _load(name)
-    pref = "o" + _verse_prefix(wlc_book, chap, sec)
+def alignment(name, book, chap, sec):
+    """{source_morph_id: 'aligned english words'} for the verse.
+
+    Source ids carry a single-char prefix: 'o' (WLC/OT) or 'n' (SBLGNT/NT).
+    """
+    testament = "nt" if _is_nt(book) else "ot"
+    words, m = _load(name, testament)
+    pref = ("n" if testament == "nt" else "o") + _verse_prefix(book, chap, sec)
     out = {}
     for morph_id, tgt_ids in m.items():
         if morph_id.startswith(pref):
@@ -109,21 +142,28 @@ def alignment(name, wlc_book, chap, sec):
     return out
 
 
-def build_wlc_eng_source(name, wlc_tokens_with_ids, wlc_book, chap, sec, per_morph=True):
-    """Render the combined WLC+<English> source block: each Hebrew<SN> morpheme with
-    its aligned English gloss, plus the full English verse. WLC-only fallback if the
-    English source lacks the verse."""
-    align = alignment(name, wlc_book, chap, sec) if per_morph else {}
+def build_wlc_eng_source(name, tokens_with_ids, book, chap, sec, per_morph=True):
+    """Render the combined <original>+<English> source block: each tagged morpheme
+    with its aligned English gloss, plus the full English verse. Source-only fallback
+    if the English source lacks the verse. Testament-aware header (WLC Hebrew vs
+    SBLGNT Greek); the per-morph tag render is identical (the num string already
+    carries its testament letter for Greek, e.g. 'G976')."""
+    align = alignment(name, book, chap, sec) if per_morph else {}
     parts = []
-    for morph_id, text, num in wlc_tokens_with_ids:
+    for morph_id, text, num in tokens_with_ids:
         piece = f"{text}<{num}>" if num else text
         gloss = align.get(morph_id, "")
         parts.append(f"{piece} ⟨{gloss}⟩" if gloss else piece)
-    wlc_line = "  ".join(parts)
-    eng_line = verse_text(name, wlc_book, chap, sec)
+    src_line = "  ".join(parts)
+    eng_line = verse_text(name, book, chap, sec)
     label = SOURCES[name]["label"]
-    block = (f"WLC (Hebrew, each morpheme tagged with its FHL Strong's Number, "
-             f"⟨…⟩ = {name} English gloss):\n{wlc_line}")
+    if _is_nt(book):
+        header = (f"SBLGNT (Greek, each word tagged with its FHL Strong's Number, "
+                  f"⟨…⟩ = {name} English gloss):\n{src_line}")
+    else:
+        header = (f"WLC (Hebrew, each morpheme tagged with its FHL Strong's Number, "
+                  f"⟨…⟩ = {name} English gloss):\n{src_line}")
+    block = header
     if eng_line:
         block += f"\n\n{name} ({label}):\n{eng_line}"
     return block
@@ -133,9 +173,10 @@ _HEB_CACHE = {}   # (tsv_path, book) -> {(chap,sec): [row,...]}
 
 
 def load_wlc_verse_with_ids(wlc_book, chap, sec, source="BSB"):
-    """WLC/WLCM morphemes WITH morph id (needed to align to the English source).
-    Loads from the HEBREW TSV pinned by `source` (BSB→WLCM.tsv, YLT→WLC.tsv) so the
-    morph ids match that source's alignment. Returns [(morph_id, hebrew, fhl_num)]."""
+    """WLC (Hebrew) morphemes WITH morph id (needed to align to the English source).
+    Both BSB and YLT load WLC.tsv (`wlc_tsv`) — NOT WLCM.tsv, whose schema breaks SN
+    extraction (see SOURCES note). `source` is kept for future NT (SBLGNT) pinning.
+    Returns [(morph_id, hebrew, fhl_num)]."""
     from run_stage2_harsh import _bridge_number
     tsv = SOURCES.get(source, SOURCES["BSB"])["wlc_tsv"]
     key = (tsv, wlc_book)
@@ -152,5 +193,55 @@ def load_wlc_verse_with_ids(wlc_book, chap, sec, source="BSB"):
     out = []
     for row in rows.get((int(chap), int(sec)), []):
         num = _bridge_number(row["lemma"], row["strongs"], row["pos"])
+        out.append((row["id"], row["text"], num))
+    return out
+
+
+# ── NT / Greek path (SBLGNT) ────────────────────────────────────────────────
+# Greek is simpler than Hebrew: NO 09xxx inseparable prefixes, so no PREFIX_BRIDGE,
+# no cj-waw case, no augmented (>8674) branch. The one load-bearing difference vs the
+# Hebrew `_bridge_number` is that the rendered tag MUST carry a literal 'G' — the
+# scorer (build_exclusion.classify) DEFAULTS testament to 'H' when no letter is
+# present, so a bare '<976>' would misclassify as Hebrew H976 and never match UNV's
+# <WG976>. Returning 'G976' → tag '<G976>' → key ('G','G976') = UNV truth. Zero-pad
+# is moot (classify does int()); suffix letters are dropped (Hebrew-consistent).
+
+def _bridge_number_greek(strongs):
+    """SBLGNT Greek Strong's → FHL number string carrying the 'G' testament letter,
+    or None if not a scorable SN. 'G0976' → 'G976'; 'G0000' (unmarked) → None."""
+    m = re.match(r"G(\d+)([a-z]?)", strongs or "")
+    if not m:
+        return None
+    n = int(m.group(1))   # strips zero-padding: 'G0976' → 976
+    if n == 0:            # G0000 = unmarked (a few rows exist)
+        return None
+    return f"G{n}"        # MUST keep the G; drop suffix; no zero-pad (scorer int()-normalizes)
+
+
+_GRK_CACHE = {}   # (tsv_path, book) -> {(chap,sec): [row,...]}
+
+
+def load_greek_verse_with_ids(sbl_book, chap, sec, source="BSB"):
+    """SBLGNT Greek words WITH morph id (needed to align to the English source).
+    Reads the Greek source tsv pinned by `source` (SBLGNT.tsv). Source ids are
+    'n'+BB(40..66)+CCC+VVV+WWW (offsets identical to WLC, only the prefix is 'n' vs
+    'o'). Returns [(morph_id, greek, fhl_num)] where fhl_num is e.g. 'G976'."""
+    tsv = SOURCES.get(source, SOURCES["BSB"]).get("greek_tsv")
+    if not tsv:
+        raise ValueError(f"english source '{source}' has no greek_tsv (NT source)")
+    key = (tsv, sbl_book)
+    rows = _GRK_CACHE.get(key)
+    if rows is None:
+        rows = defaultdict(list)
+        with open(tsv, encoding="utf-8") as f:
+            for row in csv.DictReader(f, delimiter="\t"):
+                i = row["id"]
+                if not i.startswith("n" + sbl_book):
+                    continue
+                rows[(int(i[3:6]), int(i[6:9]))].append(row)
+        _GRK_CACHE[key] = rows
+    out = []
+    for row in rows.get((int(chap), int(sec)), []):
+        num = _bridge_number_greek(row["strongs"])
         out.append((row["id"], row["text"], num))
     return out
