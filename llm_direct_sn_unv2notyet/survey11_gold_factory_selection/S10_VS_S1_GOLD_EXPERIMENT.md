@@ -174,16 +174,28 @@ alignment and attach per-token English to the WLC source line; (b) promote to th
 primary contest; (c) wire real **A (s1 consensus) vs B (s10)** arms + **N-sample** to
 beat sampling noise.
 
-## 🔀 ~~OPEN QUESTION~~ → RESOLVED: **WLC + YLT** (Joshua 2026-07-11)
+## 🔀 ~~OPEN QUESTION~~ → RESOLVED: **WLC + BSB** (Joshua 2026-07-11, revised same day)
 
-**Decision: source config = WLC + YLT.** Joshua chose the *literal* bridge: YLT tracks
-Hebrew morphology/word-order closest, surfacing prefixes/particles for better 09xxx
-selection, while a single English gloss avoids survey6-style multi-input overload (BSB+YLT
-and +KJV rejected on that risk; KJV also structurally crippled). Implementation landed
-2026-07-11 in `../survey10_s1_but_obe_insteadOf_oneshot/`: `ylt_bridge.py` (Clear Bible
-manual WLC↔YLT alignment → per-morpheme literal gloss + full YLT verse) + `run_a2_wlc_ylt.py`
-(Arm B vs B0 on the WLC+YLT source, scored on UNV FHL truth). The four-config table below is
-kept as the rationale record.
+**Decision: base source config = WLC + BSB.** (First picked WLC+YLT; revised to WLC+BSB the
+same day — BSB is now the DEFAULT; YLT stays a selectable option, not expected to be used.)
+WLC always supplies the SN inventory incl. 09xxx; BSB (Berean Standard Bible, modern readable)
+is the readable bridge that disambiguates which Chinese word each tag belongs to.
+
+**Implementation** 2026-07-11 in `../survey10_s1_but_obe_insteadOf_oneshot/`:
+`english_bridge.py` — a **parameterized** WLC↔English bridge (config-driven, `SOURCES` for
+BSB + YLT; Clear Bible manual `WLCM-BSB-manual.json` / `WLC-YLT-manual.json` alignment →
+per-morpheme gloss + full verse) + `run_a2_wlc_eng.py` (`--eng-source BSB` **default**, YLT
+optional; arms B / B0 / B_noeng, PAIRED deltas on UNV FHL truth). Parameterized precisely
+because the base source is revisable — swapping bridges needs no new code.
+
+**Empirical note (superseded YLT probe, Gen 1, opus, partial run):** the literal-bridge YLT
+probe measured paired Δ(B − B_noeng) = **+0.0385 over n=24** — i.e. a literal English gloss
+*does* help placement (WLC+YLT 0.792 vs WLC-only 0.753). This validates the general
+"readable English bridge helps" premise; BSB is now the chosen bridge for the base. The
+conventions delta from that run was unusable (B0 quota-starved, n=4) — pending a fresh-quota
+re-run on the BSB base.
+
+The four-config table below is kept as the rationale record.
 
 The pivot settles "WLC instead of KJV", but **which readable bridge** rides along with
 WLC *was* left open — the question this survey (survey11) existed to answer. **WLC supplies
