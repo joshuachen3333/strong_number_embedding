@@ -2006,3 +2006,18 @@ tr 經文的 github 是哪裡?
 
 
 
+##     2026-07-18 03:10 CST
+
+###    User Prompt
+平行車隊, 但是每一車只跑一章. 8, 9, 10, 11, 12 各一車
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 改採一車一章的平行車隊: ch8-12 各一車
+- Diff: 加 run_gold_standard.py --skip-scribe flag(平行寫 conventions race 防護); 新建 auto_run_one_chapter.py(單章 coverage-driven wrapper); nohup+disown 啟動 5 車跑創8-12(135節)全存活進 R1
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/run_gold_standard.py`
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/auto_run_one_chapter.py`
+
+
+
+
