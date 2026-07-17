@@ -15,4 +15,12 @@ load_wlc_verse = _H.load_wlc_verse        # (wlc_book, chap, sec) -> [(hebrew, f
 build_wlc_source = _H.build_wlc_source    # tokens -> "hebrew<num>..."  (gloss2 already dropped)
 build_harsh_prompt = _H.build_harsh_prompt  # (wlc_source, unv_plain, book_eng, chap, sec) -> str
 nines_recall = _H.nines_recall            # (model_output, unv_sn) -> (placed, total)
-CHI_TO_WLC_BOOK = _H.CHI_TO_WLC_BOOK      # {"創": "01"}
+# s10's CHI_TO_WLC_BOOK is Genesis-only ({"創": "01"}); survey5's benchmark spans 14 OT
+# books, so build the full OT map from the project's canonical book list (books.json is a
+# 66-entry ordered list; OT = first 39, WLC book number = index + 1, zero-padded to 2).
+import json as _json  # noqa: E402
+
+_BOOKS_JSON = os.path.join(os.path.dirname(__file__), "..", "..", "shared", "data", "books.json")
+with open(_BOOKS_JSON, encoding="utf-8") as _bf:
+    _BOOKS = _json.load(_bf)
+CHI_TO_WLC_BOOK = {b["chi"]: f"{i + 1:02d}" for i, b in enumerate(_BOOKS[:39])}
