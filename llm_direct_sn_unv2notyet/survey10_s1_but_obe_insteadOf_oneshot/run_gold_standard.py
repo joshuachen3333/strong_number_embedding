@@ -611,6 +611,13 @@ def main():
                              "over active conventions (quarantine Δ≤0), then exit.")
     parser.add_argument("--falsify-dry-run", action="store_true",
                         help="D3: compute deltas but do NOT quarantine (report only).")
+    parser.add_argument("--skip-scribe", action="store_true",
+                        help="Skip the per-chapter scribe + M-rule promotion pass "
+                             "(the conventions-learning block). REQUIRED when running "
+                             "multiple gold processes concurrently: the scribe/promotion "
+                             "writes shared conventions.{model}.md files and would race. "
+                             "Gold building itself is unaffected — only future-verse "
+                             "convention learning is skipped (A2 showed it is Δ≈0 neutral).")
 
     args = parser.parse_args()
 
@@ -1492,26 +1499,32 @@ def main():
     # ── s10 D3 (gate #4): per-chapter scribe — distill this run's resolved gold
     # into new regression-gated conventions for FUTURE verses. Runs AFTER gold is
     # built (verses must be settled before learning from them).
-    scribe_chaps = sorted({c for (c, _s) in gold_standard.keys()})
-    for _c in scribe_chaps:
-        accepted = conv_mod.run_scribe_for_chapter(
-            _c, book_chi, book_eng, gold_standard, model_trio,
-            target_version, sn_field, verbose=args.verbose)
-        if accepted:
-            print(f"  [scribe] ch{_c}: {len(accepted)} new convention(s) accepted")
+    # --skip-scribe: MANDATORY for concurrent gold runs — the scribe + promotion
+    # below write shared conventions.{model}.md and would race across processes.
+    if args.skip_scribe:
+        print("  [scribe] SKIPPED (--skip-scribe): conventions learning off for "
+              "this run (concurrent-safe; A2 showed conventions Δ≈0).")
+    else:
+        scribe_chaps = sorted({c for (c, _s) in gold_standard.keys()})
+        for _c in scribe_chaps:
+            accepted = conv_mod.run_scribe_for_chapter(
+                _c, book_chi, book_eng, gold_standard, model_trio,
+                target_version, sn_field, verbose=args.verbose)
+            if accepted:
+                print(f"  [scribe] ch{_c}: {len(accepted)} new convention(s) accepted")
 
-    # ── s10 D1 promotion: an M-rule that emerged independently in ≥ k=roster-
-    # majority models is promoted to a global C<n> (via the GLOBAL gate). Runs after
-    # the scribe so both channels' learning is settled before cross-model promotion.
-    try:
-        promoted = mtier_mod.check_promotions(
-            model_trio, system_prompt, book_chi, book_eng, target_version,
-            sn_field, verbose=args.verbose)
-        if promoted:
-            print(f"  [promote] {len(promoted)} M-rule(s) → global C: "
-                  f"{', '.join(g for g, _t in promoted)}")
-    except Exception as _e:
-        print(f"  [promote] skipped ({_e})")
+        # ── s10 D1 promotion: an M-rule that emerged independently in ≥ k=roster-
+        # majority models is promoted to a global C<n> (via the GLOBAL gate). Runs after
+        # the scribe so both channels' learning is settled before cross-model promotion.
+        try:
+            promoted = mtier_mod.check_promotions(
+                model_trio, system_prompt, book_chi, book_eng, target_version,
+                sn_field, verbose=args.verbose)
+            if promoted:
+                print(f"  [promote] {len(promoted)} M-rule(s) → global C: "
+                      f"{', '.join(g for g, _t in promoted)}")
+        except Exception as _e:
+            print(f"  [promote] skipped ({_e})")
 
     # Verify SN coverage on gold standard
     print(f"\n  Verifying SN coverage on gold standard...")
