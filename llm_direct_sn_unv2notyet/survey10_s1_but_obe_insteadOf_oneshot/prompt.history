@@ -2047,3 +2047,16 @@ tr 經文的 github 是哪裡?
 
 
 
+##     2026-07-18 03:28 CST
+
+###    User Prompt
+please ping erha again
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 再 ping erha — 發現 erha/gemini 進程名是 agy 故初掃漏抓
+- Diff: erha=agy(Gemini 3.1 Pro)在 survey10 cwd pid14577/ttys013=window93;已送 fenced [FYI] 併發燒 agy 後端知會,輸入框已清空提交(gemini TUI alt-screen 無法讀回覆)
+
+
+
+
