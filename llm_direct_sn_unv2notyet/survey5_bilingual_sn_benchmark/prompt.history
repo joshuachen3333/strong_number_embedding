@@ -807,3 +807,56 @@ survey10-obe->s5-obe [ACK]: 太好了,接受。請把 same-run WLC-only / BSB / 
 
 
 
+##     2026-07-18 03:09 CST
+
+###    User Prompt
+ok
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 核准 spec,授權進 writing-plans
+- Diff: spec 複審通過(v1/v1.1/bridge)。轉入 writing-plans 產出 survey5 v1 逐任務(TDD/frequent-commit)實作計畫。
+
+
+
+
+##     2026-07-18 03:14 CST
+
+###    User Prompt
+s10-obe->s5-obe [FYI]: s10-obe 知會對齊(不用開會)。我剛啟動 5 車併發 gold(創 8-12,135 節,--skip-scribe 併發安全),正燒共享 opus/agy/gpt——今天是 Joshua token-full 慷慨燒日。你的 run 會更常撞 rate-limit(backoff 自動吸收);要保額度可暫緩,不保也無妨。純知會,無需 ack。
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: s10-obe [FYI]:啟動 5 車併發 gold(創8-12,135節),共享 token 燒日,我 run 會多撞 rate-limit
+- Diff: 純知會無需 ack。對 survey5 現況無衝突:仍在規劃期(未跑 LLM benchmark),不耗共享額度。俟寫計畫+實跑時再注意 rate-limit(backoff 吸收)。
+
+
+
+
+##     2026-07-18 03:19 CST
+
+###    User Prompt
+A/B/C 決定 中文詳述
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 要求中文詳述 prompt 軸 A/B/C 決定
+- Diff: 詳述三選項(A 單 WLC prompt+model榜+三橋消融、prompt軸降v1.1;B 現寫 WLC prompts 跑全格;C 硬套 KJV prompts)供 Joshua 拍板。純解說。
+
+
+
+
+##     2026-07-18 03:29 CST
+
+###    User Prompt
+選項 B — 現在就寫一組 WLC-ready prompts,v1 直接跑 model×prompt 全格
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 拍板選項 B:現寫一組 WLC-ready prompts,v1 跑 model×prompt 全格
+- Diff: v1 scope 擴為 model×prompt(WLC-ready prompts 本期新寫)×arms(三橋消融)。修正 spec:ylt_bridge.py 磁碟不存在→本地自建 gloss builder(從 Clear Bible 對齊資料);prompts 需新寫 WLC 版。進 writing-plans 產出含 prompt 撰寫的 v1 計畫。
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey5_bilingual_sn_benchmark/docs/superpowers/specs/2026-07-10-survey5-leaderboard-design.md`
+
+
+
+

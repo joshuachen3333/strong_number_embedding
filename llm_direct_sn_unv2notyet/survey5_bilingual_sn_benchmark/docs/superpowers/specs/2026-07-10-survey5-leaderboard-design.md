@@ -26,12 +26,17 @@ survey5 already has most of the parts:
   each verse dimension-labelled. Frozen ⇒ scores are comparable across contestants.
 - **`run_iteration_set.py`** — already runs one `(model, prompt)` cell over the 52-set.
 - **`prompts/`** — 5 prompt versions (`survey5_v0.1`..`v0.4`, `survey5_reverse_v0.1`).
+  ⚠️ These are **KJV→UNV** specific (KJV tags as ground truth). v1 chose option **B**:
+  **author a fresh WLC-ready prompt set** (`prompts/survey5_wlc_*.md`); the KJV prompts
+  are not used as-is.
 - **Round-2 scoring** — `scoring.num_score` (format-agnostic), `morph.attach_morph`
   (deterministic morph layer), `gate.morph_recall` / `gate.tier_recall`.
 - **`wlc_bridge.py`** — WLC (Hebrew original + SN) source builder.
-- **`../survey10_s1_but_obe_insteadOf_oneshot/ylt_bridge.py`** — survey10's per-morpheme
-  literal YLT gloss + full-verse builder (Clear Bible manual WLC↔YLT alignment); reused
-  by the bridge ablation by import (do not fork, same pattern as `wlc_bridge.py`).
+- **Clear Bible alignment data** (`Alignments/data/eng/`) — `alignments/YLT/WLC-YLT-manual.json`
+  (437k WLC-morpheme→YLT-word records), `targets/YLT/ot_YLT.tsv`, and the BSB equivalents.
+  ⚠️ Correction (2026-07-18): survey10's `ylt_bridge.py` referenced in an earlier draft
+  **does not exist on disk** — the bridge gloss builder (`bridge_gloss.py`) is authored
+  locally in v1 from this alignment data.
 
 The expansion is a **matrix runner + leaderboard aggregation** on top of these, plus two
 upgrades to the per-cell path (Round-2 scoring; isolated-cwd model calls).
@@ -95,11 +100,13 @@ same-run YLT still beats WLC-only, survey10 reconsiders switching A2's bridge ba
 | `wlc+bsb` | + BSB English gloss bridge (readable, natural word order) |
 | `wlc+ylt` | + YLT literal English gloss bridge (tracks Hebrew morphology closely) |
 
-**Data.** Reuse survey10's `ylt_bridge.py` (import) for the YLT per-morpheme gloss + full
-verse from the Clear Bible manual WLC↔YLT alignment; BSB gloss analogously from the
-`WLCM-BSB-manual.json` alignment. Glosses are read from that alignment data, not fetched
-live; if needed they are frozen alongside the verse set (`bridge_snapshot_52.json`) for
-reproducibility.
+**Data.** A local `bridge_gloss.py` (authored in v1) builds per-Hebrew-word English
+glosses from the Clear Bible alignment: for each WLC token id, look up its aligned target
+word-ids in `WLC-YLT-manual.json` (`records`: `source`=WLC ids, `target`=YLT ids) and join
+the text from `ot_YLT.tsv`. YLT aligns directly to our `WLC.tsv` ids (clean); BSB uses
+WLCM source ids in `WLCM-BSB-manual.json`, needing a WLC↔WLCM id reconciliation (secondary,
+since BSB is the expected-harmful arm and YLT is the load-bearing question). Glosses are
+frozen to `bridge_snapshot_52.json`; benchmark runs never read the alignment live.
 
 **Scoring.** Identical to the leaderboard headline — `scoring.num_score` cov/place on raw
 output (pre-`attach_morph`), morph column separate. A **paired-delta table** reports, per
@@ -209,7 +216,8 @@ Any outcome not matching the "helps" row defaults to staying `wlc`.
 | `prompts/*.md` | Prompt contestants | reuse |
 | `scoring.py` / `gate.py` / `morph.py` | Round-2 scoring + deterministic morph attach | reuse |
 | `wlc_bridge.py` | WLC source builder | reuse |
-| `../survey10.../ylt_bridge.py` | YLT (and BSB) English gloss builder for the bridge ablation | reuse (import) — **v1** |
+| `bridge_gloss.py` | YLT (and BSB) English gloss builder from Clear Bible alignment data | **new (v1, bridge ablation)** |
+| `prompts/survey5_wlc_*.md` | WLC-ready prompt contestants (authored in v1 — option B) | **new (v1, prompt axis)** |
 | `bridge_snapshot_52.json` | Frozen per-verse BSB/YLT glosses for the OT subset (if freezing is needed) | **new (v1, bridge ablation)** |
 | `build_qp_snapshot.py` | One-time qp word-table snapshot builder | **new (v1.1, ±qp)** |
 | `qp_snapshot_52.json` | Frozen per-verse qp word-tables | **new (v1.1, ±qp)** |

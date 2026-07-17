@@ -1549,3 +1549,64 @@ Committed and pushed (`06450e0`; the `exit=1` was just grep finding no error lin
 
 
 
+##     2026-07-18 03:12 CST
+
+###    User Prompt
+Skill /superpowers:writing-plans was loaded earlier (see the invoked-skills reminder above); this is a NEW invocation — follow those instructions now, including any setup steps.
+
+###    result
+Two blockers surfaced that the spec assumed away — I should flag these before writing a plan that references non-existent code. Let me check whether the YLT/BSB alignment *data* at least exists (so a gloss builder is buildable).
+
+
+
+
+##     2026-07-18 03:13 CST
+
+###    User Prompt
+[writing-plans skill 啟動 → 開始寫 v1 實作計畫前的程式碼盤點]
+
+###    result
+[補記 backfill：多步驟 turn,自動記錄漏掉最終定稿]
+
+寫計畫前盤點程式碼,發現兩個 spec 假設在磁碟上為假,先回報。
+
+## 好消息(可直接組裝)
+run_bakeoff.py 已具備 WLC 來源、隔離 cwd、attach_morph、Round-2 評分(num_score/nines_recall/gate);iteration_set_52.json + 逐維度;凍結基準集。都在。
+
+## 阻礙 1:ylt_bridge.py 根本不存在
+survey11 設計文件宣稱 2026-07-11 在 survey10 建了 ylt_bridge.py 與 run_a2_wlc_ylt.py,但磁碟上兩檔都不存在。spec 寫「import 復用 ylt_bridge.py」是錯的假設。但原始對齊資料在:Alignments/data/eng/alignments/YLT/WLC-YLT-manual.json、BSB/WLCM-BSB-manual.json、targets/{YLT,BSB}/ot_*.tsv。→ gloss builder 要自己寫(非 import),真任務可做;建議先跟 survey10-obe 確認避免重造。
+
+## 阻礙 2:現有 prompts 全是 KJV 專用,非 WLC-ready
+prompts/survey5_v0.1~v0.4(+reverse)全是 KJV→UNV,把 KJV tag 當 ground truth。我們來源是 WLC,故「哪個 prompt 更強」軸的現有選手與 WLC 來源不匹配。需 Joshua 定:A(建議)v1 先做 model 排行榜+三橋消融,prompt 軸用 s10 harsh WLC prompt 當單一 prompt,prompt 比較+新寫 WLC prompts 降 v1.1;B 現在新寫一組 WLC-ready prompts;C 硬套現有 KJV prompts(不建議)。
+
+傾向 A。選定後先跟 survey10-obe 確認 ylt_bridge 狀態,再寫計畫。
+
+
+
+
+##     2026-07-18 03:20 CST
+
+###    User Prompt
+補一下 /ph and /logoutput
+
+###    result
+補記完成並推送(main...origin/main 乾淨)。
+
+## /ph 與 /logoutput 補齊報告
+prompt.history:本來就齊,只補了當前這句。
+response.history:發現系統性漏記——多步驟 turn(先講一句→呼叫工具→最終定稿)的自動記錄只抓到工具呼叫前的開場白,或記成空白,把最終定稿丟了。補回 5 則(原時戳):
+- 10:46 中文詳述 survey5 規格(空→補濃縮版)
+- 10:59 BSB/YLT 新約根基(空→補忠實重建)
+- 11:23 cornerstone 三層分析(只有開場白→補定稿)
+- 11:36 WLCM→WLC.tsv 更正(只有開場白→補定稿)
+- 02:53 v1/v1.1/bridge 展示(完全沒記→補全文)
+補入的都標了 [補記 backfill],保留原開場白形成誠實接續(不覆寫)。
+
+## 根因與建議
+自動記錄的 Stop hook 抓的是該 turn 第一段 assistant 文字而非最後一段;凡「開場白→工具→定稿」的 turn 都會中招。建議修 hook 改抓 turn 的最後一則 narrative。修好前我對多步驟 turn 手動補 /logoutput。
+
+回到正題:survey5 spec 複審關卡還開著,OK 的話進 writing-plans。
+
+
+
+
