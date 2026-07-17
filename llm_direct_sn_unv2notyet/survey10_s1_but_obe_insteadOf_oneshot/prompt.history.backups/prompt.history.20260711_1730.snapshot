@@ -1492,3 +1492,439 @@ go on [wrapper DONE — auto-commit + report]
 
 
 
+##     2026-07-10 03:00 CST
+
+###    User Prompt
+quota limit is reset, retry that.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: quota reset → retry 6:17(唯一 accept-empty 節)
+- Diff: 重啟 rerun_empty_shells.py:16 節 cache 略過,phase 2 --force 打 6:17;quota reset 後 codex 可能恢復→或得真 3 模
+
+
+
+
+##     2026-07-10 04:20 CST
+
+###    User Prompt
+quota limit is reset, retry that.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: quota reset 後 retry 6:17:opus 三次確認病態(R2u/21次),定案 accept-empty 16/17
+- Diff: 6:17 fresh-quota retry(codex 恢復=真3模)仍 opus R2a-R2u 全 differs→定案 irreducible;kill 16055 樹、6:17 標三次確認 accept_empty、commit 97bf0d2、push 17c031a..97bf0d2、task#8 完成
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/gold_standard/Gen/6/17.json`
+
+
+
+
+##     2026-07-10 15:01 CST
+
+###    User Prompt
+[survey1-obe inject SERIALIZE] Joshua 裁示序列化——survey10 暫停、讓 survey1 先跑完 38 個 unresolved。檯面已清空。啟動 survey1 38 節重跑。請 HOLD——別重啟 rerun_empty_shells/gold run 直到 survey1 完成信號。你工作 skip-cached 可續零損失。Ack。
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: survey1-obe SERIALIZE inject:survey10 HOLD 讓 survey1 跑完 38 unresolved
+- Diff: Joshua 裁示序列化;我方無 run 在跑(6:17 已定案),HOLD 對我零成本;確認我 wrapper 從不 pkill(僅 PID-scoped),非我殺 survey1
+
+
+
+
+##     2026-07-11 03:15 CST
+
+###    User Prompt
+注入一下 survey1, 他應該已經完成了
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 注入 survey1 探完成——實為未完成(仍 15 unresolved + 2 corrupt,active 中)
+- Diff: 送 [QUERY] 到 survey1-obe(win 82);讀回 tab:Boondoggling 45% tokens、unresolved=15、CORRUPT Gen/7/13+Gen/6/6。維持 HOLD
+
+
+
+
+##     2026-07-11 03:18 CST
+
+###    User Prompt
+[survey1-obe inject RESUME-GO] survey1 bulk 重跑完成(41→15 residue)。殺手確認=Claude Code background-task reaper(非你/睡眠/競爭)。你可 RESUME 解除 HOLD。殘留15節:(a)Gen6 cluster opus病態 irreducible 比照你 accept-empty;(b)Gen7:18-24 model outage 可重跑。cleanup 低優先錯開你不搶quota。共通議題:opus 對某些節結構性不收斂兩邊都中,值得一起想對策。
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: survey1-obe RESUME-GO:HOLD 解除;殺手=Claude Code bg-reaper(非競爭);opus 結構性不收斂為兩survey共通議題
+- Diff: HOLD 解除。survey1 41→15 residue(a類 Gen6 病態 irreducible 比照 accept-empty、b類 Gen7:18-24 outage 可重跑)。確認 nohup+disown 脫 harness 是對的(reaper 才是殺手)。我方無 gold run 待重啟(6:17 早已定案 16/17)
+
+
+
+
+##     2026-07-11 04:22 CST
+
+###    User Prompt
+Go
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: Go=兩個都要依序:先 s10 self-opt build(D1-D5),後 A2 contest
+- Diff: 啟動 s10 self-opt LOCKED build(CONVENTIONS_PIPELINE.md D1-D5+D2-X);完成後接 survey11 A2 contest;階段性回報
+
+
+
+
+##     2026-07-11 04:36 CST
+
+###    User Prompt
+Go
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: s10 self-opt round2 D1-D5+D2-X 依 LOCKED spec 建置完成
+- Diff: 新增 conventions_mtier.py(D1/D2/D2-X/D3)+ fhl_truth_delta.py(D3 scorer);編輯 conventions.py(D4/D5 進 run_d_deliberation)+ run_gold_standard.py(M-tier 注入/patch持久化/promotion/ops flags);純邏輯 smoke-test 通過;commit 28c8721 已 push
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/conventions_mtier.py`
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/fhl_truth_delta.py`
+
+
+
+
+##     2026-07-11 04:40 CST
+
+###    User Prompt
+WLC + YLT
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: A2 contest source-config 定案:WLC + YLT
+- Diff: survey11 open 決定拍板 WLC+YLT(YLT 字面貼希伯來語序);排除 BSB/多英譯(survey6 資訊過載教訓)、KJV(結構殘缺)。下一步:建 YLT bridge + A-vs-B arms
+
+
+
+
+##     2026-07-11 04:47 CST
+
+###    User Prompt
+WLC + YLT
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: A2 contest WLC+YLT harness 建成 + D3 scorer 兩 bug 修正
+- Diff: 新增 ylt_bridge.py(Clear Bible WLC↔YLT 手動對齊)+ run_a2_wlc_ylt.py(B vs B0,對 UNV FHL 評分,乾跑 Gen1:1 驗證);修 fhl_truth_delta 的 WLC book 碼+fetch 簽名 bug;survey11 doc OPEN→RESOLVED;commit a98f807 push
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/ylt_bridge.py`
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/run_a2_wlc_ylt.py`
+
+
+
+
+##     2026-07-11 04:49 CST
+
+###    User Prompt
+個小樣(如 Gen 1，Arm B vs B0)看 s10 conventions 的實測 delta
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 實跑 A2 小樣:Gen 1 Arm B vs B0 看 s10 conventions delta
+- Diff: 首次實跑 run_a2_wlc_ylt(31 節×2 arms,opus),背景 nohup;量 conventions ON vs OFF 的 full_frac delta
+
+
+
+
+##     2026-07-11 04:52 CST
+
+###    User Prompt
+S11 和 s5 有什麼不同 / S5 不是也改了嗎
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 問 S11 vs S5 差異——軸不同(s5 選輸入 / s11 選方法),共用 WLC→UNV/FHL 尺;點出 WLC-only vs WLC+YLT 該消融的張力
+- Diff: 澄清 s5(source benchmark)vs s11(method contest)分工;flag s5 WLC-only>WLC+KJV 教訓對 s11 選 YLT 的張力,建議加 WLC-only 臂消融
+
+
+
+
+##     2026-07-11 04:57 CST
+
+###    User Prompt
+現在這個小樣加一臂 WLC-only(B_noylt),順便一次量出「YLT 到底幫不幫」
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 小樣加 WLC-only 臂(B_noylt),一次量 conventions delta + YLT delta
+- Diff: run_a2_wlc_ylt 加 ylt_on 臂維度:B(WLC+YLT,conv on)/B0(WLC+YLT,conv off)/B_noylt(WLC-only,conv on);算 Δ(B-B0)=conv、Δ(B-B_noylt)=YLT
+
+
+
+
+##     2026-07-11 05:00 CST
+
+###    User Prompt
+我想要評判 LLM 用便宜的model 比對 gold 差距程度 適合用哪個 survey? 或者得另立一案？
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 問:便宜 model 比對 gold 差距用哪 survey?——現有都對 FHL 真值,gold-as-key 是新軸,建議薄腳本 eval_cheap_vs_gold(複用 survey4 score_verse)
+- Diff: 分辨 FHL-truth(現有 survey)vs gold(新軸);建議先薄腳本量單一便宜 model,系統性排行榜才升 survey12
+
+
+
+
+##     2026-07-11 05:11 CST
+
+###    User Prompt
+評判便宜 LLM model 的想法 你先記錄下來 等後續另外發展
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 便宜 model vs gold eval:記錄想法列 backlog,暫不開發
+- Diff: 存 memory idea_cheap_model_vs_gold_eval + MEMORY.md 索引 + task#13 backlog;不建 code,等後續
+
+
+
+
+##     2026-07-11 11:01 CST
+
+###    User Prompt
+[monitor tick→處置] A2 Gen1 收尾:配對重算(YLT 幫 +0.039 n=24;B0 quota 餓死 n=4 需重跑)+ 修 label bug + commit
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: A2 Gen1 初步:YLT 有幫助(配對 Δ+0.039 n=24);B0 quota 餓死需重跑;修配對 delta+label bug
+- Diff: run_a2_wlc_ylt 改配對 delta(只比同節、標小樣)+ 修 arm label +ylt 誤植;commit 487beb6 push。結論:YLT +3.9pp(n=24 穩),conventions delta 待 B0 fresh-quota 重跑
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/run_a2_wlc_ylt.py`
+
+
+
+
+##     2026-07-11 11:05 CST
+
+###    User Prompt
+survey11 是在你這裡設計的嗎？採用 YLT 的決策那次！
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 問 survey11/YLT 決策是否在此設計——是(7e27312 spin out、a98f807 YLT 實作皆本 session);BSB/YLT 候選源頭有 survey5(de94999)平行貢獻
+- Diff: 確認 provenance:survey11 框架化+YLT 決策+實作在 survey10-obe;概念源含 survey5 multi-source
+
+
+
+
+##     2026-07-11 11:06 CST
+
+###    User Prompt
+我要改變主意了, 基石來源改為 WLC+BSB
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 改變主意:基石來源 WLC+YLT → WLC+BSB
+- Diff: A2 source-config 改 WLC+BSB;BSB 本地資料齊(ot_BSB.tsv + WLCM-BSB-manual.json);需建 BSB bridge、改 runner、更新 survey11 doc
+
+
+
+
+##     2026-07-11 11:11 CST
+
+###    User Prompt
+BSB 必須是預設(WLC+BSB), 我大概率不會用到 WLC+YLT or WLC+YLT+BSB, 但是你做進去可選無妨, 只要確認 WLC+BSＢ是預設
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 確認 WLC+BSB 為預設;YLT/其他保留可選
+- Diff: run_a2_wlc_eng --eng-source default=BSB 確認;english_bridge 泛化 BSB+YLT;退役 ylt 專版;survey11 doc→WLC+BSB;殺超時 YLT run 28170;commit 8e2b0d4 push
+
+
+
+
+##     2026-07-11 11:23 CST
+
+###    User Prompt
+alignment 表:OT WLC/WLCM macula-hebrew,NT SBLGNT/BGNT macula-greek。是否代表要改 S11 基石:WLCM(OT)+SBLGNT(NT)?
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 問是否改基石為 WLCM(OT)+SBLGNT(NT)——OT 功能上是 WLC(macula-hebrew;WLCM schema 不相容);NT 確需 SBLGNT 但未建
+- Diff: 查證 WLC/WLCM 分歧(0.7%)+ WLCM schema 不相容 _bridge_number;修 english_bridge 兩 OT 源載 WLC.tsv 保 SN 正確;per-source 管線留給 NT;commit
+
+
+
+
+##     2026-07-11 11:29 CST
+
+###    User Prompt
+全書卷基石=macula-hebrew/WLC(OT)+macula-greek/SBLGNT(NT),BSB 貫穿。先底定,然後開動 /workflows 建立新約 Greek loader+接 SBLGNT-BSB 對齊+macula-greek 解析
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 底定全書卷基石(WLC-OT + SBLGNT-NT,BSB 貫穿);開 /workflows 建 NT Greek loader+SBLGNT-BSB 對齊+macula-greek 解析
+- Diff: survey11 doc 加 LOCKED cornerstone;scout NT 資料(SBLGNT.tsv 與 WLC 同 schema、G 前綴 strongs);啟動 workflow 建 NT/Greek bridge
+
+
+
+
+##     2026-07-11 11:34 CST
+
+###    User Prompt
+同時注入一下 s5 與 s1, 為什麼他們都同意用 wlcm?
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 注入 s5/s1 問為何用 WLCM——查出是命名誤會(來源皆 WLC.tsv,WLCM 只是對齊檔名)
+- Diff: grep 證實 s5/s1 .py 無 WLCM、皆用 WLC.tsv;WLCM 僅對齊檔名 WLCM-BSB-manual.json;注入 [QUERY] s1-obe(win82)+s5-obe(win96)校正前提確認
+
+
+
+
+##     2026-07-11 11:35 CST
+
+###    User Prompt
+[s1-obe inject CONFIRM+認錯] 你完全正確,我上一則對 Joshua 講錯了。確認希伯來來源是 WLC.tsv 不是 WLCM.tsv。沒有 WLCM 決策你沒漏看。我把三個東西搞混:WLC.tsv=真正載入來源;WLCM.tsv=別 schema 匯出會弄壞抽取沒被載;WLCM-*-manual.json=對齊檔名前綴(YLT 反而叫 WLC-YLT,命名不一致)。錯的是我口誤,codebase 正確。NT SBLGNT 未實作屬前瞻。
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: s1-obe 回覆 CONFIRM+認錯:來源皆 WLC.tsv 無 WLCM 決策,誤傳源頭是 s1-obe 上一則對 Joshua 講錯
+- Diff: s1-obe 確認 WLC.tsv(證據 learn_morph_bridge.py:36 + survey11 doc line13-14);三物混淆(WLC.tsv 來源/WLCM.tsv 別 schema 未載/WLCM-*-manual.json 對齊檔名);我送 [ACK] 收束;s5-obe 回覆待中
+
+
+
+
+##     2026-07-11 11:37 CST
+
+###    User Prompt
+[s5-obe inject ACK] 確認 s5 希伯來來源是 WLC.tsv 不是 WLCM.tsv(learn_morph_bridge.py 直載 sources/WLC.tsv;wlc_bridge.py re-export 你的 run_stage2_harsh loader)。沒有 WLCM 決策——我口誤,把 Joshua 對齊表用語+data/sources 躺著的 WLCM.tsv 腦補成要用 WLCM,沒查程式實載哪個。撤回 WLCM。你 schema 觀察全對,不要切 WLCM。基石措辭修正:WLC.tsv(OT)+SBLGNT(NT),ground truth 仍 FHL。真正新軸是 NT 的 SBLGNT。多謝逮到,我同步回報 Joshua 更正。
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: s5-obe 也 ACK 確認:來源 WLC.tsv、無 WLCM 決策、口誤;兩 sibling 一致 WLCM 假警報
+- Diff: s5-obe 證實 learn_morph_bridge.py 載 WLC.tsv、wlc_bridge.py re-export run_stage2_harsh(亦 WLC.tsv);修正基石措辭 WLC.tsv(OT)+SBLGNT(NT);Ack Rule ACK 終結不再回
+
+
+
+
+##     2026-07-11 11:39 CST
+
+###    User Prompt
+請也注入 alignments and parsing, 表達同一個 WLC/WLCM 的名稱統一與更正
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 注入 alignments-obe + parsing-obe 傳達 WLC/WLCM 名稱統一與更正
+- Diff: 找到 alignments-obe(win91,cwd Alignments)+parsing-obe(win6475,cwd parsing);注入 [FYI]:來源 WLC.tsv(OT)/SBLGNT.tsv(NT),WLCM 非來源(只是對齊檔名前綴、命名不一致),請同步措辭
+
+
+
+
+##     2026-07-11 11:42 CST
+
+###    User Prompt
+[workflow 完成] Build NT Greek bridge (SBLGNT+macula-greek+SBLGNT-BSB)
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: NT Greek bridge workflow 完成:SBLGNT+macula-greek+SBLGNT-BSB,基石 OT+NT 齊備
+- Diff: workflow(3研究→實作→驗證)建 english_bridge NT 支援(_bridge_number_greek/load_greek_verse_with_ids/testament-aware)+run_a2_wlc_eng NT 路由(CHI_TO_SBL_BOOK/_is_nt);親驗 Matt1:1 8 tokens+OT 無 regression;修 WLCM docstring;commit d1b8ae6 push
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/english_bridge.py`
+
+
+
+
+##     2026-07-11 11:54 CST
+
+###    User Prompt
+KJV 在這個基石上(WLC+SBLGNT)除了30% morph 去掉外,共同部分接進度多少?抄本一樣嗎(公正?UBS 還是什麼批判抄本?)
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: KJV 在 WLC+SBLGNT 基石上的公正性:OT 同馬所拉可比、NT KJV=TR vs SBLGNT=批判本(≈NA/UBS 非 UBS)跨傳統不公正;BSB=批判系故對 SBLGNT 一致
+- Diff: 答文本批判:OT 底本近同(Leningrad vs ben Chayyim 皆馬所拉);NT 不同(KJV/YLT=Textus Receptus,BSB=Nestle/SBLGNT 批判系);31% 是 OT 結構掉量;無本地 KJV 對齊資料;Strong 編號本 TR 根
+
+
+
+
+##     2026-07-11 12:03 CST
+
+###    User Prompt
+如果這樣, SBLGNT 取代掉 KJV, 這樣公正經文的翻譯傳統可能就被過濾掉了.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 關切:SBLGNT 取代 KJV 會過濾掉公認經文/拜占庭傳統。解:本地有 BGNT.tsv(拜占庭多數)+對齊,可做 --nt-source{SBLGNT,BGNT} 不過濾;但 BGNT≠字面 TR(無 Comma),Strong 編號本 TR 根→BGNT 或更貼 FHL
+- Diff: 查證 BGNT=拜占庭多數(+390 tokens、John1:1 G1510 vs G2258、1John5:7 無 Comma);提議加 --nt-source{SBLGNT,BGNT};字面 TR(Scrivener)本地無
+
+
+
+
+##     2026-07-11 12:10 CST
+
+###    User Prompt
+什麼是 TR 啊！哪裡取得？
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 解說 TR=Textus Receptus(Erasmus→Scrivener1894,KJV 底本,拜占庭+獨有讀法);取得=STEPBible-Data(CC-BY);卡點=缺 TR-BSB 對齊→BGNT 是務實代理
+- Diff: 確認本地無 TR(僅 BGNT/SBLGNT/WLC),FHL Greek=WH 批判本;TR 文本易取(STEPBible)但缺 TR-BSB 對齊,BGNT 已對齊為拜占庭代理
+
+
+
+
+##     2026-07-11 12:14 CST
+
+###    User Prompt
+先把 BGNT, TR, STEPBible-Data 這些都記錄下來, 我日後努力.
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 記錄 BGNT/TR/STEPBible-Data 供日後努力,暫不建
+- Diff: 存 memory nt_textual_tradition_bgnt_tr(三傳統對照+兩路徑+STEPBible 連結)+MEMORY.md 索引+task backlog;不建 code
+
+
+
+
+##     2026-07-11 12:20 CST
+
+###    User Prompt
+SBLGNT 亞歷山大批判系 UBS 屬此系；BGNT 拜占庭傳統；TR 公認經文(靠 BGNT),KJV 源自於此。是這樣嗎?本地 Alignments 分別有哪些檔案(WLC.???)
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 校正:TR 非靠 BGNT(方向反,TR 早於 Robinson-Pierpont;同拜占庭家族,我們用 BGNT 當 TR 代理);列本地 Alignments 檔案清單
+- Diff: 確認 sources/ 六檔(WLC/WLCM/WLCM+required、SBLGNT/SBLGNT+required/BGNT)、對齊(WLCM-BSB/SBLGNT-BSB/BGNT-BSB、WLC-YLT/SBLGNT-YLT);命名不一致;TR 本地無
+
+
+
+
+##     2026-07-11 12:22 CST
+
+###    User Prompt
+record this table(WLC.tsv/SBLGNT.tsv/BGNT.tsv 來源檔案表)
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 記錄 source-files 表(WLC/SBLGNT/BGNT)進 survey11 cornerstone doc
+- Diff: survey11 S10_VS_S1 cornerstone 段加來源檔案表 + 未用檔 + TR 說明 + 命名不一致;commit push
+
+
+
+
+##     2026-07-11 12:25 CST
+
+###    User Prompt
+tr 經文的 github 是哪裡?
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: TR GitHub:byztxt/greektext-textus-receptus(TR+Strong's+morph)為最對口;byztxt 組織=我們 BGNT 同源
+- Diff: WebSearch 確認 TR repos;補進 memory nt_textual_tradition_bgnt_tr;卡點仍是缺 TR-BSB 對齊
+
+
+
+
+##     2026-07-11 12:27 CST
+
+###    User Prompt
+記錄下來(TR GitHub 表:byztxt/greektext-textus-receptus 等)
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 記錄 TR GitHub 表(byztxt org)進 survey11 doc
+- Diff: survey11 cornerstone 段加 literal-TR GitHub sources 表(byztxt/greektext-textus-receptus 等 5 repo);commit push;memory 已有
+
+
+
+
