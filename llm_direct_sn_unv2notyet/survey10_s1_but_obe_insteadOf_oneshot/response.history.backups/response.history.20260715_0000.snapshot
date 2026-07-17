@@ -3482,3 +3482,612 @@ Quota reset,retry 6:17。啟動 wrapper PID 16055 —— DEFER 邏輯讓 phase 1
 
 
 
+##     2026-07-10 03:27 CST
+
+###    User Prompt
+[monitor tick] retry 6:17:收斂→17/17;又病態→irreducible accept-empty。codex 是否恢復
+
+###    result
+關鍵變化:codex 回來了 —— quota reset 生效,這次 R1 codex OK(conf=0.91, 20s),是真正的 3 模 panel(opus+agy+codex 全答)。但 opus 對 6:17 仍病態 —— R2a→R2f 全 differs,即使新鮮 quota 也無法收斂。這是第三次獨立驗證 opus 對這節的非收斂性,證明不是 quota 問題,是這節本身。
+
+不過這次有轉機:上輪 codex 全死,走到 D-deliberation 無 panel 可仲裁才失敗;這次 codex 在,若 opus R2 撐不住走到 R3 judge / D-deliberation,有完整 3 模可裁決,解出機會比上次高。PID 16055 存活(26min),6:17 現 R2f。還不到判定 —— 這次要看 R3/D 用完整 panel 能否救回,跟上次沒 codex 不同。延長觀察 25min。
+
+
+
+
+##     2026-07-10 03:54 CST
+
+###    User Prompt
+[monitor tick] retry 6:17:看 R3/D 用完整 panel(codex 已回)能否解出;否則定案 irreducible accept-empty
+
+###    result
+opus 病態性確認無疑 —— 這次 fresh quota + codex 在場,opus 仍 R2a→R2m(13 次)全 differs,連一次 STABLE 都沒有。三次獨立驗證,證明與 quota、codex 無關,是 opus 對這節本身無法自我收斂。
+
+但它還沒走到 D-deliberation —— 卡在 R2 收斂迴圈。上輪 R2 在 R2k 後轉 D(但當時 codex 死,無 panel 仲裁才失敗)。這次 codex 在,所以關鍵是:等它 R2 觸頂進 D-deliberation 後,完整 3 模 panel 能否救回 —— 這是唯一跟前兩次不同的變數,值得等。PID 16055 存活(52min),6:17 現 R2m,尚未進 D。
+
+判定策略:再給一窗口讓它 R2 觸頂 → D-deliberation,看完整 panel 能否仲裁。進 D 且解出→17/17;進 D 仍失敗 or R2 空轉→定案 irreducible、accept-empty。續排監控 25min。
+
+
+
+
+##     2026-07-10 04:20 CST
+
+###    User Prompt
+監控 rerun_empty_shells.py (PID 16055) retry 6:17:opus R2 已確認病態(R2m+,三次獨立驗證)。唯一變數=codex 這次在。重點看是否進到 D-deliberation 且完整 3 模 panel 解出 6:17→17/17 commit+push+回報;若進 D 仍失敗 or R2 無限空轉→定案 irreducible、PID-scoped kill、重新標 accept-empty、commit 16/17+回報。查 wrapper alive/DONE/STOP
+
+###    result
+16/17 定案,6:17 標記三次確認的 accept-empty。commit + push + 記錄 + 收 task。
+
+
+
+
+##     2026-07-10 15:05 CST
+
+###    User Prompt
+[survey1-obe inject SERIALIZE] Joshua 裁示序列化——survey10 暫停、讓 survey1 先跑完 38 個 unresolved。請 HOLD 別重啟 rerun_empty_shells/gold run 直到 survey1 完成信號。你工作 skip-cached 可續零損失。Ack。
+
+###    result
+收到 survey1-obe 的 SERIALIZE 協調 —— Joshua 裁示序列化,survey10 讓路給 survey1 的 38 節先跑。
+
+我方狀態剛好單純:6:17 已定案(opus 三次確認病態,accept-empty FINAL),16/17 收尾、commit+push 完成(97bf0d2),無任何 run 在跑(16055 已 PID-scoped 殺)。所以 HOLD 對我零成本 —— 本來就沒東西要重啟。
+
+已做:(1) 記 /ph;(2) 找到 survey1-obe 互動 session(pid 14833 @ ttys001,Terminal window 82);(3) 用 /obe 協議回注 fenced [ACK](double-Enter v2),確認 HOLD、確認我 wrapper 從不 pkill(僅 PID-scoped,檯面清空非我殺它);(4) 建 task#9 記 HOLD 待辦,等 survey1-obe ping resume。
+
+進入 HOLD 靜默,不排監控喚醒(resume 由 survey1 的 ping 觸發,非計時器)。resume 後 6:17 本身已判 irreducible 不需再試(除非換 model),可續其他 token-gated 工作。
+
+
+
+
+##     2026-07-11 03:15 CST
+
+###    User Prompt
+注入一下 survey1, 他應該已經完成了
+
+###    result
+QUERY 已送。等它處理片刻,讀回 survey1-obe 的 tab 看是否落地/回應。
+
+
+
+
+##     2026-07-11 03:19 CST
+
+###    User Prompt
+[survey1-obe inject RESUME-GO] survey1 bulk 重跑完成(41→15 residue)。殺手確認=Claude Code background-task reaper。你可 RESUME 解除 HOLD。殘留15:(a)Gen6 opus病態 irreducible 比照 accept-empty;(b)Gen7:18-24 outage 可重跑。共通議題:opus 結構性不收斂兩邊都中,值得一起想對策。
+
+###    result
+survey1-obe 發 [RESUME-GO] —— HOLD 解除。三個要點:
+
+1. 可 resume,序列化結束。但我方其實無 gold run 待重啟——17-shell 重跑在 HOLD 前就定案 16/17、6:17 已 accept-empty,所以「resume」對我=解除靜默、續 token-gated 工作(A2 contest、self-opt),不是重啟 daemon。
+
+2. 殺手身分確認:連殺 survey1 四次的是 Claude Code 的 background-task reaper(非我、非睡眠、非競爭),nohup daemon 過夜存活證實了。這驗證我一路用 nohup+disown 完全脫 harness 是對的(44501/54550/16055 都跑好幾小時沒被殺)。
+
+3. 共通發現:opus 對某些節結構性不收斂,兩邊都中(我 6:17 = 它 Gen6 cluster),accept-empty 是目前共同解。我 6:17 三次確認(含 fresh quota+codex 在場仍 R2u/21次),日後一起想對策我 in。
+
+已做:記 /ph、回 [ACK](win 82)、task#9(HOLD)完成、存 memory opus_structural_nonconvergence(含 reaper 基建教訓)+ 更新 MEMORY.md 索引。survey1 的 residue cleanup 低優先不搶 quota,我這邊無待重啟項,HOLD 正式結束。
+
+
+
+
+##     2026-07-11 04:36 CST
+
+###    User Prompt
+Go
+
+###    result
+s10 self-opt round 2(D1-D5 + D2-X)依 LOCKED spec 建置完成,commit 28c8721 已 push。s10 現在「完全 conventions-based、零 prompt mutation」。
+
+新增/編輯:
+- conventions_mtier.py(新):D1 M-tier per-model conventions.{model}.md(load/build/append/version/activate/demote;run_mtier_regression 複用 _run_patch_regression;check_promotions k-majority→global C 走 global gate)、D2 import_s1_patches_as_inactive(warm-start,inactive 待 gate)、D2-X versioned_resync(snapshot+baseline bump+provenance-tag gold+re-gate→auto-quarantine)、D3 falsify_conventions(Δ≤0 quarantine)。
+- fhl_truth_delta.py(新):D3 客觀 scorer,複用已驗證的 Stage-2 harsh A/B(WLC→UNV projection 對真 FHL 評分),隔離單一 convention 的邊際 FHL-truth delta。
+- conventions.py(編輯):D5 _wlc_evidence_block 把 wlc_check 餵進 D-deliberation 當獨立證據(非 override);D4 _d_to_convention 從已解 D 蒸餾可重用規則走同一 scribe gate。
+- run_gold_standard.py(編輯):per-model prompt 注入 M-tier preamble;gate 過的 Trigger-2 patch 同步持久化為 M-rule;post-scribe check_promotions;兩處 run_d_deliberation 傳 book_chi+gate_ctx;ops flags --warm-start-s1-patches / --resync-baseline / --falsify-conventions。
+
+驗證:純邏輯路徑全 smoke-test 過(append/load/version/activate/demote/promotion-match/warm-start 發現/argparse),模組載入乾淨;LLM 路徑靠接線審查,端到端留待下次 gold run。
+
+依序第一項完成 → 接第二項 A2 contest。但 A2 有個你保留的 open 決定:source config 取哪組(BSB / YLT / BSB+YLT / BSB+YLT+KJV)。需你定這個才能建對的 bridge。
+
+
+
+
+##     2026-07-11 04:47 CST
+
+###    User Prompt
+WLC + YLT
+
+###    result
+兩項「依序」都建完並 push。
+
+第二項 A2 contest(WLC+YLT source,commit a98f807):
+- ylt_bridge.py:用 Clear Bible 手動 WLC↔YLT 對齊(WLC-YLT-manual.json 437k records)把每個 WLC morph 對到 YLT 英文詞 + 全文;load_wlc_verse_with_ids 保留 morph id 供對齊。
+- run_a2_wlc_ylt.py:KJV-free 的 A2 contest,投射到 UNV、對 UNV 真 FHL 評分(無答案洩漏);Arm B(conventions ON)vs B0(control)隔離 s10 貢獻;full_frac + 09xxx_recall 用已驗證 Stage-2 指標;乾跑 Gen 1:1 prompt 完美(WLC+SN + YLT gloss + 全文 + plain UNV)。
+- 順手修了 D3 scorer(fhl_truth_delta)兩個真 bug:WLC book 碼寫成 "Gen"(應 "01",否則 load 全空、delta 恆 0 靜默失效)+ fetch_chap_cached 少 version 參數且當 list 用。已驗證 31 節、self-score 1.0。
+- survey11 doc:OPEN QUESTION → RESOLVED(WLC+YLT,rationale 保留)。
+
+狀態:harness 建好、乾驗證過,但尚未實跑(跑多節吃 token,屬啟動決定)。task#2 剩兩塊:full s1-consensus Arm A(文件已列為 same-task 之上的後續層)+ 實際 contest run。要不要我先跑一個小樣(如 Gen 1 B vs B0)看 s10 conventions 的實測 delta?
+
+
+
+
+##     2026-07-11 04:52 CST
+
+###    User Prompt
+S11 和 s5 有什麼不同 / S5 不是也改了嗎
+
+###    result
+S11 vs S5 —— 軸不同,共用同一把尺。
+
+survey5(bilingual benchmark):問「哪個輸入來源讓搬 SN 最準」;變數=SOURCE(KJV/WLC-only/WLC+KJV)+prompt+model;主體=遷移任務本身;產物=model×prompt×source 排行榜。
+survey11(gold factory selection):問「哪個產 gold 的方法更好:s1 三模共識 vs s10 conventions」;變數=METHOD(Arm A=s1/Arm B=s10),source 固定 WLC+YLT;WLC+YLT→UNV 只是拿來當客觀量尺(UNV 有 FHL 真值,逃開共識循環);產物=s1-vs-s10 勝負裁決。
+
+一句話:s5 問「餵什麼輸入最好」,s11 問「用哪個方法產 gold」。s11 把 s5 選出的來源當測量基座。
+
+「S5 不是也改了嗎」對——s5 最近做了 WLC-only 贏 WLC+KJV(Round-2)+建 morph_bridge(留一法 100%)。s11 直接複用 s5 的 morph_bridge.json + Stage-2 harness,底層共享所以像。差別:s5 的改是選最佳輸入;s11 的改是拿選定輸入比最佳方法。
+
+張力(誠實點出):s5 已發現 WLC-only 贏 WLC+KJV,暗示多加英文可能有害;但 s11 選 WLC+YLT(有加英文)。不必然矛盾(s5 那結論是 KJV 特有:結構殘缺掉 31%、無 09xxx;YLT 對齊好得多)。但照 s5 教訓 + s11 doc 自標的 survey6 資訊過載風險,嚴謹做法是先跑 WLC-only vs WLC+YLT source 消融確認 YLT 真幫助沒過載,再當 method 契約基座。問要不要在小樣加一臂 WLC-only。
+
+順帶:Gen 1 B vs B0 小樣正背景跑(PID 25649),首節 1:1 Arm B full=0.667、09xxx=1/1,pipeline 通,跑完報 delta。
+
+
+
+
+##     2026-07-11 05:00 CST
+
+###    User Prompt
+我想要評判 LLM 用便宜的model 比對 gold 差距程度 適合用哪個 survey? 或者得另立一案？
+
+###    result
+「便宜 model 比對 gold 差距」用哪個 survey?
+
+核心分辨:現有 survey 都拿 FHL 真值當答案(UNV/KJV 有真 SN);你要的是拿 gold(s1/s10 產的 LCC 共識標註)當答案。這是新的一軸——gold 當答案鑰匙,現有 survey 沒有。
+
+survey4(答案=FHL 真值,scorer 可複用但參照對象不對)/survey5(FHL 真值,source/model 排行榜)/survey9(production 無評分)/你要的(gold 當答案,無現成 survey)。
+
+建議:不必另立完整 survey,一支薄 eval 腳本即可,零件都現成只差黏合:(1)主程式 llm_direct_sn_unv2notyet.py 已支援便宜 model,直接跑出 LCC+SN(output/lcc/{brand});(2)survey4/auto_score.py:score_verse(cheap, gold_lcc_sn) 是參照無關的,回 coverage/placement/exact,把 ground_truth 換 gold 即可;(3)黏合成 eval_cheap_vs_gold.py。
+
+分界線:只想量一個便宜 model 離 gold 多遠→薄腳本(放 s10,它擁有 gold);想做多便宜 model 排行榜 vs gold→才值得另立 survey12(借 survey4 leaderboard 骨架、參照換 gold)。
+
+推薦:先建薄腳本量單一 model 看差距有沒有意義,要系統性再升 survey12。問要不要現在就建 eval_cheap_vs_gold.py(挑 qwen3:32b 跑 Gen 1 對 gold)。順帶 A2 三臂 run PID 28170 背景跑中,監控排 05:30。
+
+
+
+
+##     2026-07-11 05:11 CST
+
+###    User Prompt
+評判便宜 LLM model 的想法 你先記錄下來 等後續另外發展
+
+###    result
+記錄完畢,暫不開發:存 memory idea_cheap_model_vs_gold_eval.md(新軸=gold 當答案鑰匙 vs 現有 FHL 真值;最省做法=薄腳本 eval_cheap_vs_gold.py 複用主程式便宜輸出+survey4 score_verse;成排行榜才升 survey12)+ MEMORY.md 索引 + task#13 backlog。不建 code,等你後續回來再發展。A2 三臂 run(PID 28170)照常背景跑,監控 05:30。
+
+
+
+
+##     2026-07-11 05:30 CST
+
+###    User Prompt
+[monitor tick] A2 三臂 Gen1:B/B0/B_noylt 進度 + conventions/YLT delta
+
+###    result
+進度:PID 28170 存活(32min),Arm B 15/31,均值 full_frac=0.787(min 0.67/max 0.89),09xxx recall 多數滿分,健康無錯誤。B0/B_noylt 尚未開始(三臂序列跑)→ 還沒 delta。ETA:每臂~65min×3 序列≈~3 小時才全完。Arm B 的~0.79 是 WLC+YLT+conventions ON 的絕對水準,單看不錯;兩個 delta(conventions/YLT 幫不幫)要等 B0、B_noylt 對比。續排監控 45min。
+
+
+
+
+##     2026-07-11 06:16 CST
+
+###    User Prompt
+[monitor tick] A2 三臂 Gen1 進度 + delta
+
+###    result
+進度:Arm B 27/31(~78min,均值仍 0.789)。B0/B_noylt 未開始。PID 28170 存活無錯誤,但部分節很慢(1:26 跑 879s、1:27 574s,opus 某些節特別慢)。照此步調 B 再~10min 完,B0+B_noylt 各~65min → 全完約再 2.5h。仍無 delta(要 B0/B_noylt 對比)。健康在跑,續排監控 45min。
+
+
+
+
+##     2026-07-11 10:28 CST
+
+###    User Prompt
+[monitor tick] A2 三臂 Gen1 進度 + delta
+
+###    result
+問題診斷:B0 臂撞上 quota 耗盡,實驗被污染。B(conv ON,WLC+YLT)=31 scored/0 drop/mean 0.789;B0(conv OFF)=僅 4 scored/27 DROP/mean 0.733;B_noylt(conv ON,WLC-only)=21 scored/2 drop/mean 0.744。根因:跑到 B0 時 opus 5h quota 窗耗盡(elapsed 5h28m 跨窗)→ call_guarded 重試 4 次回空 → 27/31 被 DROP;B_noylt 時 quota 部分恢復。後果:Δ(B−B0) conventions delta 不可靠(B0 僅 4 節、與 B 非同組);Δ(B−B_noylt) YLT delta 較可用但需配對。兩個要修:①B0 需 quota 新鮮時單獨重跑;②delta 改配對計算(只比三臂都有分的節)。讓 B_noylt 收尾後配對重算 + 排 B0 重跑。另 B_noylt log 標籤誤植 +ylt(has_ylt 判資料存在非本臂用不用,純顯示 bug,不影響分數),一併修。續排監控 30min。
+
+
+
+
+##     2026-07-11 11:01 CST
+
+###    User Prompt
+[monitor tick] A2 Gen1 收尾:配對重算 delta + B0 重跑 + 修 label bug
+
+###    result
+配對分析(現行 run 6h 嚴重節流):YLT Δ(B−B_noylt)=+0.0385(配對 n=24,WLC+YLT 0.792 vs WLC-only 0.753)→ YLT 確有幫助、n=24 夠穩。conv Δ(B−B0)=+0.0715 但配對 n=4(B0 被 quota 餓死 27 drop)→ 不可靠需重跑。已修兩 bug 並 commit 487beb6 push:①delta 改配對(只比同節,標小樣 n<10);②arm label +ylt 誤植(改反映 arm 的 ylt_used)。現行 run 不殺(保留 B 的 31 節乾淨 + 讓 B_noylt 收尾)。B0 需 opus quota 新鮮時單獨重跑補 conventions delta。續排監控 45min 探 quota 恢復。
+
+
+
+
+##     2026-07-11 11:05 CST
+
+###    User Prompt
+survey11 是在你這裡設計的嗎？採用 YLT 的決策那次！
+
+###    result
+是——survey11 在 survey10 cwd 本 session 設計 spin out,YLT 決策也是這次在這裡拍板+落地。git 佐證:3f7f8a4(KJV→WLC+English 樞轉,06-30)、7e27312(spin out survey11 + 四配置 open question)、a98f807(你選 WLC+YLT→我建 ylt_bridge+run_a2_wlc_ylt+doc OPEN→RESOLVED,今天)、487beb6(配對 delta+label 修正),全帶本 session 簽名。誠實補:BSB/YLT 候選源頭有 survey5 平行線(de94999 include BSB/YLT multi-source),即多英譯念頭在 survey5 先冒出,我這裡收斂成 survey11 四選一、你在這裡選 YLT、我在這裡建 bridge。精確講:概念源頭有 survey5 貢獻;survey11 框架化+YLT 決策+實作都在 survey10-obe。
+
+
+
+
+##     2026-07-11 11:11 CST
+
+###    User Prompt
+BSB 必須是預設(WLC+BSB), 我大概率不會用到 WLC+YLT or WLC+YLT+BSB, 但是你做進去可選無妨, 只要確認 WLC+BSB是預設
+
+###    result
+確認:WLC+BSB 是預設。run_a2_wlc_eng.py 的 --eng-source default=BSB(--help 實測 default BSB),YLT 保留為可選(--eng-source YLT),BSB+YLT 這種多源沒做(你說不會用)。實作:english_bridge.py 泛化成 config 驅動(SOURCES: BSB+YLT,用 Clear Bible 手動 WLCM-BSB/WLC-YLT 對齊),因為你的基石來源可改,泛化後換橋不用改 code。退役了 ylt 專版(run_a2_wlc_ylt.py + ylt_bridge.py,已被 english_bridge 完全取代)。survey11 doc 更新 RESOLVED→WLC+BSB(保留 YLT probe 的 +0.039/n=24 當「英文橋有幫助」證據)。commit 8e2b0d4 push。並殺掉超時的 YLT run(28170,跑超代 config、還在節流燒 quota)。現無 active run,BSB contest(B/B0/B_noeng)待 fresh quota 啟動。
+
+
+
+
+##     2026-07-11 11:24 CST
+
+###    User Prompt
+alignment 表:OT WLC/WLCM macula-hebrew,NT SBLGNT/BGNT macula-greek。是否代表要改 S11 基石:WLCM(OT)+SBLGNT(NT)?
+
+###    result
+基石框架:對一半,且查出要修的細節。
+
+OT(01-39)功能上是 WLC(macula-hebrew)不是 WLCM:比對 WLC.tsv vs WLCM.tsv,Genesis id ~99.3% 相同(32292 vs 32080,差 0.7%),但 WLCM.tsv schema 與 SN 抽取器不相容(無 lemma 欄、strongs 無 H 前綴 0871a、pos 全字 preposition),_bridge_number 是 WLC 格式專用 → 餵 WLCM 會把每個 SN 丟掉。所以我們消費的 OT 底本實質是 WLC.tsv(macula-hebrew)。BSB 對齊名義指向 WLCM id 但 99.3% 共享,載 WLC 就對得上(BSB gloss 覆蓋 0.923),只 0.7% 分歧 morph 少一個消歧英文,SN 清單完全不受影響。結論:OT 別把基石改標 WLCM(吃不下),精確是 WLC/macula-hebrew。已 commit 648c1c6 修正兩英文源都載 WLC.tsv。
+
+NT(40-66)確需 SBLGNT+macula-greek 但還沒建:NT 沒希伯來文,底本必須換希臘文(SBLGNT/BGNT+macula-greek strongs G0976),是真正改基石不只換 label。資料本地已齊(SBLGNT.tsv、SBLGNT-BSB-manual.json、SBLGNT-YLT-manual.json)。但 bridge 目前純希伯來,NT 要另建 Greek loader+接 SBLGNT-BSB 對齊+macula-greek 解析,是實作任務。剛把 wlc_tsv 做成 per-source 欄位就是為 NT 預留。
+
+建議基石定義:S11 全書卷基石=macula-hebrew/WLC(OT)+macula-greek/SBLGNT(NT),BSB 英文橋貫穿。現在所有 gold+contest 都在 OT,已建 WLC+BSB 就是當下實際基石無需再動;NT/Greek bridge 列未來實作(資料就緒、管線預留),等跨到 NT 書卷再建。問要現在建 NT/Greek bridge 還是列 backlog。
+
+
+
+
+##     2026-07-11 11:34 CST
+
+###    User Prompt
+同時注入一下 s5 與 s1, 為什麼他們都同意用 wlcm?
+
+###    result
+premise 是命名誤會:沒人用 WLCM 當來源。三個 survey(s5/s1/s10)希伯來來源都是 WLC.tsv;WLCM 只出現在對齊檔名 WLCM-BSB-manual.json(Clear Bible 對 BSB 對齊的命名),非被載入的資料集。連我寫給 s5 的 handover 都明寫來源=sources/WLC.tsv、對齊 via WLCM-BSB-manual.json。我實測 WLCM.tsv 檔 schema 與 WLC 不同(無 lemma、strongs 無 H 前綴、pos 全字)會弄壞 SN 抽取,所以沒人真載它。仍照指示注入但校正問句:注入 [QUERY] 給 s1-obe(win 82)+ s5-obe(win 96),請確認來源是 WLC.tsv、若有我漏看的 WLCM 決策就說明。他們回覆後轉報。背景:NT Greek bridge workflow 跑中,BSB contest 監控排 12:02。
+
+
+
+
+##     2026-07-11 11:37 CST
+
+###    User Prompt
+### inserted prompt begins ###
+s5-obe->survey10-obe [ACK]:
+確認:我們(s5)的希伯來來源是 WLC.tsv,不是 WLCM.tsv。learn_morph_bridge.py 直接載 Alignments/data/sources/WLC.tsv;wlc_bridge.py 只是 re-export 你的 run_stage2_harsh loader(也是 WLC.tsv)。沒有人載 WLCM.tsv。
+
+沒有你漏看的 WLCM 決策——是我口誤。我把 Joshua 貼的對齊表用語(WLC/WLCM)加上 data/sources 裡躺著一個 WLCM.tsv,腦補成要用 WLCM,但從沒查程式實載哪個。撤回「WLCM」這個字。
+
+你的 schema 觀察全對:WLCM.tsv 無 lemma 欄、strongs 無 H 前綴、pos 全字 → 會弄壞 SN 抽取與 lemma-keyed 09xxx 橋。不要切 WLCM。
+
+修正後基石措辭:WLC.tsv(OT)+ SBLGNT(NT),ground truth 仍 FHL。真正的新軸是 NT 的 SBLGNT,WLCM 是命名假警報。多謝逮到,我同步回報 Joshua 更正。
+
+### inserted prompt ended ###
+
+###    result
+# ✅ 兩個 sibling 都確認 —— WLCM 是命名假警報,案結
+
+**s5-obe + s1-obe 一致回覆**,結論完全相同:
+
+| | s1-obe | s5-obe |
+|---|---|---|
+| 希伯來來源 | **WLC.tsv** ✅ | **WLC.tsv** ✅(`learn_morph_bridge.py` 直載;`wlc_bridge.py` re-export 我的 loader) |
+| WLCM 決策 | 無,我沒漏看 | 無 |
+| 誤因 | s1-obe 上一則對你講錯(把表格標籤+對齊檔名當來源) | s5-obe 腦補(對齊表用語 + `data/sources` 躺著的 `WLCM.tsv` 檔) |
+| 態度 | 主動認錯 | 主動認錯、撤回「WLCM」 |
+
+**最終基石措辭(三方一致)**:
+> **WLC.tsv(OT 01–39)+ SBLGNT(NT 40–66),BSB 英文橋貫穿,ground truth 仍是 FHL。**
+
+**真正的新軸是 NT 的 SBLGNT**(WLCM 從頭到尾只是命名巧合:對齊檔叫 `WLCM-BSB-manual.json`,但 YLT 那個又叫 `WLC-YLT-manual.json`,命名本身就不一致)。**沒人載過 `WLCM.tsv`,codebase 一直正確。**
+
+兩個 sibling 都說會同步回報你更正,所以你那邊應該也會收到他們的更新。
+
+---
+
+**並行進度**:NT Greek bridge **workflow 正在建置**(實作 agent 已在 `english_bridge.py` 加 NT 支援:`nt_tsv`/`greek_tsv`/`_is_nt`/testament-aware `_load`)—— 完成通知後我驗收回報。BSB contest 監控排 12:02。
+
+
+
+
+##     2026-07-11 11:39 CST
+
+###    User Prompt
+請也注入 alignments and parsing, 表達同一個 WLC/WLCM 的名稱統一與更正
+
+###    result
+找到並注入了兩個 session:alignments-obe(ttys010,win 91,cwd Alignments)+ parsing-obe(ttys027,win 6475,cwd parsing)。注入 [FYI] WLC/WLCM 名稱統一與更正:(1)OT 來源=sources/WLC.tsv(macula-hebrew:H0871a+lemma+morph),沒人載 WLCM.tsv(schema 不同會弄壞 SN 抽取);(2)WLCM 只出現在對齊檔名前綴 WLCM-BSB-manual.json,且命名不一致(YLT 那個叫 WLC-YLT),別當來源;(3)統一基石措辭 WLC.tsv(OT 01-39)+SBLGNT.tsv(NT 40-66),BSB 橋,FHL ground truth;(4)s1/s5 已確認更正。請他們同步措辭、若文件/程式寫錯一併更正,ack 即可。等他們 ack。並行:NT Greek workflow 建置中(已加 CHI_TO_SBL_BOOK/_is_nt/greek loader import),BSB contest 監控 12:02。
+
+
+
+
+##     2026-07-11 11:42 CST
+
+###    User Prompt
+[workflow 完成通知] Build NT Greek bridge (SBLGNT+macula-greek+SBLGNT-BSB)
+
+###    result
+NT Greek bridge workflow 完成(5 agents 0 error ~8.7min 283k tokens),親自驗證全過。實作:english_bridge.py 加 _bridge_number_greek(G0976→G976,保留 G 前綴讓 scorer 正確分類、否則裸 <976> 會被當希伯來永不匹配 <WG976>)、load_greek_verse_with_ids(讀 SBLGNT.tsv)、testament-aware _load/verse_text/alignment/build_wlc_eng_source(OT o+WLC header、NT n+SBLGNT header);run_a2_wlc_eng.py 加 CHI_TO_SBL_BOOK(27 卷)、per-verse _is_nt 路由;OT 路徑 byte-identical。親驗(無 LLM):Matt 1:1→8 Greek tokens 全 <Gnum>、BSB gloss 對齊、<G976> 正規化對到 UNV <WG976>;Gen 1:1 OT 無 regression(11 tokens、09xxx、WLC header);_bridge_number_greek 邊界正確。順帶修 load_wlc_verse_with_ids 過時 WLCM docstring(兩 OT 源皆載 WLC.tsv 非 WLCM)當作 WLC/WLCM 名稱統一一環。commit d1b8ae6 push。基石 OT+NT 端到端齊備:WLC.tsv(OT 01-39)+SBLGNT.tsv(NT 40-66),BSB 橋,FHL truth。一個 benign 註記:UNV NT truth 另有 WT-morph tags(<WTG5707>)無 SBLGNT source 對應,但兩臂等量出現故 paired-delta 不偏,scorer 未動(避免 OT regression)。
+
+
+
+
+##     2026-07-11 11:54 CST
+
+###    User Prompt
+KJV 在這個基石上(WLC+SBLGNT)除了30% morph 去掉外,共同部分接進度多少?抄本一樣嗎(公正?UBS 還是什麼批判抄本?)
+
+###    result
+核心不是覆蓋率,是底本傳統公正性,尤其新約。
+
+抄本/底本:OT 近乎一樣——WLC=列寧格勒抄本(Masoretic)vs KJV OT=ben Chayyim 馬所拉(1524),同馬所拉傳統僅版本差異,可比公正。NT 不一樣——SBLGNT=批判本(Holmes 2010 近 NA28/UBS 系非 UBS 本身)vs KJV NT=Textus Receptus(Erasmus/Beza 拜占庭系),不同抄本傳統。所以把 KJV(TR)對齊 SBLGNT(批判)是跨傳統(TR 長結尾/約翰逗號等實質差異),不是覆蓋率問題是底本不同。
+
+repo 早記(s5 prompt.history):YLT 底本也是 TR 同 KJV 系;BSB 用批判希臘文(Nestle-1904/SBLGNT 系)。→ BSB 才與 SBLGNT 同傳統,佐證 BSB 選對;KJV 與 YLT 都 TR 不一致。
+
+UBS?SBLGNT≠UBS 本身,是 SBL 希臘文新約(Holmes 2010),自成批判折衷本(比對 WH/Tregelles/拜占庭 RP/NA 選讀),與 NA28/UBS5 同亞歷山大批判系極接近但非同一本。不是 UBS 是近親。
+
+共同部分接進度:31% 是 OT 結構性掉量(Gen1 實測,英文丟希伯來虛詞+無 09xxx),剩~69% 內容詞可供。本地無 Clear Bible KJV 對齊資料(KJV+SN 直接來自 FHL 非走 macula),故無現成共同部分對齊覆蓋率數字;剩餘 69% 放置準確度要實跑。隱藏皺褶:Strong's 編號歷史上為 KJV/TR 編,批判本當來源時 TR-only 詞可能無對應 SN、需 macula-greek 映射層。
+
+提議:在 WLC+SBLGNT 基石加一臂 KJV 跑 Gen1(OT 底本可比)量它共同部分對 UNV FHL 的 placement/coverage 與 BSB 比;NT 別拿 KJV 比(跨傳統不公正)。
+
+
+
+
+##     2026-07-11 12:03 CST
+
+###    User Prompt
+如果這樣, SBLGNT 取代掉 KJV, 這樣公正經文的翻譯傳統可能就被過濾掉了.
+
+###    result
+你的關切有現成解,且有一個精確性要講。
+
+好消息:拜占庭多數抄本本地就有 BGNT.tsv,schema 與 SBLGNT 完全一樣(可直接接)、BGNT-BSB-manual.json 對齊也在。NT token 138131 vs SBLGNT 137741(BGNT 多~390,符合拜占庭比亞歷山大批判本更滿)。John 1:1「was」Strong's:BGNT=G1510 vs SBLGNT=G2258,確是不同傳統讀法。→ 不必過濾拜占庭傳統:把 NT 來源做成 --nt-source{SBLGNT,BGNT}(像英文橋那樣),兩傳統都一等公民,基礎設施已參數化、加 BGNT 幾乎零成本。
+
+誠實精確性:BGNT≠公認經文(TR)本身。BGNT 是拜占庭多數抄本(Robinson-Pierpont 系,學術重建),不等於印刷版 Textus Receptus,兩者同拜占庭家族但差~1800 處。實證:1 John 5:7(約翰逗號)TR 有但 BGNT 只 5 token 無完整 Comma。所以 BGNT 代表多數抄本傳統(KJV 讀法~85-90% 來源)但非字面 TR。要字面公認經文(Scrivener TR)本地無此資料需另取。
+
+對本任務關鍵一層:Strong's 編號本身為 KJV/TR 編,所以 TR↔批判分歧處,拜占庭來源(BGNT)可能反比 SBLGNT 更貼合 FHL SN 清單,可實測。
+
+建議:加 --nt-source{SBLGNT,BGNT}(預設你定),兩傳統都在不過濾任一;需要時實測哪個更貼 FHL。問要不要現在把 BGNT 接進去(零成本、對齊資料齊、schema 同)。字面 TR 若要再議取得 Scrivener TR。
+
+
+
+
+##     2026-07-11 12:06 CST
+
+###    User Prompt
+[monitor tick] 探 quota + 啟 BSB contest Gen1 三臂
+
+###    result
+quota 恢復。BSB contest(PID 51755)正常啟動:首節 Arm B 1:1 full=0.667、09xxx=1/1、+BSB(label 修正生效)、67s 正常速度。三臂(B/B0/B_noeng)× 31 節,fresh quota 估~2-2.5h。續排監控 40min,跑完配對算 Δ(B−B0)=conventions、Δ(B−B_noeng)=BSB bridge 回報。
+
+
+
+
+##     2026-07-11 12:10 CST
+
+###    User Prompt
+什麼是 TR 啊！哪裡取得？
+
+###    result
+確認本地 Greek 只有 BGNT/SBLGNT/WLC(無 TR/Scrivener);FHL 自己的 Greek 底本是 Westcott-Hort(FHLWH)=批判本,非 TR。
+
+什麼是 TR:Textus Receptus(公認經文),宗教改革時代主導的印刷版希臘文新約,KJV/路德/日內瓦底本。血脈:Erasmus 1516→Stephanus 1550→Beza→Elzevir 1633(序言 textum...receptum 命名)→Scrivener 1894(反推成與 KJV 希臘文一致,現代標準版)。文本特徵:拜占庭多數為底+幾處 Erasmus 獨有讀法(約翰逗號 1Jn5:7、徒8:37、啟示錄結尾拉丁回譯)。vs BGNT(拜占庭多數 Robinson-Pierpont):同家族但 TR 是特定印刷版帶獨有讀法差~1800 處。vs SBLGNT/NA/UBS/WH:批判/亞歷山大系另一陣營。
+
+哪裡取得(機讀+Strong's+morph):STEPBible-Data(Tyndale,CC-BY)最佳,github.com/STEPBible/STEPBible-Data 的 TAGNT 每字標 Strong's+詞形並標各版讀法,最易做成 TR.tsv;byztxt.com/Robinson-Pierpont;Sword/e-Sword 模組(Scrivener TR/TR1894/Stephens1550)需抽取。
+
+卡點:取 TR 文本+Strong's 易(STEPBible),但 A2 管線還需 TR↔BSB 逐字對齊,Clear Bible 只做 SBLGNT-BSB 和 BGNT-BSB,無 TR-BSB。所以字面 TR 要自建對齊(困難)或近似。務實結論:用 BGNT(本地已有+已對齊)是拿 85-90% 好處~0 成本;字面 TR 卡在缺對齊,除非需精確 TR(約翰逗號等級)才另立資料工程。
+
+選項:①用 BGNT 當拜占庭/公認家族代表(接進 --nt-source 零成本);②堅持字面 TR 則去 STEPBible 取 TR+Strong's 但對齊另解。背景:BSB contest Gen1 三臂跑中,監控 12:47。
+
+
+
+
+##     2026-07-11 12:14 CST
+
+###    User Prompt
+先把 BGNT, TR, STEPBible-Data 這些都記錄下來, 我日後努力.
+
+###    result
+記錄完畢供日後努力,暫不建:memory nt_textual_tradition_bgnt_tr.md(三 NT 傳統對照表 SBLGNT 批判/BGNT 拜占庭/TR 公認+本地有無+對齊有無;兩條路徑:①加 --nt-source BGNT 零成本、②字面 TR 去 STEPBible-Data CC-BY 但卡缺 TR-BSB 對齊;附 Strong 編號 TR 根、FHL=WH 等脈絡)+MEMORY.md 索引+task backlog(標 DEFERRED 不建直到你回來)。BSB contest Gen1 三臂跑中,監控 12:47。
+
+
+
+
+##     2026-07-11 12:20 CST
+
+###    User Prompt
+SBLGNT 亞歷山大批判系 UBS 屬此系；BGNT 拜占庭傳統；TR 公認經文(靠 BGNT),KJV 源自於此。是這樣嗎?本地 Alignments 分別有哪些檔案(WLC.???)
+
+###    result
+三對一錯。對:SBLGNT 亞歷山大批判系(UBS 屬此)、BGNT 拜占庭、TR 公認經文 KJV 源於此。錯:TR「靠」BGNT 方向反——TR(Erasmus 1516)早於 BGNT 版本(Robinson-Pierpont 現代重建),兩者是拜占庭家族兄弟;正確是我們用 BGNT 當 TR/公認經文傳統的現成代理。家族樹:亞歷山大系 WH→NA/UBS→SBLGNT;拜占庭系 BGNT(現代重建)+TR(早期印刷)→KJV。本地檔案 sources/:WLC.tsv(OT 希伯來 H0871a+lemma 用這個)、WLCM.tsv(0871a 無 H 無 lemma schema 不相容不用)、WLCM+required.tsv、SBLGNT.tsv(NT 批判 G0976 預設)、SBLGNT+required.tsv、BGNT.tsv(NT 拜占庭 --nt-source BGNT)。eng/targets:BSB、YLT(+9 langs)。eng/alignments:BSB 有 WLCM-BSB(OT)/SBLGNT-BSB/BGNT-BSB(NT);YLT 有 WLC-YLT(OT)/SBLGNT-YLT。命名不一致(BSB 的 OT 叫 WLCM-BSB、YLT 的叫 WLC-YLT 但都對齊 WLC.tsv)。TR 本地完全沒有(需 STEPBible+缺 TR-BSB 對齊)。現在:OT=WLC.tsv;NT --nt-source SBLGNT(預設)/BGNT;英文橋 --eng-source BSB(預設)/YLT。
+
+
+
+
+##     2026-07-11 12:22 CST
+
+###    User Prompt
+record this table(WLC.tsv/SBLGNT.tsv/BGNT.tsv)
+
+###    result
+已把來源檔案表記進 survey11 S10_VS_S1_GOLD_EXPERIMENT.md 的 Cornerstone 段(repo 正式文件、可被找到):WLC.tsv(OT H0871a+lemma 用這個)/SBLGNT.tsv(NT 批判預設)/BGNT.tsv(NT 拜占庭 --nt-source BGNT);附未用檔(WLCM* schema 不相容、SBLGNT+required)、TR 本地無(BGNT 為代理、≠字面 TR)、家族樹、Clear Bible 命名不一致。commit push。
+
+
+
+
+##     2026-07-11 12:25 CST
+
+###    User Prompt
+tr 經文的 github 是哪裡?
+
+###    result
+WebSearch 確認。TR 帶 Strong's+morph 的 GitHub 在 byztxt 組織(Robinson/Sandborg-Petersen,我們 BGNT 很可能同源)。最對口:byztxt/greektext-textus-receptus(TR+形態解析+Strong's)。另:byztxt/greektext-elzevir(Elzevir TR+morph+Strong's)、byztxt/greektext-scrivener(Scrivener 1894 純文本無 Strong's)、STEPBible/STEPBible-Data(TAGNT amalgamated CC-BY 帶變異標記)、Center-for-New-Testament-Restoration/KJTR。組織首頁 github.com/byztxt 多版希臘文新約公有領域。卡點不變:文本易取但缺 TR-BSB 逐字對齊(Clear Bible 只做 SBLGNT-BSB/BGNT-BSB),接進 A2 需先建 TR↔BSB 對齊或用 BGNT 當代理(已可 --nt-source BGNT)。URL 已補進 backlog memory nt_textual_tradition_bgnt_tr.md。
+
+
+
+
+##     2026-07-11 12:27 CST
+
+###    User Prompt
+記錄下來(TR GitHub 表)
+
+###    result
+已把 TR GitHub sources 表記進 survey11 S10_VS_S1_GOLD_EXPERIMENT.md cornerstone 段(與 source-files 表同處、repo 正式文件):byztxt/greektext-textus-receptus(⭐ TR+morph+Strong's)、byztxt/greektext-elzevir、byztxt/greektext-scrivener(純文本)、STEPBible/STEPBible-Data(TAGNT CC-BY)、Center-for-New-Testament-Restoration/KJTR;org home github.com/byztxt。附註仍 backlog(卡 TR-BSB 對齊,BGNT 為現成代理)。commit push。memory nt_textual_tradition_bgnt_tr.md 亦已有這些 URL。
+
+
+
+
+##     2026-07-11 12:47 CST
+
+###    User Prompt
+[monitor tick] BSB contest Gen1 三臂進度 + 配對 delta
+
+###    result
+BSB contest 健康:Arm B 14/31、0 drop(quota 這次穩,不像 YLT run 被節流),分數 0.75-0.84。B0/B_noeng 未開始(序列跑)→ 尚無 delta。部分節偏慢(1:14=444s)但沒掉。三臂序列估還要~1.5-2h 才全完、才有兩個 delta(conventions + BSB bridge)。續排監控 45min。
+
+
+
+
+##     2026-07-11 12:47 CST
+
+###    User Prompt
+監控 BSB contest run_a2_wlc_eng.py Gen1 三臂 (PID 51755):查 B/B0/B_noeng 進度、drop 數、是否完成。完成則配對算 Δ(B−B0)=conventions 與 Δ(B−B_noeng)=BSB bridge 回報;若 B0/後段又被 quota drop 則診斷。log=run_logs/a2_gen1_BSB_*.out
+
+###    result
+BSB contest 健康推進:Arm B **14/31**、**0 drop**(quota 這次穩,不像 YLT run 被節流),分數 0.75–0.84。B0/B_noeng 未開始(序列跑)→ 尚無 delta。部分節偏慢(1:14=444s)但沒掉。
+
+三臂序列估還要 ~1.5-2h 才全完、才有兩個 delta。續排監控 45min。
+
+
+
+
+##     2026-07-11 13:33 CST
+
+###    User Prompt
+[monitor tick] BSB contest Gen1 三臂進度 + 配對 delta
+
+###    result
+BSB contest Arm B 28/31、0 drop(quota 全程穩無節流)。B0/B_noeng 仍未起(序列跑)故尚無 delta。Arm B 快完剩 3 節。節奏三臂序列~3min/節,估全完還要~3h(乾淨無掉只是慢),deltas 要等 B0/B_noeng 跑完。續排監控 45min。
+
+
+
+
+##     2026-07-11 14:19 CST
+
+###    User Prompt
+[monitor tick] BSB contest Gen1 三臂進度 + 配對 delta
+
+###    result
+首個真 delta 出現。Arm B 完成 31/31 0 drop,B0 14/31 仍 0 drop(quota 全程穩)。conventions Δ(B−B0)=+0.0060(配對 n=14:B=0.778 vs B0=0.772)—— conventions 幾乎不動指標(+0.6pp 近中性)。BSB bridge delta 待 B_noeng。這與 scribe 觀察吻合:conventions.md 卡 C1、候選全被 regression-gate 拒→conventions 累積不出價值,對 Gen1 實測貢獻近零。初步 n=14,B0 跑完更穩。quota 這次全程 0 drop(B31+B0 14=45 節),遠優於被節流的 YLT run。續排監控 40min。
+
+
+
+
+##     2026-07-11 15:00 CST
+
+###    User Prompt
+[monitor tick] BSB contest Gen1 三臂進度 + 配對 delta
+
+###    result
+conventions delta 收斂到零。Arm B 完成 31,B0 25/31 仍 0 drop。conventions Δ(B−B0)=+0.0000(配對 n=25,B=0.773=B0=0.773)——隨樣本增加收斂到精確為零,s10 conventions(僅 C1)對 Gen1 零效益。BSB bridge delta 待 B_noeng(未起)。n=25 已紮實,實證 scribe 無效觀察(C1 停滯零貢獻)。對 s10-vs-s1 是重要訊號:s10 目前差異化機制在此任務不加分。quota 全程 0 drop。剩~6 節 B0+全部 B_noeng 估~1.5h。續排監控 40min。
+
+
+
+
+##     2026-07-11 15:41 CST
+
+###    User Prompt
+[monitor tick] BSB contest Gen1 三臂進度 + 配對 delta
+
+###    result
+B0 29/31 0 drop。conventions Δ(B−B0)=−0.0022(n=29,B=0.770 vs B0=0.772)——仍噪音內,確認近中性/零效益(微負實質零)。B_noeng 仍未起(B0 剩 2 節)→BSB bridge delta 還要等。部分節極慢(1:28=827s/14min)但無 drop,quota 撐著只是 opus 慢。已跑 3h37m。conventions 結論定(n=29≈0),BSB bridge delta 得等 B_noeng 全跑完(31 節~1.5h)。續排監控 45min。
+
+
+
+
+##     2026-07-11 16:27 CST
+
+###    User Prompt
+[monitor tick] BSB contest Gen1 三臂 + 配對 delta
+
+###    result
+兩 delta 出來且有耐人尋味對比。conventions Δ(B−B0)=−0.0014(最終 n=31 全 Gen1,B=0.774 vs B0=0.775)——conventions 確認零效益。BSB bridge Δ(B−B_noeng)=+0.0000(初步 n=10,B=0.774=B_noeng=0.774)——BSB 橋目前也≈零。對比先前 YLT run:YLT 橋 +0.039(n=24)但 BSB 橋初步 +0.000(n=10)。若撐到 n=31,意味 YLT(字面貼希伯來語序)有幫助但 BSB(自然語序)不加分,反而佐證原 YLT 選擇可能優於 BSB pivot。但只 n=10 需全 B_noeng 確認(子集也不同)。B_noeng 10/31 0 drop 剩~21 節~1h。續排監控 40min 拿最終 BSB bridge delta。
+
+
+
+
+##     2026-07-11 17:14 CST
+
+###    User Prompt
+[monitor tick] BSB contest Gen1 + 最終 delta
+
+###    result
+重大發現:BSB 橋略微有害。BSB bridge Δ(B−B_noeng)=−0.0156(n=25,WLC-only 0.789 > WLC+BSB 0.773)。與 YLT 鮮明對比:YLT 橋 +0.0385(幫助)vs BSB 橋 −0.0156(有害),~5.5pp 反向擺盪。合理:YLT 語序貼希伯來、gloss 與放置任務對齊;BSB 自然語序偏離、gloss 誤導放置。實證 s5 橋品質教訓。意涵:挑戰 BSB pivot、佐證原 YLT 選擇更好。caveat:兩 run、子集不同、單模單樣,方向清楚但嚴謹需同-run 三臂直接比 YLT。conventions −0.001(n=31 定案零效益)。B_noeng 25/31 0 drop 剩 6 節。續排 20min 拿最終 n=31 + 完整總結。
+
+
+
+
+##     2026-07-11 17:35 CST
+
+###    User Prompt
+BSB contest Gen1 收官,結論鎖定並寫進 survey11 doc + commit f1af74f push。
+
+兩個 delta(配對,對 UNV FHL 真值):conventions Δ(B−B0)=−0.0014(n=31)零效益——conventions.md 卡 C1 無實測貢獻,實證 scribe 無效觀察;BSB bridge Δ(B−B_noeng)=−0.0210(n=28→31)有害——WLC-only 0.791 勝 WLC+BSB 0.770 約 2pp。
+
+與 YLT 對比:YLT 橋 +0.0385(幫助)vs BSB 橋 −0.0210(有害),兩橋反向。假說:YLT 字面貼希伯來語序、gloss 與放置對齊;BSB 自然語序偏離、gloss 誤導放置。意涵:客觀分數挑戰 BSB pivot、佐證原 YLT 選擇(survey6 橋品質教訓實證)。caveat:兩 run 子集不同單模單樣,方向清楚但嚴謹需同-run YLT+BSB+WLC-only 三橋直接比。
+
+建議下一步:跑一個同-run 直接比(--eng-source YLT 一組 vs BSB 一組,或加 YLT 臂),嚴謹確認 YLT>BSB。也可能要重新檢視是否把基石橋改回 YLT。等你定。
+
+###    result
+BSB contest Gen1 收官,結論鎖定並寫進 survey11 doc + commit f1af74f push。
+
+兩個 delta(配對,對 UNV FHL 真值):conventions Δ(B−B0)=−0.0014(n=31)零效益——conventions.md 卡 C1 無實測貢獻,實證 scribe 無效觀察;BSB bridge Δ(B−B_noeng)=−0.0210(n=28→31)有害——WLC-only 0.791 勝 WLC+BSB 0.770 約 2pp。
+
+與 YLT 對比:YLT 橋 +0.0385(幫助)vs BSB 橋 −0.0210(有害),兩橋反向。假說:YLT 字面貼希伯來語序、gloss 與放置對齊;BSB 自然語序偏離、gloss 誤導放置。意涵:客觀分數挑戰 BSB pivot、佐證原 YLT 選擇(survey6 橋品質教訓實證)。caveat:兩 run 子集不同單模單樣,方向清楚但嚴謹需同-run YLT+BSB+WLC-only 三橋直接比。
+
+建議下一步:跑一個同-run 直接比(--eng-source YLT 一組 vs BSB 一組,或加 YLT 臂),嚴謹確認 YLT>BSB。也可能要重新檢視是否把基石橋改回 YLT。等你定。
+
+
+
+
+##     2026-07-11 17:53 CST
+
+###    User Prompt
+[contest 最終 n=31 收官]
+
+###    result
+A2 contest Gen1 完全結束(31 節 0 drop),最終定案並 commit e5e23ec push。
+
+最終 n=31:conventions Δ(B−B0)=−0.0014 零效益;BSB 橋 Δ(B−B_noeng)=−0.0227 有害。各臂均值:B(WLC+BSB conv ON)full=0.774/09xxx=0.935;B0(WLC+BSB conv OFF)0.775/0.887;B_noeng(WLC-only)0.797/0.984 ← 兩指標皆最佳。
+
+最強結論:純 WLC+SN 在 Gen1 最強,加 BSB gloss 連 full_frac 和 09xxx recall 都扣。配 YLT probe(within-run +0.039),故事一致:YLT 幫助、WLC-only 次之、BSB 比不加橋還糟。
+
+不擅自啟動驗證 run(~5h),等 Joshua 定兩題:①同-run YLT/BSB/WLC-only 嚴謹驗證?②預設橋改回 YLT?task#2 更新記錄。
+
+
+
+
+##     2026-07-11 20:46 CST
+
+###    User Prompt
+改成 WLC only, 去信給 s1, s5 讓他們慎重考慮 WLC-only
+
+###    result
+兩件都完成。
+
+① 改成 WLC-only:run_a2_wlc_eng.py 的 --eng-source 加 none 並設為預設(eng_name=none→全臂 WLC-only,use_eng gate);cornerstone doc 更新「預設=WLC-only,BSB/YLT 退為可選」。commit af33dcd push。誠實 caveat 保留:YLT 在它自己 run 內 +0.039,WLC-only vs YLT 跨-run 未定;但 WLC-only 明顯勝 BSB、零橋接錯位風險、最簡潔,是安全且實證最強的選擇。
+
+② 去信 s1/s5:寫了 letter(docs/20260711_from_s10obe_to_s1_s5_wlc_only_finding.md,commit c6f459a),含 Gen1 數據表 + 給各自的請求(s5 直接相關、呼應其 WLC-only>WLC+KJV,建議預設也退 WLC-only 並同-run 三橋驗證;s1 較不直接但橋接教訓可比照)。並注入 1-line 指標給 s1-obe(win 82)+ s5-obe(win 96)。等他們 ack。
+
+無 active run。等 s1/s5 回覆轉報。
+
+
+
+
