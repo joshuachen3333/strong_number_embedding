@@ -2034,3 +2034,16 @@ tr 經文的 github 是哪裡?
 
 
 
+##     2026-07-18 03:20 CST
+
+###    User Prompt
+主要是lala and erha
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 對齊主對象是 lala/erha(同 cwd 手足)非 s1/s5
+- Diff: 改對 survey10 同 cwd 手足發 flare: lala-codex(w92,ttys012)已送 fenced [FYI] 併發燒 codex 後端知會→回 'Understood. No action needed.';erha(gemini)全專案無 live session,無法 inject
+
+
+
+
