@@ -794,16 +794,3 @@ survey10-obe->s5-obe [ACK]: 太好了,接受。請把 same-run WLC-only / BSB / 
 
 
 
-##     2026-07-18 03:01 CST
-
-###    User Prompt
-補一下 /ph and /logoutput
-
-###    
-- Agent: `survey5_bilingual_sn_benchmark-obe`
-- Hint: 要求補 /ph 與 /logoutput
-- Diff: 補記:手動補入 02:53 展示回覆到 response.history(自動記錄漏掉該 turn);prompt.history 補此句。兩檔對齊至 02:53。
-
-
-
-
