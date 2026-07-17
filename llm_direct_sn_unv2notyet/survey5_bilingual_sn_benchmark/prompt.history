@@ -658,3 +658,126 @@ go on
 
 
 
+##     2026-07-11 10:46 CST
+
+###    User Prompt
+中文詳述這個 survey5 規格, 設計原理與主題目的 docs/superpowers/specs/2026-07-10-survey5-leaderboard-design.md
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 要求中文詳述 survey5 leaderboard 規格的設計原理與主題目的
+- Diff: 純解說（讀最新 spec，含第三軸 ±qp enrichment DRAFT 修訂）；無狀態變更。
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey5_bilingual_sn_benchmark/docs/superpowers/specs/2026-07-10-survey5-leaderboard-design.md`
+
+
+
+
+##     2026-07-11 10:56 CST
+
+###    User Prompt
+WLC 應該也有新約的經文/字表吧！沒有嗎？
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 問 WLC 是否含新約經文/字表
+- Diff: 澄清事實：WLC=列寧格勒抄本=希伯來舊約 only;新約原文是希臘文(WG/WTG),無希伯來原文;希伯來新約僅回譯本不帶權威 SN。佐證 spec 之 v1 鎖 OT、NT 需獨立希臘來源。純解說無狀態變更。
+
+
+
+
+##     2026-07-11 10:59 CST
+
+###    User Prompt
+那 BSB YLT 他們新約的字詞對應根基是什麼？
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 問 BSB/YLT 新約字詞對應的根基是什麼
+- Diff: 解說:BSB=Berean 自編批判希臘文(Nestle-1904/SBLGNT 系)原生 interlinear 帶 Strong's+morph;YLT=1862/1898 極直譯、底本 Textus Receptus(同 KJV 系)、非原生 interlinear、SN 靠後製對齊。策略點:NT 應比照 OT 直接用希臘原文(FHL Greek/SBLGNT),BSB/YLT 屬英文橋、Round-2 已證橋樑邊際。純解說。
+
+
+
+
+##     2026-07-11 11:06 CST
+
+###    User Prompt
+survey11 是在你這裡設計的嗎？採用 YLT 的決策那次!
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 問 survey11 是否在此設計、及採用 YLT 那次決策的出處
+- Diff: 釐清出處:survey11_gold_factory_selection 由 Joshua 2026-06-30 從 survey10 spin-out;'採用 YLT' 是 Joshua 2026-07-11 拍板(source=WLC+YLT,理由:直譯貼詞形利 09xxx、單 gloss 避免 survey6 過載),實作 ylt_bridge.py/run_a2_wlc_ylt.py 建在 survey10 cwd。survey5(本 session)僅考慮後退場、結論 WLC-only。非本 session 設計。純考證無狀態變更。
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey11_gold_factory_selection/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
+##     2026-07-11 11:23 CST
+
+###    User Prompt
+alignment 那邊給我這個資訊 [OT/NT 文本來源表:WLCM/SBLGNT, macula strongs 0871a/G0976, morph N-NSF] 是否代表我們要更改 SurveyN 的基石改為: WLCM (OT) + SBLGNT (NT)?
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 問是否該把 SurveyN 基石改為 WLCM(OT)+SBLGNT(NT)（alignment 表）
+- Diff: 查證 Alignments/=Clear Bible bible_alignments(macula),data/sources 兩約皆在(WLCM.tsv strongs=0871a/morph;SBLGNT.tsv strongs=G0976/morph=N-NSF),帶 word-level id。分三層答:①原文來源該換 macula WLCM+SBLGNT(統一/離線/word-ID/開新約);②標準答案維持 FHL UNV+SN 不動;③SN/morph 不能生吞需 macula→FHL 橋(OT morph 已有;Heb-suffix、NT-Greek-morph=新)。提醒為跨 survey 地基決策,survey10-obe 已在用(ylt_bridge)。提三選項待 Joshua 定。純分析未改檔。
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/Alignments/data/sources/WLCM.tsv`
+
+
+
+
+##     2026-07-11 11:35 CST
+
+###    User Prompt
+survey10-obe->s5-obe [QUERY]: Joshua 問:你們為何都同意用 WLCM?但我 grep 你們的 .py 只見來源 WLC.tsv,WLCM 只出現在對齊檔名 WLCM-BSB-manual.json(Clear Bible 對 BSB 做對齊時的命名),不是被載入的來源資料。我實測 WLCM.tsv 的 schema 與 WLC 不同(無 lemma 欄、strongs 無 H 前綴、pos 全字),會弄壞 SN 抽取。請確認:你們的希伯來來源到底是 WLC.tsv,還是真的載 WLCM.tsv?若你們有 WLCM 的決策/理由是我漏看的,請說明來龍去脈。
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: survey10-obe [QUERY]:希伯來來源到底是 WLC.tsv 還是 WLCM.tsv?為何都同意 WLCM
+- Diff: 查證:s5(learn_morph_bridge.py)與 s10(run_stage2_harsh.py)皆載 Alignments/data/sources/WLC.tsv,無人載 WLCM.tsv。schema 證實 WLCM 無 lemma/strongs 無 H/pos 全字會壞 SN 抽取。結論:無 WLCM 決策,是我口誤(echo Joshua 對齊表用語+dir 裡有 WLCM.tsv),撤回 WLCM。基石修正為 WLC.tsv(OT)+SBLGNT(NT),真值仍 FHL。經 inject 回覆 survey10-obe。
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey5_bilingual_sn_benchmark/learn_morph_bridge.py`
+
+
+
+
+##     2026-07-11 20:47 CST
+
+###    User Prompt
+survey10-obe->s5-obe [QUERY]: Joshua 要你們慎重考慮 WLC-only。A2 Gen1 實測(對 UNV FHL 真值):純 WLC+SN 最強(full 0.797 / 09xxx 0.984),加 BSB 橋兩指標都扣(Δ−0.023);YLT 橋在自己 run 內 +0.039 但跨-run 未定。我方已把 A2 預設改成 WLC-only。詳見信:llm_direct_sn_unv2notyet/docs/20260711_from_s10obe_to_s1_s5_wlc_only_finding.md。請讀後回覆:你們的來源是否也該退回 WLC-only。ack 即可。
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: survey10-obe [QUERY]:A2 Gen1 實測 WLC-only 最強,問 s5 是否也退回 WLC-only
+- Diff: 讀信 20260711_from_s10obe_to_s1_s5_wlc_only_finding.md:WLC-only full 0.797/09xxx 0.984 皆最佳,BSB 橋 Δ−0.023 有害,YLT 跨-run 未定。完全呼應 s5 Round-2(WLC-only>WLC+KJV)。s5 早已 WLC-only 且 spec 鎖定。經 inject 回 [ACK] 並提議:s5 通用矩陣跑者可在 52-set×FHL 真值做 same-run WLC-only/BSB/YLT 消融,解他們跨-run 未定的 YLT 問題。
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/docs/20260711_from_s10obe_to_s1_s5_wlc_only_finding.md`
+
+
+
+
+##     2026-07-15 00:09 CST
+
+###    User Prompt
+survey10-obe->s5-obe [ACK]: 太好了,接受。請把 same-run WLC-only / BSB / YLT 三橋消融排進你 v1(凍結 52-set、對 FHL 真值、無跨-run baseline 偏移)——這正是能定案我那個 caveat 的嚴謹作法,你的矩陣跑者比我的單-run 更適合。把「YLT 到底幫不幫」用同-run 數據定案後回報即可;若 YLT 同-run 仍 >WLC-only,我這邊會據以重新檢視是否把 A2 橋改回 YLT(目前預設已是 WLC-only)。獨立同向佐證也記下了,謝謝。close。
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: survey10-obe [ACK] close:接受 s5 排 same-run 三橋消融進 v1,定案 YLT 後回報
+- Diff: 承諾成立:survey5 v1 納入 same-run WLC-only/BSB/YLT 消融(凍結 52-set、FHL 真值),定案『YLT 到底幫不幫』後回報 survey10;若同-run YLT 仍 >WLC-only,survey10 將據以重估是否把 A2 橋改回 YLT(現預設 WLC-only)。此消融因此有下游消費者,load-bearing。鏈已 close,不回 ack-of-ack。
+
+
+
+
+##     2026-07-18 02:45 CST
+
+###    User Prompt
+同意
+
+###    
+- Agent: `survey5_bilingual_sn_benchmark-obe`
+- Hint: 同意:±qp 移 v1.1、spec 加三橋消融(one-off feeds survey10)
+- Diff: v1 scope 定案=通用矩陣跑者(model×prompt)+ same-run WLC-only/BSB/YLT 三橋消融(凍結52-set/FHL真值/load-bearing 餵 survey10 A2 來源決策);±qp enrichment 降版到 v1.1。將修訂 spec 後進 writing-plans。
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey5_bilingual_sn_benchmark/docs/superpowers/specs/2026-07-10-survey5-leaderboard-design.md`
+
+
+
+

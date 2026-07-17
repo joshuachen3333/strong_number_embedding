@@ -1184,3 +1184,149 @@ Since you keep saying "go on", I'll make the call that actually **dissolves** th
 
 
 
+##     2026-07-11 10:48 CST
+
+###    User Prompt
+中文詳述這個 survey5 規格, 設計原理與主題目的 docs/superpowers/specs/2026-07-10-survey5-leaderboard-design.md
+
+###    result
+那份 spec 已經被擴充了(新增了第三軸 ± qp enrichment)。我先把整份最新內容讀完,再幫你完整詳述。
+
+
+
+
+##     2026-07-11 10:56 CST
+
+###    User Prompt
+WLC 應該也有新約的經文/字表吧！沒有嗎？
+
+###    result
+沒有——而且這不是「資料還沒補」,是**根本上不存在**。原因是語言/歷史事實,不是工程缺口。
+
+## WLC 為什麼只有舊約
+
+**WLC = Westminster Leningrad Codex**,它是**列寧格勒抄本**(現存最古老的完整希伯來聖經 Masoretic 抄本)的數位版。而列寧格勒抄本是**猶太教的希伯來聖經(Tanakh)**——按定義只含**舊約 39 卷**(創世記～瑪拉基書)。
+
+**新約從來沒有希伯來原文。** 新約是公元一世紀用**通用希臘文(Koine Greek)**寫的。所以:
+- WLC 涵蓋:創～瑪(舊約)
+- WLC 不含、也不可能含:太～啟(新約)——因為那個原文語言是希臘文,不是希伯來文
+
+## 這在 SN 系統裡是「寫死」的
+
+Strong's Number 本身就把這條界線編碼進去了:
+- **`WH####`** = **H**ebrew,舊約字(WLC 提供)
+- **`WG####`** = **G**reek,新約字(希臘文抄本提供)
+
+你在 spec 裡看到的 `<WH07225>`(起初)那個 **H**,和新約會出現的 `<WG…>` 那個 **G**,就是舊約/新約、希伯來/希臘的分水嶺。同一套 WLC 不可能跨過去。
+
+## 「希伯來文新約」存在,但沒用
+
+補一個容易誤會的點:市面上**確實有「希伯來文新約」**(例如 Delitzsch 的希伯來譯本、現代希伯來譯本)——但那些是**回譯的翻譯本**,不是原文。它們:
+- 不帶權威 SN(SN 是綁在希臘原文上的)
+- 對我們的任務**毫無用處**,因為我們要的是「承載權威 SN 的那個語言」
+
+所以就算「希伯來文新約字表」技術上生得出來,也不能當 SN 來源。
+
+## 對 survey5 的意義
+
+這正是 spec 為什麼:
+- **v1 鎖 OT(WLC-only)** —— WLC 能覆蓋的就是舊約
+- 把 **NT 明確劃到 scope 外**,並註明「需要**獨立的希臘文來源**(SBLGNT 或 FHL 的 Westcott-Hort `FHLWH`)+ **希臘文 morph 橋**(`WTG` 5xxx 碼)」
+
+換句話說,新約不是「WLC 補一補就有」,而是**要換一整套原文資料源和一條新的 morph 學習管線**——跟舊約的 WLC 建置平行、但是全新的一份工。這就是為什麼它是未來的獨立軸,不是 v1 的一部分。
+
+---
+
+所以回到你上一個問題的決策點不變:**第三軸 ±qp 要不要進 v1**(v1 本來就只做舊約)。要我怎麼安排?
+
+
+
+
+##     2026-07-11 11:06 CST
+
+###    User Prompt
+survey11 是在你這裡設計的嗎？採用 YLT 的決策那次!
+
+###    result
+查清楚了。直接回答你:
+
+## 不是我這裡設計的
+
+`survey11_gold_factory_selection` 是 **2026-06-30 由你(Joshua)建立**,從 **survey10 spin-out** 出來的,不是這個 survey5 session 設計的。它的核心設計文件 `S10_VS_S1_GOLD_EXPERIMENT.md` 是**從 survey10 搬過去的**(git history 保留)。
+
+## 而且「採用 YLT」不是我這邊的決策——這邊剛好相反
+
+YLT 在**我這個 survey5 session** 的軌跡是:
+- 在更早的 `2026-06-26-survey5-multisource-bakeoff-design.md` **考慮過** BSB/YLT/KJV 當英文橋
+- 但 Round-2 bake-off 的結論是 **WLC-only 勝、英文橋(含 YLT/BSB)退場**
+
+所以 survey5 這裡是**否決**英文橋,不是採用 YLT。
+
+## YLT 當 live 選項的地方是 survey11
+
+survey11 有一條 **Source axis**,明列:**BSB / YLT / BSB+YLT / BSB+YLT+KJV** —— 當「跟著 WLC 希伯來來源一起餵的可讀橋」。而且它的 CLAUDE.md 把這標成 **§ OPEN QUESTION — which source config?**,也就是**還沒拍板**,是待決的開放問題。讓我確認一下 YLT 在那份文件裡到底是「已採用」還是「仍開放」:
+
+
+
+
+##     2026-07-11 11:23 CST
+
+###    User Prompt
+❯ alignment 那邊給我這個資訊
+  ┌───────┬───────┬─────────────────────────┬──────────────────────────┬─────────────────────────────────────────┬─────────────────────────────────────────┐
+  │ Canon │ 書卷  │        文本來源         │           底本           │             SN(strongs)出處             │               morph 出處                │
+  ├───────┼───────┼─────────────────────────┼──────────────────────────┼─────────────────────────────────────────┼─────────────────────────────────────────┤
+  │ OT    │ 01–39 │ WLC / WLCM              │ 列寧格勒抄本(馬索拉文本) │ macula-hebrew 標註(strongs 欄,如 0871a) │ macula-hebrew 詞形碼(morph/pos 欄)      │
+  ├───────┼───────┼─────────────────────────┼──────────────────────────┼─────────────────────────────────────────┼─────────────────────────────────────────┤
+  │ NT    │ 40–66 │ SBLGNT / BGNT / NA27/28 │ 希臘文新約校勘本         │ macula-greek 標註(strongs 欄,如 G0976)  │ Robinson/MorphGNT 式(morph 欄,如 N-NSF) │
+  └───────┴───────┴─────────────────────────┴──────────────────────────┴─────────────────────────────────────────┴─────────────────────────────────────────┘
+ 是否代表我們要更改 SurveyN 的基石改為: WLCM (OT) +  SBLGNT (NT)?
+
+###    result
+這是個「基石」等級的問題,我先看一下 `Alignments/` 那批資料實際落地成什麼,再給你分層的判斷(不憑印象)。
+
+
+
+
+##     2026-07-11 11:36 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey10-obe->s5-obe [QUERY]:
+Joshua 問:你們為何都同意用 WLCM?但我 grep 你們的 .py 只見來源 WLC.tsv,WLCM 只出現在對齊檔名 WLCM-BSB-manual.json(Clear Bible 對 BSB 做對齊時的命名),不是被載入的來源資料。我實測 WLCM.tsv 的 schema 與 WLC 不同(無 lemma 欄、strongs 無 H 前綴、pos 全字),會弄壞 SN 抽取。請確認:你們的希伯來來源到底是 WLC.tsv,還是真的載 WLCM.tsv?若你們有 WLCM 的決策/理由是我漏看的,請說明來龍去脈。
+### inserted prompt ended ###
+
+###    result
+Found it — survey10-obe's Claude HEAD is now window 78. Resending.
+
+
+
+
+##     2026-07-11 20:47 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey10-obe->s5-obe [QUERY]:
+Joshua 要你們慎重考慮 WLC-only。A2 Gen1 實測(對 UNV FHL 真值):純 WLC+SN 最強(full 0.797 / 09xxx 0.984),加 BSB 橋兩指標都扣(Δ−0.023);YLT 橋在自己 run 內 +0.039 但跨-run 未定。我方已把 A2 預設改成 WLC-only。詳見信:llm_direct_sn_unv2notyet/docs/20260711_from_s10obe_to_s1_s5_wlc_only_finding.md。請讀後回覆:你們的來源是否也該退回 WLC-only(s5 直接相關、呼應你 WLC-only>WLC+KJV;s1 較不直接但橋接教訓可比照)。ack 即可。
+### inserted prompt ended ###
+
+###    result
+Fully corroborates survey5's Round-2. And survey5 is **already** WLC-only (the leaderboard spec locks it: "Input-source axis — WLC-only is locked; source is fixed, not a contestant"). Clean yes. Recording their query and sending the [ACK].
+
+
+
+
+##     2026-07-15 00:10 CST
+
+###    User Prompt
+### inserted prompt begins ###
+survey10-obe->s5-obe [ACK]:
+太好了,接受。請把 same-run WLC-only / BSB / YLT 三橋消融排進你 v1(凍結 52-set、對 FHL 真值、無跨-run baseline 偏移)——這正是能定案我那個 caveat 的嚴謹作法,你的矩陣跑者比我的單-run 更適合。把「YLT 到底幫不幫」用同-run 數據定案後回報即可;若 YLT 同-run 仍 >WLC-only,我這邊會據以重新檢視是否把 A2 橋改回 YLT(目前預設已是 WLC-only)。獨立同向佐證也記下了,謝謝。close。
+### inserted prompt ended ###
+
+###    result
+survey10-obe closed the thread with **[ACK] + "close"** — per the Ack Rule I send no ack-of-ack. Recording their message; no inject back.
+
+
+
+
