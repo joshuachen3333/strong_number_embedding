@@ -217,3 +217,56 @@ Survey1 survey10 也有關聯
 
 
 
+##     2026-07-11 11:24 CST
+
+###    User Prompt
+alignment 那邊給我這個資訊 [OT 01-39 WLC/WLCM 底本列寧格勒 SN=macula-hebrew(0871a) morph=macula-hebrew;NT 40-66 SBLGNT/BGNT/NA27/28 SN=macula-greek(G0976) morph=Robinson/MorphGNT(N-NSF)] 是否代表我們要更改 SurveyN 的基石改為: WLCM (OT) + SBLGNT (NT)?
+
+###    
+- Agent: `parsing-obe`
+- Hint: 問:alignment 表(OT=WLCM+macula-hebrew、NT=SBLGNT+macula-greek)是否代表要把 SurveyN 基石改為 WLCM(OT)+SBLGNT(NT)?
+- Diff: 評估(未改動任何檔):建議拆三層——SN 真值/編號權威維持 FHL(UNV+SN 是評分基準與輸出契約;macula 用 a/b/c 擴充 Strong's 如 0871a 與 FHL 純號不相容);原文文本+morph+對齊採 WLCM/SBLGNT+macula 作互補增強層(survey11 WLC+YLT 已開此路,ylt_bridge 已用 macula 對齊);前置需建 FHL↔macula SN 對帳表。OT 非換底本(FHL OT 本即 WLC/Leningrad),NT 才真換(FHLWH→SBLGNT)
+
+
+
+
+##     2026-07-11 11:39 CST
+
+###    User Prompt
+survey10-obe->parsing-obe [FYI] WLC/WLCM 名稱統一與更正:1 OT 來源=sources/WLC.tsv(macula-hebrew:strongs H0871a+lemma+morph),沒人載 WLCM.tsv(另一 schema,無 lemma、strongs 無 H 前綴、pos 全字,會弄壞 SN 抽取與 lemma-keyed 09xxx 橋);2 WLCM 只出現在對齊檔名前綴 WLCM-BSB-manual.json 且命名不一致(YLT 那個叫 WLC-YLT-manual.json);3 統一措辭 WLC.tsv(OT01-39)+SBLGNT.tsv(NT40-66),BSB 英文橋貫穿,ground truth 仍 FHL;4 s1-obe+s5-obe 已確認更正(皆載 WLC.tsv 無 WLCM 決策)。ack 即可
+
+###    
+- Agent: `parsing-obe`
+- Hint: survey10-obe inject:WLCM 非來源資料集;OT 真來源=sources/WLC.tsv(macula-hebrew),WLCM 只是對齊檔名前綴且命名不一致;統一基石措辭 WLC.tsv(OT)+SBLGNT.tsv(NT),BSB 英文橋,ground truth 仍 FHL;請更正文件/程式中 WLCM-as-source 並 ack
+- Diff: 接 s10-obe 跨 survey 對齊更正;掃我 qp 增補產出檔是否誤寫 WLCM 當來源並修正
+
+
+
+
+##     2026-07-18 02:52 CST
+
+###    User Prompt
+fhl 的 parsing code 新約經文很完整且 consistant, 聽說舊約就有點不標準化了, code 還帶著中文, 請幫我traverse 一下所有舊約經文的 parsing code. 盡量使用 script 來直行, 省token
+
+###    
+- Agent: `parsing-obe`
+- Hint: 普查全舊約 FHL parsing code(wform,帶中文)的一致性/標準化程度;NT 完整一致但 OT 傳聞不標準化;盡量用 script 省 token
+- Diff: 以本地 bible_parsing.db lparsing 表離線 traverse 全 OT 39 卷 wform,分析詞彙、分隔符、變體、legacy 片段等不一致樣態
+
+
+
+
+##     2026-07-18 18:31 CST
+
+###    User Prompt
+先 commit 這兩個檔案
+go on
+
+###    
+- Agent: `parsing-obe`
+- Hint: commit OT parsing code 普查兩檔;然後接著做 ot_wform_normalize() 正規化原型
+- Diff: commit parsing/OT_PARSING_CODE_SURVEY.md + parsing/ot_parsing_code_survey.py;續作 OT wform 正規化(剝 12..21 內碼+切散文+正規化分隔符/曲引號)
+
+
+
+
