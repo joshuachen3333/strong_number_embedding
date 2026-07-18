@@ -2115,3 +2115,32 @@ token limit reset, go on if paused
 
 
 
+##     2026-07-18 22:21 CST
+
+###    User Prompt
+ch13-18 停掉重來一下
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 停掉 ch13-17 循序車重來
+- Diff: PID-scoped 殺循序車 tree(wrapper 3933→run_gold_standard 79673→codex 7204)
+
+
+
+
+##     2026-07-18 22:21 CST
+
+###    User Prompt
+改成不要去fhl api 取經文, 改用 local sqlite,
+並且五車並行趕工一下
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 不走 FHL 取經文改本地 SQLite + 5 車並行趕工
+- Diff: 查無本地 LCC 源→一次性抓 ch13-18 LCC 建 bible_lcc.db(139節,gitignored);driver 加 _fetch_lcc_from_sqlite+lcc local-first(UNV 本已本地)→ch13-18 UNV+LCC 零 FHL(驗證 urlopen 打樁不觸發);改 5 車並行 ch13-17(one-per-chap)全活。注:driver 混有別 agent 未提交 _disk_cache_* WIP 故未 commit
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/llm_direct_sn_unv2notyet.py`
+- File: `/Users/joshua/work/strong_number_embedding/original_text_preparation/source_sqlite/bible_lcc.db`
+
+
+
+

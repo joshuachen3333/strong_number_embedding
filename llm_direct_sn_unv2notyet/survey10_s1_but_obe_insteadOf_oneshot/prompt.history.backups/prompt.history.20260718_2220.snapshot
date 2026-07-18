@@ -2006,3 +2006,112 @@ tr 經文的 github 是哪裡?
 
 
 
+##     2026-07-18 03:10 CST
+
+###    User Prompt
+平行車隊, 但是每一車只跑一章. 8, 9, 10, 11, 12 各一車
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 改採一車一章的平行車隊: ch8-12 各一車
+- Diff: 加 run_gold_standard.py --skip-scribe flag(平行寫 conventions race 防護); 新建 auto_run_one_chapter.py(單章 coverage-driven wrapper); nohup+disown 啟動 5 車跑創8-12(135節)全存活進 R1
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/run_gold_standard.py`
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/auto_run_one_chapter.py`
+
+
+
+
+##     2026-07-18 03:15 CST
+
+###    User Prompt
+/obe2 對整齊就好不用開會
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: /obe2 對整齊不用開會 → 對 s1/s5 發共享帳號併發知會 flare
+- Diff: 不開 meeting/onboarding;osascript 直打 s1-obe(w82)+s5-obe(w96) 1 行 fenced [FYI] flare(double-Enter v2): 知會 s10 已 5 車併發燒共享 opus/agy/gpt;bus 事件因需 meeting_id 不適用故走 inject
+
+
+
+
+##     2026-07-18 03:20 CST
+
+###    User Prompt
+主要是lala and erha
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 對齊主對象是 lala/erha(同 cwd 手足)非 s1/s5
+- Diff: 改對 survey10 同 cwd 手足發 flare: lala-codex(w92,ttys012)已送 fenced [FYI] 併發燒 codex 後端知會→回 'Understood. No action needed.';erha(gemini)全專案無 live session,無法 inject
+
+
+
+
+##     2026-07-18 03:28 CST
+
+###    User Prompt
+please ping erha again
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 再 ping erha — 發現 erha/gemini 進程名是 agy 故初掃漏抓
+- Diff: erha=agy(Gemini 3.1 Pro)在 survey10 cwd pid14577/ttys013=window93;已送 fenced [FYI] 併發燒 agy 後端知會,輸入框已清空提交(gemini TUI alt-screen 無法讀回覆)
+
+
+
+
+##     2026-07-18 17:54 CST
+
+###    User Prompt
+token limit reset, go on if paused
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: token reset → 續跑;發現首批 34 空殼(wrapper 只查檔案存在的 bug),修 content-check+--force+fetch-retry 後重啟補殼
+- Diff: auto_run_one_chapter.py 三修: present_secs 改非空 lcc_sn 內容檢查; 加 --force 覆蓋殼檔; chapter_secs 加 8x retry(FHL SSL timeout 曾殺 3 車)。101/135 真 gold + 34 空殼重啟中(5 車全活 opus conf 0.85-0.97)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/auto_run_one_chapter.py`
+
+
+
+
+##     2026-07-18 18:04 CST
+
+###    User Prompt
+補完就好, 先 hold
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 補完 34 殼即止,不擴張 ch13+,hold
+- Diff: scope 定案: 5 車跑完創8-12 補殼(目標135/135真gold)後停手,不開新章;等後續指示
+
+
+
+
+##     2026-07-18 18:19 CST
+
+###    User Prompt
+訂一個 timer, 兩小時 40 分鐘以後啟動, 跑接下來 ch13-17, 這次循序跑五個 chap, 每次一章
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 訂 timer 2h40m 後循序跑 ch13-17(單 process 一次一章)
+- Diff: 新建 auto_run_chapters_seq.py(循序多章 wrapper,承 ch8-12 修正+--skip-scribe);nohup sleep 9600 timer PID3933 排定 20:59:30 啟動 ch13-17(106節)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/auto_run_chapters_seq.py`
+
+
+
+
+##     2026-07-18 18:33 CST
+
+###    User Prompt
+如果 fhl api 回應 400, 記得改用 local sqlite 當作經文來源
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: FHL 400 → fallback local SQLite 當經文來源
+- Diff: 硬化 fetch_chap(共享 driver): 加 import urllib.error;FHL 呼叫包 5x retry,400/故障時 UNV 落 bible_little.db 本地 mirror、其他版本(LCC)backoff 重試,免無人值守跑 crash。存記憶 fhl_400_local_sqlite_fallback
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/llm_direct_sn_unv2notyet.py`
+
+
+
+
