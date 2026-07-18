@@ -32,7 +32,7 @@ Stop policy (same as auto_run_gen5_7):
 
 Kill PID-scoped. NEVER `pkill -f run_gold_standard.py` (kills survey1's runner too).
 """
-import argparse, subprocess, sys, os, time, glob
+import argparse, subprocess, sys, os, time, glob, json
 from datetime import datetime
 
 SURVEY_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -79,10 +79,24 @@ def chapter_secs():
 
 
 def present_secs():
+    """Verses with REAL gold — file exists AND carries a non-empty lcc_sn.
+
+    CONTENT check, not file existence: a rate-limit casualty writes an
+    `unresolved`/empty-lcc_sn shell file that mere existence would wrongly count
+    as done (this bug let the first pass exit DONE with 34 empty shells). A shell
+    counts as MISSING so the next pass re-runs it (with --force, since the file
+    is already there).
+    """
     out = set()
     for f in glob.glob(os.path.join(GOLD_CH, "*.json")):
         b = os.path.basename(f)[:-5]
-        if b.isdigit():
+        if not b.isdigit():
+            continue
+        try:
+            d = json.load(open(f, encoding="utf-8"))
+        except Exception:
+            continue
+        if (d.get("lcc_sn") or "").strip():
             out.add(int(b))
     return out
 
@@ -95,7 +109,7 @@ def run_pass(it, secs):
         p = subprocess.Popen(
             [sys.executable, "run_gold_standard.py", "--book", BOOK,
              "--chap", str(CHAP), "--sec", sec_arg,
-             "--modelsABC", *MODELS, "--skip-scribe"],
+             "--modelsABC", *MODELS, "--skip-scribe", "--force"],
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
         for line in p.stdout:
             lf.write(line); lf.flush()
