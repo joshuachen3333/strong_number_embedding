@@ -215,10 +215,22 @@ def run_r2_convergence(verses, round1_results, verse_data, models=None,
             conv_file = os.path.join(
                 conv_dir, model_name, book_eng, f"{chap}_{sec}_convergence.json")
             if not force and os.path.isfile(conv_file):
-                with open(conv_file, "r", encoding="utf-8") as f:
-                    convergence_results[model_name][verse_key] = json.load(f)
-                print(f"    [{model_name}] convergence cached", flush=True)
-                continue
+                try:
+                    with open(conv_file, "r", encoding="utf-8") as f:
+                        cached = json.load(f)
+                except (json.JSONDecodeError, ValueError):
+                    # Empty/truncated cache (e.g. a run killed mid-write) — treat as a
+                    # cache miss and regenerate, never crash the whole verse on it.
+                    print(f"    [{model_name}] convergence cache corrupt → "
+                          f"regenerating", flush=True)
+                    try:
+                        os.remove(conv_file)
+                    except OSError:
+                        pass
+                else:
+                    convergence_results[model_name][verse_key] = cached
+                    print(f"    [{model_name}] convergence cached", flush=True)
+                    continue
 
             # Get R1 output
             r1_result = round1_results[model_name].get(verse_key, {})
