@@ -25,6 +25,7 @@ import sys
 import time
 import urllib.parse
 import urllib.request
+import urllib.error
 from datetime import datetime, timedelta, timezone
 
 import shutil
@@ -201,13 +202,38 @@ def fetch_chap(book_chi: str, chap: int, version: str, strong: int = 0) -> dict:
     })
     url = f"{FHL_API}?{params}"
     req = urllib.request.Request(url, headers={"User-Agent": "StrongNumberEmbedding/1.0"})
-    with urllib.request.urlopen(req, timeout=15) as resp:
-        data = json.loads(resp.read().decode("utf-8"))
 
-    secs = {}
-    for record in data.get("record", []):
-        secs[record["sec"]] = record["bible_text"]
-    return secs
+    # qb.php returns HTTP 400 when throttled under concurrent load (see _UNV_SQLITE_DB
+    # note). Joshua 2026-07-18: on a 400 (or any fetch fault) fall back to the local
+    # SQLite mirror for UNV; retry-with-backoff for versions the mirror doesn't hold
+    # (LCC etc.). Never let a transient 400 crash an unattended run.
+    last_err = None
+    for attempt in range(1, 6):
+        try:
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            secs = {}
+            for record in data.get("record", []):
+                secs[record["sec"]] = record["bible_text"]
+            return secs
+        except (urllib.error.HTTPError, urllib.error.URLError,
+                TimeoutError, OSError, json.JSONDecodeError) as e:
+            last_err = e
+            # UNV: the local mirror is byte-identical — use it instead of dying.
+            if version == "unv":
+                local = _fetch_unv_from_sqlite(book_chi, chap)
+                if local:
+                    return local
+            wait = min(60, 10 * attempt)
+            print(f"    [fetch] {book_chi} {chap} {version} attempt {attempt} failed "
+                  f"({type(e).__name__}); retry in {wait}s", flush=True)
+            time.sleep(wait)
+    # exhausted retries — last-ditch local mirror for UNV, else surface the error
+    if version == "unv":
+        local = _fetch_unv_from_sqlite(book_chi, chap)
+        if local:
+            return local
+    raise last_err
 
 
 # Chapter cache: {(book_chi, chap, version): {sec: text}}
