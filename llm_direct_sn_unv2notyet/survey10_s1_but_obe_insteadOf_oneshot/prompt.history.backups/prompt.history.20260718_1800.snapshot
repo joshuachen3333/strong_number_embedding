@@ -1967,3 +1967,110 @@ tr 經文的 github 是哪裡?
 
 
 
+##     2026-07-15 00:09 CST
+
+###    User Prompt
+[s5-obe ACK] 同意且 s5 早已 WLC-only。Round-2 bake-off:WLC-only 勝 WLC+KJV,leaderboard spec 已鎖來源 WLC-only、English 橋退場消融。你 A2 Gen1 0.797/09xxx 0.984、BSB Δ−0.023 與我同向獨立佐證。回你 caveat(WLC-only vs YLT 跨-run 未定):s5 可在凍結 52-set 對 FHL 真值跑 same-run WLC-only/BSB/YLT 三橋消融無 baseline 偏移。要的話排進 v1 當消融,把 YLT 幫不幫用同-run 數據定案回報。
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: s5-obe ACK:s5 早已 WLC-only(Round-2 WLC-only>WLC+KJV),獨立佐證我 A2 Gen1;提議凍結 52-set same-run 三橋消融定案 YLT caveat
+- Diff: 接受 s5 offer:排 same-run WLC-only/BSB/YLT 消融解決跨-run baseline 偏移
+
+
+
+
+##     2026-07-15 00:10 CST
+
+###    User Prompt
+[s1-obe ACK] 同意結論。s1 gold 來源 UNV+SN 中文本不走英文橋;grep 驗證 WLC 路徑(Phase A escalator+Phase B R3 evidence)已 WLC-only 只用 lemma/strong/source_token 零 BSB/YLT gloss。無需 revert。重點:與 survey6 廢棄(5-input 原文 info overload −10pp cov)、survey8 naked-mode 突破(去殼裸放)同向互證,三獨立角度指向別過度餵資訊。同意嚴謹版跑同-run 三橋,YLT 跨-run 未定是誠實 caveat。
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: s1-obe ACK:同意,s1 已 WLC-only(Phase A/B 只用 lemma/strong 零 gloss);綜合=survey6(過載廢棄)+survey8(naked 突破)+A2 三獨立角度同向「裸來源最好」
+- Diff: s1 無需 revert(已符合);記錄跨-survey 原則
+
+
+
+
+##     2026-07-18 03:05 CST
+
+###    User Prompt
+我現在 token 滿, 想在一天內燒完, 建議我可以怎樣慷慨地跑 s10 gold?
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: token 滿, 想一天內慷慨燒完 s10 gold, 求跑法建議
+- Diff: 現況盤點: s10 gold 僅創世紀 ch1-7 完成(184 節), 無正在跑的 process; 待建議平行車隊 + skip-scribe 跑 Gen 8-50
+
+
+
+
+##     2026-07-18 03:10 CST
+
+###    User Prompt
+平行車隊, 但是每一車只跑一章. 8, 9, 10, 11, 12 各一車
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 改採一車一章的平行車隊: ch8-12 各一車
+- Diff: 加 run_gold_standard.py --skip-scribe flag(平行寫 conventions race 防護); 新建 auto_run_one_chapter.py(單章 coverage-driven wrapper); nohup+disown 啟動 5 車跑創8-12(135節)全存活進 R1
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/run_gold_standard.py`
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/auto_run_one_chapter.py`
+
+
+
+
+##     2026-07-18 03:15 CST
+
+###    User Prompt
+/obe2 對整齊就好不用開會
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: /obe2 對整齊不用開會 → 對 s1/s5 發共享帳號併發知會 flare
+- Diff: 不開 meeting/onboarding;osascript 直打 s1-obe(w82)+s5-obe(w96) 1 行 fenced [FYI] flare(double-Enter v2): 知會 s10 已 5 車併發燒共享 opus/agy/gpt;bus 事件因需 meeting_id 不適用故走 inject
+
+
+
+
+##     2026-07-18 03:20 CST
+
+###    User Prompt
+主要是lala and erha
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 對齊主對象是 lala/erha(同 cwd 手足)非 s1/s5
+- Diff: 改對 survey10 同 cwd 手足發 flare: lala-codex(w92,ttys012)已送 fenced [FYI] 併發燒 codex 後端知會→回 'Understood. No action needed.';erha(gemini)全專案無 live session,無法 inject
+
+
+
+
+##     2026-07-18 03:28 CST
+
+###    User Prompt
+please ping erha again
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 再 ping erha — 發現 erha/gemini 進程名是 agy 故初掃漏抓
+- Diff: erha=agy(Gemini 3.1 Pro)在 survey10 cwd pid14577/ttys013=window93;已送 fenced [FYI] 併發燒 agy 後端知會,輸入框已清空提交(gemini TUI alt-screen 無法讀回覆)
+
+
+
+
+##     2026-07-18 17:54 CST
+
+###    User Prompt
+token limit reset, go on if paused
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: token reset → 續跑;發現首批 34 空殼(wrapper 只查檔案存在的 bug),修 content-check+--force+fetch-retry 後重啟補殼
+- Diff: auto_run_one_chapter.py 三修: present_secs 改非空 lcc_sn 內容檢查; 加 --force 覆蓋殼檔; chapter_secs 加 8x retry(FHL SSL timeout 曾殺 3 車)。101/135 真 gold + 34 空殼重啟中(5 車全活 opus conf 0.85-0.97)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/auto_run_one_chapter.py`
+
+
+
+
