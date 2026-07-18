@@ -156,9 +156,43 @@ FHL_API = "https://bible.fhl.net/json/qb.php"
 _books = load_books()
 CHI_TO_ENG = _books["CHI_TO_ENG"]
 
+# Offline UNV+SN mirror (whole bible, 66 books / 31103 verses). Its `unv` table txt is
+# byte-identical to the FHL API's `version=unv&strong=1` bible_text (verified against
+# stored gold `unv_sn_reference`). Serving UNV locally halves FHL load — critical when
+# many concurrent cars would otherwise throttle the shared qb.php endpoint (HTTP 400).
+_UNV_SQLITE_DB = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..",
+    "original_text_preparation", "source_sqlite", "bible_little.db")
+
+
+def _fetch_unv_from_sqlite(book_chi: str, chap: int) -> dict:
+    """Return {sec: bible_text} for a UNV+SN chapter from the local mirror, or {} on any
+    miss/error (caller then falls back to FHL). Only the strong-tagged UNV is mirrored."""
+    try:
+        import sqlite3
+        book_eng = CHI_TO_ENG.get(book_chi, book_chi)
+        con = sqlite3.connect(f"file:{_UNV_SQLITE_DB}?mode=ro", uri=True, timeout=5)
+        try:
+            rows = con.execute(
+                "SELECT sec, txt FROM unv WHERE engs=? AND chap=?", (book_eng, chap)
+            ).fetchall()
+        finally:
+            con.close()
+        return {int(sec): txt for sec, txt in rows if txt}
+    except Exception:
+        return {}
+
 
 def fetch_chap(book_chi: str, chap: int, version: str, strong: int = 0) -> dict:
-    """Fetch a chapter from FHL API. Returns {sec: bible_text}."""
+    """Fetch a chapter. Returns {sec: bible_text}.
+
+    UNV+SN (version=unv, strong=1) is served from the local offline mirror first (exact
+    FHL-format match, zero network) and only falls back to FHL on a miss. Every other
+    version — and un-tagged UNV — goes straight to the FHL API."""
+    if version == "unv" and strong == 1:
+        local = _fetch_unv_from_sqlite(book_chi, chap)
+        if local:
+            return local
     params = urllib.parse.urlencode({
         "version": version,
         "chineses": book_chi,
