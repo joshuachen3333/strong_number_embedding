@@ -2060,3 +2060,17 @@ please ping erha again
 
 
 
+##     2026-07-18 17:54 CST
+
+###    User Prompt
+token limit reset, go on if paused
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: token reset → 續跑;發現首批 34 空殼(wrapper 只查檔案存在的 bug),修 content-check+--force+fetch-retry 後重啟補殼
+- Diff: auto_run_one_chapter.py 三修: present_secs 改非空 lcc_sn 內容檢查; 加 --force 覆蓋殼檔; chapter_secs 加 8x retry(FHL SSL timeout 曾殺 3 車)。101/135 真 gold + 34 空殼重啟中(5 車全活 opus conf 0.85-0.97)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/auto_run_one_chapter.py`
+
+
+
+
