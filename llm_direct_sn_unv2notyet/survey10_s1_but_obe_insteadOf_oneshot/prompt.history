@@ -2087,3 +2087,17 @@ token limit reset, go on if paused
 
 
 
+##     2026-07-18 18:19 CST
+
+###    User Prompt
+訂一個 timer, 兩小時 40 分鐘以後啟動, 跑接下來 ch13-17, 這次循序跑五個 chap, 每次一章
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 訂 timer 2h40m 後循序跑 ch13-17(單 process 一次一章)
+- Diff: 新建 auto_run_chapters_seq.py(循序多章 wrapper,承 ch8-12 修正+--skip-scribe);nohup sleep 9600 timer PID3933 排定 20:59:30 啟動 ch13-17(106節)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/auto_run_chapters_seq.py`
+
+
+
+
