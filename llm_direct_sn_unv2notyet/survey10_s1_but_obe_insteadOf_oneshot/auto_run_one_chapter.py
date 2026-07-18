@@ -73,9 +73,22 @@ def log(msg):
 
 
 def chapter_secs():
-    """Full verse set for this chapter, from the live UNV response (authoritative)."""
-    unv = fetch_chap_cached(BOOK, CHAP, "unv", strong=1)
-    return sorted(unv)
+    """Full verse set for this chapter, from the live UNV response (authoritative).
+
+    Retries transient FHL network faults (SSL/read timeouts happen when all cars
+    hammer qb.php at once) — an unguarded fetch here previously killed cars at
+    startup before they ran a single verse.
+    """
+    for attempt in range(1, 9):
+        try:
+            return sorted(fetch_chap_cached(BOOK, CHAP, "unv", strong=1))
+        except Exception as e:
+            wait = min(60, 5 * attempt)
+            log(f"UNV fetch attempt {attempt} failed ({type(e).__name__}: {e}); "
+                f"retry in {wait}s")
+            time.sleep(wait)
+    log("UNV fetch failed after 8 attempts — abort car.")
+    print("WRAPPER_STATUS=FETCH_FAIL"); sys.exit(6)
 
 
 def present_secs():
