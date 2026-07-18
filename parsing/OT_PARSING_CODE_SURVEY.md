@@ -88,3 +88,35 @@ prose (#2) inflate the surface variety far beyond the true morphological space.
 ## Anomalies (small, but log them)
 - 12 placeholder rows (`sn='00000'` or `word='+'`).
 - 4,498 rows whose `wform` does not lead with a Chinese POS (prose-first or fragment-first).
+
+## The actionable output — `ot_wform_normalize.py`
+
+The survey's payoff: a conservative normalizer that turns noisy OT `wform` into a
+structured record **plus an exportable NT-style Latin code**, so OT becomes
+machine-usable like NT. Run `python3 parsing/ot_wform_normalize.py` to re-validate.
+
+**Results over all 308,641 non-empty OT morphemes:**
+- **99.5% fully parsed** (recognized POS + zero residual); only 72 rows end up POS-less
+  (source genuinely elides the POS, e.g. `冠詞 + 陽性單數`).
+- Raw 10,263 distinct `wform` → **3,198 normalized codes** (and far fewer once prefixes
+  are factored out — the true core tagset approaches NT's scale).
+- **No silent loss**: fragments → `particles`, apparatus/gloss → `notes`, anything
+  unrecognized → `residual` (1,393 rows / 187 distinct, mostly FHL's own typos like
+  `Hithpeel`/`Hi‘fil` and rare Aramaic forms).
+
+**Example transforms** (`to_code`):
+
+| raw OT `wform` | normalized code |
+|---|---|
+| `動詞，Qal 完成式 3 單陽` | `H:V-Qal-Perf-3sm` |
+| `連接詞 12>w21 + 冠詞 12;h21 + 名詞，陽性複數` | `H:Conj+Art+N-pm` |
+| `介系詞 12.l21 + 動詞，Hif‘il 不定詞附屬形 + 3 單陽詞尾` | `H:Prep+V-Hiphil-InfC+sfx3sm` |
+| `專有名詞，人名：大衛` | `H:Np` (name `大衛` → notes) |
+| `這是馬所拉學者把讀型，動詞，Qal 未完成式 2 單陽` | `H:V-Qal-Impf-2sm` (apparatus → notes) |
+
+**What the normalizer handles**: `12…21` fragment strip + particle capture; apparatus /
+qere-ketiv / gloss separation; fullwidth/halfwidth delimiter + apostrophe-variant
+normalization (FHL mixes ASCII `'` and curly `‘` in binyan names); prefix stacking via
+`+`; pronominal `詞尾` suffixes; Hebrew **and** Aramaic (Daniel/Ezra) binyanim; noun
+state (construct/absolute); proper-noun subtypes. This is the OT-side counterpart the
+qp-enrichment pre-validator needs before any fine OT parse (SPEC v1.9 S3).
