@@ -2101,3 +2101,17 @@ token limit reset, go on if paused
 
 
 
+##     2026-07-18 18:33 CST
+
+###    User Prompt
+如果 fhl api 回應 400, 記得改用 local sqlite 當作經文來源
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: FHL 400 → fallback local SQLite 當經文來源
+- Diff: 硬化 fetch_chap(共享 driver): 加 import urllib.error;FHL 呼叫包 5x retry,400/故障時 UNV 落 bible_little.db 本地 mirror、其他版本(LCC)backoff 重試,免無人值守跑 crash。存記憶 fhl_400_local_sqlite_fallback
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/llm_direct_sn_unv2notyet.py`
+
+
+
+
