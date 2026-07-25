@@ -2060,3 +2060,101 @@ please ping erha again
 
 
 
+##     2026-07-18 17:54 CST
+
+###    User Prompt
+token limit reset, go on if paused
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: token reset → 續跑;發現首批 34 空殼(wrapper 只查檔案存在的 bug),修 content-check+--force+fetch-retry 後重啟補殼
+- Diff: auto_run_one_chapter.py 三修: present_secs 改非空 lcc_sn 內容檢查; 加 --force 覆蓋殼檔; chapter_secs 加 8x retry(FHL SSL timeout 曾殺 3 車)。101/135 真 gold + 34 空殼重啟中(5 車全活 opus conf 0.85-0.97)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/auto_run_one_chapter.py`
+
+
+
+
+##     2026-07-18 18:04 CST
+
+###    User Prompt
+補完就好, 先 hold
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 補完 34 殼即止,不擴張 ch13+,hold
+- Diff: scope 定案: 5 車跑完創8-12 補殼(目標135/135真gold)後停手,不開新章;等後續指示
+
+
+
+
+##     2026-07-18 18:19 CST
+
+###    User Prompt
+訂一個 timer, 兩小時 40 分鐘以後啟動, 跑接下來 ch13-17, 這次循序跑五個 chap, 每次一章
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 訂 timer 2h40m 後循序跑 ch13-17(單 process 一次一章)
+- Diff: 新建 auto_run_chapters_seq.py(循序多章 wrapper,承 ch8-12 修正+--skip-scribe);nohup sleep 9600 timer PID3933 排定 20:59:30 啟動 ch13-17(106節)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/auto_run_chapters_seq.py`
+
+
+
+
+##     2026-07-18 18:33 CST
+
+###    User Prompt
+如果 fhl api 回應 400, 記得改用 local sqlite 當作經文來源
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: FHL 400 → fallback local SQLite 當經文來源
+- Diff: 硬化 fetch_chap(共享 driver): 加 import urllib.error;FHL 呼叫包 5x retry,400/故障時 UNV 落 bible_little.db 本地 mirror、其他版本(LCC)backoff 重試,免無人值守跑 crash。存記憶 fhl_400_local_sqlite_fallback
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/llm_direct_sn_unv2notyet.py`
+
+
+
+
+##     2026-07-18 22:21 CST
+
+###    User Prompt
+ch13-18 停掉重來一下
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 停掉 ch13-17 循序車重來
+- Diff: PID-scoped 殺循序車 tree(wrapper 3933→run_gold_standard 79673→codex 7204)
+
+
+
+
+##     2026-07-18 22:21 CST
+
+###    User Prompt
+改成不要去fhl api 取經文, 改用 local sqlite,
+並且五車並行趕工一下
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 不走 FHL 取經文改本地 SQLite + 5 車並行趕工
+- Diff: 查無本地 LCC 源→一次性抓 ch13-18 LCC 建 bible_lcc.db(139節,gitignored);driver 加 _fetch_lcc_from_sqlite+lcc local-first(UNV 本已本地)→ch13-18 UNV+LCC 零 FHL(驗證 urlopen 打樁不觸發);改 5 車並行 ch13-17(one-per-chap)全活。注:driver 混有別 agent 未提交 _disk_cache_* WIP 故未 commit
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/llm_direct_sn_unv2notyet.py`
+- File: `/Users/joshua/work/strong_number_embedding/original_text_preparation/source_sqlite/bible_lcc.db`
+
+
+
+
+##     2026-07-19 13:37 CST
+
+###    User Prompt
+三小時後繼續
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 訂 3h timer 續跑收尾 ch8-17
+- Diff: 進度 218/241(ch10-16 完成;ch8:1/ch9:5/ch17:17 剩;ch9 opus 非收斂 19h);快取全 Genesis LCC(1533節,零FHL);新建 resume_finish_gen.py(cwd-scoped 乾淨停+coverage 補完 ch8-17);nohup timer PID4329 排 16:36:54 啟動
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/resume_finish_gen.py`
+
+
+
+

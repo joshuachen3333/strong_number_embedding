@@ -2158,3 +2158,16 @@ ch13-18 停掉重來一下
 
 
 
+##     2026-07-25 18:48 CST
+
+###    User Prompt
+重新補跑沒有完成的章節 （不用新增創世紀下一章, 僅補上缺少的)
+
+###    
+- Agent: `survey10_s1_but_obe_insteadOf_oneshot-obe`
+- Hint: 補跑未完成章節缺節(不新增章節)
+- Diff: 07-25 盤點 423/425,僅 ch6:17(opus 非收斂惡名節)+ch8:21 缺;啟 2 車 coverage-driven 補這 2 節,零 FHL(全 Gen LCC 本地),--force --skip-scribe
+
+
+
+
