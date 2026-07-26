@@ -61,3 +61,4 @@ showoff_finished_4review/otp_pending.json
 llm_direct_sn_unv2notyet/adjudication/stuck_index.json
 # verdicts.jsonl carries reviewer emails — same policy as reviews.json
 llm_direct_sn_unv2notyet/adjudication/verdicts.jsonl
+llm_direct_sn_unv2notyet/adjudication/gold_vs_production.json

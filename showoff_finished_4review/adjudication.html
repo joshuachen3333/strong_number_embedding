@@ -124,7 +124,9 @@ details.tr[open] summary:before{content:'▾'}
 <body>
 
 <header>
-  <h1>鬼打牆節人工裁決</h1>
+  <h1 id="htitle">鬼打牆節人工裁決</h1>
+  <button id="mstuck" class="on" onclick="setMode('stuck')">鬼打牆裁決</button>
+  <button id="mcomp" onclick="setMode('compare')">Gold vs 產線</button>
   <span class="stat" id="hstat">載入中…</span>
   <span class="spacer"></span>
   <span class="stat" id="who"></span>
@@ -181,6 +183,23 @@ details.tr[open] summary:before{content:'▾'}
 <script>
 /* ═══ constants ═══════════════════════════════════════════════════════════ */
 const INDEX_URL = '../llm_direct_sn_unv2notyet/adjudication/stuck_index.json';
+const COMPARE_URL = '../llm_direct_sn_unv2notyet/adjudication/gold_vs_production.json';
+/* text_fidelity: the GATE. A verse whose Chinese was altered is not "LCC + SN"
+ * at all, and its SN placement cannot be compared — there is no common token
+ * sequence to align against. Only `faithful` verses are scored. */
+const FIDELITY = {
+  faithful:          { label:'文字忠實',   color:'var(--ok)',      ok:true  },
+  punctuation_only:  { label:'僅標點不同', color:'var(--blank)',   ok:false },
+  chars_added:       { label:'增字',       color:'var(--diverge)', ok:false },
+  chars_dropped:     { label:'漏字',       color:'var(--diverge)', ok:false },
+  chars_substituted: { label:'異字',       color:'var(--diverge)', ok:false },
+  unknown:           { label:'無權威本可比', color:'var(--muted)', ok:false },
+};
+const KEYQ = {
+  usable:   { label:'可用答案鑰匙', color:'var(--ok)' },
+  weak:     { label:'較弱(共識壓過 WLC)', color:'var(--blank)' },
+  unusable: { label:'未定案 — 不可當答案', color:'var(--diverge)' },
+};
 const NG = { 'ngrok-skip-browser-warning': '1' };
 const FORMS = {
   blank_ballot:    { label:'有人交白卷', color:'var(--blank)',
@@ -204,6 +223,8 @@ const KINDS = {
 
 /* ═══ state ═══════════════════════════════════════════════════════════════ */
 let BUNDLE = null, VERSES = [], VERDICTS = {}, CUR = null;
+let MODE = 'stuck', CMP = null, CVERSES = [], CCUR = null;
+const cfilt = { model:new Set(), fidelity:'all' };
 let sessionToken = localStorage.getItem('showoff_session_token') || null;
 let reviewer = null;
 const filt = { survey:new Set(), form:new Set(), done:'all' };
@@ -302,11 +323,15 @@ async function init(){
   await loadVerdicts();
   buildFilters();
   renderList();
-  const m = BUNDLE.meta || {};
+  paintStuckStat();
+  if (VERSES.length) select(VERSES[0]);
+}
+
+function paintStuckStat(){
+  const m = (BUNDLE && BUNDLE.meta) || {};
   document.getElementById('hstat').innerHTML =
     `<b>${VERSES.length}</b> 節待人工 · s1/s10 · 判準 <code>trust_tier</code>` +
     (m.generated ? ` · 索引 ${esc(m.generated.slice(0,16).replace('T',' '))}` : '');
-  if (VERSES.length) select(VERSES[0]);
 }
 
 async function loadVerdicts(){
@@ -616,6 +641,203 @@ async function submitVerdict(){
   } catch (e){
     msg.className='msg bad'; msg.textContent='提交失敗:' + e.message;
   }
+}
+
+/* ═══ compare mode: gold vs production ═══════════════════════════════════ */
+function setMode(m){
+  MODE = m;
+  document.getElementById('mstuck').classList.toggle('on', m==='stuck');
+  document.getElementById('mcomp').classList.toggle('on', m==='compare');
+  document.getElementById('htitle').textContent =
+    m==='stuck' ? '鬼打牆節人工裁決' : 'Gold vs 產線對照';
+  if (m==='compare') initCompare(); else { paintStuckStat(); buildFilters(); renderList();
+    if (CUR) renderDetail(CUR); }
+}
+
+async function initCompare(){
+  if (!CMP){
+    document.getElementById('main').innerHTML = '<div class="empty">載入對照索引…</div>';
+    try {
+      const r = await fetch(COMPARE_URL, { headers:NG });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      CMP = await r.json();
+    } catch (e){
+      document.getElementById('main').innerHTML =
+        `<div class="card"><h2>對照索引載入失敗</h2><p>${esc(e.message)}</p>
+         <p class="hint">請先產生:<code>cd llm_direct_sn_unv2notyet &amp;&amp;
+         python3 adjudication/build_gold_vs_production.py</code></p></div>`;
+      return;
+    }
+    /* worst-first: a reviewer wants the biggest gold-vs-production gap on top */
+    CVERSES = (CMP.verses||[]).map(v => {
+      let worst = 1, scored = false;
+      Object.values(v.production||{}).forEach(p => {
+        Object.values(p.scores||{}).forEach(s => { scored = true;
+          if (s.placement < worst) worst = s.placement; });
+      });
+      return Object.assign({}, v, { worst: scored ? worst : null });
+    }).sort((a,b) => (a.worst==null) - (b.worst==null) || a.worst - b.worst);
+  }
+  const m = CMP.meta || {};
+  document.getElementById('hstat').innerHTML =
+    `gold <b>${m.gold_verses}</b> 節 · 答案鑰匙 ` +
+    Object.entries(m.gold_key_quality||{}).map(([k,v]) =>
+      `${KEYQ[k]?KEYQ[k].label:k} ${v}`).join(' / ');
+  buildCompareFilters();
+  renderCompareList();
+  if (CVERSES.length) selectCompare(CVERSES[0]);
+}
+
+function buildCompareFilters(){
+  const models = (CMP.meta.leaderboard||[]).map(r => r.model);
+  document.getElementById('fsurvey').parentElement.previousElementSibling; // noop
+  document.getElementById('fsurvey').innerHTML = models.map(mo =>
+    `<span class="chip cfm" data-v="${esc(mo)}">${esc(mo)}</span>`).join('');
+  document.getElementById('fform').innerHTML =
+    [['all','全部'],['faithful','只看文字忠實'],['drift','只看文字漂移']].map(([k,l]) =>
+      `<span class="chip cff${k==='all'?' on':''}" data-v="${k}">${l}</span>`).join('');
+  document.getElementById('fdone').innerHTML = '<span class="hint">對照模式不套用</span>';
+
+  document.querySelectorAll('.cfm').forEach(c => c.onclick = () => {
+    cfilt.model.has(c.dataset.v) ? cfilt.model.delete(c.dataset.v) : cfilt.model.add(c.dataset.v);
+    c.classList.toggle('on'); renderCompareList();
+  });
+  document.querySelectorAll('.cff').forEach(c => c.onclick = () => {
+    cfilt.fidelity = c.dataset.v;
+    document.querySelectorAll('.cff').forEach(x => x.classList.toggle('on', x===c));
+    renderCompareList();
+  });
+}
+
+const cshown = () => CVERSES.filter(v => {
+  const prods = Object.values(v.production||{});
+  const use = cfilt.model.size ? prods.filter(p => cfilt.model.has(p.model)) : prods;
+  if (!use.length) return false;
+  if (cfilt.fidelity === 'faithful' && !use.some(p => p.text_fidelity === 'faithful')) return false;
+  if (cfilt.fidelity === 'drift'    && !use.some(p => p.text_fidelity && p.text_fidelity !== 'faithful')) return false;
+  return true;
+});
+
+function renderCompareList(){
+  const list = cshown();
+  document.getElementById('lcount').textContent = `(${list.length})`;
+  document.getElementById('vlist').innerHTML = list.map(v => {
+    const k = `${v.book}:${v.chap}:${v.sec}`;
+    const bad = Object.values(v.production||{}).some(p =>
+      p.text_fidelity && p.text_fidelity !== 'faithful' && p.text_fidelity !== 'unknown');
+    return `<div class="vitem${CCUR && CCUR.book===v.book && CCUR.chap===v.chap && CCUR.sec===v.sec ? ' sel':''}"
+        data-ck="${esc(k)}">
+      <span class="dot" style="background:${bad?'var(--diverge)':'var(--ok)'}"></span>
+      <span class="ref">${esc(v.book)} ${v.chap}:${v.sec}</span>
+      ${v.worst!=null ? `<span class="sv">${(v.worst*100).toFixed(0)}%</span>`
+                      : '<span class="sv">無法對位</span>'}
+    </div>`;
+  }).join('') || '<div class="hint">此篩選下沒有節次。</div>';
+  document.querySelectorAll('[data-ck]').forEach(el => el.onclick = () => {
+    const [b,c,s] = el.dataset.ck.split(':');
+    const v = CVERSES.find(x => x.book===b && x.chap===+c && x.sec===+s);
+    if (v) selectCompare(v);
+  });
+}
+
+function selectCompare(v){ CCUR = v; renderCompareList(); renderCompareDetail(v); window.scrollTo(0,0); }
+
+function renderCompareDetail(v){
+  let h = '';
+
+  /* ── leaderboard: the actual answer to "can a cheap model replace gold" ── */
+  const lb = (CMP.meta.leaderboard||[]).slice()
+    .sort((a,b) => b.faithful_pct - a.faithful_pct);
+  h += `<div class="card"><h2>模型 × gold 對照
+      <span class="tag">僅計「gold 可用 + 產線文字忠實」的節</span></h2>
+    <table class="j"><tr><th>模型</th><th>重疊</th><th>文字忠實</th>
+      <th>vs s1 placement</th><th>vs s10 placement</th><th>coverage</th>
+      <th>實質文字損壞</th></tr>`;
+  lb.forEach(r => {
+    const bad = Object.entries(r.drift||{})
+      .filter(([k]) => !['faithful','punctuation_only','unknown'].includes(k))
+      .reduce((a,[,n]) => a+n, 0);
+    const cov = (r.vs.s1||r.vs.s10||{}).mean_coverage;
+    const pct = c => c==null ? '—' : (c*100).toFixed(1)+'%';
+    h += `<tr${bad? ' class="err"':''}>
+      <td><b>${esc(r.model)}</b></td>
+      <td>${r.overlap}</td>
+      <td><b style="color:${r.faithful_pct>=99?'var(--ok)':r.faithful_pct>=90?'var(--blank)':'var(--diverge)'}">
+          ${r.faithful_pct}%</b></td>
+      <td>${r.vs.s1?`${pct(r.vs.s1.mean_placement)} <span class="hint">n=${r.vs.s1.n}</span>`:'—'}</td>
+      <td>${r.vs.s10?`${pct(r.vs.s10.mean_placement)} <span class="hint">n=${r.vs.s10.n}</span>`:'—'}</td>
+      <td>${pct(cov)}</td>
+      <td>${bad?`<b style="color:var(--diverge)">${bad}</b>`:'0'}</td></tr>`;
+  });
+  h += `</table>
+    <div class="hint" style="margin-top:7px">placement = gold 的標記落在<b>同一個字</b>的比例;
+      coverage = 號碼<b>有出現</b>的比例。兩者的差距就是「號碼對、位置錯」。
+      LCC 沒有 FHL 答案,所以這 ${CMP.meta.gold_verses} 節是唯一能量 placement 的地方。</div>
+  </div>`;
+
+  /* ── the verse ── */
+  const golds = Object.values(v.gold||{});
+  const prods = Object.values(v.production||{});
+  h += `<div class="card"><h2>${esc(v.book)} ${v.chap}:${v.sec}
+      ${v.worst!=null?`<span class="badge" style="background:${v.worst>=0.95?'var(--ok)':v.worst>=0.85?'var(--blank)':'var(--diverge)'}">
+        最差 placement ${(v.worst*100).toFixed(0)}%</span>`:''}</h2>
+    <div class="srcrow"><div class="srclabel">LCC 權威本(SQLite 鏡像)</div>
+      <div class="verse">${esc(v.lcc_truth||'') || '<span class="hint">不可得</span>'}</div></div></div>`;
+
+  /* alignment is only valid where the hanzi match; use gold as the diff base */
+  const usableGold = golds.filter(g => g.key_quality !== 'unusable');
+  const base = usableGold[0] || golds[0];
+  const cohort = [];
+  if (base) cohort.push(parseSN(base.lcc_sn));
+  prods.forEach(p => { if (p.lcc_sn) cohort.push(parseSN(p.lcc_sn)); });
+  const aligned = samePlain(cohort);
+  const diff = aligned ? diffSlots(cohort) : new Set();
+
+  h += `<div class="card"><h2>Gold(答案)
+      ${!aligned?'<span class="badge" style="background:var(--diverge)">漢字不同 — 無法對位</span>':''}</h2>`;
+  golds.forEach(g => {
+    const q = KEYQ[g.key_quality] || KEYQ.unusable;
+    h += `<div class="cand${g===base?' picked':''}"><div class="chead">
+        <span class="who">${esc(g.survey)} gold</span>
+        <span class="badge" style="background:${q.color}">${esc(q.label)}</span>
+        <span class="meta">${esc(g.trust_tier||'null')} · ${esc(g.resolved_at||'')}</span>
+        <span class="spacer"></span><code style="font-size:11px;color:var(--muted)">gold/${esc(g.survey)}</code>
+      </div>
+      <div class="verse">${g.lcc_sn?renderVerse(g.lcc_sn, diff, aligned):'<span class="hint">無</span>'}</div>
+    </div>`;
+  });
+  h += `</div>`;
+
+  h += `<div class="card"><h2>產線輸出</h2>`;
+  prods.sort((a,b) => {
+    const sa = Math.min(...Object.values(a.scores||{}).map(s=>s.placement), 1);
+    const sb = Math.min(...Object.values(b.scores||{}).map(s=>s.placement), 1);
+    return sa - sb;
+  }).forEach(p => {
+    if (p.error){
+      h += `<div class="cand blank"><div class="chead"><span class="who">${esc(p.model)}</span>
+        <span class="blanknote">${esc(p.error)}</span></div></div>`;
+      return;
+    }
+    const F = FIDELITY[p.text_fidelity] || FIDELITY.unknown;
+    const sc = Object.entries(p.scores||{}).map(([sid,s]) =>
+      `vs ${sid}: placement <b>${(s.placement*100).toFixed(0)}%</b>
+       (${s.placed}/${s.gold_tags}) · coverage ${(s.coverage*100).toFixed(0)}%`).join(' &nbsp;|&nbsp; ');
+    h += `<div class="cand"><div class="chead">
+        <span class="who">${esc(p.model)}</span>
+        <span class="badge" style="background:${F.color}">${esc(F.label)}</span>
+        ${p.confidence!=null?`<span class="meta">自報 ${p.confidence}</span>`:''}
+        <span class="spacer"></span>
+        <code style="font-size:11px;color:var(--muted)">prod/${esc(p.model)}</code>
+      </div>
+      ${sc?`<div class="hint" style="margin-bottom:4px">${sc}</div>`
+          :`<div class="hint" style="margin-bottom:4px;color:var(--diverge)">
+             未計分 —— ${F.ok?'gold 未定案':'產線文字與權威本不符,無共同對位基準'}</div>`}
+      <div class="verse">${renderVerse(p.lcc_sn, diff, aligned)}</div></div>`;
+  });
+  h += `</div>`;
+
+  document.getElementById('main').innerHTML = h;
 }
 
 /* ═══ auth (same endpoints + token as the main viewer) ════════════════════ */
