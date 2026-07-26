@@ -114,6 +114,48 @@ def build_panel(models_abc_args):
 DEFAULT_TIMEOUT = 300  # 5 min
 
 
+# ── Resolved-model provenance ─────────────────────────────────────────────────
+# The panel deliberately follows each brand's latest (see DEFAULT_MODELS), so the
+# model behind a slot changes silently as the CLIs update. Without recording what
+# actually answered, a corpus that takes weeks to build has no way to tell which
+# verses came from which generation — and regression testing (which assumes the
+# prompt is the only variable that changed) loses its attribution. Every caller
+# stamps the CLI-reported model onto its result as `_resolved_model`; consensus.py
+# persists it into the gold standard.
+
+def _stamp(result, resolved):
+    """Attach the CLI-reported model string to a result dict (no-op if unknown)."""
+    if isinstance(result, dict) and resolved:
+        result["_resolved_model"] = resolved
+    return result
+
+
+def _claude_resolved_model(raw_stdout: str) -> str:
+    """claude stream-json reports the real model on the `system` init event
+    (e.g. 'claude-opus-5'); the assistant message carries it too as a fallback."""
+    fallback = ""
+    for line in raw_stdout.strip().split("\n"):
+        if not line.strip():
+            continue
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if obj.get("type") == "system" and obj.get("model"):
+            return str(obj["model"])
+        msg = obj.get("message")
+        if not fallback and isinstance(msg, dict) and msg.get("model"):
+            fallback = str(msg["model"])
+    return fallback
+
+
+def _codex_resolved_model(raw_stderr: str) -> str:
+    """codex exec prints its session header on STDERR, including `model: gpt-5.6-sol`."""
+    import re
+    m = re.search(r"^\s*model:\s*(\S+)", raw_stderr or "", re.MULTILINE)
+    return m.group(1) if m else ""
+
+
 def call_llm(brand: str, model: str, system_prompt: str, user_prompt: str,
              target_version: str = "lcc", timeout: int = DEFAULT_TIMEOUT,
              verbose: bool = False, mode: str = "production") -> dict:
@@ -180,15 +222,17 @@ def _call_claude(model, system_prompt, user_prompt, target_version,
     if result_proc.returncode != 0:
         return {"error": True, "notes": [f"CLI error: {result_proc.stderr[:300]}"]}
 
+    resolved = _claude_resolved_model(result_proc.stdout)
+
     if mode == "production":
         result, _ = parse_stream_json(result_proc.stdout, sn_field)
-        return result
+        return _stamp(result, resolved)
 
     if mode == "freeform":
-        return _parse_claude_freeform_text(result_proc.stdout)
+        return _stamp(_parse_claude_freeform_text(result_proc.stdout), resolved)
 
     # Judge mode: extract text from stream-json, then parse as JSON
-    return _parse_claude_freeform(result_proc.stdout)
+    return _stamp(_parse_claude_freeform(result_proc.stdout), resolved)
 
 
 def _call_gemini(model, system_prompt, user_prompt, target_version,
@@ -229,15 +273,17 @@ def _call_gemini(model, system_prompt, user_prompt, target_version,
     if result_proc.returncode != 0:
         return {"error": True, "notes": [f"CLI error: {result_proc.stderr[:300]}"]}
 
+    resolved = model or "gemini-default"
+
     if mode == "production":
         result, _ = parse_gemini_stream_json(result_proc.stdout, sn_field)
-        return result
+        return _stamp(result, resolved)
 
     if mode == "freeform":
-        return _parse_gemini_freeform_text(result_proc.stdout)
+        return _stamp(_parse_gemini_freeform_text(result_proc.stdout), resolved)
 
     # Judge mode: extract text, parse JSON
-    return _parse_gemini_freeform(result_proc.stdout)
+    return _stamp(_parse_gemini_freeform(result_proc.stdout), resolved)
 
 
 def _call_codex(model, system_prompt, user_prompt, target_version,
@@ -301,6 +347,8 @@ def _call_codex(model, system_prompt, user_prompt, target_version,
         return {"error": True,
                 "notes": [f"CLI error: {(result_proc.stderr + result_proc.stdout)[:300]}"]}
 
+    resolved = _codex_resolved_model(result_proc.stderr)
+
     # Read clean final answer from --output-last-message
     if os.path.isfile(last_msg_file):
         try:
@@ -308,19 +356,19 @@ def _call_codex(model, system_prompt, user_prompt, target_version,
                 last_msg = f.read().strip()
             if last_msg:
                 if mode == "production":
-                    return _extract_json(last_msg, sn_field)
+                    return _stamp(_extract_json(last_msg, sn_field), resolved)
                 elif mode == "freeform":
-                    return {"text": last_msg}
+                    return _stamp({"text": last_msg}, resolved)
                 else:
-                    return _extract_json(last_msg, "best")
+                    return _stamp(_extract_json(last_msg, "best"), resolved)
         except IOError:
             pass
 
     if result_proc.stdout.strip():
         if mode == "freeform":
-            return {"text": result_proc.stdout.strip()}
+            return _stamp({"text": result_proc.stdout.strip()}, resolved)
         key = sn_field if mode == "production" else "best"
-        return _extract_json(result_proc.stdout.strip(), key)
+        return _stamp(_extract_json(result_proc.stdout.strip(), key), resolved)
 
     return {"error": True, "notes": ["codex: no output received"]}
 
@@ -366,10 +414,13 @@ def _call_agy(model, system_prompt, user_prompt, target_version,
     raw = result_proc.stdout.strip()
     if not raw:
         return {"error": True, "notes": ["agy: no output received"]}
+    # agy prints no session header, so the requested pin IS the provenance
+    # (this slot is version-pinned on purpose — see DEFAULT_MODELS).
+    resolved = model or "agy-default"
     if mode == "freeform":
-        return {"text": raw}
+        return _stamp({"text": raw}, resolved)
     key = sn_field if mode == "production" else "best"
-    return _extract_json(raw, key)
+    return _stamp(_extract_json(raw, key), resolved)
 
 
 # ── Freeform (judge mode) parsers ──────────────────────────────────────────

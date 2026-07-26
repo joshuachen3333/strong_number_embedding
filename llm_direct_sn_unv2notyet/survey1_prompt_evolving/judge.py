@@ -238,6 +238,11 @@ def run_r2_convergence(verses, round1_results, verse_data, models=None,
             r1_was_error = r1_result.get("error", False) or not r1_text.strip()
 
             attempts = [r1_text]  # index 0 = R1
+            # Distinct CLI-reported models seen while converging (see conv_data)
+            model_versions = []
+            r1_model = r1_result.get("_resolved_model")
+            if r1_model:
+                model_versions.append(r1_model)
             # Track R2 valid attempts for back-comparison (R1 excluded)
             r2_valid = {}  # {label: text} — only R2 attempts, not R1
             converged = False
@@ -276,6 +281,9 @@ def run_r2_convergence(verses, round1_results, verse_data, models=None,
                 new_text = result.get(sn_field, "")
                 new_is_error = result.get("error", False) or not new_text.strip()
                 attempts.append(new_text)
+                attempt_model = result.get("_resolved_model")
+                if attempt_model and attempt_model not in model_versions:
+                    model_versions.append(attempt_model)
 
                 # Never treat empty/error as stable
                 if new_is_error:
@@ -339,6 +347,11 @@ def run_r2_convergence(verses, round1_results, verse_data, models=None,
                 "attempts": attempts,
                 "stable_at": stable_at,
                 "bailed_out": bailed_out,
+                # Distinct CLI-reported models across the attempts, in first-seen
+                # order. Normally one entry; more than one means the brand's CLI
+                # upgraded mid-convergence, which is itself a convergence hazard
+                # worth seeing when a verse refuses to stabilize.
+                "model_versions": model_versions,
             }
             convergence_results[model_name][verse_key] = conv_data
 

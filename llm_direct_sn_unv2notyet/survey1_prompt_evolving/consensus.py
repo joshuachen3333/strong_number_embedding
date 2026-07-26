@@ -285,6 +285,9 @@ def build_gold_standard(unanimous, disagreed, round1_results,
                 "lcc_sn": r.get(sn_field, ""),
                 "confidence": r.get("confidence", 0),
                 "opinion": "unanimous",
+                # Which model generation actually answered — the panel follows each
+                # brand's latest, so this is not derivable from the slot name.
+                "model_version": r.get("_resolved_model", ""),
             }
 
         gold_standard[verse_key] = {
@@ -314,6 +317,7 @@ def build_gold_standard(unanimous, disagreed, round1_results,
                 "lcc_sn": r.get(sn_field, ""),
                 "confidence": r.get("confidence", 0),
                 "opinion": "disagree",
+                "model_version": r.get("_resolved_model", ""),
             }
 
         # Build convergence info
@@ -325,6 +329,8 @@ def build_gold_standard(unanimous, disagreed, round1_results,
                 "converged": conv.get("converged", False),
                 "stable_at": conv.get("stable_at", "?"),
                 "attempt_count": len(conv.get("attempts", [])),
+                # >1 entry = the CLI upgraded mid-convergence (see judge.py)
+                "model_versions": conv.get("model_versions", []),
             }
 
         # Try Round 2 debate

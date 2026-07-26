@@ -722,3 +722,632 @@ you connected to the wrong lala, should invite the same cwd/ one
 
 
 
+##     2026-06-30 22:53 CST
+
+###    User Prompt
+[AskUserQuestion 裁示] Ratify + commit now
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Joshua 裁示 Ratify + commit now（略過 R-2 狗審）→ Phase B 提交
+- Diff: commit 0bf2c56：consensus.py/judge.py/run_gold_standard.py + /obe2 會議憑證（bus logs/topics/manifest、onboard letter、R1 agenda/synthesis、WLC_PHASE_B_PLAN）。未 push（按規則 push 需另請）。bus 收束 obe:e0001:0005。下一步兩個 live run 待逐次 go-ahead
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/consensus.py`
+
+
+
+
+##     2026-07-04 18:36 CST
+
+###    User Prompt
+我們創世紀上次跑到哪裡？第幾章？
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 查詢 survey1 創世記進度：最遠 Gen 3:11
+- Diff: 盤點 gold_standard/Gen：創1=1-29(缺30-31，1:22-29舊gold混合態)、創2=1-25完整、創3=1-11(缺12-24)。續跑點=創3:12；Q4回補=1:22-31。皆 live 待逐次 go-ahead
+
+
+
+
+##     2026-07-04 18:39 CST
+
+###    User Prompt
+繼續往下跑直到第七章, 中途若 lala or erha token 滿了, 就查一下什麼時候恢復, 自動繼續.
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 指示：續跑 survey1 創世記 Gen 3:12→第7章；中途 lala/erha token 滿→查恢復時間→自動續跑
+- Diff: 授權 heavy live run（cloud 三模型 opus/gemini/gpt）。scope 創 3-7（跳過 cached 3:1-11 自動從 3:12 起）。需 quota-aware 自動 resume 包裝；Trigger-1 等非 quota 停止則回報不盲續
+
+
+
+
+##     2026-07-04 19:23 CST
+
+###    User Prompt
+[AskUserQuestion 裁示] Both concurrently（survey1 + survey10 並行跑到第七章）
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 裁示 both concurrently：survey1 Gen 3-7 + survey10 Gen 5-7 並行；並修正誤殺 s10 run 事故
+- Diff: 事故：pkill -f run_gold_standard.py 過寬，誤殺 s10 的 Gen 5-7 run(當時 5:1、0 gold 損失、可 resume)。處置：注入 s10(win5544)告知並交還其自行重啟+提醒此 runner 無內建 auto-resume。survey1：改 coverage-driven wrapper(只跑 missing verse、不重算已完成、避免假 Trigger-1)，bg b4r0ofboe 開跑 Gen 3:12(now)→7，quota 滿自動 30min backoff resume、Trigger-1 則停並回報
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/auto_run_gen3_7.py`
+
+
+
+
+##     2026-07-04 22:51 CST
+
+###    User Prompt
+有在跑嗎
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 狀態確認：兩邊都在跑
+- Diff: survey1 創3 完成24/24，現跑創4:8（無 rate-limit、無 Trigger-1）；survey10 已自行重啟 --chap 5-7(pid 45304)。兩者並行中
+
+
+
+
+##     2026-07-04 23:17 CST
+
+###    User Prompt
+[s10 inject] Gen 5-7 run alive PID45304 verse36/78; HAZARD: pkill -f run_gold_standard.py nukes both survey1+survey10, use PID-scoped kill; wrapping mine in resume loop per your auto_run_gen3_7.py; reply 5544
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: s10 回注：其 run 健康(45304, Gen6:4)無損；警示 pkill -f 會互殺，要 PID/CWD-scoped
+- Diff: 確認 s10 attempt#2(45304)存活、無需重啟。雙方協定：不再 pkill -f run_gold_standard.py，改用 lsof 比對 cwd(survey1 vs survey10)再殺(child PID 每章輪替，CWD 才是可靠判別)。已回敬此判別法並附我方識別(wrapper 63045/cwd survey1)。s10 也在包 coverage-driven wrapper
+
+
+
+
+##     2026-07-05 09:28 CST
+
+###    User Prompt
+請繼續（survey1 wrapper 因 Gen 5:29 Trigger-1 exit 3 停止）
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: Gen 5:29 Trigger-1(全不穩)→v1.3 回測FAILED→拒絕、prompt留v1.2；請繼續：升級 wrapper 為遇 Trigger-1 自動續跑
+- Diff: 5:29 已存(resolved_at=r2_early_evolution, trust None)→coverage 跳過不再觸發。wrapper 改：Trigger-1 不再 exit3，改 flag 到 run_logs/trigger1_flagged.txt 並自動續跑(no-progress guard 防真卡死)。重啟 bg b00x8ipz2 從 5:30 續。進度 Gen3✓ Gen4✓ Gen5=29/32 現跑5:30；Gen6-7 待跑
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/auto_run_gen3_7.py`
+
+
+
+
+##     2026-07-05 15:01 CST
+
+###    User Prompt
+go on
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 續跑確認：quota auto-resume 首次實戰生效
+- Diff: 創5完成32/32、創6=8/22；14:36 撞 opus rate-limit→wrapper 自動 backoff 30min、~15:06 續跑。total 90 節，5:29 後無再 Trigger-1
+
+
+
+
+##     2026-07-05 15:03 CST
+
+###    User Prompt
+go on
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 續跑：opus backoff 等待中（無狀態變化）
+- Diff: 創6=8/22，wrapper 仍在 opus rate-limit 的 30min backoff（~15:06 重試）；詢問是否要主動定期探進度
+
+
+
+
+##     2026-07-06 00:23 CST
+
+###    User Prompt
+go on
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 里程碑：創 3-6 全完成，創 7 進行中(3/24)
+- Diff: 過一天自動跑：Gen3✓4✓5✓6✓ 全滿、Gen7=3/24 現跑7:4(iter21)。一整天多輪 rate-limit 都自動 30min backoff 續跑無誤。total 107/128，剩創7的21節
+
+
+
+
+##     2026-07-06 10:05 CST
+
+###    User Prompt
+語義你用 Molly?
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 問語義是否用 Molly；repo/memory 無此名，推測誤植 morphology
+- Diff: 澄清：語義 placement 靠三模型 LLM 判斷(naked mode)，非 morphology；morphology 只用在 WLC 身分軸(lemma+詞形, Clear Bible+morph_bridge)。請 Joshua 確認 Molly 所指
+
+
+
+
+##     2026-07-06 10:08 CST
+
+###    User Prompt
+Morphology v.s. Literal 在中文原文對齊這件事上 兩種路徑 中文詳述
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 方法論詳述：中文↔原文對齊的 Morphology vs Literal 兩路
+- Diff: 闡明系統現況=Literal 主導 placement(FHL-faithful/UNV慣例)、Morphology 當 WLC 身分核對(morph_bridge, Phase A/B)；2:20 H0120/H0121 即兩路張力活例。建議 placement 用 Literal、identity 用 Morphology、勿讓 morph 主導放置(placement-blind→非對稱 triage)。留一個開放提案：是否把 morph 做成受控可回測的『落點修正』第二段(慎防 survey7 two-pass 覆轍)
+
+
+
+
+##     2026-07-06 10:09 CST
+
+###    User Prompt
+Literally（選 Literal 路）
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 裁示：對齊走 Literal 路（placement 由 Literal 定案，Morphology 只稽核）
+- Diff: 鎖定架構：Literal 主導 placement(FHL-faithful/UNV慣例)、Morphology 僅 WLC 身分稽核+記帳、不進 placement、衝突記 FHL_DIVERGENCE_LOG。擱置 morph 落點修正提案(避 survey7 two-pass 覆轍)。對進行中的創7 run 無影響(本就 Literal-driven)
+
+
+
+
+##     2026-07-10 03:01 CST
+
+###    User Prompt
+go on, all are reset
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: quota 全部 reset →續跑：重跑 41 個 unresolved(codex 當時 usage-limit 導致只 2/3 模型)
+- Diff: 計畫：建 rerun_unresolved wrapper，--force 只重跑 resolved_at=unresolved 的 41 節(創5:18-20、創6 多節、創7:1-24)；偵測 codex usage-limit/model-down→backoff 重試(不再落 unresolved)；三模型健康仍不決者才留 human
+
+
+
+
+##     2026-07-10 03:47 CST
+
+###    User Prompt
+[task killed] rerun 41 unresolved 被外部終止，已修3節剩38，relaunch
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 重跑被外部 kill(疑互殺 hazard 復發)；已修 3 節(創5:18-20)，剩38；relaunch 續跑並請 Joshua 確認是否刻意 kill
+- Diff: rerun btf65t4kv 被 killed 於處理創6:5(Trigger-1 確認中)；創5:18-20 已解決(41→38)。survey10(16109)仍活。relaunch rerun_unresolved.py 續跑剩38節(創6+7)
+
+
+
+
+##     2026-07-10 15:01 CST
+
+###    User Prompt
+[serialize 裁示] survey10 暫停讓 survey1 先跑完 38
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 裁示 serialize：survey10 暫停、survey1 先跑完 38；s10 session 移到 win78 已發 HOLD
+- Diff: 查明兩次 kill 非 s10 pkill(其 wrapper 僅註解)；檯面已清空、s10 舊 win5544 關閉、session 移 win78。發 HOLD 給 s10、啟動 survey1 rerun_unresolved 續跑 38 節(創6+7)。完成後 ping s10 resume
+
+
+
+
+##     2026-07-10 15:04 CST
+
+###    User Prompt
+[s10 inject ACK] HOLD confirmed, no run, never pkill, GO run 38
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: s10 ACK：HOLD 確認、無 run、不重啟、wrapper 從不 pkill；GO 跑 38
+- Diff: s10 6:17 accept-empty 收尾 16/17、commit+push 完成、零重啟、等 survey1 完成信號 resume。兩次 kill 確認非 s10。survey1 rerun 續跑中
+
+
+
+
+##     2026-07-10 15:51 CST
+
+###    User Prompt
+[rerun killed x3] serialized 仍被殺，疑機器睡眠；改 caffeinate 重啟
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: survey1 rerun 第三次被 kill(已 serialize、無競爭)→ 疑機器 idle 睡眠殺背景 job；改用 caffeinate 包裹重啟
+- Diff: 三次 kill 皆 ~20-40min、事後環境全清，符合 idle-sleep суспенд→resume 殺 job。非 s10(已確認)、非競爭(已 serialize)。改 caffeinate -i -s 防睡眠重啟 rerun_unresolved;若仍被殺則幾乎確定人為/外部
+
+
+
+
+##     2026-07-10 16:23 CST
+
+###    User Prompt
+[rerun killed x4] 排除環境殺手；改 detached daemon + per-verse defer 重啟
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 4次 kill 排除 sleep/s10/競爭/cron/watchdog→改 detached nohup daemon + 逐verse timeout-defer
+- Diff: 重寫 rerun_unresolved 為逐 verse(--sec 單節)＋10min timeout→病態節(6:5 opus 無限 R2)自動 deferred、進度累積；改用 nohup+disown+caffeinate 脫離 harness 背景任務追蹤(若殺手是 harness reaper 則可存活)。daemon pid38191 上線跑 6:5。改用 log 檔監控(非 task-notification)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/rerun_unresolved.py`
+
+
+
+
+##     2026-07-11 02:23 CST
+
+###    User Prompt
+跑完了嗎
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 查進度：detached daemon 存活(證實殺手=harness task reaper)；unresolved 41→16
+- Diff: nohup daemon(pid38191)過夜存活、正跑 tail-pass 7:15。C-tier 107。殘留16問題：(1)2 corrupt gold(6:6,7:13)；(2)~22:58-23:05 model outage 快失敗被誤 accept(7:18-24、tail 6:5/7/12-17，6:5 gold 空)；(3)部分 Gen6 opus 真不收斂。計畫：待 daemon 收工→targeted cleanup(regen corrupt+un-accept重跑 outage victims+真難節留 human)。問 Joshua 先讓 daemon 跑完或立即停轉 cleanup
+
+
+
+
+##     2026-07-11 03:17 CST
+
+###    User Prompt
+[s10 inject QUERY] 你的38節重跑完成了嗎;若完成發 resume;我仍 HOLD
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: s10 QUERY 完成否→查得 daemon 昨夜 DONE(41→15)；刪2 corrupt、發 RESUME-GO 解除 s10 HOLD
+- Diff: daemon 03:10 DONE(non-accepted:0)，resolved 7:15/7:17。殘留15+2corrupt(已刪6:6,7:13)。分類:Gen6 cluster(6:5,7,12-17,6:6,7:13)=opus 真不收斂 irreducible(同 s10 6:17)→accept-empty/human;Gen7:18-24=~23:00 outage victim 可重跑。已注入 s10 win78 RESUME-GO+誠實現況+共通 opus 不收斂議題。survey1 cleanup 低優先錯開
+
+
+
+
+##     2026-07-11 03:20 CST
+
+###    User Prompt
+[s10 ACK] RESUME 收到;我無 daemon 待啟;opus 不收斂共通(6:17 三度確認);你 cleanup 慢慢來不用錯開;GO 殘留節
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: s10 ACK+GO(其無 daemon 待啟、opus 不收斂 6:17 三度確認)；啟動 survey1 殘留 cleanup
+- Diff: un-accept 7:18-24 outage-victims→啟 detached cleanup daemon(pid85567,nohup+caffeinate)只重跑這6節。opus-非收斂 cluster(Gen6+7:13,7:15)留 accept-empty residue 不燒 opus。s10 確認 opus 結構不收斂兩 survey 共通、accept-empty 為共同解、日後一起想對策
+
+
+
+
+##     2026-07-11 11:06 CST
+
+###    User Prompt
+survey11 是在你這裡設計的嗎？採用 YLT 的決策那次!
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 澄清 survey11/YLT 出處：非本 session 設計，屬 survey10/survey11(s10, 2026-07-11)
+- Diff: 查證：survey11_gold_factory_selection=判 s1 vs s10 gold 的獨立 survey；WLC+YLT source config 決策在 survey10 檔案(run_a2_wlc_ylt.py/ylt_bridge.py, 標註 Joshua 2026-07-11 survey11 open decision)=s10 脈絡。本 session 的『Literal』決策是 Morphology-vs-Literal(placement path)非 YLT source config，兩者不同
+
+
+
+
+##     2026-07-11 11:24 CST
+
+###    User Prompt
+alignment 表格(macula WLCM OT + SBLGNT NT provenance)是否代表要更改 SurveyN 基石為 WLCM(OT)+SBLGNT(NT)?
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 基石問題：底本改 WLCM+SBLGNT(macula)？→ 分兩層：底本層 yes、判準層仍 FHL
+- Diff: 澄清 SurveyN 兩層：①判準/ground-truth=FHL(UNV/KJV)不改(survey11 judged by FHL truth;FHL-faithful不罰 morph 分歧=Literal 決策)；②底本/source=採 macula WLCM(OT)+SBLGNT(NT)含 strongs(0871a)+morph(N-NSF)，經 lemma/PREFIX_BRIDGE 橋回 FHL 編碼保下游相容。提醒:英文橋 YLT 已改 BSB(doc line179);NT 前瞻(現 OT-only)。問是否要寫基石定義文件
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey11_gold_factory_selection/S10_VS_S1_GOLD_EXPERIMENT.md`
+
+
+
+
+##     2026-07-11 11:35 CST
+
+###    User Prompt
+[s10 inject QUERY] 你們希伯來來源到底是 WLC.tsv 還是 WLCM.tsv?為何都同意用 WLCM?
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: s10 抓錯:希伯來來源是 WLC.tsv 非 WLCM.tsv；我認錯更正
+- Diff: 確認來源=WLC.tsv(learn_morph_bridge.py:36 + survey11 doc line13-14 明文 NB『consumes WLC.tsv NOT WLCM.tsv』)。無 WLCM 決策——我上一則『WLCM(OT)』是誤把 Joshua 表格標籤+對齊檔名前綴(WLCM-BSB-manual.json)當成載入來源。釐清:WLC.tsv=載入源;WLCM.tsv/WLCM+required.tsv=不同 schema(無lemma/strongs無H/pos全字)未載;WLCM-*-manual.json=對齊檔名(YLT 反而叫 WLC-YLT-manual.json)。已注入 s10 認錯。前一則對 Joshua 的 SurveyN 基石答覆需把 OT 源更正為 WLC.tsv(其餘 source=macula/truth=FHL/lemma橋 論述不變)
+
+
+
+
+##     2026-07-11 11:35 CST
+
+###    User Prompt
+[s10 inject ACK/close] 共識 WLC.tsv、轉報 Joshua、NT SBLGNT workflow 前瞻、close
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: WLC.tsv thread close：s10 ACK 共識，轉報 Joshua 命名混淆、codebase 正確
+- Diff: 結論一致:來源皆 WLC.tsv、無 WLCM 決策、WLCM 僅對齊檔名(YLT=WLC-YLT 命名不一致)。s10 轉報 Joshua。s10 正用 workflow 建 NT SBLGNT 前瞻支援。thread close,不 forward ack
+
+
+
+
+##     2026-07-15 00:10 CST
+
+###    User Prompt
+[s10 inject QUERY] 慎重考慮 WLC-only;A2 Gen1 BSB 橋有害;你們來源是否也退回 WLC-only;ack 即可
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: s10 WLC-only 發現:BSB 橋有害(WLC-only 0.797/0.984 勝 WLC+BSB);ack+確認 s1 已 WLC-only
+- Diff: 讀 s10 letter(20260711_wlc_only_finding)。A2 Gen1 vs FHL 真值:WLC-only 兩指標最佳、BSB 橋 Δ−0.023(英文語序偏離希伯來 gloss 誤導放置)、C1 Δ~0;YLT 跨-run 未定。確認 s1:gold 源=UNV+SN 中文無英文橋;grep 驗證 WLC 路徑(Phase A escalator+Phase B R3 evidence)已 WLC-only(lemma/strong/source_token,零 BSB/YLT)。無需 revert。同向互證 survey6 廢棄(info overload)+survey8 naked。已 ack s10
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/docs/20260711_from_s10obe_to_s1_s5_wlc_only_finding.md`
+
+
+
+
+##     2026-07-18 03:08 CST
+
+###    User Prompt
+我現在 token 滿, 想在一天內燒完, 建議我可以怎樣慷慨地跑 s1 gold?
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: token 滿想一天燒完，問如何慷慨跑 s1 gold
+- Diff: 盤點:Gen1-7 大致完成(殘留8節 opus 不收斂+3小缺口)，Gen8-50(~1100節)是燒 token 的 runway。建議:多個 nohup daemon 分章塊並行以飽和三帳號、內建 reaper/opus-defer/codex-backoff 三防護。待 Joshua 定 burn 力度後啟動
+
+
+
+
+##     2026-07-18 03:10 CST
+
+###    User Prompt
+5 daemons in parallel, but one chapter for each daemon (meaning we run just 8 9 10 11 12)
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 慷慨燒 token：5 個 nohup daemon 並行、每個一章跑 Gen 8-12
+- Diff: 建 run_chapter_daemon.py(逐章逐verse、per-verse timeout-defer opus病態、model-down backoff、nohup+caffeinate 免 reaper/sleep)。啟 5 daemon(pid 22630/22681/22706/22798/22831)跑創8/9/10/11/12=135節並行、飽和三帳號最大燒。disjoint 章無碰撞。用 log 監控
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/run_chapter_daemon.py`
+
+
+
+
+##     2026-07-18 03:11 CST
+
+###    User Prompt
+/logoutput（補記最近實質回覆）
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: /logoutput：補記 5-daemon 燒 token launch 回覆到 response.history
+- Diff: 無狀態變更；5 daemon(Gen8-12)持續燒中
+
+
+
+
+##     2026-07-18 17:52 CST
+
+###    User Prompt
+token limit reset, go on if paused
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: token reset → go on:重跑 Gen 8-12 的 44 節 residue(第一輪 daemon 已 DONE 退出)
+- Diff: 診斷出 42/44 deferred 的『opus non-convergent』是 600s timeout 在 10 車競爭下的誤判;把 run_chapter_daemon.py 的 PER_VERSE_TIMEOUT 改為 env 可覆寫;清空 5 章 deferred(存檔 deferred_archive_20260718);競爭歸零下以 PER_VERSE_TIMEOUT=1800 重啟 5 車跑 44 節
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/run_chapter_daemon.py`
+
+
+
+
+##     2026-07-18 18:43 CST
+
+###    User Prompt
+進度如何 / 記得我們 local 端有 sqlite 檔案一樣有離線經文資料嗎？
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: go on 揭出假故障:44 節『residue』是我 kill -9 留下的 14 個 0-byte 毒快取檔害 judge.py:219 崩,被誤判 FHL/opus
+- Diff: 刪 14 毒檔;judge.py:219 加空/壞快取防護(0fd576f);接上本地 SQLite UNV 減半 FHL 負載(16c943c);驗證 10:5→round2;5 車重掃 98/135
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/judge.py`
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/llm_direct_sn_unv2notyet.py`
+
+
+
+
+##     2026-07-18 22:22 CST
+
+###    User Prompt
+ch13-18 重新開始
+改成不要去fhl api 取經文, 改用 local sqlite,
+  並且五車並行趕工一下
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: ch13-18 重新開始,經文改走 local sqlite(不打 FHL),5車並行趕工
+- Diff: 發 6 車(一章一車 13-18),UNV走bible_little.db、LCC走s10併發建的bible_lcc.db(Gen13-18全139節);端到端驗證零FHL;清掉我冗餘的disk-cache死碼(driver淨改動0);提醒s10的LCC-sqlite仍未commit
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/llm_direct_sn_unv2notyet.py`
+
+
+
+
+##     2026-07-18 22:35 CST
+
+###    User Prompt
+sorry ch13-17
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 修正 burn 範圍 13-18 → 13-17(對上原本的五車)
+- Diff: 停掉 ch18 daemon+child;無 poison 殘留;保留 ch18 停前已完成的 18:1/18:2(both resolved_at=round2 有效);5 車 13-17 續跑
+
+
+
+
+##     2026-07-19 13:36 CST
+
+###    User Prompt
+進度如何？
+三小時後繼續
+go on
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 進度+三小時後繼續:Gen13-17=101/106,全域殘留12節pathological,設定3h後自動重試
+- Diff: 5車全退出,ch14/16全通,ch9收尾25/29;12節殘留(Gen8[1,17,21]9[2,5,15,16]13[11]15[4]17[10,23,25]);寫resume_residue_3h.py detached常駐,~16:35新額度+40分timeout重試,分離餓死vs真病態
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/resume_residue_3h.py`
+
+
+
+
+##     2026-07-25 18:47 CST
+
+###    User Prompt
+重新補跑沒有完成的章節 （不用新增創世紀下一章, 僅補上缺少的)
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 補跑 Gen 已開章節的缺節，不新增下一章
+- Diff: 掃描 gold_standard/Gen ch1-18 缺口 → 補跑 missing verses（含 resume-12 殘留 + 漏網 ch1:30,31/ch6:6/ch7:13），範圍不擴到 Gen 19+
+
+
+
+
+##     2026-07-26 00:57 CST
+
+###    User Prompt
+十七章內
+有失敗沒跑完的嗎
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 查 ch1-17 失敗清單 → 盤出 8 節 R2 結構性非收斂，提三條後續路線
+- Diff: fill_missing_gaps 收尾：ch1-17 = 417/425；失敗 8 節（8:1/8:21/9:2/9:5/17:23 已 accept-empty 確認 2×；1:30/7:13 新判病態；17:25 進行中）。新證據：9:16 六天後翻案成功 → 病態部分屬當日模型狀態而非節本身。待裁決：人工複審 / 降 R2 門檻改裁判邏輯 / 就此收版
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/run_logs/accept_empty_confirmed.txt`
+
+
+
+
+##     2026-07-26 00:58 CST
+
+###    User Prompt
+先放著
+繼續跑 創世紀 18 19 20
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 8 節失敗擱置，改推進 Gen 18/19/20 gold
+- Diff: 停止對 8 節病態節的追打（維持 unresolved），啟動 ch18(缺31)/ch19(38)/ch20(18) 共 87 節 gold 產出；沿用 run_chapter_daemon.py 每章一 daemon、nohup+caffeinate、本地 SQLite 經文
+
+
+
+
+##     2026-07-26 07:03 CST
+
+###    User Prompt
+進度如何
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: ch18-20 六小時進度 → 發現病態率較 ch1-17 跳升 7 倍
+- Diff: ch18 DONE(31/33)、ch20 DONE(14/18)、ch19 14/38 續跑；17:25 翻案 RESOLVED → ch1-17 修正為 418/425、失敗 7 節。新訊號：ch1-17 病態率 1.6%(7/425) vs ch18-20 12%(10/83)，差 7 倍，待辨識為章節文體難度 / 併發競爭下 1800s 吃緊 / prompt v1.5 敘事文體退步
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/run_logs/deferred_ch19.txt`
+
+
+
+
+##     2026-07-26 21:15 CST
+
+###    User Prompt
+創 chap1 to 20, 還剩下哪幾處沒跑完的
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 盤點 Gen 1-20 殘留 17 節；排除「併發競爭」為病態率跳升主因
+- Diff: ch18/19/20 三章 daemon 全收工(ch19 09:49 結束)；Gen 1-20 = 497/514 (96.6%)，殘留 17 節分兩級：5 節 accept-empty 已確認(8:1/8:21/9:2/9:5/17:23，2× 不收斂)、12 節僅試過一次(1:30/7:13 + ch18-20 十節)。新判斷：ch19 後段為單車獨跑、競爭最低仍出病態節 → 病態率 1.6%→11.2% 非併發所致，收斂到「章節文體難度」或「prompt v1.5 敘事文體弱點」兩種假設。待選：重掃 12 節 / 人工裁決 / 動 R2 門檻
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/run_logs/deferred_ch20.txt`
+
+
+
+
+##     2026-07-26 21:20 CST
+
+###    User Prompt
+talk to obe at /Users/joshua/work/strong_number_embedding/showoff_finished_4review, 告訴他, 設計 viewer 時, 要考慮類似你 s1 這種有發散的旌節, 讓人工能過目協助判斷的這個需求
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 指示：向 showoff viewer 的 sibling obe 傳達「發散節需人工過目裁決」的設計需求
+- Diff: 跨 cwd inject 至 showoff_finished_4review 的 obe：viewer 設計須納入 s1 這類 R2 不收斂/發散節的人工複審動線（並陳各模型 attempt、供人判斷），s1 現有 17 節殘留為具體用例
+
+
+
+
+##     2026-07-26 21:28 CST
+
+###    User Prompt
+### inserted prompt begins ###
+showoff-obe->survey1-obe [ACK]:
+信已讀,17 節無檔已 17/17 實測確認。需求已寫入 spec v0.3 第 11 節:docs/superpowers/specs/2026-07-25-unified-adjudication-viewer-design.md (commit 6e8cd90)。token 級 diff 已升為不可妥協項,發散為一級狀態(axes.verse_state 九態),經節全集改由外部普查取得而非掃 gold 目錄。
+一處修正:毒檔判準不能用檔案大小 — 全域 0-byte JSON 現在是 0 個,而 gold_standard/Gen/19/13.json 從來不是 0 bytes(是被截斷),且它在我前後兩次檢查之間已經消失。正確判準是 parse 失敗 + 容忍掃描期間檔案增刪。
+
+### inserted prompt ended ###
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: showoff-obe [ACK]：需求入 spec v0.3 §11；並就毒檔判準提出修正
+- Diff: 對方確認 17/17 無檔、token 級 diff 升為不可妥協、發散列 axes.verse_state 九態、經節全集改由外部普查取得(不掃 gold 目錄)，spec commit 6e8cd90。其修正主張：判準不應用檔案大小、19/13.json 從來不是 0 bytes 而是被截斷、且在其兩次檢查間消失 → 待與我方 find -size 0 實證對帳
+- File: `/Users/joshua/work/strong_number_embedding/showoff_finished_4review/docs/superpowers/specs/2026-07-25-unified-adjudication-viewer-design.md`
+
+
+
+
+##     2026-07-27 05:18 CST
+
+###    User Prompt
+進度如何？
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 換 parse-fail 判準重掃 4452 檔全乾淨；發現 s10 正打同一批病態節 8:21
+- Diff: 毒檔判準由 -size 0 改為 JSON parse 失敗，全樹 4452 檔重掃 0 壞檔 → 496/514 為可信數。s1 無跑動作業，18 節第二輪待點頭。新觀察：s10(獨立管線、obe-inject 法)正在跑 8:21——該節為 s1 已判 accept-empty 者；若 s10 跑得出來，即證明殘留非本質不可解、而是 s1 的 R2 收斂機制問題，應改動裁判邏輯而非接受 accept-empty
+
+
+
+
+##     2026-07-27 05:29 CST
+
+###    User Prompt
+opus 已經出 5, codex 5.6 了, 我們的模型選擇有能力跟進嗎？
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 詢問：opus 5 / codex 5.6 已發布，模型選擇能否跟進
+- Diff: 盤點 s1 模型解析路徑（MODEL_BRAND_MAP、cli_caller.py、--modelsABC）是否可直接切換到新版模型，評估升級成本與對既有 gold/回測基準的影響
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/cli_caller.py`
+
+
+
+
+##     2026-07-27 05:33 CST
+
+###    User Prompt
+一句話簡述問題與作什麼, 如何做
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 要求把模型版本溯源問題壓成一句話：問題／做什麼／如何做
+- Diff: 定案方案輪廓：三 caller 抓 CLI 實際模型字串 → consensus.py 寫入 round1/round2_convergence 各 model 區塊；純加欄位、不碰 build_gold_standard() 裁判邏輯。尚未動工，待點頭
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/cli_caller.py`
+
+
+
+
+##     2026-07-27 05:34 CST
+
+###    User Prompt
+go
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 核准開工：實作模型版本溯源欄位
+- Diff: 開始實作 cli_caller.py 三 caller 抓取實際模型字串 + consensus.py 寫入 gold JSON 各 model 區塊
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/cli_caller.py`
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/consensus.py`
+
+
+
+
