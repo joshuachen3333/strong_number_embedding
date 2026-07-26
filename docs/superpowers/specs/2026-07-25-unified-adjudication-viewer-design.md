@@ -15,6 +15,7 @@
 3. **人類裁決是第一級資料** — Joshua 的判斷具權威(`secondary_direct` / `tiebreak`),可被後續 survey 讀取。
 4. **可挑選 survey** — 明確選擇 s1 或 s10(或任意子集)作為裁決/對照對象。
 5. **可追看並評價中間辯論過程** — R1 → R2a → R2b → … 的震盪軌跡可回放,且可對**單一 attempt 或一次轉變**打分。
+6. **發散節人工複審動線** — 「發散/未定案」是**一級狀態**,不是缺資料。詳見 §11(v0.3 增補)。
 
 ### 非目的
 
@@ -485,3 +486,184 @@ s4/s5/s6/s8/s9。s9 的 29,958 節以 `coverage_rate` 篩選後才進裁決佇�
    (s1 已有前例:`0fd576f` 修過 kill -9 造成的 0-byte convergence cache)。
 4. **裁決權威的下游消費** —— 匯出 `human_gold/` 後,哪個 survey 以何種方式讀取,本規格未定義。
    刻意留待實際需要時再設計,避免過早抽象。
+
+---
+
+# 11. v0.3 增補 — 發散節人工複審動線
+
+> 來源:兩封 sibling Obe 信件(2026-07-26),皆源自 Joshua 直接指示
+> 「設計 viewer 時,要考慮類似 s1/s10 這種有發散的節,讓人工能過目協助判斷的這個需求」
+> - `showoff_finished_4review/docs/20260726_2119_from_survey10-obe_to_showoff-obe_divergence_human_adjudication_ui.md`
+> - `showoff_finished_4review/docs/20260726_2130_from_survey1-obe_to_showoff-obe_divergent_verse_human_review.md`
+>
+> 本節數字全部經 showoff-obe 於 2026-07-26 21:4x 獨立實測複核,與信中數字有出入者以本節為準
+> (語料是活的,兩邊測量時點不同)。
+
+## 11.1 這條動線的量級 — 不是邊角案例
+
+s1 實測(創 1–20,514 節):**17 節** 三模型 R2 永遠 STABLE 不了 = 3.3%。
+但比率**極不穩定且往上跑**:ch1–17 為 1.6%(7/425),**ch18–20 為 11.2%(10/89)—— 7 倍**。
+s1-obe 已排除「併發競爭」解釋(ch19 後段單車獨跑、競爭最低,照樣出病態節),
+剩下的假設是文體難度(亞伯拉罕敘事、對話密集、代名詞多)。
+
+⇒ **推論:全本聖經跑完,發散節是數百節量級。** 這條動線必須是一級設計,不是事後補丁。
+
+另有一個反直覺事實:**「發散」不等於「錯」** —— 有兩節(9:16、17:25)首次判定病態,
+六天後同機制重跑就收斂了。所以人工複審的產物有時是「選一個」,有時是**「這節其實沒問題,重跑即可」**。
+⇒ Verdict 需要一個 `kind: rerun_suggested`(見 §11.5)。
+
+## 11.2 ★ 三種隱形模式 — 完成度絕不能靠「檔案存在」
+
+這是本增補最重要的結論。**兩封信各自只看到一種隱形模式,實際上有三種**,全經實測確認:
+
+| 隱形模式 | 實測 | 掃 gold 目錄的表象 | 偵測判準 |
+|---|---|---|---|
+| **A. 檔案在,但 `trust_tier: null`** | s10 **56** 節 · s1 **72** 節 | 像正常成品(`lcc_sn` 欄位是**滿的**,舊值或部分結果) | `trust_tier is None` |
+| **B. 完全沒有檔案** | s1 那 17 節,**17/17 實測確認無檔** | 表現成「沒跑到」,而它們是**跑最多次**的一批 | 需外部經節普查(§11.3) |
+| **C. 檔案被截斷/半寫入** | 掃描當下 **0** 個,但 `Gen/19/13.json` 在我兩次檢查之間**消失** | parse 失敗 | **`try/except` on parse** |
+
+**對 C 的修正(與 s1-obe 的建議不同)**:信中建議「try/except + **檔案大小檢查**」。
+實測顯示**大小檢查是錯的判準** —— 全域 0-byte JSON 現為 0 個,而那個毒檔從來不是 0 bytes,
+是被 `SIGKILL` 截斷的非零檔;且掃描開始時存在的檔案掃到時可能已被清除。
+⇒ 正確判準是 **parse 失敗 + 容忍掃描期間檔案出現/消失**,不是 size。
+
+**s10-obe 的警告成立且必須寫入實作規則**:s10 Gen 1–17 檔案數 425/425、每章節數與創世記完全對得上,
+看起來 100% 完成,但其中 56 節 `trust_tier` 為 null。若 viewer 用「有沒有檔」或「經文有沒有 SN」
+畫完成度,會畫出**一張全綠但不真實的圖**。
+
+## 11.3 因此:必須有外部經節普查(census)
+
+**權威的經節清單不能來自 gold 目錄本身** —— 模式 B 在其中結構性不可見。索引器必須:
+
+1. 從正典經節數(`books.json` / `dim_verse_map.json` 的 31,103 節)取得**應有**的經節全集;
+2. 對每節計算 `verse_state`(§11.4),缺檔即 `divergent_or_not_run`;
+3. 以 `run_logs/deferred_ch{N}.txt` 與 `run_logs/accept_empty_confirmed.txt` 區分
+   「發散(跑過且放棄)」與「單純沒跑」。
+
+**發散節權威清單格式**(已實測):
+
+```
+run_logs/deferred_ch18.txt          # sec 在行首,chap 來自檔名
+  19  deferred-pathological (per-verse timeout, opus non-convergent)  2026-07-26 04:38
+  25  deferred-pathological (per-verse timeout, opus non-convergent)  2026-07-26 05:58
+
+run_logs/accept_empty_confirmed.txt # chap:sec 格式
+  1:30  newly-pathological (漏網 verse timed out on first clean run)  2026-07-25 19:29
+  8:1   accept-empty CONFIRMED (2nd fresh-quota run, still non-convergent)  2026-07-25 21:03
+```
+
+## 11.4 `verse_state` — 新增的一級狀態欄位
+
+加入 `axes.verse_state`,取值如下。**這是熱度圖與完成度統計的唯一依據**:
+
+| 值 | 判定 | 顏色 | 需人工 |
+|---|---|---|---|
+| `resolved` | `trust_tier` 為 `c_consensus*` | 綠 | 否 |
+| `resolved_deliberated` | `trust_tier == "d_deliberation"` | 黃綠 | 值得抽看 |
+| `resolved_over_wlc_divergence` | `trust_tier == "c_consensus_over_wlc_divergence"` | 黃 | 值得抽看 |
+| `unsettled_blank_ballot` | 檔案在 · `trust_tier` null · R1 有人交白卷 | 橙 | **是**(形態 A) |
+| `unsettled_true_divergence` | 檔案在 · `trust_tier` null · 三方皆有答案但不一致 | 紅 | **是**(形態 B) |
+| `unsettled_judge_error` | 檔案在 · `trust_tier` null · R3 判官 `error`/`verdict:"unknown"` | 紅 | **是**(形態 C) |
+| `divergent_no_file` | 無檔 · 在 deferred/accept_empty 清單中 | 深紅 | **是**(模式 B) |
+| `not_run` | 無檔 · 不在任何清單中 | 灰 | 否 |
+| `corrupt` | 檔案存在但 parse 失敗 | 紫 | 標示,不掛頁 |
+
+## 11.5 三種形態的實測分佈與各自要看的東西
+
+以 `trust_tier is None` 的節分類(showoff-obe 實測 2026-07-26):
+
+| 形態 | s1 | s10 | 人工要看什麼 | 動線 |
+|---|---|---|---|---|
+| **A 有人交白卷** | **50** | **54** | 另外兩個模型是否一致?一致即可直接採納(降級為雙數共識) | 兩欄 diff + 第三欄灰掉標「未作答」 |
+| **B 三方真發散** | **22** | **1** | A/B/C 三版並排 diff,選一個或自己改 | 三欄 token diff |
+| **C 判官掛掉** | 0 | **1**(Gen 6:16) | 另一判官已給完整 pick + reasoning,要不要直接採納 | 顯示健全判官的判決 + 標示掛掉者 |
+
+**交白卷模型分佈(這是配額事故,不是意見)**:
+s1 = `opus 46 · agy 12 · codex 2 · gpt-5.4 1 · gemini-3-pro-preview 1`;
+s10 = `codex 38 · agy 16`(信中提到 codex 在 Gen 7:6–24 連 19 節、agy 在 Gen 17:15–27 連 13 節整批交白卷)。
+
+⇒ **UI 硬規則**:交白卷的模型必須顯示為**灰掉 + 「未作答」**,
+絕不可呈現為「這個模型認為答案是空的」—— 那是配額撞牆,不是判斷。
+
+## 11.6 ★ diff 必須是 token 級,不是並排全文
+
+s1-obe 提供的 Gen 19:2 實例(agy 跑 9 次才在 R2f 勉強 STABLE),前三次 attempt:
+
+```
+attempt 1: …請轉到<05493><8798><0413>僕人<05650>家裏<01004>來過夜…
+attempt 2: …請轉<05493><8798>到<0413>僕人<05650>家<01004>裏來過夜…
+attempt 3: …我主<02009><04994><0113>，請轉到<05493><8798><0413>…
+```
+
+**差異全部在 SN token 的邊界位移**:`家<01004>裏` vs `家裏<01004>`、
+`轉到<05493><8798><0413>` vs `轉<05493><8798>到<0413>`。漢字一模一樣,只有標記掛在哪個字上不同。
+
+這對 UI 是決定性的:**人眼判這種差異只要幾秒**(「當然掛在『家』上」),模型卻永遠選不定 ——
+這正是人機分工的甜蜜點,ROI 極高。**但前提是 viewer 要把差異「指出來」**;
+若只並排三段全文,人得逐字掃描找那一個字的位移,幾秒的判斷會變成幾分鐘苦工。
+
+⇒ **硬規則:diff 以 token 為單位(漢字 + 其後綴 SN 串為一個 token),只高亮差異 span。**
+這同時確認了 §7.3 / §7.4 既有的 token 級 diff 決定,並將其升為不可妥協項。
+
+## 11.7 對既有章節的修正
+
+| 章節 | 修正 |
+|---|---|
+| §2.5 join 表 | 「gold 但無 trace」不是唯一缺口;**還有「連 gold 都沒有」的模式 B**,且它結構性地不在任何 gold 掃描結果裡 |
+| §5.2 `axes` | 新增 `verse_state`(§11.4);它取代任何以檔案存在為基礎的完成度計算 |
+| §5.4 Verdict `kind` | 新增 **`rerun_suggested`**(§11.1:發散≠錯,有時正解是「重跑即可」)。`adjudication` 作為第四種 review type 併入現有 reviewer 機制 |
+| §6 adapter 規則 | 新增規則 8:**經節全集來自外部普查,不來自 gold 目錄**;規則 9:parse 失敗與掃描期間檔案增刪皆須容忍(**不可用 size 判毒檔**) |
+| §7 viewer 介面 | 新增 §11.8 章層級熱度圖 |
+| §10 風險 | 風險 3(活語料競態)升級:實測到檔案在兩次檢查之間**消失**,不只是半寫入 |
+
+## 11.8 新增介面 — 章層級熱度圖(複審者的入口)
+
+- 每節一格,依 `verse_state`(§11.4)上色;格內顯示節號。
+- 標題列顯示**真實**完成度:`已定案 N / 待人工 M / 未跑 K`,**絕不顯示「有檔案 X 節」**。
+- 點紅/橙/深紅格 → 直接進入對應形態的裁決動線(A/B/C 三種佈局不同,§11.5)。
+- 頂層過濾器第一順位:**「只看待人工的節」** —— 這是複審者的第一個動作。
+- `corrupt` 格顯示為紫並標「紀錄毀損」,不阻斷整頁。
+
+## 11.9 路徑陷阱 — R1 與 R2 命名不一致(已實測確認)
+
+```
+round1_results/{model}/Gen/{chap}/{sec}.json      ← 巢狀目錄
+round2_results/{model}/Gen/{chap}_{sec}.json      ← 底線連接
+round2_results/{model}/Gen/{chap}_{sec}_convergence.json
+round3_results/{model}/Gen/{chap}_{sec}.json
+```
+
+這解釋了為何 glob `round1_results/*/Gen/*.json` 掃不到任何檔案。adapter 兩種命名都要處理。
+
+## 11.10 與側車原則的衝突 — 已依 Joshua 拍板解決
+
+s10-obe 信件 §5.4 建議「人工裁決寫成 gold JSON 裡的**新欄位** `human_adjudication`,
+不要覆寫 `lcc_sn`」。**此建議與 §4 側車原則衝突,依 Joshua 2026-07-25 拍板不採用。**
+
+但兩者意圖一致,且側車是同一意圖的**更強形式**:
+s10-obe 的理由是「`build_gold_standard()`(`consensus.py`)是 gold 的唯一寫入權威,
+從旁邊加欄位比較不會打架」—— 正因為它是唯一權威且會以 `--force` 整檔重寫
+(§2.7 實測當下就有 3 個 run 在跑),**在該檔案內加欄位仍會被清掉**。
+側車存放完全不觸碰該檔案,才真正達成「不打架」。
+
+信中另一項建議「複用既有 reviewer 認證 + review type 機制,發散節裁決作為第四種
+review type(`adjudication`)」**採用** —— 與 §8 的 `POST /api/verdicts` 沿用現有 OTP Bearer 一致。
+
+## 11.11 測試節清單(sibling 提供 + 實測校正)
+
+| 節 | 形態 | 特徵 |
+|---|---|---|
+| s10 `Gen/7/1.json` | A | codex 交白卷,opus/agy 兩版一致 → 可直接採納的典型 |
+| s10 `Gen/17/15.json` | A | agy 交白卷 |
+| s10 `Gen/6/16.json` | **C** | 判官 CLI error(`verdict:"unknown"`, `error:true`),另一判官有完整 pick + reasoning |
+| s10 `Gen/8/21.json` | **B** | s10 唯一的三方真發散 |
+| s10 `Gen/6/17.json` | 已解 | `d_deliberation`;codex trace 有 **31 個 attempt**(震盪回放的極端案例) |
+| s10 `Gen/1/1.json` | 已解 | `c_consensus`,正常對照組 |
+| s1 `Gen/19/2.json` | **模式 B** | 無檔;agy 跑 9 次 R2f 勉強 STABLE;§11.6 的 token 位移實例 |
+| s1 那 17 節 | 模式 B | `1:30 7:13 8:1 8:21 9:2 9:5 17:23 18:19 18:25 19:2 19:8 19:14 19:15 20:3 20:7 20:16 20:18` |
+
+## 11.12 分期調整
+
+**本增補全部併入 Phase 1** —— 資料全在磁碟上,零 token 成本,且這是 Joshua 直接指示的需求。
+`verse_state` + census + 熱度圖是 Phase 1 的**前置**(沒有它,完成度統計是錯的),
+優先於 §7.3 的 N-way 裁決台。
