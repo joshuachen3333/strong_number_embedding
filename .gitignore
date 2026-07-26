@@ -54,3 +54,10 @@ showoff_finished_4review/reviewers.json
 showoff_finished_4review/reviews.json
 showoff_finished_4review/sessions.json
 showoff_finished_4review/otp_pending.json
+
+# Adjudication of stuck gold verses
+# stuck_index.json is derived (regenerate: python3 adjudication/build_stuck_index.py)
+# and the gold corpus is live-growing, so it would churn on every run.
+llm_direct_sn_unv2notyet/adjudication/stuck_index.json
+# verdicts.jsonl carries reviewer emails — same policy as reviews.json
+llm_direct_sn_unv2notyet/adjudication/verdicts.jsonl

@@ -46,6 +46,16 @@ REVIEWS_FILE = os.path.join(SHOWOFF_DIR, "reviews.json")
 SESSIONS_FILE = os.path.join(SHOWOFF_DIR, "sessions.json")
 OTP_FILE = os.path.join(SHOWOFF_DIR, "otp_pending.json")
 
+# ── Human adjudication of stuck (non-converging) gold verses ─────────────────
+# Side-car ONLY: verdicts live here and never touch survey gold_standard/*.json,
+# which build_gold_standard() rewrites wholesale under --force.
+ADJUDICATION_DIR = os.path.join(REPO_ROOT, "llm_direct_sn_unv2notyet", "adjudication")
+VERDICTS_FILE = os.path.join(ADJUDICATION_DIR, "verdicts.jsonl")
+
+VERDICT_KINDS = ("pick", "correct", "rerun_suggested", "reject_all", "defer")
+VERDICT_AUTHORITIES = ("secondary_direct", "tiebreak", "opinion")
+VERDICT_CONFIDENCES = ("sure", "leaning", "unsure")
+
 OTP_EXPIRY_SECONDS = 600       # 10 minutes
 SESSION_EXPIRY_SECONDS = 604800  # 7 days
 _rng = random.SystemRandom()
@@ -120,6 +130,8 @@ class BibleServerHandler(http.server.SimpleHTTPRequestHandler):
             self._handle_target_sn_api(parsed.query, parsed.path)
         elif parsed.path == "/api/reviews":
             self._handle_get_reviews(parsed.query)
+        elif parsed.path == "/api/verdicts":
+            self._handle_get_verdicts(parsed.query)
         elif parsed.path == "/api/auth/status":
             self._handle_auth_status()
         elif parsed.path == "/api/approve":
@@ -135,6 +147,8 @@ class BibleServerHandler(http.server.SimpleHTTPRequestHandler):
             self._handle_verify_otp()
         elif parsed.path == "/api/reviews":
             self._handle_post_review()
+        elif parsed.path == "/api/verdicts":
+            self._handle_post_verdict()
         else:
             self._send_json(404, {"error": "Not found"})
 
@@ -674,6 +688,124 @@ class BibleServerHandler(http.server.SimpleHTTPRequestHandler):
 
         print(f"[Review] Deleted {review_id} by {sess['name']}")
         self._send_json(200, {"deleted": True, "id": review_id})
+
+    # ── Adjudication verdicts (stuck gold verses) ────────────────────────────
+
+    def _handle_get_verdicts(self, query_string):
+        """GET /api/verdicts[?csid=s1:Gen:19:2][&survey=s1] — public read.
+
+        Append-only JSONL: a superseded verdict is never removed, so the
+        reviewer's change of mind stays auditable. Only the newest per
+        (csid, reviewer) is 'live'; callers get everything and decide.
+        """
+        params = urllib.parse.parse_qs(query_string)
+        csid = params.get("csid", [None])[0]
+        survey = params.get("survey", [None])[0]
+
+        verdicts = []
+        if os.path.exists(VERDICTS_FILE):
+            try:
+                with open(VERDICTS_FILE, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        try:
+                            verdicts.append(json.loads(line))
+                        except json.JSONDecodeError:
+                            # A torn last line (killed mid-append) must not take
+                            # down the whole read — skip it, keep the rest.
+                            continue
+            except OSError as e:
+                self._send_json(500, {"error": f"Cannot read verdicts: {e}"})
+                return
+
+        if csid:
+            verdicts = [v for v in verdicts if v.get("csid") == csid]
+        if survey:
+            verdicts = [v for v in verdicts if v.get("survey") == survey]
+
+        self._send_json(200, {"verdicts": verdicts, "count": len(verdicts)})
+
+    def _handle_post_verdict(self):
+        """POST /api/verdicts — record one human adjudication. Bearer required."""
+        sess = self._get_session()
+        if not sess:
+            self._send_json(401, {"error": "Authentication required"})
+            return
+
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            body = json.loads(self.rfile.read(length).decode("utf-8"))
+        except (ValueError, json.JSONDecodeError):
+            self._send_json(400, {"error": "Invalid JSON body"})
+            return
+
+        csid = str(body.get("csid", "")).strip()
+        if not csid:
+            self._send_json(400, {"error": "Missing 'csid'"})
+            return
+
+        kind = body.get("kind", "")
+        if kind not in VERDICT_KINDS:
+            self._send_json(400, {"error": f"Invalid kind (want one of {VERDICT_KINDS})"})
+            return
+
+        authority = body.get("authority", "opinion")
+        if authority not in VERDICT_AUTHORITIES:
+            self._send_json(400, {"error": f"Invalid authority (want one of {VERDICT_AUTHORITIES})"})
+            return
+
+        confidence = body.get("confidence", "unsure")
+        if confidence not in VERDICT_CONFIDENCES:
+            self._send_json(400, {"error": f"Invalid confidence (want one of {VERDICT_CONFIDENCES})"})
+            return
+
+        picked = body.get("picked_cid") or None
+        sn_text = body.get("sn_text") or None
+        if kind == "pick" and not picked:
+            self._send_json(400, {"error": "kind=pick requires 'picked_cid'"})
+            return
+        if kind == "correct" and not (sn_text or "").strip():
+            self._send_json(400, {"error": "kind=correct requires 'sn_text'"})
+            return
+
+        try:
+            chap = int(body.get("chap", 0))
+            sec = int(body.get("sec", 0))
+        except (TypeError, ValueError):
+            self._send_json(400, {"error": "Invalid chap/sec"})
+            return
+
+        ts_ms = int(time.time() * 1000)
+        verdict = {
+            "vid": f"v_{ts_ms}_{format(_rng.randint(0, 0xFFFF), '04x')}",
+            "csid": csid,
+            "survey": str(body.get("survey", "")).strip(),
+            "book": str(body.get("book", "")).strip(),
+            "chap": chap, "sec": sec,
+            "form": str(body.get("form", "")).strip(),
+            "kind": kind,
+            "picked_cid": picked,
+            "sn_text": (sn_text.strip() if sn_text else None),
+            "authority": authority,
+            "confidence": confidence,
+            "rationale": str(body.get("rationale", "")).strip()[:4000],
+            "reviewer": {"email": sess["email"], "name": sess["name"]},
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+        try:
+            os.makedirs(ADJUDICATION_DIR, exist_ok=True)
+            with open(VERDICTS_FILE, "a", encoding="utf-8") as f:
+                f.write(json.dumps(verdict, ensure_ascii=False) + "\n")
+        except OSError as e:
+            self._send_json(500, {"error": f"Cannot write verdict: {e}"})
+            return
+
+        print(f"[Verdict] {sess['name']}: {kind} on {csid}"
+              + (f" -> {picked}" if picked else ""))
+        self._send_json(201, verdict)
 
     def _send_html(self, status_code, html_body):
         """Send an HTML response."""

@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>鬼打牆節人工裁決 — s1 / s10</title>
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#fff; --ink:#1c2024; --muted:#6b7280; --line:#e3e6ea;
+  --accent:#2563eb; --accent-weak:#eff6ff;
+  --blank:#f59e0b; --diverge:#dc2626; --judge:#7c3aed; --nofile:#991b1b; --corrupt:#a855f7;
+  --diff:#fde68a; --diff-line:#d97706; --ok:#059669;
+}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.6 -apple-system,BlinkMacSystemFont,"Helvetica Neue","PingFang TC","Noto Sans CJK TC",sans-serif;
+     background:var(--bg);color:var(--ink)}
+code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+header{display:flex;align-items:center;gap:16px;padding:10px 16px;background:var(--panel);
+       border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;flex-wrap:wrap}
+header h1{font-size:15px;margin:0;font-weight:650}
+.stat{font-size:12px;color:var(--muted)}
+.stat b{color:var(--ink)}
+.spacer{flex:1}
+button{font:inherit;padding:5px 11px;border:1px solid var(--line);background:var(--panel);
+       border-radius:6px;cursor:pointer;color:var(--ink)}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+button.primary:hover{opacity:.9;color:#fff}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.on{background:var(--accent-weak);border-color:var(--accent);color:var(--accent)}
+
+#wrap{display:flex;align-items:flex-start;gap:14px;padding:14px;max-width:1600px;margin:0 auto}
+#side{width:290px;flex:none;position:sticky;top:62px;max-height:calc(100vh - 76px);
+      overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+#main{flex:1;min-width:0}
+
+.fgroup{margin-bottom:12px}
+.fgroup h3{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);
+           margin:0 0 6px;font-weight:650}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-size:12px;padding:3px 8px;border:1px solid var(--line);border-radius:999px;
+      background:var(--panel);cursor:pointer;user-select:none}
+.chip.on{background:var(--accent-weak);border-color:var(--accent);color:var(--accent);font-weight:600}
+.chip .n{opacity:.6;font-size:11px;margin-left:3px}
+
+.vlist{display:flex;flex-direction:column;gap:2px;margin-top:4px}
+.vitem{display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:6px;cursor:pointer;
+       border:1px solid transparent;font-size:13px}
+.vitem:hover{background:var(--bg)}
+.vitem.sel{background:var(--accent-weak);border-color:var(--accent)}
+.vitem .ref{font-weight:600;min-width:74px}
+.vitem .sv{font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:4px;
+           padding:0 4px;flex:none}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.vitem .done{margin-left:auto;color:var(--ok);font-size:12px;font-weight:700}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+.card > h2{font-size:14px;margin:0 0 10px;font-weight:650;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.badge{font-size:11px;padding:2px 7px;border-radius:999px;color:#fff;font-weight:600;white-space:nowrap}
+.tag{font-size:11px;padding:2px 7px;border-radius:999px;border:1px solid var(--line);
+     color:var(--muted);white-space:nowrap}
+
+.srcrow{margin-bottom:9px}
+.srclabel{font-size:11px;color:var(--muted);margin-bottom:2px;font-weight:600}
+.verse{font-size:16px;line-height:2.35;word-break:break-word}
+
+.sn{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;vertical-align:.35em;
+    color:var(--accent);background:var(--accent-weak);border-radius:3px;padding:0 2px;margin:0 .5px}
+.slot{border-radius:3px;padding:1px 0}
+.slot.dif{background:var(--diff);box-shadow:0 2px 0 var(--diff-line)}
+.ch.difn{background:var(--diff);box-shadow:0 2px 0 var(--diff-line);border-radius:3px}
+
+.cand{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:9px;position:relative}
+.cand.picked{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-weak)}
+.cand.blank{background:#fafafa;color:#9ca3af}
+.chead{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
+.chead .who{font-weight:650;font-size:13px}
+.chead .meta{font-size:11px;color:var(--muted)}
+.blanknote{font-size:12px;color:var(--blank);font-weight:600}
+
+table.j{width:100%;border-collapse:collapse;font-size:12.5px}
+table.j th,table.j td{border:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:top}
+table.j th{background:var(--bg);font-weight:650;font-size:11px;color:var(--muted)}
+tr.err td{background:#fef2f2}
+.why{color:var(--muted);max-width:520px}
+
+details.tr{border:1px solid var(--line);border-radius:8px;padding:8px 11px;margin-bottom:8px}
+details.tr summary{cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+details.tr summary::-webkit-details-marker{display:none}
+details.tr summary:before{content:'▸';color:var(--muted);font-weight:400}
+details.tr[open] summary:before{content:'▾'}
+.att{display:flex;gap:9px;padding:6px 0;border-top:1px solid var(--line);align-items:flex-start}
+.att:first-of-type{border-top:none}
+.att .labs{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--muted);
+           min-width:96px;flex:none;padding-top:3px}
+.att .body{flex:1;min-width:0;font-size:14.5px;line-height:2.2;word-break:break-word}
+.att.stable .labs{color:var(--ok);font-weight:700}
+.mult{background:var(--ink);color:#fff;border-radius:999px;padding:0 5px;font-size:10px;margin-left:3px}
+
+.vform label{display:block;font-size:11px;color:var(--muted);font-weight:650;margin:9px 0 3px}
+.vform select,.vform textarea,.vform input[type=text]{width:100%;font:inherit;padding:6px 8px;
+  border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+.vform textarea{min-height:60px;resize:vertical}
+.vform .row{display:flex;gap:10px;flex-wrap:wrap}
+.vform .row > div{flex:1;min-width:150px}
+.hint{font-size:11.5px;color:var(--muted);margin-top:4px}
+.msg{padding:8px 11px;border-radius:6px;font-size:13px;margin-top:9px;display:none}
+.msg.ok{display:block;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+.msg.bad{display:block;background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+
+.prev{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:6px;
+      padding:8px 11px;margin-bottom:8px;font-size:12.5px;background:var(--bg)}
+.prev .ph{font-weight:650;margin-bottom:2px}
+.empty{color:var(--muted);padding:40px 12px;text-align:center}
+
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;
+       justify-content:center;z-index:100;padding:16px}
+#modal.on{display:flex}
+#modal .box{background:var(--panel);border-radius:12px;padding:20px;max-width:420px;width:100%}
+#modal h2{margin:0 0 4px;font-size:16px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>鬼打牆節人工裁決</h1>
+  <span class="stat" id="hstat">載入中…</span>
+  <span class="spacer"></span>
+  <span class="stat" id="who"></span>
+  <button id="authbtn" onclick="openAuth()">進入裁決模式</button>
+  <button onclick="location.href='./'">← 主 viewer</button>
+</header>
+
+<div id="wrap">
+  <aside id="side">
+    <div class="fgroup">
+      <h3>Survey</h3>
+      <div class="chips" id="fsurvey"></div>
+    </div>
+    <div class="fgroup">
+      <h3>形態</h3>
+      <div class="chips" id="fform"></div>
+    </div>
+    <div class="fgroup">
+      <h3>裁決狀態</h3>
+      <div class="chips" id="fdone"></div>
+    </div>
+    <div class="fgroup">
+      <h3>節次 <span class="stat" id="lcount"></span></h3>
+      <div class="vlist" id="vlist"></div>
+    </div>
+  </aside>
+
+  <main id="main"><div class="empty">載入中…</div></main>
+</div>
+
+<div id="modal">
+  <div class="box">
+    <h2>裁決者登入</h2>
+    <p class="hint" id="mhint">輸入姓名與 email,系統寄送 6 位數驗證碼。</p>
+    <div id="step1">
+      <label>姓名</label><input type="text" id="rname">
+      <label>Email</label><input type="text" id="remail">
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button class="primary" onclick="requestAccess()">取得驗證碼</button>
+        <button onclick="closeAuth()">取消</button>
+      </div>
+    </div>
+    <div id="step2" style="display:none">
+      <label>6 位數驗證碼</label><input type="text" id="rotp" maxlength="6">
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button class="primary" onclick="verifyOTP()">驗證</button>
+        <button onclick="closeAuth()">取消</button>
+      </div>
+    </div>
+    <div class="msg" id="mmsg"></div>
+  </div>
+</div>
+
+<script>
+/* ═══ constants ═══════════════════════════════════════════════════════════ */
+const INDEX_URL = '../llm_direct_sn_unv2notyet/adjudication/stuck_index.json';
+const NG = { 'ngrok-skip-browser-warning': '1' };
+const FORMS = {
+  blank_ballot:    { label:'有人交白卷', color:'var(--blank)',
+                     hint:'R1 有模型回空字串(配額撞牆,不是意見)。看另外兩個模型是否一致 — 一致即可直接採納。' },
+  true_divergence: { label:'三方真發散', color:'var(--diverge)',
+                     hint:'三個模型都有答案但不一致。差異幾乎全在 SN 掛在哪個字上 — 看高亮處選一個。' },
+  judge_error:     { label:'判官掛掉',   color:'var(--judge)',
+                     hint:'判官 CLI 出錯導致整節卡住。健全的判官可能已給出完整判決 — 考慮直接採納。' },
+  no_file:         { label:'無 gold 檔', color:'var(--nofile)',
+                     hint:'從未產出 gold 檔(deferred/accept-empty)。這是跑最多次、最需要人看的一批。' },
+  corrupt:         { label:'紀錄毀損',   color:'var(--corrupt)',
+                     hint:'gold 檔存在但無法解析。僅標示,不阻斷。' },
+};
+const KINDS = {
+  pick:            '採納某個候選',
+  correct:         '我給正確答案',
+  rerun_suggested: '這節其實沒問題,重跑即可',
+  reject_all:      '都不對',
+  defer:           '存疑,留給 SN 專家',
+};
+
+/* ═══ state ═══════════════════════════════════════════════════════════════ */
+let BUNDLE = null, VERSES = [], VERDICTS = {}, CUR = null;
+let sessionToken = localStorage.getItem('showoff_session_token') || null;
+let reviewer = null;
+const filt = { survey:new Set(), form:new Set(), done:'all' };
+
+const opts = (extra={}) => {
+  const h = Object.assign({}, NG, extra.headers||{});
+  if (sessionToken) h['Authorization'] = 'Bearer ' + sessionToken;
+  return Object.assign({}, extra, { headers:h });
+};
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g,
+  c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const vkey = v => `${v.survey}:${v.book}:${v.chap}:${v.sec}`;
+
+/* ═══ SN tokenizer ════════════════════════════════════════════════════════
+ * Split into alternating text-runs and tag-runs. A verse is represented as
+ *   plain  — the Chinese characters with every tag removed
+ *   slots  — slots[i] = tags sitting at character boundary i (0 = before the
+ *            first char, plain.length = trailing)
+ * s1-obe's finding is what makes this work: across candidates the hanzi are
+ * IDENTICAL and only the SN placement moves, so comparing slot-by-slot
+ * pinpoints the disagreement instead of making a human scan two full verses.
+ */
+const TAG_RE = /\{<[^>]*>\}|<[^>]*>/g;
+
+function parseSN(text){
+  const plainChars = [], slots = {};
+  let i = 0;
+  const s = String(text||'');
+  while (i < s.length){
+    TAG_RE.lastIndex = i;
+    const m = TAG_RE.exec(s);
+    if (m && m.index === i){
+      (slots[plainChars.length] = slots[plainChars.length] || []).push(m[0]);
+      i += m[0].length;
+    } else {
+      plainChars.push(s[i]); i++;
+    }
+  }
+  return { plain: plainChars.join(''), chars: plainChars, slots };
+}
+/* bare digits are the real question ("which number on which token"); the
+ * W/A/H/T shell and braces are formatting, so normalize them away for diffing */
+const bare = t => (t.match(/\d+/g) || []).join('.');
+const slotKey = arr => (arr||[]).map(bare).join(',');
+
+/** positions where the given parsed candidates disagree */
+function diffSlots(parsed){
+  const bad = new Set();
+  if (parsed.length < 2) return bad;
+  const maxLen = Math.max(...parsed.map(p => p.chars.length));
+  for (let i = 0; i <= maxLen; i++){
+    const keys = new Set(parsed.map(p => slotKey(p.slots[i])));
+    if (keys.size > 1) bad.add(i);
+  }
+  return bad;
+}
+/** do all candidates share the same hanzi? if not, slot alignment is invalid */
+const samePlain = parsed => parsed.length < 2
+  || parsed.every(p => p.plain === parsed[0].plain);
+
+function renderVerse(text, diff, showDiff){
+  const p = parseSN(text);
+  let html = '';
+  const emitSlot = i => {
+    const tags = p.slots[i];
+    const hot = showDiff && diff && diff.has(i);
+    if (!tags && !hot) return;
+    const inner = (tags||[]).map(t => `<span class="sn">${esc(t)}</span>`).join('');
+    html += `<span class="slot${hot?' dif':''}">${inner || '&#8203;'}</span>`;
+  };
+  for (let i = 0; i < p.chars.length; i++){
+    emitSlot(i);
+    const hotNext = showDiff && diff && (diff.has(i) || diff.has(i+1));
+    html += `<span class="ch${hotNext?' difn':''}">${esc(p.chars[i])}</span>`;
+  }
+  emitSlot(p.chars.length);
+  return html;
+}
+
+/* ═══ boot ════════════════════════════════════════════════════════════════ */
+async function init(){
+  try {
+    const r = await fetch(INDEX_URL, { headers:NG });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    BUNDLE = await r.json();
+  } catch (e){
+    document.getElementById('main').innerHTML =
+      `<div class="card"><h2>索引載入失敗</h2><p>${esc(e.message)}</p>
+       <p class="hint">請先產生索引:<code>cd llm_direct_sn_unv2notyet &amp;&amp;
+       python3 adjudication/build_stuck_index.py</code></p></div>`;
+    document.getElementById('hstat').textContent = '載入失敗';
+    return;
+  }
+  VERSES = BUNDLE.verses || [];
+  await restoreSession();
+  await loadVerdicts();
+  buildFilters();
+  renderList();
+  const m = BUNDLE.meta || {};
+  document.getElementById('hstat').innerHTML =
+    `<b>${VERSES.length}</b> 節待人工 · s1/s10 · 判準 <code>trust_tier</code>` +
+    (m.generated ? ` · 索引 ${esc(m.generated.slice(0,16).replace('T',' '))}` : '');
+  if (VERSES.length) select(VERSES[0]);
+}
+
+async function loadVerdicts(){
+  try {
+    const r = await fetch('/api/verdicts', { headers:NG });
+    if (!r.ok) return;
+    const d = await r.json();
+    VERDICTS = {};
+    (d.verdicts||[]).forEach(v => { (VERDICTS[v.csid] = VERDICTS[v.csid]||[]).push(v); });
+  } catch (e){ /* read-only degradation: page still usable without the API */ }
+}
+
+/* ═══ filters + list ══════════════════════════════════════════════════════ */
+function buildFilters(){
+  const bySurvey = {}, byForm = {};
+  VERSES.forEach(v => { bySurvey[v.survey]=(bySurvey[v.survey]||0)+1;
+                        byForm[v.form]=(byForm[v.form]||0)+1; });
+
+  document.getElementById('fsurvey').innerHTML = Object.keys(bySurvey).sort().map(s =>
+    `<span class="chip" data-k="survey" data-v="${s}">${s}<span class="n">${bySurvey[s]}</span></span>`
+  ).join('');
+
+  document.getElementById('fform').innerHTML = Object.keys(FORMS)
+    .filter(f => byForm[f]).map(f =>
+      `<span class="chip" data-k="form" data-v="${f}">
+         <span class="dot" style="display:inline-block;background:${FORMS[f].color}"></span>
+         ${FORMS[f].label}<span class="n">${byForm[f]}</span></span>`
+    ).join('');
+
+  document.getElementById('fdone').innerHTML =
+    [['all','全部'],['todo','未裁決'],['done','已裁決']].map(([k,l]) =>
+      `<span class="chip${k==='all'?' on':''}" data-k="done" data-v="${k}">${l}</span>`).join('');
+
+  document.querySelectorAll('.chip').forEach(c => c.onclick = () => {
+    const k = c.dataset.k, v = c.dataset.v;
+    if (k === 'done'){
+      filt.done = v;
+      document.querySelectorAll('[data-k=done]').forEach(x => x.classList.toggle('on', x === c));
+    } else {
+      filt[k].has(v) ? filt[k].delete(v) : filt[k].add(v);
+      c.classList.toggle('on');
+    }
+    renderList();
+  });
+}
+
+const shown = () => VERSES.filter(v => {
+  if (filt.survey.size && !filt.survey.has(v.survey)) return false;
+  if (filt.form.size && !filt.form.has(v.form)) return false;
+  const done = (VERDICTS[vkey(v)]||[]).length > 0;
+  if (filt.done === 'todo' && done) return false;
+  if (filt.done === 'done' && !done) return false;
+  return true;
+});
+
+function renderList(){
+  const list = shown();
+  document.getElementById('lcount').textContent = `(${list.length})`;
+  document.getElementById('vlist').innerHTML = list.map(v => {
+    const k = vkey(v), n = (VERDICTS[k]||[]).length;
+    return `<div class="vitem${CUR && vkey(CUR)===k ? ' sel':''}" data-k="${esc(k)}">
+      <span class="dot" style="background:${FORMS[v.form]?FORMS[v.form].color:'#999'}"></span>
+      <span class="ref">${esc(v.book)} ${v.chap}:${v.sec}</span>
+      <span class="sv">${esc(v.survey)}</span>
+      ${n ? `<span class="done" title="已有 ${n} 筆裁決">✓${n>1?n:''}</span>` : ''}
+    </div>`;
+  }).join('') || '<div class="hint">此篩選下沒有節次。</div>';
+
+  document.querySelectorAll('.vitem').forEach(el => el.onclick = () => {
+    const v = VERSES.find(x => vkey(x) === el.dataset.k);
+    if (v) select(v);
+  });
+}
+
+function select(v){ CUR = v; renderList(); renderDetail(v); window.scrollTo(0,0); }
+
+/* ═══ detail ══════════════════════════════════════════════════════════════ */
+function renderDetail(v){
+  const F = FORMS[v.form] || { label:v.form, color:'#999', hint:'' };
+  const cands = v.candidates || [];
+  const answered = cands.filter(c => !c.blank);
+  const parsed = answered.map(c => parseSN(c.sn_text));
+  const aligned = samePlain(parsed);
+  const diff = aligned ? diffSlots(parsed) : new Set();
+
+  let h = '';
+
+  /* ── header + guidance ── */
+  h += `<div class="card"><h2>
+      <span>${esc(v.book)} ${v.chap}:${v.sec}</span>
+      <span class="badge" style="background:${F.color}">${esc(F.label)}</span>
+      <span class="tag">${esc(v.survey)}</span>
+      ${v.resolved_at ? `<span class="tag">resolved_at: ${esc(v.resolved_at)}</span>`:''}
+      ${v.prompt_version ? `<span class="tag">prompt ${esc(v.prompt_version)}</span>`:''}
+      ${v.deferred_reason ? `<span class="tag">${esc(v.deferred_reason)}</span>`:''}
+    </h2>
+    <div class="hint">${esc(F.hint)}</div>`;
+
+  if (v.damaged)
+    h += `<div class="msg bad" style="display:block">gold 檔無法解析(${esc(v.damaged)})
+          — 僅標示,無候選可裁決。</div>`;
+
+  /* ── source of truth ── */
+  h += `<div style="margin-top:11px">
+      <div class="srcrow"><div class="srclabel">UNV + SN(SN 的來源真值)</div>
+        <div class="verse">${v.unv_sn_reference ? renderVerse(v.unv_sn_reference,null,false)
+                                                : '<span class="hint">無法取得</span>'}</div></div>
+      <div class="srcrow"><div class="srclabel">LCC 原文(無標記)</div>
+        <div class="verse">${esc(v.lcc_original || '') || '<span class="hint">無法取得</span>'}</div></div>
+    </div></div>`;
+
+  /* ── candidates ── */
+  if (cands.length){
+    h += `<div class="card"><h2>候選答案 <span class="tag">${answered.length} 個可比較</span>
+      ${aligned && diff.size ? `<span class="tag" style="background:var(--diff)">
+          ${diff.size} 處 SN 位置不同(已高亮)</span>` : ''}
+      ${!aligned ? `<span class="badge" style="background:var(--diverge)">
+          漢字本身不同 — 無法對位,請逐字比對</span>` : ''}
+      ${aligned && !diff.size && answered.length>1 ? `<span class="tag" style="color:var(--ok)">
+          可比較的候選 SN 完全一致</span>` : ''}</h2>`;
+
+    cands.forEach(c => {
+      if (c.blank){
+        h += `<div class="cand blank"><div class="chead">
+            <span class="who">${esc(c.model)}</span>
+            <span class="blanknote">未作答 — 配額撞牆事故,不是「認為答案是空的」</span>
+          </div></div>`;
+        return;
+      }
+      const meta = [];
+      if (c.role === 'judge_corrected') meta.push(`判官修正 · ${esc(c.round)}`);
+      if (c.self_confidence != null) meta.push(`自報 ${c.self_confidence}`);
+      if (c.sn_coverage != null) meta.push(`SN 覆蓋 ${c.sn_coverage}`);
+      if (c.opinion) meta.push(esc(c.opinion));
+      h += `<div class="cand"><div class="chead">
+          <span class="who">${esc(c.model)}</span>
+          ${c.role === 'judge_corrected' ? '<span class="tag">judge corrected</span>' : ''}
+          <span class="meta">${meta.join(' · ')}</span>
+          <span class="spacer"></span>
+          <code style="font-size:11px;color:var(--muted)">${esc(c.cid)}</code>
+        </div>
+        <div class="verse">${renderVerse(c.sn_text, diff, aligned)}</div></div>`;
+    });
+    h += `</div>`;
+  }
+
+  /* ── judges (the whole point of form C) ── */
+  if ((v.judges||[]).length){
+    h += `<div class="card"><h2>判官紀錄</h2>
+      <table class="j"><tr><th>輪</th><th>判官</th><th>verdict</th><th>best</th>
+      <th>SN 計數</th><th>理由</th></tr>`;
+    v.judges.forEach(j => {
+      h += `<tr class="${j.errored?'err':''}">
+        <td>${esc(j.round)}</td>
+        <td>${esc(j.model)}${j.errored?' ⚠️':''}</td>
+        <td>${j.errored?'<b style="color:var(--diverge)">掛掉</b>':esc(j.verdict||'—')}</td>
+        <td><b>${esc(j.best||'—')}</b></td>
+        <td class="mono" style="font-size:11px">${j.sn_counts?esc(JSON.stringify(j.sn_counts)):'—'}
+            ${j.sn_count_unv!=null?`<br>UNV=${j.sn_count_unv}`:''}</td>
+        <td class="why">${esc((j.reasoning||'').slice(0,320))}${(j.reasoning||'').length>320?'…':''}</td>
+      </tr>`;
+    });
+    h += `</table></div>`;
+  }
+
+  /* ── trace replay ── */
+  if ((v.traces||[]).length){
+    h += `<div class="card"><h2>收斂軌跡回放 <span class="hint">
+      去重後每列一種讀法,徽章為出現次數</span></h2>`;
+    v.traces.forEach(t => {
+      if (t.damaged){
+        h += `<details class="tr"><summary>${esc(t.model)}
+          <span class="badge" style="background:var(--corrupt)">紀錄毀損 ${esc(t.damaged)}</span>
+          </summary><div class="hint">此模型的 convergence 檔無法讀取。</div></details>`;
+        return;
+      }
+      const osc = t.n_attempts ? (1 - t.n_distinct/t.n_attempts) : 0;
+      h += `<details class="tr"><summary>${esc(t.model)}
+        <span class="tag">${t.n_attempts} attempts → ${t.n_distinct} 種讀法</span>
+        ${t.stable_at ? `<span class="tag" style="color:var(--ok)">stable_at ${esc(t.stable_at)}</span>`:''}
+        ${t.bailed_out ? '<span class="badge" style="background:var(--diverge)">bailed out</span>':''}
+        ${t.n_attempts>=10 ? `<span class="badge" style="background:var(--blank)">
+            重度震盪 · 重複率 ${(osc*100).toFixed(0)}%</span>`:''}
+        </summary>`;
+      const tparsed = t.distinct.map(g => parseSN(g.text));
+      const tdiff = samePlain(tparsed) ? diffSlots(tparsed) : new Set();
+      const talign = samePlain(tparsed);
+      t.distinct.forEach(g => {
+        h += `<div class="att${g.is_stable?' stable':''}">
+          <div class="labs">${esc(g.labels.join(' '))}
+            ${g.count>1?`<span class="mult">×${g.count}</span>`:''}
+            ${g.is_stable?'<br>✓ stable':''}</div>
+          <div class="body">${renderVerse(g.text, tdiff, talign)}</div></div>`;
+      });
+      h += `</details>`;
+    });
+    h += `</div>`;
+  }
+
+  /* ── existing verdicts ── */
+  const prev = VERDICTS[vkey(v)] || [];
+  if (prev.length){
+    h += `<div class="card"><h2>已有裁決 <span class="tag">${prev.length}</span></h2>`;
+    prev.slice().reverse().forEach(p => {
+      h += `<div class="prev"><div class="ph">${esc(KINDS[p.kind]||p.kind)}
+          ${p.picked_cid?`→ <code>${esc(p.picked_cid)}</code>`:''}</div>
+        <div class="hint">${esc(p.reviewer&&p.reviewer.name||'?')} ·
+          ${esc((p.created_at||'').slice(0,16).replace('T',' '))} ·
+          ${esc(p.authority||'')} / ${esc(p.confidence||'')}</div>
+        ${p.rationale?`<div style="margin-top:4px">${esc(p.rationale)}</div>`:''}
+        ${p.sn_text?`<div class="verse" style="font-size:14px">${renderVerse(p.sn_text,null,false)}</div>`:''}
+      </div>`;
+    });
+    h += `</div>`;
+  }
+
+  /* ── verdict form ── */
+  h += `<div class="card"><h2>我的裁決</h2>`;
+  if (!sessionToken){
+    h += `<div class="hint">需先登入才能提交裁決。
+      <button class="primary" style="margin-left:8px" onclick="openAuth()">進入裁決模式</button></div>`;
+  } else {
+    const pickable = cands.filter(c => !c.blank);
+    h += `<div class="vform">
+      <div class="row">
+        <div><label>裁決類型</label>
+          <select id="vkind" onchange="onKind()">
+            ${Object.entries(KINDS).map(([k,l]) =>
+              `<option value="${k}">${esc(l)}</option>`).join('')}
+          </select></div>
+        <div id="pickwrap"><label>採納哪一個</label>
+          <select id="vpick">
+            ${pickable.map(c => `<option value="${esc(c.cid)}">${esc(c.cid)}</option>`).join('')
+              || '<option value="">（無可採納候選）</option>'}
+          </select></div>
+      </div>
+      <div id="textwrap" style="display:none">
+        <label>正確答案(可從候選複製後修改)</label>
+        <textarea id="vtext" placeholder="貼上或修改帶 SN 的 LCC 經文…"></textarea>
+        <div class="hint">
+          <button type="button" onclick="seedText()">用目前採納的候選填入</button></div>
+      </div>
+      <div class="row">
+        <div><label>權威</label>
+          <select id="vauth">
+            <option value="secondary_direct">次要直接答案 — 我確定就是這樣</option>
+            <option value="tiebreak">拍板 — 看不出誰對,但我選這個</option>
+            <option value="opinion">僅意見</option>
+          </select></div>
+        <div><label>確信度</label>
+          <select id="vconf">
+            <option value="sure">確定</option>
+            <option value="leaning">傾向</option>
+            <option value="unsure">不確定</option>
+          </select></div>
+      </div>
+      <label>理由</label>
+      <textarea id="vwhy" placeholder="例:LCC 用「上帝」,0430 該掛在上帝而非天。"></textarea>
+      <div style="margin-top:11px">
+        <button class="primary" onclick="submitVerdict()">提交裁決</button>
+      </div>
+      <div class="msg" id="vmsg"></div>
+    </div>`;
+  }
+  h += `</div>`;
+
+  document.getElementById('main').innerHTML = h;
+  if (sessionToken) onKind();
+}
+
+function onKind(){
+  const k = document.getElementById('vkind').value;
+  document.getElementById('pickwrap').style.display = (k==='pick') ? '' : 'none';
+  document.getElementById('textwrap').style.display = (k==='correct') ? '' : 'none';
+}
+function seedText(){
+  const cid = document.getElementById('vpick') && document.getElementById('vpick').value;
+  const c = (CUR.candidates||[]).find(x => x.cid === cid);
+  if (c) document.getElementById('vtext').value = c.sn_text;
+}
+
+async function submitVerdict(){
+  const msg = document.getElementById('vmsg');
+  const kind = document.getElementById('vkind').value;
+  const body = {
+    csid: vkey(CUR),
+    survey: CUR.survey, book: CUR.book, chap: CUR.chap, sec: CUR.sec,
+    form: CUR.form, kind,
+    picked_cid: kind==='pick' ? document.getElementById('vpick').value : null,
+    sn_text: kind==='correct' ? document.getElementById('vtext').value.trim() : null,
+    authority: document.getElementById('vauth').value,
+    confidence: document.getElementById('vconf').value,
+    rationale: document.getElementById('vwhy').value.trim(),
+  };
+  if (kind==='pick' && !body.picked_cid){
+    msg.className='msg bad'; msg.textContent='沒有可採納的候選。'; return; }
+  if (kind==='correct' && !body.sn_text){
+    msg.className='msg bad'; msg.textContent='請填入正確答案。'; return; }
+
+  try {
+    const r = await fetch('/api/verdicts', opts({
+      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }));
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+    msg.className='msg ok'; msg.textContent='已記錄:' + (d.vid||'ok');
+    await loadVerdicts(); renderList(); renderDetail(CUR);
+  } catch (e){
+    msg.className='msg bad'; msg.textContent='提交失敗:' + e.message;
+  }
+}
+
+/* ═══ auth (same endpoints + token as the main viewer) ════════════════════ */
+function openAuth(){ document.getElementById('modal').classList.add('on'); }
+function closeAuth(){ document.getElementById('modal').classList.remove('on');
+  document.getElementById('mmsg').className='msg'; }
+
+async function restoreSession(){
+  if (!sessionToken) { paintAuth(); return; }
+  try {
+    const r = await fetch('/api/auth/status', opts());
+    const d = await r.json();
+    if (d.authenticated) reviewer = d.reviewer;
+    else { sessionToken=null; localStorage.removeItem('showoff_session_token'); }
+  } catch(e){ /* offline: keep token, just show unauthenticated */ }
+  paintAuth();
+}
+function paintAuth(){
+  const b = document.getElementById('authbtn'), w = document.getElementById('who');
+  if (reviewer){ w.innerHTML = `裁決者 <b>${esc(reviewer.name)}</b>`;
+    b.textContent = '登出'; b.onclick = logout; }
+  else { w.textContent=''; b.textContent='進入裁決模式'; b.onclick = openAuth; }
+}
+function logout(){ sessionToken=null; reviewer=null;
+  localStorage.removeItem('showoff_session_token'); paintAuth();
+  if (CUR) renderDetail(CUR); }
+
+async function requestAccess(){
+  const msg = document.getElementById('mmsg');
+  const name = document.getElementById('rname').value.trim();
+  const email = document.getElementById('remail').value.trim();
+  if (!name || !email){ msg.className='msg bad'; msg.textContent='請填姓名與 email。'; return; }
+  try {
+    const r = await fetch('/api/auth/request-access', { method:'POST',
+      headers:Object.assign({'Content-Type':'application/json'}, NG),
+      body:JSON.stringify({email,name}) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error||('HTTP '+r.status));
+    msg.className='msg ok';
+    msg.textContent = d.status==='pending_approval'
+      ? '已寄出審核請求給管理者,核准後會收到驗證碼。'
+      : '驗證碼已寄出(或印在伺服器 console)。';
+    if (d.status !== 'pending_approval'){
+      document.getElementById('step1').style.display='none';
+      document.getElementById('step2').style.display='';
+    }
+  } catch(e){ msg.className='msg bad'; msg.textContent=e.message; }
+}
+
+async function verifyOTP(){
+  const msg = document.getElementById('mmsg');
+  const email = document.getElementById('remail').value.trim();
+  const otp = document.getElementById('rotp').value.trim();
+  try {
+    const r = await fetch('/api/auth/verify-otp', { method:'POST',
+      headers:Object.assign({'Content-Type':'application/json'}, NG),
+      body:JSON.stringify({email,otp}) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error||('HTTP '+r.status));
+    sessionToken = d.token; reviewer = d.reviewer;
+    localStorage.setItem('showoff_session_token', sessionToken);
+    paintAuth(); closeAuth();
+    document.getElementById('step1').style.display='';
+    document.getElementById('step2').style.display='none';
+    if (CUR) renderDetail(CUR);
+  } catch(e){ msg.className='msg bad'; msg.textContent=e.message; }
+}
+
+init();
+</script>
+</body>
+</html>
