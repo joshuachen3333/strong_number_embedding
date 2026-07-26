@@ -273,17 +273,17 @@ def _call_gemini(model, system_prompt, user_prompt, target_version,
     if result_proc.returncode != 0:
         return {"error": True, "notes": [f"CLI error: {result_proc.stderr[:300]}"]}
 
-    resolved = model or "gemini-default"
-
+    # (gemini CLI is EOL; like agy it offers no model readback — leave unstamped
+    # rather than echoing the request. See _call_agy.)
     if mode == "production":
         result, _ = parse_gemini_stream_json(result_proc.stdout, sn_field)
-        return _stamp(result, resolved)
+        return result
 
     if mode == "freeform":
-        return _stamp(_parse_gemini_freeform_text(result_proc.stdout), resolved)
+        return _parse_gemini_freeform_text(result_proc.stdout)
 
     # Judge mode: extract text, parse JSON
-    return _stamp(_parse_gemini_freeform(result_proc.stdout), resolved)
+    return _parse_gemini_freeform(result_proc.stdout)
 
 
 def _call_codex(model, system_prompt, user_prompt, target_version,
@@ -414,13 +414,15 @@ def _call_agy(model, system_prompt, user_prompt, target_version,
     raw = result_proc.stdout.strip()
     if not raw:
         return {"error": True, "notes": ["agy: no output received"]}
-    # agy prints no session header, so the requested pin IS the provenance
-    # (this slot is version-pinned on purpose — see DEFAULT_MODELS).
-    resolved = model or "agy-default"
+    # agy prints no session header, so there is nothing to read back. Leave the
+    # stamp empty rather than echoing the model we ASKED for: this field records
+    # what actually answered, and a request is not a measurement (if agy ever
+    # substituted a model we would never know). The pin is recoverable from the
+    # run's --modelsABC args / DEFAULT_MODELS. (s10obe R-1, 2026-07-27)
     if mode == "freeform":
-        return _stamp({"text": raw}, resolved)
+        return {"text": raw}
     key = sn_field if mode == "production" else "best"
-    return _stamp(_extract_json(raw, key), resolved)
+    return _extract_json(raw, key)
 
 
 # ── Freeform (judge mode) parsers ──────────────────────────────────────────

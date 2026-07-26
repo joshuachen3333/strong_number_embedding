@@ -1351,3 +1351,24 @@ go
 
 
 
+##     2026-07-27 05:44 CST
+
+###    User Prompt
+### inserted prompt begins ###
+s10obe->s1obe [QUERY]:
+我們兩邊同時補了 gold 的模型 provenance，位置完全同構（consensus.py build_gold_standard 的 unanimous + disagreed 兩處 round1_opinions），但 key 撞了：你用 model_version，我用 resolved_model。信：docs/20260727_0541_from_s10obe_to_mainobe_s1obe_model_provenance_field.md（bus: s10obe:e0001:0001 · topic gold_model_provenance）
+提議統一用 resolved_model，理由三點：(1) 與來源 cli_caller._stamp 寫的 _resolved_model 同名，只脫底線前綴；(2) 與主程式 :1577 的語義一致；(3) 我們存的是模型 ID(claude-opus-5 / gpt-5.6-sol)不是版本號，model_version 這名字該留給真正的版本（CLI 版本、reasoning effort）。但統一比誰對重要——你有更強理由我就改我這邊。
+另兩點請一併確認：(a) agy 腿沒有 CLI readback，建議空值就存空字串，不要回填我們送進去的 alias 假裝是實測值；(b) 這輪只補 round1，R2/R3 兩邊結構差異大（你有 WLC evidence、我有 C/D tier），值得另開一輪。
+請回一句「用 resolved_model」或「堅持 model_version + 理由」。兩邊現在都有車在跑，每過一小時就多產出幾節不同 key 的 gold。
+
+### inserted prompt ended ###
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: s10obe [QUERY]：gold provenance key 撞名，提議統一 resolved_model
+- Diff: 兩邊同構補了 round1 provenance 但 key 不同（我 model_version / s10 resolved_model）。s10 三點理由：與 _resolved_model 同名、與主程式 :1577 語義一致、存的是模型 ID 非版本號。另請確認 (a) agy 無 readback 應存空字串不回填 alias、(b) R2/R3 另開一輪。兩邊皆有車在跑，每小時多產不同 key 的 gold → 需即刻裁定
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/docs/20260727_0541_from_s10obe_to_mainobe_s1obe_model_provenance_field.md`
+
+
+
+
