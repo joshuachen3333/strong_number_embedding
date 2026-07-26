@@ -99,17 +99,73 @@ def build_shell_lookup(unv_sn_text):
 
 
 def restore_shell_lookup(stripped_text, lookup):
-    """Restore bare <number> tags to original FHL format via table lookup.
+    """Restore SN tags to their original FHL format via table lookup.
 
-    Zero-loss counterpart to restore_shell_guess(): each <number> is replaced
-    by its original tag from `lookup` (built by build_shell_lookup). A number
-    absent from the table is deliberately left bare (<number>) — that is a red
-    flag (LLM emitted an SN not present in the source UNV+SN) for a judge or
-    human to catch, rather than masking it with a plausible guessed shell.
+    Zero-loss counterpart to restore_shell_guess(): each tag is keyed on its
+    bare number and replaced by the original tag from `lookup` (built by
+    build_shell_lookup). A number absent from the table is deliberately left
+    exactly as it came — that is a red flag (LLM emitted an SN not present in
+    the source UNV+SN) for a judge or human to catch, rather than masking it
+    with a plausible guessed shell.
+
+    ALREADY-SHELLED input is left alone EXCEPT for a wrong-testament letter.
+    In naked mode the model is asked for bare numbers but sometimes adds a shell
+    of its own, and it copies the OT worked examples — so on a New Testament
+    verse it emits ``<WH1234>`` where the source says ``<WG1234>``. Matching only
+    bare ``<digits>`` let those pass through untouched and silently poisoned the
+    output (measured 2026-07-27: ~70 % of sampled NT verses in the whole-Bible
+    deepseek run, ``output/lcc/deepseek-v3.1_671b-cloud``).
+
+    The override is deliberately narrow — H-vs-G only. Braces, the WAH/WH
+    attached distinction, and zero-padding all legitimately vary *per
+    occurrence* of the same number (the §2.1 boundary: once ``<WH0853>``, once
+    ``{<WH0853>}``), and this table keeps only the first occurrence's shell. So
+    overriding those from the table would destroy per-occurrence detail the
+    model may have got right; use restore_shells_positional() when occurrence
+    fidelity matters. A testament letter, by contrast, is fixed for the whole
+    verse and can never be a per-occurrence difference — if it disagrees with
+    the source, the model is simply wrong.
     """
+    # Zero-padding in the keys is whatever the source printed ('09002', '8804').
+    # A model that invents its own padding ('<WH9002>') would miss an exact
+    # match, so also index without leading zeros. Stripping them cannot merge
+    # two different real numbers: Hebrew Strong's tops out at 8674 and FHL's
+    # 9xxx range is prefixes, so '9002' and '09002' are always the same SN.
+    unpadded = {}
+    for key, tag in lookup.items():
+        unpadded.setdefault(key.lstrip("0") or "0", tag)
+
+    def _testament(tag):
+        """'G', 'H', or None — from the letter block of an FHL tag."""
+        m = re.match(r'\{?<([A-Za-z]*)', tag)
+        letters = (m.group(1) if m else "").upper()
+        if "G" in letters:
+            return "G"
+        if "H" in letters:
+            return "H"
+        return None
+
+    def _lookup_tag(num):
+        if num in lookup:
+            return lookup[num]
+        return unpadded.get(num.lstrip("0") or "0")
+
     def _replace(m):
-        return lookup.get(m.group(1), m.group(0))
-    return re.sub(r'<(\d+[a-z]?)>', _replace, stripped_text)
+        raw = m.group(0)
+        num = strip_shell(raw, markers=False).strip("<>")
+        tag = _lookup_tag(num)
+        if tag is None:
+            return raw                      # unknown number: stays as-is (red flag)
+        incoming = _testament(raw)
+        if incoming is None:
+            return tag                      # bare number: the normal restore path
+        if incoming != _testament(tag):
+            return tag                      # wrong testament: the model is wrong
+        return raw                          # already shelled, testament agrees
+
+    # Bare <digits> OR any full FHL tag; a non-SN construct like <b> matches
+    # neither and is left alone.
+    return re.sub(r'\{?<W?[A-Z]*\d+[a-z]?>\}?', _replace, stripped_text)
 
 
 def restore_shells_positional(stripped_text, unv_sn_text):

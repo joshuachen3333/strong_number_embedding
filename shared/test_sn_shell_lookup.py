@@ -60,6 +60,71 @@ def test_restore_shell_lookup_keeps_unknown_number_bare_as_red_flag():
     assert restore_shell_lookup("foo<9999>bar", lookup) == "foo<9999>bar"
 
 
+# ── a wrong TESTAMENT letter must be overridden; nothing else ────────────────
+# Regression: in naked mode the model is asked for bare numbers, but it
+# sometimes adds a shell of its own — and it copies the OT worked examples, so
+# on a New Testament verse it emits <WH1234> where the source says <WG1234>.
+# The old regex matched bare <digits> only, so such a shell passed through
+# untouched and silently poisoned the output.
+#
+# The override is narrow ON PURPOSE. Braces, WAH-vs-WH, and zero-padding vary
+# legitimately per OCCURRENCE of the same number (§2.1 boundary), and this table
+# keeps only the first occurrence's shell — so overriding those would destroy
+# per-occurrence detail the model may have got right. A testament letter is
+# fixed for the whole verse and can never be a per-occurrence difference.
+
+EPH_1_8 = (
+    "這<WG3739>恩典是　神用<WG1722>諸般<WG3956>智慧<WG4678>{<WG2532>}"
+    "聰明<WG5428>，充充足足<WG4052><WTG5656>賞給<WG1519>我們<WG1473>的；"
+)
+
+
+def test_restore_overrides_model_supplied_wrong_testament_shell():
+    lookup = build_shell_lookup(EPH_1_8)
+    # model emitted Hebrew shells on a Greek verse (the real Eph 1:8 defect)
+    got = restore_shell_lookup("這<WH3739>恩典<WH3956>智慧<WH4678>", lookup)
+    assert got == "這<WG3739>恩典<WG3956>智慧<WG4678>"
+
+
+def test_restore_overrides_wrong_testament_on_morphology_tag_too():
+    lookup = build_shell_lookup(EPH_1_8)
+    assert restore_shell_lookup("充充足足<WTH5656>", lookup) == "充充足足<WTG5656>"
+
+
+def test_restore_keeps_model_braces_when_testament_agrees():
+    # THE REGRESSION GUARD: 0853 appears twice in Gen 1:1, once braced. The
+    # table keeps only the first shell, so overriding here would strip braces
+    # the model had right. Same testament -> leave the model's shell alone.
+    lookup = build_shell_lookup(GEN_1_1)
+    assert restore_shell_lookup("天{<WH0853>}", lookup) == "天{<WH0853>}"
+    assert restore_shell_lookup("天<WH0853>", lookup) == "天<WH0853>"
+
+
+def test_restore_keeps_model_attached_prefix_class_when_testament_agrees():
+    # WAH vs WH is also a per-occurrence distinction — not ours to overrule.
+    lookup = build_shell_lookup(GEN_1_1)
+    assert restore_shell_lookup("我們<WH0587>", lookup) == "我們<WH0587>"
+
+
+def test_restore_bare_number_still_gets_full_shell_from_table():
+    # The normal naked-mode path is untouched, including odd zero-padding.
+    lookup = build_shell_lookup(GEN_1_1)
+    assert restore_shell_lookup("起初<09002>", lookup) == "起初<WAH09002>"
+    assert restore_shell_lookup("起初<9002>", lookup) == "起初<WAH09002>"
+
+
+def test_restore_leaves_model_shelled_unknown_number_untouched():
+    # Still a red flag: number absent from source keeps whatever it had, so the
+    # anomaly stays visible instead of being masked by a plausible shell.
+    lookup = build_shell_lookup(GEN_1_1)
+    assert restore_shell_lookup("foo<WH9999>bar", lookup) == "foo<WH9999>bar"
+
+
+def test_restore_does_not_touch_non_sn_angle_brackets():
+    lookup = build_shell_lookup(GEN_1_1)
+    assert restore_shell_lookup("a<b>c", lookup) == "a<b>c"
+
+
 def test_build_shell_lookup_first_occurrence_wins_on_same_number():
     # §2.1 boundary: same number, different shell → keep first occurrence.
     text = "a{<WH0853>}b<WH0853>c"
