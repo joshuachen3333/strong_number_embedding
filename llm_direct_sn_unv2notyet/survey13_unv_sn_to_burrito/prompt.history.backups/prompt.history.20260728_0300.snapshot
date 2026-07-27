@@ -1,0 +1,142 @@
+# prompt.history — Alignments (Clear-Bible) 工作區
+
+此檔為 Joshua 跨專案、跨 CLI 的原始 prompt provenance 記錄,於 2026-07-11 由 Claude(obe)首次 /ph 建立。
+記錄本 cwd(`llm_direct_sn_unv2notyet/Alignments`,Clear-Bible/Alignments 的 checkout)中有設計意義的 prompt。
+格式:canonical structured(見 ~/.claude/skills/record-prompt-history)。
+
+
+
+
+##     2026-07-11 11:21 CST
+
+###    User Prompt
+查:(a) 有沒有中文譯本對齊資料、或 (b) 怎麼把這套 Manager 讀出來的對齊,接成SN coverage 驗證的輸入格式。
+
+###    
+- Agent: `Alignments-obe`
+- Hint: 查 Alignments 有無中文對齊資料,及如何把 Manager 對齊接成 SN coverage 驗證輸入
+- Diff: 確認 data/ 無任何中文 target(cmn 只在 strategic-languages 路線圖);Manager 對齊→verify_sn_coverage 橋接 NT 實測 perfect,OT 因 Macula strong(G前綴/後綴a/9000系前綴)與 FHL 不相容需 normalize
+
+
+
+
+##     2026-07-11 11:21 CST
+
+###    User Prompt
+那我們已經有 UNV+SN 這個下游產品, 能夠反推得到上游的 UNV 對齊資料成為第十一個語言, 第十三個翻譯本嗎?
+
+###    
+- Agent: `Alignments-obe`
+- Hint: 提出逆向:用下游 UNV+SN 反推上游 UNV 對齊,成為第 11 語言 cmn/第 13 版本
+- Diff: 確立可行性——兩側皆有獨立 Strong 標註,是 join 而非語義猜測;創1:1 核心詞 100%;定位三坑:FHL/Macula 編碼差、9000系前綴需對照表、同號重複需位置消歧
+
+
+
+
+##     2026-07-11 11:21 CST
+
+###    User Prompt
+All 3
+
+###    
+- Agent: `Alignments-obe`
+- Hint: 執行全部三項:SPEC v1.8 修前綴學習器、產標準 Burrito JSON、擴到整卷創世記
+- Diff: 詞素對齊法(SPEC prefix_buffer)實作 poc_v2.py;修正 classify(僅5位09開頭為900x);前綴表 09001 ל→3807、09002 ב→871、09003 כ→3509 對應 SPEC;產 WLCM-UNV-strongjoin JSON(419 rec);全創世記1532節19886記錄核心96.3%;3.7%尾巴診斷=FHL↔Macula 版本分歧(3212≡1980、582≡376)+重複號錯配
+- File: `/private/tmp/claude-501/-Users-joshua-work-strong-number-embedding-llm-direct-sn-unv2notyet-Alignments/432c31d9-f4f6-4a0f-9287-2f07c73db5c5/scratchpad/poc_v2.py`
+
+
+
+
+##     2026-07-11 11:21 CST
+
+###    User Prompt
+再補上有 SN, morph 插入對齊的部分參考哪裡?
+
+###    
+- Agent: `Alignments-obe`
+- Hint: 追問 SN/morph 標註的參考出處
+- Diff: 釐清 SN(strongs)與 morph 是 source TSV 內建欄位,非對齊層所加;出處為 Macula 系列(OT=macula-hebrew、NT=macula-greek);與 FHL 為兩套獨立 Strong 標註
+
+
+
+
+##     2026-07-11 11:43 CST
+
+###    User Prompt
+survey10-obe->alignments-obe [FYI] WLC/WLCM 名稱統一與更正:OT來源=WLC.tsv(macula-hebrew,H0871a+lemma+morph);WLCM.tsv是壞schema匯出(無lemma/無H前綴/pos全字),會弄壞SN抽取與lemma-keyed 09xxx橋。WLCM只出現在對齊檔名前綴且命名不一致(YLT叫WLC-YLT)。統一措辭:WLC.tsv(OT01-39)+SBLGNT.tsv(NT40-66),BSB英文橋,ground truth仍是FHL。s1/s5已確認更正。ack即可。
+
+###    
+- Agent: `Alignments-obe`
+- Hint: 跨agent inject(survey10-obe):WLC/WLCM 名稱更正——WLC.tsv 才是 OT 正解來源,WLCM.tsv 壞schema
+- Diff: 實測驗證屬實:WLC.tsv=macula-hebrew(H前綴strongs+lemma+morph碼);WLCM.tsv 無lemma/無H前綴/pos全字,經Manager讀成G0871a(H/G判別毀損)。命名亂:YLT用WLC-,餘用WLCM-,RV09內部小寫wlcm,OHCB的source docid誤標SBLGNT。數字兩者一致→PoC核心96.3%不變,但應改用sourceid=WLC並更正先前『OT:WLC/WLCM』『WLCM最佳支援』措辭。統一基石:WLC.tsv(OT01-39)+SBLGNT.tsv(NT40-66)+BSB橋+FHL為ground truth。已ack。
+
+
+
+
+##     2026-07-28 02:01 CST
+
+###    User Prompt
+clear bible 是什麼?wlc 又是什麼?
+
+###    
+- Agent: `Alignments-obe`
+- Hint: 詢問 Clear Bible 組織與 WLC 的定義/來歷
+- Diff: 查證:Clear Bible Inc(clear.bible)為本 repo 擁有者、Macula 資料集(macula-hebrew/greek)產出方,TOML team=Clear;程式版權 2023 Clear Bible → README 2024 Biblica(移交)。WLC=Westminster Leningrad Codex,底本列寧格勒抄本(B19A,1008AD),數位化者 J. Alan Groves Center(TOML 版權欄確證),經 tanach.us UXLC 1.8 發行。新證據:WLCM-BSB-manual.toml 內 source identifier 竟寫 'WLC'(再證 WLCM 僅為檔名產物),且 scope 誤標 'NT'(實為 OT)
+
+
+
+
+##     2026-07-28 02:12 CST
+
+###    User Prompt
+把這些寫入 aboarding.md Clear Bible — 組織 ... WLC — 文本 ... 一句話總結:Clear Bible 是做這套東西的組織(含 Macula 標註),WLC 是它採用的舊約原文底本(列寧格勒抄本的 Westminster 數位版)。
+
+###    
+- Agent: `Alignments-obe`
+- Hint: 要求把 Clear Bible 組織與 WLC 文本的來歷考證寫入 aboarding.md
+- Diff: 新建 ./aboarding.md:收錄 Clear Bible(clear.bible,repo 擁有者、Macula 標註產出方,2023 Clear→2024 Biblica 版權移交)、WLC 四層譜系(列寧格勒抄本B19A→Westminster/Groves Center數位轉錄→UXLC/tanach.us→Macula標註的WLC.tsv)、以及 WLCM metadata 缺陷證據(TOML identifier寫WLC、scope誤標NT、OHCB docid誤標SBLGNT、RV09小寫wlcm)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/Alignments/aboarding.md`
+
+
+
+
+##     2026-07-28 02:17 CST
+
+###    User Prompt
+請再補上 term 的名詞解釋, wlc, 馬索拉, 美國聖經公會, westminster 的研究中心, 各個版本名, 語料庫名, 先列出來然後補上 aboarding.md
+
+###    
+- Agent: `Alignments-obe`
+- Hint: 要求補名詞解釋(WLC/馬索拉/聖經公會/Westminster研究中心/版本名/語料庫名)到 aboarding.md
+- Diff: aboarding.md 新增 Glossary 四大節:A機構(Clear Bible/Biblica/UBS/SBL/Logos/Groves Center/BiblioNexus/FHL)、B文本學(馬索拉文本與學者/列寧格勒B19A/亞勒坡/BHS/校勘本/lemma/morph)、C語料庫(Macula/UXLC/Scripture Burrito/BCVWP/grapecity)、D版本名全表(來源WLC/SBLGNT/BGNT/NA27-28含『NA僅enum無資料檔』發現;12目標譯本全名自TOML)。關鍵更正:美國聖經公會(ABS)在此repo完全未出現(grep無命中),出現的是Biblica(國際聖經協會)與United Bible Societies(聯合聖經公會),三者不可混同
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/Alignments/aboarding.md`
+
+
+
+
+##     2026-07-28 02:52 CST
+
+###    User Prompt
+關於你提到的 wlcm 以及其他標注錯誤, 請對照一下Paul Wu 的 fork 是否有修正或改善 /Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/paulwu/Alignments
+
+###    
+- Agent: `Alignments-obe`
+- Hint: 對照 Paul Wu fork(paulhjwu/Alignments)是否修正 WLCM 與其他 metadata 標註錯誤
+- Diff: 結論:fork 零資料層修正,唯一相關修補在下游 viewer。實測:WLC.tsv/WLCM.tsv 與 upstream md5 完全相同(未修);WLCM.tsv 仍無 lemma、無 H 前綴;WLCM-BSB TOML identifier 仍='WLC'、scope 仍誤='NT';OHCB docid 仍誤=SBLGNT;RV09 仍小寫 wlcm。fork 自 4b47c05 分支,獨有 5 commits 皆為 viewer/notebook;SBLGNT.tsv 差異來自 upstream 較新的 Rick gloss2 commit 而非 fork 修正。關鍵:commit 4b6b8d1『Fix Hebrew Strong Numbering』在 bible-alignment-viewer.html 加繞道——註解明寫『Hebrew Strong numbers lack H prefix (e.g. 0871a, 7225)』,無前綴即假設為 H。此為 Paul 獨立撞見同一 bug 的第三方佐證,但屬 view 層 band-aid(任何無前綴號一律判 H,無法真正區辨 H/G),且 viewer 同時載入 WLCM.tsv 與 WLC.tsv。我方改用 WLC.tsv 從源頭解決,嚴格優於此法
+
+
+
+
+##     2026-07-28 02:55 CST
+
+###    User Prompt
+不需要了, 回到我們的 Alignments
+
+###    
+- Agent: `Alignments-obe`
+- Hint: 收掉 Paul Wu fork 支線,回到 Alignments 主線工作
+- Diff: 不寫『下游影響實例』節;恢復主線:執行先前 ack 但未做的 sourceid WLCM→WLC 切換,並用新解鎖的 lemma 欄建立 FHL↔Macula 變體等價表以修補 3.7% 核心尾巴
+
+
+
+

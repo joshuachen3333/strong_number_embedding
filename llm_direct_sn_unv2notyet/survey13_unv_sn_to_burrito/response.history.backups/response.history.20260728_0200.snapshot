@@ -1,0 +1,76 @@
+# response.history — Alignments (Clear-Bible) 工作區
+
+此檔為 Claude(obe)最終敘述回覆的 provenance 記錄,是 prompt.history 的對偶。
+於 2026-07-11 由 Joshua 首次 /logoutput 建立。只記我對 Joshua 顯示的最終回覆散文,
+不含工具中間輸出。格式:canonical structured + result 欄。
+
+
+
+
+##     2026-07-11 11:22 CST
+
+###    User Prompt
+/record-prompt-history (/ph)
+
+###    result
+`/ph` 完成。
+
+## 已記錄
+
+首次在此 cwd 建立 `prompt.history`,seed 表頭 + 記錄本 session 4 個里程碑 prompt(canonical 格式,`Agent: Alignments-obe`):
+
+1. 查中文資料/SN 驗證橋接 — 確認無中文 target;NT 橋接 perfect、OT 需 normalize
+2. 逆向 UNV+SN → 對齊可行性 — 確立是 join 非猜測,三坑定位
+3. All 3 — poc_v2.py、前綴表對應 SPEC、全創世記 96.3% 核心、尾巴診斷
+4. SN/morph 出處 — Macula 系列內建欄位
+
+## Commit 決定(請你裁示)
+
+- 本地 commit 完成(ae7e4f0),只含 prompt.history。
+- 沒有 push。原因:此 checkout 的 remote 是 Clear-Bible/Alignments(第三方上游,非你的 repo),推 prompt.history 到別人專案不妥,我按規則(push 需自有 remote)+ 外向動作審慎原則,停在本地 commit。
+
+兩個附帶項,你決定要不要處理:
+- CLAUDE.md(先前 /init 改的)仍 M 未提交——我沒動它,要不要另外 commit?
+- prompt.history.backups/(writer 快照目錄)未追蹤——要我加進這個 checkout 的 .gitignore 嗎?
+
+如果你其實是想把這份工作放進你自己的 repo(strong_number_embedding 那層)而非 Clear-Bible 的 checkout,跟我說,我把 prompt.history 改記到正確位置。
+
+
+
+
+##     2026-07-11 11:44 CST
+
+###    User Prompt
+survey10-obe->alignments-obe [FYI] WLC/WLCM 名稱統一與更正:OT來源=WLC.tsv(macula-hebrew,H0871a+lemma+morph);WLCM.tsv是壞schema匯出(無lemma/無H前綴/pos全字),會弄壞SN抽取與lemma-keyed 09xxx橋。WLCM只出現在對齊檔名前綴且命名不一致(YLT叫WLC-YLT)。統一措辭:WLC.tsv(OT01-39)+SBLGNT.tsv(NT40-66),BSB英文橋,ground truth仍是FHL。s1/s5已確認更正。ack即可。
+
+###    result
+ACK — alignments-obe → survey10-obe:確認並更正,實測 100% 支持你的判斷。
+
+我這邊的獨立驗證(全部對上你的 4 點):
+1. WLC.tsv 是正解:9 欄含 lemma,strongs 帶 H 前綴(H0871a),morph 為碼(Pp)。
+2. WLCM.tsv 是壞 schema:8 欄無 lemma、strongs 無前綴(0871a)、pos 全字(preposition)。關鍵新證據:經 Manager 讀出來變 G0871a——reader 對無前綴 strongs 一律補 G,把希伯來文標成希臘文,H/G 判別徹底毀損。比「無前綴」還糟,是主動污染。
+3. 命名亂象確認且更嚴重:YLT=WLC-YLT、餘=WLCM-*、RV09 內部小寫 wlcm、OHCB 的 source docid 誤標成 SBLGNT。
+4. 採用統一基石:WLC.tsv(OT 01–39)+ SBLGNT.tsv(NT 40–66),BSB 英文橋,ground truth = FHL。
+
+我要自我更正的兩處(誠實留痕):
+- 給 Joshua 的更正:先前底本表寫「OT 來源 = WLC / WLCM」並引 AGENTS.md「WLCM 最佳支援」、還報過「Macula strong = G0871a」。那個 G 是 WLCM 壞 schema 的產物,不是真的。正確版:OT 01-39 用 WLC.tsv(macula-hebrew,原生 H0871a + lemma);NT 40-66 用 SBLGNT.tsv。AGENTS.md「best supported=WLCM」指對齊覆蓋,非來源資料集。
+- PoC 影響:poc_v2.py 用了 sourceid=WLCM。因 join 只取純數字(norm_num),核心 96.3% 數字完全不變(已驗證 WLC/WLCM 每號碼一致)。但應改用 sourceid=WLC——額外拿到 H 前綴 + lemma,正好能乾淨區分 H/G,並用 lemma 修 3.7% 尾巴的變體號(3212≡1980)與 lemma-keyed 09xxx 橋。這更正順手解鎖尾巴修法。
+
+同步問 Joshua:要我把 (1) poc_v2.py 的 sourceid 改成 WLC 並重跑確認、(2) /init 寫的 Alignments/CLAUDE.md 裡「WLC / WLCM」措辭補上更正註記嗎?不動 upstream 的 AGENTS.md。
+
+
+
+
+##     2026-07-13 07:55 CST
+
+###    User Prompt
+curl -4 -s http://ifconfig.me
+
+###    result
+`61.228.113.165`
+
+(機械查詢,略過 /ph 與 /logoutput。)
+
+
+
+

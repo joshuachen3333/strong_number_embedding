@@ -1,0 +1,220 @@
+# response.history — Alignments (Clear-Bible) 工作區
+
+此檔為 Claude(obe)最終敘述回覆的 provenance 記錄,是 prompt.history 的對偶。
+於 2026-07-11 由 Joshua 首次 /logoutput 建立。只記我對 Joshua 顯示的最終回覆散文,
+不含工具中間輸出。格式:canonical structured + result 欄。
+
+
+
+
+##     2026-07-11 11:22 CST
+
+###    User Prompt
+/record-prompt-history (/ph)
+
+###    result
+`/ph` 完成。
+
+## 已記錄
+
+首次在此 cwd 建立 `prompt.history`,seed 表頭 + 記錄本 session 4 個里程碑 prompt(canonical 格式,`Agent: Alignments-obe`):
+
+1. 查中文資料/SN 驗證橋接 — 確認無中文 target;NT 橋接 perfect、OT 需 normalize
+2. 逆向 UNV+SN → 對齊可行性 — 確立是 join 非猜測,三坑定位
+3. All 3 — poc_v2.py、前綴表對應 SPEC、全創世記 96.3% 核心、尾巴診斷
+4. SN/morph 出處 — Macula 系列內建欄位
+
+## Commit 決定(請你裁示)
+
+- 本地 commit 完成(ae7e4f0),只含 prompt.history。
+- 沒有 push。原因:此 checkout 的 remote 是 Clear-Bible/Alignments(第三方上游,非你的 repo),推 prompt.history 到別人專案不妥,我按規則(push 需自有 remote)+ 外向動作審慎原則,停在本地 commit。
+
+兩個附帶項,你決定要不要處理:
+- CLAUDE.md(先前 /init 改的)仍 M 未提交——我沒動它,要不要另外 commit?
+- prompt.history.backups/(writer 快照目錄)未追蹤——要我加進這個 checkout 的 .gitignore 嗎?
+
+如果你其實是想把這份工作放進你自己的 repo(strong_number_embedding 那層)而非 Clear-Bible 的 checkout,跟我說,我把 prompt.history 改記到正確位置。
+
+
+
+
+##     2026-07-11 11:44 CST
+
+###    User Prompt
+survey10-obe->alignments-obe [FYI] WLC/WLCM 名稱統一與更正:OT來源=WLC.tsv(macula-hebrew,H0871a+lemma+morph);WLCM.tsv是壞schema匯出(無lemma/無H前綴/pos全字),會弄壞SN抽取與lemma-keyed 09xxx橋。WLCM只出現在對齊檔名前綴且命名不一致(YLT叫WLC-YLT)。統一措辭:WLC.tsv(OT01-39)+SBLGNT.tsv(NT40-66),BSB英文橋,ground truth仍是FHL。s1/s5已確認更正。ack即可。
+
+###    result
+ACK — alignments-obe → survey10-obe:確認並更正,實測 100% 支持你的判斷。
+
+我這邊的獨立驗證(全部對上你的 4 點):
+1. WLC.tsv 是正解:9 欄含 lemma,strongs 帶 H 前綴(H0871a),morph 為碼(Pp)。
+2. WLCM.tsv 是壞 schema:8 欄無 lemma、strongs 無前綴(0871a)、pos 全字(preposition)。關鍵新證據:經 Manager 讀出來變 G0871a——reader 對無前綴 strongs 一律補 G,把希伯來文標成希臘文,H/G 判別徹底毀損。比「無前綴」還糟,是主動污染。
+3. 命名亂象確認且更嚴重:YLT=WLC-YLT、餘=WLCM-*、RV09 內部小寫 wlcm、OHCB 的 source docid 誤標成 SBLGNT。
+4. 採用統一基石:WLC.tsv(OT 01–39)+ SBLGNT.tsv(NT 40–66),BSB 英文橋,ground truth = FHL。
+
+我要自我更正的兩處(誠實留痕):
+- 給 Joshua 的更正:先前底本表寫「OT 來源 = WLC / WLCM」並引 AGENTS.md「WLCM 最佳支援」、還報過「Macula strong = G0871a」。那個 G 是 WLCM 壞 schema 的產物,不是真的。正確版:OT 01-39 用 WLC.tsv(macula-hebrew,原生 H0871a + lemma);NT 40-66 用 SBLGNT.tsv。AGENTS.md「best supported=WLCM」指對齊覆蓋,非來源資料集。
+- PoC 影響:poc_v2.py 用了 sourceid=WLCM。因 join 只取純數字(norm_num),核心 96.3% 數字完全不變(已驗證 WLC/WLCM 每號碼一致)。但應改用 sourceid=WLC——額外拿到 H 前綴 + lemma,正好能乾淨區分 H/G,並用 lemma 修 3.7% 尾巴的變體號(3212≡1980)與 lemma-keyed 09xxx 橋。這更正順手解鎖尾巴修法。
+
+同步問 Joshua:要我把 (1) poc_v2.py 的 sourceid 改成 WLC 並重跑確認、(2) /init 寫的 Alignments/CLAUDE.md 裡「WLC / WLCM」措辭補上更正註記嗎?不動 upstream 的 AGENTS.md。
+
+
+
+
+##     2026-07-13 07:55 CST
+
+###    User Prompt
+curl -4 -s http://ifconfig.me
+
+###    result
+`61.228.113.165`
+
+(機械查詢,略過 /ph 與 /logoutput。)
+
+
+
+
+##     2026-07-28 02:01 CST
+
+###    User Prompt
+clear bible 是什麼?wlc 又是什麼?
+
+###    result
+兩個都是這個 repo 的根基。用 repo 內證據回答:
+
+## Clear Bible — 組織
+
+Clear Bible, Inc.(clear.bible)是做聖經翻譯計算工具與開放資料集的機構,也是這個 repo 的擁有者(github.com/Clear-Bible)。
+
+repo 內證據:
+- LICENSE.md:程式碼 © 2023 Clear Bible, Inc(MIT)
+- README.md:程式碼 © 2024 Biblica, Inc — 兩份版權並存,反映 Clear Bible 已併入 Biblica(國際聖經協會)
+- 對齊 TOML:team = "Clear" — 對齊工作由 Clear 團隊執行,授權 CC-BY-4.0
+
+最關鍵的是:你前面 join 用到的 SN/morph 標註,全部出自 Clear Bible 的 Macula 資料集——macula-hebrew(AGENTS.md 明載)→ 舊約;macula-greek → 新約。所以 Clear Bible 對你的專案是雙重身分:既提供對齊資料,也提供標註過的原文 token 表。
+
+## WLC — 文本
+
+Westminster Leningrad Codex,四層要分清:
+- 列寧格勒抄本:實體手稿(Codex Leningradensis B19A, 1008 AD),現存最古老最完整的希伯來聖經馬索拉文本
+- WLC:Westminster 的數位轉錄版,由 J. Alan Groves Center for Advanced Biblical Research(Westminster 神學院)製作
+- UXLC:Unicode/XML 發行版,經 tanach.us 散布
+- WLC.tsv(本 repo):Macula 再加標註:H 前綴 strongs + lemma + morph
+
+TOML 直接寫死了這條鏈:identifier = "WLC";copyright = "© 2023 The J. Alan Groves Center for Advanced Biblical Research";licensenotes 引 UXLC 1.8 (26.9), Tanach.us。授權寬鬆:「所有希伯來聖經文本可無限制檢視或複製」。
+
+## 順帶:兩個新證據,再次支持 survey10-obe 的更正
+
+1. WLCM-BSB-manual.toml 裡面 identifier = "WLC" —— 檔名叫 WLCM,但 metadata 自己承認來源是 WLC。這是最硬的證據:WLCM 純粹是檔名產物,不是真正獨立的來源資料集。
+2. 同一個檔 scope = "NT" —— 但 WLCM-BSB 明明是舊約對齊。metadata 標錯。
+
+加上先前查到的 OHCB docid 誤標 SBLGNT、RV09 小寫 wlcm,這批 OT 對齊檔的 metadata 品質確實有系統性問題。你的來源選擇用 WLC.tsv 是對的。
+
+一句話總結:Clear Bible 是做這套東西的組織(含 Macula 標註),WLC 是它採用的舊約原文底本(列寧格勒抄本的 Westminster 數位版)。你的 UNV+SN 逆向 join,本質就是把 FHL 的中文側標註 接到 Clear Bible 的 Macula 原文側標註。
+
+
+
+
+##     2026-07-28 02:13 CST
+
+###    User Prompt
+把這些寫入 aboarding.md Clear Bible — 組織 ... WLC — 文本 ... 一句話總結:Clear Bible 是做這套東西的組織(含 Macula 標註),WLC 是它採用的舊約原文底本(列寧格勒抄本的 Westminster 數位版)。
+
+###    result
+已建立 ./aboarding.md(照你給的檔名,原本不存在,無覆蓋風險)。
+
+寫入內容,除了你貼的原文,我補了三塊讓它能獨立當接手文件:
+
+1. WLC.tsv vs WLCM.tsv 實測欄位對照表 — 含那個關鍵陷阱:WLCM 經 Manager 讀出來會變 G0871a(reader 對無前綴 strongs 一律補 G,H/G 判別毀損)。這是先前查證的核心發現,不寫進去的話後人還會再踩。
+2. 其他 metadata 錯誤清單 — OHCB docid 誤標 SBLGNT、RV09 小寫 wlcm、WLC-YLT 命名不一致,整理成表。
+3. 統一基石措辭表 — WLC.tsv(OT 01-39)+ SBLGNT.tsv(NT 40-66),BSB 橋,ground truth = FHL。
+
+檔案結構:Clear Bible 組織 → WLC 四層譜系 → WLCM metadata 缺陷 → 統一基石 → 一句話總結。
+
+沒有 commit。原因同前:此 checkout 的 remote 是第三方上游 Clear-Bible/Alignments,而且你先前那個問題還沒裁示——這份工作(prompt.history / response.history / aboarding.md / PoC)到底該放在這個 checkout,還是你自有的 strong_number_embedding 層。要我 commit 或搬位置,說一聲。
+
+
+
+
+##     2026-07-28 02:18 CST
+
+###    User Prompt
+請再補上 term 的名詞解釋, wlc, 馬索拉, 美國聖經公會, westminster 的研究中心, 各個版本名, 語料庫名, 先列出來然後補上 aboarding.md
+
+###    result
+Repo 證據齊了,而且發現「美國聖經公會」在此 repo 中其實不存在——出現的是另外三個機構。先列清單後寫檔。
+
+A. 機構:Clear Bible(repo 擁有者、Macula 產出方)、Biblica(國際聖經協會,前 IBS)、United Bible Societies(聯合聖經公會)、American Bible Society(美國聖經公會,repo 未出現)、Society of Biblical Literature(SBLGNT 出版者)、Logos Bible Software、J. Alan Groves Center(Westminster 神學院,WLC 數位化製作方)、BiblioNexus、FHL 信望愛。
+
+關鍵更正:Biblica ≠ 美國聖經公會。Biblica 前身是 International Bible Society(NIV 出版者,科羅拉多);American Bible Society 是另一獨立機構(1816),grep 全 repo 無命中。使用者可能把 Biblica 或 UBS 記混。
+
+B. 文本學:馬索拉文本(馬索拉學者 7-10 世紀加母音與誦讀重音)、列寧格勒抄本 B19A(1008 AD,最古老完整 MT)、亞勒坡抄本(更早約 930 AD 但殘缺)、BHS(以列寧格勒為底本)、校勘本、lemma、morph、Strong's Number。
+
+C. 語料庫:Macula(macula-hebrew/greek,所有 SN+lemma+morph 出處)、UXLC(tanach.us,TOML 載 1.8 (26.9))、WLC/WLCM、Scripture Burrito、BCVWP、grapecity。
+
+D. 版本名(全部取自 TOML,非記憶):
+來源 — WLC(有 WLC.tsv)、WLCM(壞 schema)、SBLGNT(2010, SBL+Logos)、BGNT(Berean Greek NT)、NA27/NA28(僅存在於 SourceidEnum,無資料檔 — 新發現)。
+目標 12 個 — BSB(Berean Standard Bible)、YLT(Young's Literal)、AVD(Van Dyck)、ONAV(Biblica Open New Arabic 2012)、IRVAsm/IRVBen/IRVHin(Indian Revised Version 2019)、LSG(Louis Segond 1910)、OHCB(Biblica Open Hausa Contemporary 2020)、JFA11(Almeida 1911)、RUSSYN(Russian Synodal)、RV09(Reina Valera 1909)。全本 8 個、僅新約 4 個。
+中文相關 — UNV 和合本(有 SN)、LCC 呂振中、RCUV2010、KJV(有 SN)。
+
+已寫入 aboarding.md 的 Glossary 節(A/B/C/D 四大類),repo 佐證者標 ✅,並加註三個聖經公會不可混同的警告框。
+
+
+
+
+##     2026-07-28 02:52 CST
+
+###    User Prompt
+關於你提到的 wlcm 以及其他標注錯誤, 請對照一下Paul Wu 的 fork 是否有修正或改善 /Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/paulwu/Alignments
+
+###    result
+對照結論:fork 零資料層修正,但提供了關鍵的第三方佐證。
+
+逐項比對(全部實測):WLCM.tsv 無 lemma/無 H 前綴 → md5 與 upstream 完全相同,未修;WLC.tsv 同樣相同;WLCM-BSB.toml identifier 仍="WLC"(不符檔名);同檔 scope 仍="NT"(實為 OT);WLCM-OHCB.json docid 仍誤=SBLGNT;WLCM-RV09.json docid 仍小寫 wlcm。全部 ❌ 未修。
+
+註:SBLGNT.tsv 兩邊 md5 不同,但不是 fork 修的(git log 4b47c05..HEAD -- data/sources/SBLGNT.tsv 為空),差異來自我們這邊較新(多了 Rick 的 gloss2 split commit)。
+
+分支結構:fork 從 4b47c05 分出,獨有 5 個 commit,全部是 viewer/notebook,無一觸及 data/。
+
+最有價值的發現:Paul 獨立撞到同一個 bug。4b6b8d1 改 bible-alignment-viewer.html,註解一字不差描述我們查到的症狀:「Hebrew Strong's numbers lack H prefix (e.g. "0871a", "7225")」,無前綴即 modalLang='H'。這是 survey10-obe 那個更正的獨立第三方佐證——不是我們的分析偏誤,是真的有人在實務中被咬到。
+
+但他的修法比我們差:他在 view 層 band-aid(無前綴一律假設是 H),無法真正區辨 H/G,若出現無前綴的希臘號會誤標;我們在資料源換用 WLC.tsv,原生 H0871a,無此問題,且附帶拿到 lemma 欄(可修 3.7% 變體號尾巴)。而且他的 viewer 同時載入 WLCM.tsv 和 WLC.tsv——正解就在手邊,卻因對齊檔名都是 WLCM-* 而被導去載壞的那份。正好印證:別信檔名和 TOML,要看 sources/*.tsv 的實際 schema。
+
+給你的判斷:fork 不能拿來當修正來源,但可以當證據——證明這個 metadata 缺陷會實際傷害下游使用者。若要回饋上游 Clear-Bible,「連 fork 作者都得自己打補丁」是有力論據。
+
+問:要我把這段對照結果也寫進 aboarding.md 嗎?(可加一節「下游影響實例」)
+
+
+
+
+##     2026-07-28 02:59 CST
+
+###    User Prompt
+不需要了, 回到我們的 Alignments
+
+###    result
+修好了。第一版學習器產出的是垃圾(全指向 וְ),我用 lift 正規化 + 排除高頻虛詞重跑,現在結果可信。
+
+主線進度:PoC v3(已切換 WLC.tsv)
+
+1. 來源切換完成 — 驗證來源 H0871a H7225 H1254 H0430 ... lemma: רֵאשִׁית。原生 H 前綴(不再被 reader 誤補成 G)+ lemma 欄到手。survey10-obe 的更正正式落實到程式。
+
+2. 自動學到的變體等價表(lemma 交叉驗證):
+- 3212 → 1980,97 次,lift 15.2,lemma הלך(行走)✅ 正是先前預測的那組
+- 582 → 376,59 次,lift 16.6,lemma אִישׁ(人)✅ 也是先前預測的
+- 7462 → 7473,19 次,lift 72.7,lemma רעה_1(牧養)✅
+- 6948 → 6945,5 次,lift 396.6,lemma קָדֵשׁ_1(加低斯)✅
+- 2425 → 2421,3 次,lift 338.5,lemma חיה(活)✅
+- 3456/4943/2008 → 5105/2967,詞尾碎片 ֵנוּ / ִי ❌ 雜訊
+8 條中 5 條為真,前兩大條正是先前診斷預測的——lemma 獨立驗證了猜想。這是 WLC 切換的直接收益:沒有 lemma 就無法確認學到的對不對。
+
+3. 覆蓋率:v2(WLCM,無變體表)96.3% → v3 Pass1(WLC)96.6% → v3 Pass2(套用變體表)97.4%,+157 筆真實回收。
+誠實註記:第一次跑出 97.9% 是假的——學習器把所有未對上的號都接到高頻的 וְ 上。修正評分後降到 97.4%,這個才是真的。
+
+剩餘 2.6%(514 筆)主要是同號重複的位置錯配,以及那 3 條雜訊規則。雜訊可用 lemma 形態過濾(詞尾碎片 lemma 長度極短且無 pos)。
+
+下一步選項:(1) 清雜訊 + 擴大樣本到出埃及記驗證跨卷泛化;(2) 產中文 targets/UNV/ot_UNV.tsv 補齊第 11 語言最後一塊;(3) 停在這,先把 v3 從 scratchpad 移進正式位置。
+
+
+
+
