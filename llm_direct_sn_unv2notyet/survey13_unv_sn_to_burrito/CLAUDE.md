@@ -8,6 +8,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 > `../Alignments/` checkout; that checkout has since been reset to `origin/main`
 > and is now **read-only**, with all incubation artifacts moved here.
 
+## 沿襲(Lineage)
+
+本 survey(**s13**)沿襲自 **Clear Bible 的 Alignments 專案**:
+
+| | |
+|---|---|
+| **上游來源** | **`https://github.com/Clear-Bible/Alignments`** |
+| 本地 checkout | `../Alignments/` — **唯讀資料源**,已重置至 `origin/main`(`c99bd0a`) |
+| 沿襲內容 | Scripture Burrito / AlignmentHub 對齊格式、`sources/WLC.tsv` 與 `SBLGNT.tsv`、TOML metadata 慣例、BCVWP token ID 方案 |
+| 本 survey 歸屬 | `github.com/joshuachen3333/strong_number_embedding` |
+
+**指涉約定**:本目錄文件中,**「Alignments 專案」**一律指上游 `Clear-Bible/Alignments`;**「本專案 / s13」**指本 survey。兩者不可混用——早期考證段落談的都是前者。
+
 ## What this survey does
 
 **反推**:把已完成的下游產品 **UNV+SN**,還原成上游的 **Scripture Burrito 對齊資料** —— 讓 UNV 成為 Clear-Bible/Alignments 的**第 11 個語言(`cmn`)/ 第 13 個譯本**。

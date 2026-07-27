@@ -1,15 +1,39 @@
 # aboarding.md — Clear Bible / WLC 背景考證
 
-> 本檔記錄 `Clear-Bible/Alignments` 這個 repo 的組織與文本來歷,供接手者快速理解「這批資料是誰做的、原文底本從哪來」。
-> 所有結論皆以 repo 內檔案為證據,非憑記憶。撰於 2026-07-28。
+> 本檔記錄 **Alignments 專案**的組織與文本來歷,供接手者快速理解「這批資料是誰做的、原文底本從哪來」。
+> 所有結論皆以 Alignments repo 內的檔案為證據,非憑記憶。撰於 2026-07-28。
+
+## 沿襲(Lineage)
+
+本 survey(**s13**)沿襲自 **Clear Bible 的 Alignments 專案**:
+
+| | |
+|---|---|
+| **上游來源** | **`https://github.com/Clear-Bible/Alignments`** |
+| 本地 checkout | `../Alignments/`(**唯讀資料源**,已重置至 `origin/main` = `c99bd0a`) |
+| 沿襲內容 | Scripture Burrito / AlignmentHub 對齊格式、`sources/WLC.tsv` 與 `SBLGNT.tsv` 原文 token 表、TOML metadata 慣例、BCVWP token ID 方案 |
+| 本 survey 的目標 | 依同一格式產出 **UNV** 的對齊資料,使其可成為 Alignments 的第 11 個語言(`cmn`)/ 第 13 個譯本 |
+
+孵化階段的工作原本在 `../Alignments/` checkout 內進行,已於 2026-07-28 全數移出至本目錄;該 checkout 自此僅作唯讀資料源。
+
+## ⚠️ 指涉約定(本檔全文適用)
+
+本檔搬出 Alignments 後,「repo / 專案」的指涉須明確區分:
+
+| 用語 | 指的是 | 位置 |
+|---|---|---|
+| **Alignments 專案** / **Alignments repo** | Clear Bible 的上游資料集 | `github.com/Clear-Bible/Alignments` |
+| **本專案** / **s13** | 本 survey | `survey13_unv_sn_to_burrito/`,隸屬 `github.com/joshuachen3333/strong_number_embedding` |
+
+> 早期段落若出現未限定的「本 repo」,一律指 **Alignments 專案**——因為那些考證都是針對它的資料所做。
 
 ---
 
 ## Clear Bible — 組織
 
-**Clear Bible, Inc.**(clear.bible)是做**聖經翻譯計算工具與開放資料集**的機構,也是這個 repo 的擁有者(`github.com/Clear-Bible`)。
+**Clear Bible, Inc.**(clear.bible)是做**聖經翻譯計算工具與開放資料集**的機構,也是 **Alignments 專案**的擁有者(`github.com/Clear-Bible`)。
 
-### repo 內證據
+### Alignments 專案內證據
 
 | 檔案 | 內容 | 意義 |
 |---|---|---|
@@ -17,7 +41,7 @@
 | `README.md` | 程式碼 © 2024 **Biblica, Inc** | 兩份版權並存,反映 **Clear Bible 已併入 Biblica**(國際聖經協會) |
 | 對齊 `*.toml` | `team = "Clear"`,`license = "CC-BY-4.0"` | 對齊工作由 Clear 團隊執行 |
 
-### 對本專案的關鍵意義
+### 對本專案(s13)的關鍵意義
 
 我們 join 用到的 **SN / morph 標註,全部出自 Clear Bible 的 Macula 資料集**:
 
@@ -37,7 +61,7 @@
 | **列寧格勒抄本** | 實體手稿(Codex Leningradensis **B19A, 1008 AD**),現存最古老最完整的希伯來聖經馬索拉文本 |
 | **WLC** | Westminster 的數位轉錄版,由 **J. Alan Groves Center for Advanced Biblical Research**(Westminster 神學院)製作 |
 | **UXLC** | Unicode/XML 發行版,經 **tanach.us** 散布 |
-| **`WLC.tsv`(本 repo)** | Macula 再加標註:**H 前綴 strongs + lemma + morph** |
+| **`WLC.tsv`(Alignments 專案)** | Macula 再加標註:**H 前綴 strongs + lemma + morph** |
 
 ### TOML 直接寫死了這條鏈
 
@@ -106,26 +130,26 @@ licensenotes = "...Unicode/XML Leningrad Codex: UXLC 1.8 (26.9), Tanach.us..."
 
 # 名詞解釋(Glossary)
 
-> 標 ✅ 者為 repo 內檔案直接佐證;未標者為通識背景。
+> 標 ✅ 者為 **Alignments 專案**內檔案直接佐證;未標者為通識背景。
 
 ## A. 機構 / 組織
 
 | 名稱 | 中文 | 角色 | 證據 |
 |---|---|---|---|
-| **Clear Bible, Inc.** | — | repo 擁有者;Macula 標註產出方 | ✅ `LICENSE.md` © 2023;TOML `team="Clear"` |
+| **Clear Bible, Inc.** | — | **Alignments 專案**擁有者;Macula 標註產出方 | ✅ `LICENSE.md` © 2023;TOML `team="Clear"` |
 | **Biblica** | **國際聖經協會**(前 International Bible Society) | 承接方;ONAV / OHCB 譯本出版者;NIV 出版者 | ✅ `README.md` © 2024;TOML `team="Biblica"` |
 | **United Bible Societies (UBS)** | **聯合聖經公會** | 各國聖經公會的聯合組織(1946 創立);OHCB 版權方 | ✅ OHCB TOML © 2024 |
-| **American Bible Society (ABS)** | **美國聖經公會** | 1816 年創立的美國機構 | ⚠️ **此 repo 完全未出現**(grep 無命中) |
+| **American Bible Society (ABS)** | **美國聖經公會** | 1816 年創立的美國機構 | ⚠️ **Alignments 專案完全未出現**(grep 無命中) |
 | **Society of Biblical Literature (SBL)** | 聖經文學學會 | SBLGNT 出版者 | ✅ 每個 SBLGNT TOML |
 | **Logos Bible Software** | — | SBLGNT 共同版權方(Faithlife) | ✅ 同上 |
 | **J. Alan Groves Center** | Groves 高等聖經研究中心(隸屬 **Westminster 神學院**,費城) | **WLC 數位化製作方** | ✅ WLC TOML © 2023 |
 | **BiblioNexus** | — | 部分對齊資料建置者 | ✅ OHCB TOML;BSB `creator` |
-| **FHL 信望愛** | — | UNV+SN 的 SN 標註來源(本專案 ground truth) | 本專案外部 |
+| **FHL 信望愛** | — | UNV+SN 的 SN 標註來源(本專案 s13 的 ground truth) | Alignments 專案外部 |
 
 > ### ⚠️ 三個「聖經公會」不可混同
-> - **Biblica** = 國際聖經協會(前 IBS,總部科羅拉多)— repo 中有
-> - **United Bible Societies** = 聯合聖經公會 — repo 中有
-> - **American Bible Society** = **美國聖經公會** — **repo 中沒有**
+> - **Biblica** = 國際聖經協會(前 IBS,總部科羅拉多)— Alignments 專案中有
+> - **United Bible Societies** = 聯合聖經公會 — Alignments 專案中有
+> - **American Bible Society** = **美國聖經公會** — **Alignments 專案中沒有**
 >
 > 三者是**各自獨立的機構**。若文件中看到「美國聖經公會」,多半是把 Biblica 或 UBS 記混了。
 
@@ -141,17 +165,17 @@ licensenotes = "...Unicode/XML Leningrad Codex: UXLC 1.8 (26.9), Tanach.us..."
 | **校勘本**(critical edition) | 比對眾多抄本異文後重建的學術文本;新約各版(SBLGNT / NA)屬此類 |
 | **lemma** | 詞元、字典形(如 בָּרָא 的 lemma 為 `ברא_1`) |
 | **morph** | 構形碼(如 `Pp` = 介系詞;`N-NSF` = 名詞-主格-單數-陰性) |
-| **Strong's Number** | 原文字彙編號系統(H=希伯來,G=希臘);本專案的核心 join key |
+| **Strong's Number** | 原文字彙編號系統(H=希伯來,G=希臘);本專案(s13)的核心 join key |
 
 ## C. 語料庫 / 資料集 / 格式
 
 | 名稱 | 說明 |
 |---|---|
-| **Macula**(`macula-hebrew` / `macula-greek`) | **Clear Bible 的原文標註語料庫**。本 repo 所有 SN + lemma + morph 皆出自此。GitHub: `Clear-Bible/macula-hebrew` |
+| **Macula**(`macula-hebrew` / `macula-greek`) | **Clear Bible 的原文標註語料庫**。Alignments 專案所有 SN + lemma + morph 皆出自此。GitHub: `Clear-Bible/macula-hebrew` |
 | **UXLC** | *Unicode/XML Leningrad Codex*,列寧格勒抄本的 Unicode/XML 發行版,經 **tanach.us** 散布(TOML 載明版本 **UXLC 1.8 (26.9)**) |
 | **WLC** | **Westminster Leningrad Codex** —— 列寧格勒抄本的 Westminster 數位轉錄版(`docs/formats.md` 官方定義) |
 | **WLCM** | **WLC 的 Macula 版本**(`docs/formats.md` 官方定義:*"`WLCM` for the Macula version of this"*)⚠️ 但**實際檔案內容與此定義相反**——見〈WLC/WLCM 矛盾〉節;實務上一律用 `WLC.tsv` |
-| **Scripture Burrito** | **經文資料的封裝格式標準**(<https://docs.burrito.bible/>)。名稱取自墨西哥捲餅的比喻:**把經文本體、後設資料、版本與授權資訊全部「捲」進同一個自足的包裹**。要解決的痛點是——經文一包、標註一包、授權說明又一包,彼此對不起來。Working Group 正在制定 **Scripture Alignments flavor**,**本 repo 即該標準的試作場**(README 載明) |
+| **Scripture Burrito** | **經文資料的封裝格式標準**(<https://docs.burrito.bible/>)。名稱取自墨西哥捲餅的比喻:**把經文本體、後設資料、版本與授權資訊全部「捲」進同一個自足的包裹**。要解決的痛點是——經文一包、標註一包、授權說明又一包,彼此對不起來。Working Group 正在制定 **Scripture Alignments flavor**,**Alignments 專案即該標準的試作場**(其 README 載明) |
 | **AlignmentHub Format** | Clear Bible 對其發布格式的正式稱呼。`docs/formats.md`:*"publish in a standard format we call AlignmentHub Format. This **implements the Scripture Burrito standard**…"* 即 **AlignmentHub Format = Burrito 標準 + Clear Bible 額外慣例** |
 | **corpus file** | TSV,一行一 token 的經文檔;分 **source file**(原文,源自 Macula)與 **target file**(譯本) |
 | **alignment file** | source↔target 的 token 對應 JSON;**必須**搭配 source/target corpus 才能正確解讀 |
@@ -191,7 +215,7 @@ licensenotes = "...Unicode/XML Leningrad Codex: UXLC 1.8 (26.9), Tanach.us..."
 > 全本聖經(OT+NT)覆蓋:AVD、BSB、YLT、LSG、OHCB、IRVHin、RUSSYN、RV09(8 個)
 > 僅新約:ONAV、IRVAsm、IRVBen、JFA11(4 個)
 
-### 本專案相關中文版本(不在此 repo)
+### 本專案(s13)相關中文版本(**不在 Alignments 專案**)
 
 | ID | 全名 | 有 SN? |
 |---|---|---|
@@ -210,11 +234,11 @@ licensenotes = "...Unicode/XML Leningrad Codex: UXLC 1.8 (26.9), Tanach.us..."
 
 名稱取自墨西哥捲餅的比喻:**把經文本體、後設資料、版本資訊等全部「捲」進同一個包裹裡**,交付時是完整自足的一份,不會散落。這正是它要解決的問題——經文資料常常文字一包、註解一包、授權說明又一包,彼此對不起來。
 
-repo 的 `README.md` 說明了它與本專案的關係:
+Alignments 專案的 `README.md` 說明了它與本專案(s13)的關係:
 
 > The **Scripture Burrito Working Group** is creating a **Scripture Alignments flavor**, which will be a standard for exchanging alignment data. This repository reflects a working proposal…
 
-也就是說:**這個 repo 本身就是 Burrito 對齊標準的試作場**。
+也就是說:**Alignments 專案本身就是 Burrito 對齊標準的試作場**。
 
 ## 精確用語:AlignmentHub Format
 
@@ -283,7 +307,7 @@ UNV+SN  ──Strong join──►  Burrito  ──► 循已入 Burrito 的 SN(
 
 ## 授權狀態:已釐清 ✅
 
-FHL 的 Strong 標註授權由 **Joshua(FHL 卸任董事)確認無虞**,可用於本專案並以 CC-BY-4.0 形式產出對齊資料。
+FHL 的 Strong 標註授權由 **Joshua(FHL 卸任董事)確認無虞**,可用於本專案(s13)並以 CC-BY-4.0 形式產出對齊資料。
 
 產 TOML 時須將 **FHL 列為 SN 標註出處**,比照現有檔案標註 Groves Center 的作法:
 
