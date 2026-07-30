@@ -72,7 +72,7 @@ python3 poc/poc_v3.py --chaps 1-50
 4. 統計覆蓋率                          → 印報告
 ```
 
-**三種 SN 分類**(`classify()`,依 `SPECIFICATION_v1.8`)——非重疊,各自處理:
+**三種 SN 分類**(`classify()`,依 [`SPECIFICATION_v1.9.md`](../../sn_within_unv_selfgroup_segmentation/SPECIFICATION_v1.9.md))——非重疊,各自處理:
 
 | 類 | 判準 | 處理 |
 |---|---|---|
@@ -81,6 +81,10 @@ python3 poc/poc_v3.py --chaps 1-50
 | `morph` | 標籤含 `T`(`<WTH8804>`) | **略過**——構形碼不對應任何原文「字」 |
 
 > ⚠️ 4 位數的 `<0914>` **不是** 900x 前綴。誤判會把 `0853`/`4480`/`5921` 等實詞當成前綴,曾導致前綴表整個失真。
+
+> **規格版本**:`SPECIFICATION_v1.9.md` 是**權威規格**(v1.8 的 additive superset,900x 判定規則未變);`SPECIFICATION_v1.8.md` 是 `parse_verse_v1_8.py` 實際載入驗證的**實作基準**,標記 immutable、**不可編輯**。兩者對本 survey 的分類規則等價。
+
+> ⚠️ **做新約時必讀** `SPECIFICATION_v1.9.md` §6.1.1(v1.9 新增):qp.php 的欄位語義 **OT/NT 不對稱** —— 舊約 `pro` 為空、詞類與詞形全在 `wform`;新約 `pro` 才是詞類、`wform` 只有屈折資訊。現行規格的 parsing 推斷是 **OT-centric** 的,擴展到新約必須改為先讀 `pro` 再讀 `wform`,否則樣式比對會失敗。
 
 **兩趟 Pass + 變體表學習**
 
