@@ -675,7 +675,139 @@ UNV 創 1:1 原始資料(FHL):
 
 ---
 
-## 資料出處
+---
+
+# 架構問答:UNV / LCC 在 Burrito 裡的位置
+
+> 這節回答「**為什麼是上面那個形狀**」。三個問題環環相扣。
+
+## 問一:UNV+SN 回饋到 `WLC.tsv` 的哪裡?
+
+**哪裡都不進。** `WLC.tsv` 是原文 source,我們一個字都不動。UNV 進 **target 端**:
+
+```
+data/cmn/targets/UNV/{ot,nt}_UNV.tsv     ← 7 欄,無 SN 欄
+data/cmn/alignments/UNV/WLC-UNV-*.json   ← 對齊
+data/cmn/alignments/UNV/WLC-UNV-*.toml   ← metadata
+```
+
+### 關鍵:target 的 7 欄沒地方放 SN,而且**不需要**
+
+因為 **SN 是用「對齊」來表達的**:
+
+```
+UNV「起初」= token 01001001001
+      │
+      └─ alignment record ─→ WLC token o010010010012
+                                        └─ 這個 token 自己就帶 H7225
+```
+
+「起初 ↔ H7225」**不是存成欄位,而是存成一條連線**。SN 不重複儲存,而是**透過對齊被引用**。
+
+> **所以我們不是在「搬運 SN」,而是在「把 SN 還原成它本來的樣子」。**
+> SN 本質上就是一種對齊關係 —— FHL 把它壓縮成行內標記,Burrito 把它展開成結構。
+
+## 問二:LCC+SN 也是第 11 語言、第 14 譯本嗎?
+
+**是。** 結構完全相同,語言同為 `cmn`:
+
+```
+data/cmn/targets/LCC/ot_LCC.tsv
+data/cmn/alignments/LCC/WLC-LCC-strongjoin.json
+```
+
+## 問三:UNV+SN 是幾十年人工 ground truth,為何不居 `source` 地位?
+
+三層答案。
+
+### 第一層:`source` 是**譜系角色**,不是**權威等級**
+
+`source` 的定義是「**譯本所從出的原文**」。UNV 是希伯來文的譯本,再怎麼權威也**不可能是希伯來文的來源**。這是譜系事實,與品質無關。
+
+即使有一天出現一部完美無瑕的譯本,它仍然是 target。
+
+### 第二層:品質差異 Burrito **有處理**,只是不用 source/target 表達
+
+而是用 **alignment 的 metadata**:
+
+```toml
+[alignment]
+process = "manual"     # 人工 vs 自動
+origin  = "manual"     # 每筆 record 亦有此欄
+status  = "created"
+```
+
+**repo 裡有現成先例** —— 葡萄牙文那份叫 `SBLGNT-JFA11-**transfer**.toml`,其餘 11 份都是 `-manual`。**人工 vs 自動移轉,靠檔名與 `process` 欄區分。**
+
+所以我們應該:
+
+| 譯本 | `process` | `status` |
+|---|---|---|
+| **UNV** | `fhl-manual` 之類,標明幾十年人工積累 + FHL 出處 | `created` |
+| **LCC** | `strongjoin-ai` | **`needs_review`** |
+
+**兩者在格式上不會被等量齊觀 —— 差異寫在 metadata 裡。**
+
+### 第三層(重點):UNV+SN 的權威性,**本來就是「對齊」的權威性**
+
+拆開來看:
+
+| UNV+SN 的組成 | 是什麼 | 珍貴嗎 |
+|---|---|---|
+| 中文經文 | 一部 1919 年的中文聖經 | 普通,公有領域 |
+| **SN 標註** | **哪個中文詞對應哪個希伯來詞** | ← **幾十年人工積累在這裡** |
+
+> **「哪個中文詞對應哪個希伯來詞」—— 這句話的定義,就是 alignment。**
+
+所以 UNV 幾十年的學術積累**本來就不在 text 裡,而在 alignment 裡**。Burrito 正是把它放在 alignment 檔 —— **格式其實放對了位置**。
+
+會感覺「被降格」,是因為看到 UNV 和 LCC 都在 `targets/` 底下。但真正承載價值的**不是** `targets/UNV/ot_UNV.tsv`(那只是中文字),**而是** `alignments/UNV/WLC-UNV-*.json`(那才是幾十年的成果)。
+
+> **結論**:UNV+SN 不當 `source` 不是被降格。真正該爭取的不是 source 地位,
+> 而是**在 TOML 裡誠實標明 `process` 與 FHL 出處**。
+
+---
+
+## ⚠️ 未決:A / B 兩條對齊路線
+
+在**我們的 pipeline** 裡,UNV 確實在 LCC 的上游:
+
+```
+WLC (原文)
+  ↕  對齊 A  ← 來自 UNV+SN,ground truth
+UNV (第 13 譯本)
+  ↕  對齊 B  ← s12 要做的
+LCC (第 14 譯本)
+```
+
+**對齊 B 的 source 就是 UNV**,而這在技術上**可以表達**:
+
+```python
+# bible_alignments/__init__.py
+@staticmethod
+def get_canon(sourceid: str) -> str:
+    try:  return SourceidEnum(sourceid).canon
+    except ValueError:  return "X"      # ← 未登錄的 source 回傳 'X',不報錯
+```
+
+函式庫**容忍未登錄的 source**(回傳 `'X'` 而非爆掉),所以 `UNV-LCC-*.json` 在格式上站得住 —— 只是 `canon` 會是 `'X'`,且上游 `SourceidEnum` 沒收 `UNV`。
+
+| 路線 | 對齊檔 | 意義 |
+|---|---|---|
+| **A. 都掛回原文** | `WLC-LCC-*.json` | 與其他 12 譯本一致、可貢獻上游;**但丟失「LCC 經由 UNV 推導」這個事實** |
+| **B. 兩層對齊** | `WLC-UNV-*` + **`UNV-LCC-*`** | **忠實記錄推導鏈**,s12 產出天然是這形狀;屬非標準用法,上游未必收 |
+
+**建議:兩個都做,不衝突。**
+
+- **B 是工作真相** —— s12 做的就是 UNV→LCC
+- **A 是對外交付格式** —— 由 A∘B 合成即可
+- 且 **B 保留審核所需資訊**:人工審 LCC 時要看的是「**相對 UNV** 錯在哪」,不是「相對希伯來文錯在哪」
+
+> **此決策未定案**,且直接決定 [s12](../survey12_segment_target_verse/) 的產出形狀。
+
+---
+
+# 附錄:資料出處
 
 本檔所有範例均可重現:
 

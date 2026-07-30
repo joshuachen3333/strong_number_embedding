@@ -44,6 +44,20 @@ without its corpora:
 > ⚠️ **s13 現況**:對齊方法已驗證(創世記核心 97.4%),但 **target corpus 與 alignment
 > 檔尚未產出**。s12 開工前需先確認 s13 這兩塊完成。
 
+### ⚠️ 未決:s12 的產出要掛哪一種對齊?
+
+LCC 在 `WLC → UNV → LCC` 這條鏈的末端,因此 s12 的成果有兩種表達法:
+
+| 路線 | s12 產出 | 取捨 |
+|---|---|---|
+| **A** 掛回原文 | `WLC-LCC-*.json` | 與其他 12 譯本一致、可貢獻上游;丟失「經由 UNV 推導」的事實 |
+| **B** 兩層對齊 | **`UNV-LCC-*.json`** | 忠實記錄推導鏈;**保留人工審核最需要的「相對 UNV 誤差」** |
+
+**這直接決定 s12 要產什麼檔**,尚未定案。技術上 B 可行(`SourceidEnum.get_canon()`
+對未登錄 source 回傳 `'X'` 而非報錯)。傾向兩者都做:B 為工作真相,A 由 B 合成。
+
+詳見 [`../survey13_unv_sn_to_burrito/BURRITO_FORMAT.md` §未決:A / B 兩條對齊路線](../survey13_unv_sn_to_burrito/BURRITO_FORMAT.md)。
+
 ## Why this route works
 
 UNV 的每個 SN 一旦錨定到原文 token,**目標譯本的分詞就有了原文級的參照框架**——不再是

@@ -521,18 +521,3 @@ ok(撰寫 findings 備忘)+ 我們是不是有一個準備回報 FHL 的搜集�
 
 
 
-##     2026-07-31 05:22 CST
-
-###    User Prompt
-1, unv+sn 合適回饋到 wlc.tsv 的哪裡? target 七個欄位嗎?第十一個語言, 第十三個譯本
-2, 可是我們不是想要造出 lcc + sn (wlc.tsv) 的下一個推測雛形版? 這不也是同樣第十一個語言(中文)的第十四個譯本
-3, 這樣 unv + sn, lcc + sn 被等量齊觀 (都是第11 中文; 第十三, 十四譯本), 但是一個已經是人工幾十年的 ground truth (unv+sn), 一個是等待生成 AI 初版的待人工審核毛胚, 為什麼 unv + sn 沒有居於 source 的地位
-
-###    
-- Agent: `survey13_unv_sn_to_burrito-obe`
-- Hint: 三題架構質問:UNV+SN 回饋位置、LCC 是否同為第11語言第14譯本、為何 UNV+SN 不居 source 地位
-- Diff: 架構釐清(未改檔;v4 改寫中途停下,poc/poc_v4.py 目前仍為 v3 內容僅完成 git mv)。(1)UNV+SN 不進 WLC.tsv,進 target 端 data/cmn/targets/UNV/ 與 alignments/UNV/;關鍵:target 7 欄無 SN 欄且不需要,因 SN 是以『對齊』表達而非欄位儲存——『起初↔H7225』存成 UNV token 01001001001 連到 WLC token o010010010012(該 token 自帶 H7225),故我們並非搬運 SN 而是把 SN 還原成其本來形態(SN 本質即對齊關係,FHL 壓縮為行內標記,Burrito 展開為結構)。(2)LCC 確為同語言 cmn 第14譯本,結構相同。(3)三層答案:一、Burrito 的 source 是譜系角色非權威等級,譯本不可能是原文的來源;二、品質差異 Burrito 以 alignment metadata 表達(process/origin/status),repo 有先例——葡文為 SBLGNT-JFA11-transfer.toml 而餘為 -manual,故 UNV 可標 fhl-manual、LCC 標 strongjoin-ai + needs_review,兩者不會被等量齊觀;三、關鍵洞察——UNV+SN 之價值拆解後,中文經文僅為 1919 公有領域文本,幾十年人工積累實存於『哪個中文詞對應哪個希伯來詞』而該定義即 alignment,故 Burrito 把它放在 alignment 檔是放對位置。另指出技術可行路線:查 SourceidEnum.get_canon 對未登錄 source 回傳 'X' 而非報錯,故 UNV-LCC-*.json 格式上站得住;建議 A(都掛回原文 WLC-LCC,對外交付)與 B(兩層對齊 WLC-UNV + UNV-LCC,忠實記錄推導鏈且為 s12 產出之天然形狀,並保留人工審核所需的相對 UNV 誤差資訊)並行不衝突
-
-
-
-

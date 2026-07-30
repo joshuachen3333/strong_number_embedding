@@ -104,6 +104,19 @@ python3 poc/poc_v3.py --chaps 1-50
 - **FHL 授權已確認**(Joshua,FHL 卸任董事)。產 TOML 時須將 FHL 列為 SN 標註出處。
 - **交付格式是 Burrito** —— 不論上游收不收,產出的都是 Burrito;它同時是 **s12 的介面契約**。
 
+## ⚠️ 未決架構決策 — A / B 對齊路線
+
+UNV 在 LCC 的上游(`WLC → UNV → LCC`),故 LCC 的對齊有兩種掛法:
+
+| 路線 | 對齊檔 | 取捨 |
+|---|---|---|
+| **A** 都掛回原文 | `WLC-LCC-*.json` | 與其他 12 譯本一致、可貢獻上游;丟失「經由 UNV 推導」的事實 |
+| **B** 兩層對齊 | `WLC-UNV-*` + `UNV-LCC-*` | 忠實記錄推導鏈、保留審核所需的「相對 UNV 誤差」;非標準用法 |
+
+傾向**兩者都做**(B 為工作真相,A 由 B 合成對外交付),但**尚未定案**。
+**此決策直接決定 [s12](../survey12_segment_target_verse/) 的產出形狀** —— 詳見
+[`BURRITO_FORMAT.md` §未決:A / B 兩條對齊路線](BURRITO_FORMAT.md)。
+
 ## 已知陷阱
 
 - **`sourceid` 綁死兩條路徑** —— `AlignmentSet` 的 `sourceid` 同時決定 `sources/{sourceid}.tsv` **和** `alignments/{targetid}/{sourceid}-{targetid}-*.json`。想讀 BSB 舊約對齊就被迫寫 `sourceid="WLCM"`,連帶載入壞檔。PoC 靠**改用 YLT**(唯一叫 `WLC-YLT-manual.json` 者)繞過。

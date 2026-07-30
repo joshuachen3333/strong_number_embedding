@@ -326,3 +326,141 @@ what does this poc.py do?
 
 
 
+##     2026-07-28 03:13 CST
+
+###    User Prompt
+so, this poc.py is the preparation for unv+sn go into clear bible big database?
+
+###    result
+**方向對,但要把「已證明」和「可貢獻」分清楚——目前只完成第一格。**
+
+## 是的,終點是那個
+
+構想:讓 UNV 成為 Clear-Bible/Alignments 的**第 11 個語言(`cmn`)/ 第 13 個譯本**。而且路徑特殊——別人是人工對齊,我們是**拿 Strong 號當主鍵 JOIN**,零語義猜測。
+
+## 但 PoC 只完成了 1/9
+
+| 元件 | 狀態 |
+|---|---|
+| **對齊方法可行性** | ✅ **已證明**(創世記核心 97.4%) |
+| 變體等價表 | 🟡 部分(僅創世記,8 條含 3 條雜訊) |
+| 對齊 JSON 產出 | ❌ **能力已遺失**(v2 被清、v3 沒繼承) |
+| 中文 `targets/cmn/UNV/*.tsv` | ❌ **完全未做** ← 最大工作量 |
+| TOML metadata | ❌ 未做 |
+| 全舊約(39 卷) | ❌ 只做了 1 卷 |
+| 新約(SBLGNT 側) | ❌ **完全未測** |
+| `Manager` round-trip 驗證 | ❌ 未做 |
+| **授權釐清** | ❌ 未處理 ← **可能是真門檻** |
+
+PoC 的職責就是把第一格點亮,它做到了。剩下八格是工程,不是研究。
+
+## 兩個終點,難度差很多
+
+**(a) 對內用 —— 你的專案自用**(不需要任何人同意)
+產出 `原文 ↔ UNV` 對齊層,當作你 LLM SN transfer 的**客觀驗證基準**。這解決了最早那個問題:「Alignments 沒有中文,所以無法拿來驗證」——**自己造一份**。這條路隨時可走。
+
+**(b) 對外貢獻 —— 進 Clear Bible 上游**
+需要 PR + 他們接受 + **授權釐清**。
+
+## ⚠️ 授權是真問題,現在就該想
+
+- **UNV 經文本身**:1919 年,公有領域 ✅
+- **Strong's 標註**:是 **FHL 信望愛的工作成果** ⚠️
+
+專案 CLAUDE.md 寫的是「All bible.fhl.net API usage is **authorized for this project**」——**「授權本專案使用」≠「授權以 CC-BY-4.0 公開再散布」**。而 Alignments 的對齊資料全部是 CC-BY-4.0。
+
+要走 (b),得先問 FHL:能不能把他們的 SN 標註衍生出的對齊資料,以 CC-BY-4.0 釋出到公開 repo。**這件事跟技術無關,但會決定 (b) 能不能成立**,而且應該在投入剩下八格工程**之前**確認。
+
+---
+
+**我的建議**:先走 (a),把它做成你自用的驗證資產;同時平行去問 FHL 授權。若授權過了,(a) 的產出稍加包裝就是 (b) 的 PR;若沒過,(a) 的價值完全不受影響。
+
+要我開始做 (a) 的下一塊嗎?(補回 JSON emit + 產中文 target TSV,這兩塊做完就有完整三件套。)
+
+
+
+
+##     2026-07-28 03:57 CST
+
+###    User Prompt
+Please analyze this codebase and create a CLAUDE.md file, which will be given to future instances of Claude Code to operate in this repository.
+
+What to add:
+1. Commands that will be commonly used, such as how to build, lint, and run tests. Include the necessary commands to develop in this codebase, such as how to run a single test.
+2. High-level code architecture and structure so that future instances can be productive more quickly. Focus on the "big picture" architecture that requires reading multiple files to understand.
+
+Usage notes:
+- If there's already a CLAUDE.md, suggest improvements to it.
+- When you make the initial CLAUDE.md, do not repeat yourself and do not include obvious instructions like "Provide helpful error messages to users", "Write unit tests for all new utilities", "Never include sensitive information (API keys, tokens) in code or commits".
+- Avoid listing every component or file structure that can be easily discovered.
+- Don't include generic development practices.
+- If there are Cursor rules (in .cursor/rules/ or .cursorrules) or Copilot rules (in .github/copilot-instructions.md), make sure to include the important parts.
+- If there is a README.md, make sure to include the important parts.
+- Do not make up information such as "Common Development Tasks", "Tips for Development", "Support and Documentation" unless this is expressly included in other files that you read.
+- Be sure to prefix the file with the following text:
+
+```
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+....
+
+###    result
+所有引用路徑存在,PoC 從新位置實測可執行(創 1 = 100%)。commit:
+
+
+
+
+##     2026-07-28 04:06 CST
+
+###    User Prompt
+我們已經移轉出 Alignments 了, 所以先前的 "不在此專案" 應該改成 "不在 Alignments 專案", 並且明寫本 (s13) 專案是沿襲自 Alignment (git url)
+
+###    result
+全部消歧完成(唯一命中是指涉約定本身的說明文字)。同步把沿襲聲明加進 `CLAUDE.md`(它才是進入點):
+
+
+
+
+##     2026-07-30 05:16 CST
+
+###    User Prompt
+拆解詳述一下 burrito 架構格式, 請特別舉出一些經文與譯文原文例子
+
+###    result
+`.004` **不見了** —— 那正是 אֵת(H0853 受詞記號),英文沒有對應詞,所以整筆對齊記錄不存在。這是「未對齊來源 token」的活例。再取希臘文的 1:多 例子:
+
+
+
+
+##     2026-07-31 03:51 CST
+
+###    User Prompt
+Burrito 架構:四件套
+
+┌────────────────┬──────────────────────────────────────────────┬──────────────────────────────────────┐
+│      檔案      │                   路徑範例                   │                 角色                 │
+├────────────────┼──────────────────────────────────────────────┼──────────────────────────────────────┤
+│ source corpus  │ data/sources/WLC.tsv                         │ 原文 token 表(含 Strong/lemma/morph) │
+├────────────────┼──────────────────────────────────────────────┼──────────────────────────────────────┤
+│ target corpus  │ data/eng/targets/BSB/ot_BSB.tsv              │ 譯本 token 表                        │
+├────────────────┼──────────────────────────────────────────────┼──────────────────────────────────────┤
+│ alignment file │ data/eng/alignments/BSB/WLCM-BSB-manual.json │ 兩者的 token 對應                    │
+├────────────────┼──────────────────────────────────────────────┼──────────────────────────────────────┤
+│ metadata       │ 同名 .toml                                   │ 來源/授權/製程                       │
+└────────────────┴──────────────────────────────────────────────┴──────────────────────────────────────┘
+
+▎ alignment 檔只存 ID 對應,不存文字——所以缺了任一 corpus 就完全無法解讀。這是 Burrito「三者一組」的硬約束。
+
+---
+BCVWP token ID 解剖
+
+Source(12 碼 + canon 前綴)
+....
+
+###    result
+指令可重現,且數字自洽(11 個原文 token、11 個英文 token、**6** 筆對齊 record —— 正是「7 筆序號但 `.004` 缺席」的證明)。加進文件索引並 commit:
+
+
+
+
