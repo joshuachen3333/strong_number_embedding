@@ -13,7 +13,29 @@ warnings.filterwarnings("ignore")
 from llm_direct_sn_unv2notyet import fetch_chap
 from bible_alignments.burrito import AlignmentSet, Manager, DATAPATH
 
-SEED = {"09001":"3807","09005":"3807","09002":"871","09003":"3509","09009":"1886","09006":"4480"}
+# FHL 900x 前綴碼 → Macula(WLC.tsv)詞素 strong,用於前綴依值配對。
+#
+# 來源:SPECIFICATION_v1.9.md §5.1 prefix_map_900x + 本 survey 的全庫實證盤點
+#       (見 ../FHL_900X_FINDINGS.md)。規格那張表**不完整**——它是文件性的,
+#       parser 從不查它(900x 純以「5 位數且 09 開頭」的結構規則判定),所以
+#       缺漏長期未被發現。任何像本表這樣「讀那張表」的下游都要自行補齊。
+SEED = {
+    # --- 規格 §5.1 已列 ---
+    "09001": "3807",   # ל־   qb 21,023 次 · qp 4,423 次
+    "09002": "871",    # ב־   qb 15,754 次 · qp 1,359 次
+    "09003": "3509",   # כ־   qb  2,933 次 · qp    17 次
+    "09005": "3807",   # ל־   規格列為 09001 的 alias;qb 0 次 · qp 27 次
+    "09006": "4480",   # מ־   qb/qp 皆 0 次 —— FHL 實際改用一般 Strong <04480>
+    "09009": "1886",   # ה־   qb/qp 皆 0 次 —— FHL 幾乎不標定冠詞
+    # --- 規格未列,本 survey 實證補入 ---
+    "09004": "3807",   # ל־   qb 1 次(但 7:12)· qp 59 次
+                       #      qp.php 權威判定:wid=8 orig=לְ;WLC 對應 A3807b(prep)
+    "09013": "3807",   # ל־ + 動詞不定詞附屬形  qb 0 次 · qp 170 次
+                       #      qp wform=「介系詞 12.l21 + 動詞…不定詞附屬形」;
+                       #      為合併碼(前綴+動詞),此處僅取其前綴部對應
+}
+# 註:09014(qp 1,962 次)與規格已列的 09015(qp 1,164 次)同為「段落符號」,
+#     兩者皆不出現於 qb,故不入本表;若日後改吃 qp token 流則需一併過濾。
 
 def norm_num(s):
     m = re.search(r'(\d+)', s or ""); return str(int(m.group(1))) if m else None
