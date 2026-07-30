@@ -9,24 +9,68 @@
 
 ---
 
-## 一、全庫 900x 盤點
+## 〇、先修正一個常見誤解:規格**不以 WLC 為來源**
 
-掃描 31,103 節,實際出現的 900x **只有 4 種**:
+`SPECIFICATION_v1.9.md` 全文**零次**提及 WLC / Macula / Clear Bible。其規範來源僅兩個(§12.2):
 
-| 碼 | 次數 | 涵蓋書卷 | 規格 `prefix_map_900x` |
+```
+qb.php  → UNV 帶 SN 的經文
+qp.php  → 解析 / 構形資料
+```
+
+**WLC 是 s13 外加的交叉檢查,不在規格體系內。** 討論規格自洽性時,只能拿 qb + qp 衡量。
+
+---
+
+## 一、全庫 900x 盤點(qb / qp 雙源)
+
+**兩個來源各自出現的 900x 碼不同** —— 這是理解後續一切的關鍵。
+
+| 碼 | qb.php 次數 | qp.php 次數 | 規格 `prefix_map_900x` |
 |---|---:|---:|---|
-| `09001` | 21,023 | 39 | ✅ `ל־` |
-| `09002` | 15,754 | 39 | ✅ `ב־` |
-| `09003` | 2,933 | 39 | ✅ `כ־` |
-| **`09004`** | **1** | 1 | ⚠️ **未列** |
+| `09001` | 21,023 | 4,423 | ✅ `ל־` |
+| `09002` | 15,754 | 1,359 | ✅ `ב־` |
+| `09003` | 2,933 | 17 | ✅ `כ־` |
+| **`09004`** | **1** | **59** | ⚠️ **未列** |
+| `09005` | 0 | 27 | ✅ alias→`09001` |
+| `09006` | 0 | 0 | ✅ `מ־`(死碼,見第四節) |
+| `09009` | 0 | 0 | ✅ `ה־`(死碼,見第四節) |
+| **`09013`** | 0 | **170** | ⚠️ **未列** |
+| **`09014`** | 0 | **1,962** | ⚠️ **未列** |
+| `09015` | 0 | 1,164 | ✅ `ignored_codes` |
 
-規格列了但**全庫零出現**:`09005`(alias→09001)、`09006`(`מ־`)、`09009`(`ה־`)、`09015`(ignored)。
+- **qb 掃描**:`bible_little.db` 的 `unv` 表,31,103 節
+- **qp 掃描**:`bible_parsing.db` 的 `lparsing` 表,331,800 列(舊約)
+
+> ⚠️ **規格收了較少見的 `09005`(qp 27 次),卻漏了較常見的 `09004`(qp 59 次)。**
 
 > 補充:`hfhl` 字典查 `09001`–`09009` **全無條目** —— 900x 是 FHL 自訂的**結構碼**,不是真正的 Strong 編號。
 
 ---
 
-## 二、`09004` — 規格的真實缺漏(經 qp.php 確認)
+## 二、三個規格未列的 900x 碼
+
+| 碼 | qp 次數 | qp 的 `orig` / `wform` | 判定 | 建議 |
+|---|---:|---|---|---|
+| **`09004`** | 59 | `orig=.l`、`介系詞 + 詞尾` | **= `ל־`** | 加為 `09001` 的 alias |
+| **`09013`** | 170 | `介系詞 12.l21 + 動詞 Histaf'el 不定詞附屬形` | **= `ל־` + 不定詞**構造 | 加為 `09001` 的 alias(或另立複合類) |
+| **`09014`** | 1,962 | **`段落符號`** | 與 `09015` **完全同類** | 併入 `ignored_codes` |
+
+實例:
+
+```
+09004  Dan 6:2    word=!Ah.l              orig=.l        wform=介系詞 + 3 複陽詞尾
+09013  1 Sam 1:3  word=tOw]x;T.vih.l      orig=h"w'x     wform=介系詞 + 動詞不定詞附屬形
+09014  Deut 12:19 word=s                  orig=h'mWt.s   wform=段落符號
+09015  Gen 25:18  word=p                  orig=h'xWt.P   wform=段落符號   ← 規格已列
+```
+
+> ⚠️ **`09014` 漏收的後果最實際**:它出現 **1,962 次**(比規格已列的 `09015` 的 1,164 次還多),
+> 兩者 `wform` 都是「段落符號」。漏收會讓段落符號**漏過濾**,污染分組結果。
+
+---
+
+## 二之一、`09004` 的完整查證(方法論案例)
 
 **唯一出現處:但 7:12**(亞蘭文段落)
 
@@ -65,6 +109,63 @@ aliases:
 >
 > **判準:要問「FHL 這個標記是什麼意思」,唯一權威是 `qp.php`,不是 WLC 的位置對照。**
 > WLC 適合驗證「語義合不合理」,不適合判定「FHL 的碼是什麼」。
+
+---
+
+## 二之二、qb ↔ qp 全庫一致性實測
+
+全舊約 **23,145 節**逐節 SN 多重集比對(排除 morph `8xxx`):
+
+| | |
+|---|---:|
+| 完全一致 | 4,041(**17.5%**) |
+| 有差異 | 19,104(82.5%) |
+
+**但 82.5% 的差異全是系統性的顆粒度差異,不是錯誤**:
+
+| qb 有 / qp 無 | 次數 | | qp 有 / qb 無 | 次數 |
+|---|---:|---|---|---:|
+| `09001` | 16,631 | | `09014` | 1,962 |
+| `09002` | 14,400 | | `09015` | 1,164 |
+| `04480`(מ) | 6,230 | | `03942`(לִפְנֵי) | 1,100 |
+| `09003` | 2,917 | | **`01980`** | **1,041** |
+| `06440`(פָּנֶה) | 1,104 | | **`00376`** | **533** |
+| **`03212`** | **1,040** | | `09013` | 170 |
+| **`00582`** | **517** | | `00853` | 151 |
+
+- **qb 獨有的 900x + `04480`**:qb 把前綴**拆出來獨立標**,qp 則**併入詞內** —— 即規格 §2.4 的「Parsing Code 兩級顆粒度」
+- **qp 獨有的 `09014`/`09015`**:段落符號,qb 不輸出
+- **qp 獨有的 `03942`**:`לִפְנֵי` 複合詞的合併碼 —— 規格 §1.8 已明文處理
+
+### 🔴 重要更正:`3212≡1980` 不是「FHL vs Macula」的分歧
+
+本 survey 早期(PoC v3)自動學到的變體等價表:
+
+```
+3212 → 1980  (הלך 行走)     582 → 376  (אִישׁ 人)
+```
+
+當時歸因為「**FHL 與 Macula 兩套獨立 Strong 標註的版本分歧**」。**這個歸因是錯的。**
+
+實測顯示:
+
+| 來源 | 用哪個號 |
+|---|---|
+| `qb.php`(UNV+SN) | `3212` / `582` |
+| **`qp.php`** | **`1980` / `376`** |
+| Macula `WLC.tsv` | `1980` / `376` |
+
+**qp.php 自己就用 `1980`/`376`,與 Macula 一致。分歧存在於 FHL 內部的 qb ↔ qp 之間,不是跨機構。**
+
+而規格對此**早有裁決規則**:
+
+> **當 `qb.php` 和 `qp.php` 使用不同 SN 時,自動使用 `qp.php` 的 SN**(v1.7.2)
+
+也就是說 —— **PoC 那張變體表,是在重新發現規格早已規定的東西。**
+
+> ### 對 s13 的實作意涵
+> 未來建變體對照表,**正確作法不是自己從殘差學,而是直接查 `qp.php`**。
+> 自學法只能得到統計近似(前次 8 條中 3 條是雜訊),查 qp 則是權威且零猜測。
 
 ---
 
@@ -149,10 +250,15 @@ WLC:  כְּ(→09003 ✅)  אֶזְרָח(→H0249 ✅)  מִ(→用 04480,非 
 
 | # | 建議 | 類型 | 風險 |
 |---|---|---|---|
-| 1 | `prefix_map_900x` 的 `aliases` 補 `"09004": "09001"` | 資料補全 | 低(additive) |
+| **1a** | `aliases` 補 **`"09004": "09001"`**(qp 59 次,`orig=.l`) | 資料補全 | 低(additive) |
+| **1b** | `aliases` 補 **`"09013": "09001"`**(qp 170 次,`ל־`+不定詞) | 資料補全 | 低 |
+| **1c** | `ignored_codes` 補 **`"09014"`**(qp **1,962** 次,段落符號,與已列的 `09015` 同類) | **資料補全,影響過濾** | 低但**應優先** |
 | 2 | §2.1 / §3.2 補「切勿以字母前綴判定 900x」實證註記 | 文件澄清 | **零**(不改行為) |
-| 3 | `09006`/`09009`/`09015` 標為「防禦性保留,現行未使用」,並註明 `מ` 用 `04480` | 文件澄清 | 零 |
+| 3 | `09006`/`09009` 標為「防禦性保留,現行未使用」,並註明 `מ` 實際用 `04480` | 文件澄清 | 零 |
 | 4 | FAQ 補「900x 在 Strong 字典無條目,是 FHL 自訂結構碼」 | 文件澄清 | 零 |
+| 5 | 在 §2.4(兩級顆粒度)補實測數據:全庫 23,145 節僅 17.5% 完全一致,差異全屬顆粒度 | 文件佐證 | 零 |
+
+**優先序建議**:`1c`(`09014` 漏過濾,1,962 次,有實際污染風險)> `1a`/`1b`(對照表完整性)> `2`–`5`(文件澄清)。
 
 **不建議**:把 `09004` 當資料異常上報 FHL。qp.php 顯示它是 FHL 有意使用的碼,
 不同於 [`BUG_2_report_FHL.md`](../survey4_self_supervised_prompt_tuning/BUG_2_report_FHL.md)
@@ -175,6 +281,43 @@ for (txt,) in con.execute("SELECT txt FROM unv"):
         c[(m.group(1), m.group(2))] += 1
 for k, v in sorted(c.items()):
     print(f"<{k[0]}{k[1]}>: {v:,}")
+EOF
+
+# qp 端 900x 盤點(離線鏡像)
+python3 - <<'EOF'
+import sqlite3, collections
+qp = sqlite3.connect('original_text_preparation/source_sqlite/bible_parsing.db')
+c = collections.Counter(); samp = {}
+for e, ch, se, wid, w, sn, pro, wf, o in qp.execute(
+        "SELECT engs,chap,sec,wid,word,sn,pro,wform,orig FROM lparsing"):
+    if sn and sn.startswith('09'):
+        c[sn] += 1
+        samp.setdefault(sn, (e, ch, se, w, o, wf))
+for sn, n in sorted(c.items()):
+    e, ch, se, w, o, wf = samp[sn]
+    print(f"{sn}: {n:>6,}   例 {e} {ch}:{se} word={w} orig={o} wform={wf[:30]}")
+EOF
+
+# qb ↔ qp 逐節一致性
+python3 - <<'EOF'
+import sqlite3, re, collections
+qb = sqlite3.connect('original_text_preparation/source_sqlite/bible_little.db')
+qp = sqlite3.connect('original_text_preparation/source_sqlite/bible_parsing.db')
+def norm(s):
+    m = re.search(r'(\d+)', s or ''); return str(int(m.group(1))) if m else None
+qbv = {}
+for e, ch, se, txt in qb.execute("SELECT engs,chap,sec,txt FROM unv"):
+    qbv[(e, ch, se)] = collections.Counter(
+        str(int(m.group(2))) for m in re.finditer(r'<W([ATH]*)(\d+)>', txt or '')
+        if 'T' not in m.group(1))
+qpv = collections.defaultdict(collections.Counter)
+for e, ch, se, wid, sn in qp.execute("SELECT engs,chap,sec,wid,sn FROM lparsing"):
+    if wid == 0: continue
+    n = norm(sn)
+    if n: qpv[(e, ch, se)][n] += 1
+common = [k for k in qbv if k in qpv]
+exact = sum(1 for k in common if qbv[k] == qpv[k])
+print(f"交集 {len(common):,} 節,完全一致 {exact:,} ({100*exact/len(common):.1f}%)")
 EOF
 
 # 權威判定(FHL 自己的解析)
