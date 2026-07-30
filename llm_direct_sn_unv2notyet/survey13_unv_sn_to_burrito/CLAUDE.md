@@ -66,10 +66,10 @@ python3 poc/poc_v3.py --chaps 1-50
 **四步資料流**
 
 ```
-① fetch_chap("創", ch, strong=1)      → FHL API 取 UNV+SN
-② Manager(sourceid="WLC")             → 讀 WLC.tsv 的希伯來 token
-③ 以 Strong 號 JOIN                    → 中文詞 ↔ 原文 token
-④ 統計覆蓋率                           → 印報告
+1. fetch_chap("創", ch, strong=1)     → FHL API 取 UNV+SN
+2. Manager(sourceid="WLC")            → 讀 WLC.tsv 的希伯來 token
+3. 以 Strong 號 JOIN                   → 中文詞 ↔ 原文 token
+4. 統計覆蓋率                          → 印報告
 ```
 
 **三種 SN 分類**(`classify()`,依 `SPECIFICATION_v1.8`)——非重疊,各自處理:
