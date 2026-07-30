@@ -62,3 +62,10 @@ llm_direct_sn_unv2notyet/adjudication/stuck_index.json
 # verdicts.jsonl carries reviewer emails — same policy as reviews.json
 llm_direct_sn_unv2notyet/adjudication/verdicts.jsonl
 llm_direct_sn_unv2notyet/adjudication/gold_vs_production.json
+
+# Third-party checkouts — read-only data sources, not ours to version or modify.
+# Clear-Bible/Alignments (https://github.com/Clear-Bible/Alignments) is consumed
+# by survey13 as a source of WLC.tsv / SBLGNT.tsv and the Burrito format; we keep
+# that working copy pristine at origin/main and never commit into it.
+llm_direct_sn_unv2notyet/Alignments/
+llm_direct_sn_unv2notyet/paulwu/
