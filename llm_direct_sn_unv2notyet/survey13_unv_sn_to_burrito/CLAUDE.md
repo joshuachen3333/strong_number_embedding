@@ -51,25 +51,32 @@ WLC.tsv (Macula 標註)┘        (零語義猜測)
 # 依賴(一次性)
 pip3 install biblelib unicodecsv
 
-# 單章快速驗證
-python3 poc/poc_v3.py --chaps 1
+# 單章
+python3 poc/poc_v4.py --book 創 --chaps 1
 
-# 全卷創世記(學變體表 + 前後對照)
-python3 poc/poc_v3.py --chaps 1-50
+# 全卷,並輸出 Burrito JSON
+python3 poc/poc_v4.py --book 創 --chaps 1-50 --emit-json gen.json
+
+# 換書卷(中文或英文代碼皆可)
+python3 poc/poc_v4.py --book Dan --chaps 7      # 唯一含 09004 的一節在此
 ```
 
-執行前提:**需要網路**(FHL `qb.php` 取 UNV+SN)且 `../Alignments/` checkout 存在。
+執行前提:**全程離線**(讀本地 `bible_little.db` / `bible_parsing.db`),
+且 `../Alignments/` checkout 存在。單次執行約 30 秒 —— 變體表每次重新掃全庫建立。
+
 輸出雜訊過濾:`2>&1 | grep -vE 'No source selectors|^        '`(`Manager` 會噴大量 badrecord 警告)。
 
-## PoC 架構(`poc/poc_v3.py`)
+> `poc/poc_v3.py` 保留作對照(自學變體表的舊法),**已被 v4 取代,不要用**。
 
-**四步資料流**
+## PoC 架構(`poc/poc_v4.py`)
+
+**四步資料流**(全部走本地 SQLite,零 API 呼叫)
 
 ```
-1. fetch_chap("創", ch, strong=1)     → FHL API 取 UNV+SN
-2. Manager(sourceid="WLC")            → 讀 WLC.tsv 的希伯來 token
-3. 以 Strong 號 JOIN                   → 中文詞 ↔ 原文 token
-4. 統計覆蓋率                          → 印報告
+1. bible_little.db  unv 表        → UNV+SN 經文
+2. Manager(sourceid="WLC")        → 讀 WLC.tsv 的希伯來 token
+3. 以 Strong 號 JOIN               → 中文詞 ↔ 原文 token
+4. 統計覆蓋率 / 輸出 Burrito JSON
 ```
 
 **三種 SN 分類**(`classify()`,依 [`SPECIFICATION_v1.9.md`](../../sn_within_unv_selfgroup_segmentation/SPECIFICATION_v1.9.md))——非重疊,各自處理:
@@ -86,13 +93,35 @@ python3 poc/poc_v3.py --chaps 1-50
 
 > ⚠️ **做新約時必讀** `SPECIFICATION_v1.9.md` §6.1.1(v1.9 新增):qp.php 的欄位語義 **OT/NT 不對稱** —— 舊約 `pro` 為空、詞類與詞形全在 `wform`;新約 `pro` 才是詞類、`wform` 只有屈折資訊。現行規格的 parsing 推斷是 **OT-centric** 的,擴展到新約必須改為先讀 `pro` 再讀 `wform`,否則樣式比對會失敗。
 
-**兩趟 Pass + 變體表學習**
+**變體表:查 FHL 自己的 qb ↔ qp,不自學**
 
-1. **Pass 1** 純用原號 join(基準 96.6%),同時記錄「未對上的 FHL 號 × 節內剩餘的 Macula 號」共現。
-2. **學習**:用 `lift` 正規化評分挑出真正的等價對,並以 **WLC 的 lemma 欄交叉驗證**。
-3. **Pass 2** 套用變體表重跑 → 97.4%。
+規格(v1.7.2 起)已規定「**qb 與 qp 用不同 SN 時,以 qp 為準**」。`build_variant_map()`
+就是把這條規則具體化:比對兩個來源的逐節 SN 殘差,**只採「恰 1 個 qb-only × 恰 1 個
+qp-only」的無歧義配對**,因此不需要任何統計啟發式。
 
-已學到的真實等價對(lemma 驗證):`3212≡1980`(הלך 行走)、`582≡376`(אִישׁ 人)、`7462≡7473`、`6948≡6945`、`2425≡2421`。
+產出 **30 條,幾乎全 100% 一致性**:
+
+| qb → qp | 次數 | 一致性 | 說明 |
+|---|---:|---:|---|
+| `6440` → `3942` | 538 | 100% | `לִפְנֵי` 複合詞 —— 規格 §1.8 明文記載 |
+| `3212` → `1980` | 486 | 100% | הלך 行走 |
+| `582` → `376` | 231 | 100% | אִישׁ 人 |
+
+> ⚠️ **v3 的自學法已廢棄**。它用「殘差共現 + lift」統計,8 條中 3 條是詞尾碎片雜訊
+> (`ִי`、`ֵנוּ`),且把這個分歧誤判為「FHL vs Macula 跨機構差異」——**實際上是 FHL
+> 內部 qb↔qp 的差異,規格早有裁決**。詳見 [`FHL_900X_FINDINGS.md`](FHL_900X_FINDINGS.md) § 二之二。
+
+**實測覆蓋率**
+
+| 範圍 | 節數 | 核心 | 前綴 |
+|---|---:|---:|---:|
+| 創 1 | 31 | **100.0%** | 91.9% |
+| 創 1–50 | 1,532 | **97.5%**(原號 19,213 · 變體 183) | 88.6% |
+| 但 7 | 28 | **98.5%** | 78.4% |
+| 得 1 | 22 | **100.0%** | 81.8% |
+
+> 未對齊的 token **不建 record**(Burrito 慣例,見 [`BURRITO_FORMAT.md`](BURRITO_FORMAT.md)),
+> 故 record 數 = 已對齊核心數。
 
 > **`lift` 正規化不可省**。沒有它,所有未對上的號會被高頻的 וְ(2050)吸走,產出看似更高(97.9%)但完全錯誤的結果。`PARTICLES` 集合排除高頻虛詞是同一道防線。
 
