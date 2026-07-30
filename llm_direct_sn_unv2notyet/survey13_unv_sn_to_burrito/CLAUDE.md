@@ -116,5 +116,6 @@ python3 poc/poc_v3.py --chaps 1-50
 | 檔案 | 內容 |
 |---|---|
 | **[`aboarding.md`](aboarding.md)** | **必讀**。Clear Bible / WLC 來歷考證、完整名詞解釋(機構/文本學/語料庫/版本名)、Scripture Burrito 定位論證、s13↔s12 關係、授權狀態 |
+| **[`BURRITO_FORMAT.md`](BURRITO_FORMAT.md)** | **動手前必讀**。以真實資料拆解 Burrito 四件套、BCVWP ID 解剖、創 1:1(希→英)與約 3:16(希臘→英)逐 record 實例、TOML 全文、**s13 要為 UNV 產什麼的具體對照** |
 | [`ALIGNMENTS_PACKAGE_NOTES.md`](ALIGNMENTS_PACKAGE_NOTES.md) | `bible_alignments` 套件架構(讀取管線、BCVWP token ID 方案、macula prefix 機制) |
 | `prompt.history` / `response.history` | 孵化過程的完整 provenance(兩者皆為 active switch,見全域 CLAUDE.md) |
