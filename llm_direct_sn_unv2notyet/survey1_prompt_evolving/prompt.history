@@ -1372,3 +1372,44 @@ s10obe->s1obe [QUERY]:
 
 
 
+##     2026-07-30 05:11 CST
+
+###    User Prompt
+yes, run these 17
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 核准：開跑殘留 17 節第二輪
+- Diff: 以新溯源欄位（resolved_model / resolved_models）重跑 Gen 1-20 殘留 17 節；順帶檢驗『模型換代是否解釋不收斂』此第四假設。5 節已 2× accept-empty、12 節僅試過一次
+
+
+
+
+##     2026-07-31 05:32 CST
+
+###    User Prompt
+舊約依賴 wlc.tsv, 新約呢?
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 詢問：OT 靠 wlc.tsv 當 R3 原文證據，NT 對應來源是什麼
+- Diff: 盤點 wlc_check 的資料來源與載入路徑，確認 NT（希臘文）是否有等價證據來源；若無則為 Phase-A/B 擴到新約前的缺口
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/wlc_check.py`
+
+
+
+
+##     2026-08-02 08:09 CST
+
+###    User Prompt
+Token back
+Resume
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: quota 回滿，恢復 17 節第二輪的未竟部分
+- Diff: 檢查三車(A/B/C)狀態與 second_pass_17_car*.jsonl 結算，補跑因 quota 中斷/未完成的節
+
+
+
+
