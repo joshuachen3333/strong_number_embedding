@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Another clean pass over whatever Gen 1-20 verses still have no gold.
 
-Usage:  residue_pass.py <car:A|B|C> <pass_n>   (launch nohup-detached, one per car)
+Usage:  residue_pass.py <car:A|B|C> <pass_n> [car_count]
+        residue_pass.py A 5            # single car, takes the whole residue
+        residue_pass.py A 5 3          # three cars, disjoint chapters
 
-Generalizes second_pass_17.py, which hard-coded its worklist. Rationale for
-running the same verses again rather than declaring them unsolvable:
+Rationale for running the same verses again rather than declaring them
+unsolvable:
 
   Pass 2 (2026-07-30) resolved 4 of 17 -- including 8:21, which had already been
   declared accept-empty after two clean fresh-quota runs. Combined with the
@@ -16,10 +18,17 @@ running the same verses again rather than declaring them unsolvable:
   the ones that did not ran on the SAME generations (claude-opus-5 / gpt-5.6-sol),
   so the variation is stochastic within fixed models, not a generational effect.
 
-The worklist is computed from disk, so a verse resolved by any other run (or by
-a sibling survey) is skipped automatically. Chapters are partitioned across cars
-so no two cars share a chapter's caches. Scripture comes from local SQLite; no
-FHL. Cloud CLIs only; NO ollama.
+The worklist is computed from disk over the FULL Gen 1-20 range, not from a
+hard-coded residue list. That matters: the earlier lists were built by scanning
+for the *presence* of a gold file, which counted 50 empty shells (a whole batch
+lost to a codex usage-limit writes `resolved_at: "unresolved"` files that look
+finished) as done. has_gold() below is the corrected predicate.
+
+Retry shape is SWEEP-based, not retry-in-place: one attempt per verse per sweep,
+up to MAX_SWEEPS sweeps, then park. A verse that will not converge therefore
+costs one timeout per sweep instead of stalling the whole batch behind it.
+
+Scripture comes from local SQLite; no FHL. Cloud CLIs only; NO ollama.
 """
 import subprocess, sys, os, time, signal, json
 from datetime import datetime
@@ -27,16 +36,18 @@ from datetime import datetime
 SURVEY_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(SURVEY_DIR)
 
-# The full Gen 1-20 residue as of pass 2; anything since resolved is filtered out.
-RESIDUE = [(1, 30), (7, 13), (8, 1), (8, 21), (9, 2), (9, 5), (17, 23),
-           (18, 19), (18, 25), (19, 2), (19, 8), (19, 14), (19, 15),
-           (20, 3), (20, 7), (20, 16), (20, 18)]
-CARS = ("A", "B", "C")
+# Genesis 1-20 verse counts (UNV versification) -- the universe we sweep.
+VERSE_COUNTS = {1: 31, 2: 25, 3: 24, 4: 26, 5: 32, 6: 22, 7: 24, 8: 22,
+                9: 29, 10: 32, 11: 32, 12: 20, 13: 18, 14: 24, 15: 21,
+                16: 16, 17: 27, 18: 33, 19: 38, 20: 18}
 PER_VERSE_TIMEOUT = 2400   # 40 min
 BACKOFF_S = 1800
+MAX_SWEEPS = 3             # attempts per verse before it is parked
 
 CAR = sys.argv[1].upper()
 PASS_N = sys.argv[2] if len(sys.argv) > 2 else "3"
+CAR_COUNT = int(sys.argv[3]) if len(sys.argv) > 3 else 1
+CARS = ("A", "B", "C")[:CAR_COUNT]
 REPORT = os.path.join(SURVEY_DIR, "run_logs", f"residue_pass{PASS_N}_car{CAR}.jsonl")
 LOG = os.path.join(SURVEY_DIR, "run_logs",
                    f"residue_pass{PASS_N}_car{CAR}_{datetime.now():%Y%m%d_%H%M%S}.log")
@@ -62,8 +73,8 @@ def has_gold(ch, sec):
 
     File existence is not the predicate (s10obe, 2026-08-08): a run that ends in
     `resolved_at: "unresolved"` still writes a gold file, usually with an EMPTY
-    `lcc_sn`. Scanning for the file counted 508/514 in this tree when only 436
-    verses carried a trust_tier -- 50 of the rest were empty shells. A whole batch
+    `lcc_sn`. Scanning for the file counted 508/514 in this tree when only 453
+    verses were really done -- 50 of the rest were empty shells. A whole batch
     lost to a codex usage-limit looks identical to a finished chapter.
 
     trust_tier alone is too strict the other way: 16 verses predate the field
@@ -87,13 +98,19 @@ def has_gold(ch, sec):
                 and d.get("resolved_at") in _DONE_RESOLUTIONS)
 
 
+def pending_verses():
+    """Every Gen 1-20 verse that is not finished, in canonical order."""
+    return [(ch, sec) for ch in sorted(VERSE_COUNTS)
+            for sec in range(1, VERSE_COUNTS[ch] + 1) if not has_gold(ch, sec)]
+
+
 def assign_chapters():
     """Partition the still-missing verses across cars by CHAPTER (never split a
-    chapter), largest chapter first onto the currently lightest car — keeps the
-    cars balanced while guaranteeing they never touch the same chapter's caches."""
-    pending = [v for v in RESIDUE if not has_gold(*v)]
+    chapter), largest chapter first onto the currently lightest car -- keeps the
+    cars balanced while guaranteeing they never touch the same chapter's caches.
+    With CAR_COUNT == 1 this is just the whole residue."""
     by_chap = {}
-    for ch, sec in pending:
+    for ch, sec in pending_verses():
         by_chap.setdefault(ch, []).append((ch, sec))
     loads = {c: [] for c in CARS}
     for ch in sorted(by_chap, key=lambda c: (-len(by_chap[c]), c)):
@@ -131,7 +148,7 @@ def provenance(ch, sec):
     try:
         with open(gold_path(ch, sec), encoding="utf-8") as f:
             d = json.load(f)
-    except Exception:  # noqa: BLE001 — reporting only, never block the run
+    except Exception:  # noqa: BLE001 -- reporting only, never block the run
         return {}
     return {m: v.get("resolved_model", "")
             for m, v in (d.get("round1") or {}).items() if isinstance(v, dict)}
@@ -187,31 +204,42 @@ def run_verse(ch, sec, timeout):
 
 
 WORKLIST = assign_chapters()[CAR]
-log(f"=== PASS {PASS_N} car{CAR} START === {len(WORKLIST)} verses: "
+log(f"=== PASS {PASS_N} car{CAR} START === {len(WORKLIST)} verses "
+    f"({CAR_COUNT} car(s), {MAX_SWEEPS} sweeps max): "
     f"{['%d:%d' % v for v in WORKLIST]}")
-i = 0
-while i < len(WORKLIST):
-    ch, sec = WORKLIST[i]
-    if has_gold(ch, sec):
-        log(f"already resolved Gen {ch}:{sec} — skip"); i += 1; continue
-    f = run_verse(ch, sec, PER_VERSE_TIMEOUT)
-    if f["rate_limit"] or f["model_down"]:
-        log(f"model-down/rate-limit on Gen {ch}:{sec} — back off {BACKOFF_S//60}min, "
-            f"retry same verse")
-        time.sleep(BACKOFF_S); continue
-    if has_gold(ch, sec):
-        prov = provenance(ch, sec)
-        log(f"RESOLVED Gen {ch}:{sec}  models={prov}")
-        record(ch, sec, "resolved", {"resolved_model": prov})
-    elif f["timeout"]:
-        log(f"STILL NON-CONVERGENT Gen {ch}:{sec} (timeout)")
-        record(ch, sec, "still_non_convergent")
-    else:
-        log(f"NO GOLD Gen {ch}:{sec} (clean run, no timeout)")
-        record(ch, sec, "no_gold_clean_run")
-    i += 1
 
-left = [v for v in WORKLIST if not has_gold(*v)]
-log(f"=== pass{PASS_N} car{CAR} DONE === resolved {len(WORKLIST)-len(left)}/{len(WORKLIST)}; "
-    f"remaining: {['%d:%d' % v for v in left]}")
+parked = []
+for sweep in range(1, MAX_SWEEPS + 1):
+    todo = [v for v in WORKLIST if not has_gold(*v)]
+    if not todo:
+        break
+    log(f"--- sweep {sweep}/{MAX_SWEEPS}: {len(todo)} verses left ---")
+    i = 0
+    while i < len(todo):
+        ch, sec = todo[i]
+        if has_gold(ch, sec):          # a sibling run may have closed it meanwhile
+            i += 1; continue
+        f = run_verse(ch, sec, PER_VERSE_TIMEOUT)
+        # Quota/model outages are an accident, not an attempt -- do not spend a
+        # sweep on them (memory: opus_structural_nonconvergence, retracted).
+        if f["rate_limit"] or f["model_down"]:
+            log(f"model-down/rate-limit on Gen {ch}:{sec} -- back off "
+                f"{BACKOFF_S//60}min, retry same verse")
+            time.sleep(BACKOFF_S); continue
+        if has_gold(ch, sec):
+            prov = provenance(ch, sec)
+            log(f"RESOLVED Gen {ch}:{sec}  sweep={sweep} models={prov}")
+            record(ch, sec, "resolved", {"sweep": sweep, "resolved_model": prov})
+        else:
+            why = "still_non_convergent" if f["timeout"] else "no_gold_clean_run"
+            log(f"{why.upper()} Gen {ch}:{sec} (sweep {sweep})")
+            record(ch, sec, why, {"sweep": sweep})
+        i += 1
+
+parked = [v for v in WORKLIST if not has_gold(*v)]
+for ch, sec in parked:
+    record(ch, sec, "parked", {"sweeps": MAX_SWEEPS})
+log(f"=== pass{PASS_N} car{CAR} DONE === resolved {len(WORKLIST)-len(parked)}/"
+    f"{len(WORKLIST)}; parked after {MAX_SWEEPS} sweeps: "
+    f"{['%d:%d' % v for v in parked]}")
 print(f"PASS{PASS_N}_CAR{CAR}_STATUS=DONE")
