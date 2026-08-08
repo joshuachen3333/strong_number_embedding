@@ -212,7 +212,14 @@ const FORMS = {
                      hint:'從未產出 gold 檔(deferred/accept-empty)。這是跑最多次、最需要人看的一批。' },
   corrupt:         { label:'紀錄毀損',   color:'var(--corrupt)',
                      hint:'gold 檔存在但無法解析。僅標示,不阻斷。' },
+  /* settled tiers — the pipeline DID close these; a human samples rather than
+   * unblocks. Kept visually distinct so they never dilute the must-see set. */
+  deliberated:     { label:'已定案·經辯論', color:'#0891b2',
+                     hint:'三方真發散後靠 D-deliberation 收斂。已定案,但正因為它需要額外機制才收得起來,值得抽看。' },
+  wlc_divergence:  { label:'已定案·壓過 WLC', color:'#65a30d',
+                     hint:'共識與 WLC 原文有出入,由共識勝出。已定案,但這是 gold 最可能出錯的一類,值得抽看。' },
 };
+const SETTLED_FORMS = new Set(['deliberated', 'wlc_divergence']);
 const KINDS = {
   pick:            '採納某個候選',
   correct:         '我給正確答案',
@@ -329,8 +336,12 @@ async function init(){
 
 function paintStuckStat(){
   const m = (BUNDLE && BUNDLE.meta) || {};
+  const must = VERSES.filter(v => !SETTLED_FORMS.has(v.form)).length;
+  const sample = VERSES.length - must;
   document.getElementById('hstat').innerHTML =
-    `<b>${VERSES.length}</b> 節待人工 · s1/s10 · 判準 <code>trust_tier</code>` +
+    `<b>${must}</b> 節未定案必須看` +
+    (sample ? ` · <b>${sample}</b> 節已定案值得抽看` : '') +
+    ` · s1/s10 · 判準 <code>trust_tier</code>` +
     (m.generated ? ` · 索引 ${esc(m.generated.slice(0,16).replace('T',' '))}` : '');
 }
 
@@ -463,6 +474,15 @@ function renderDetail(v){
       }
       const meta = [];
       if (c.role === 'judge_corrected') meta.push(`判官修正 · ${esc(c.round)}`);
+      /* resolved_model: the generation the CLI actually reported. An empty
+       * string means the CLI gave no readback (agy prints plain text with no
+       * session header) — the convention is to leave it blank rather than
+       * backfill the alias we sent. Show that as "無 readback", never as an
+       * unknown model. Not agy-only, so no special-casing by model name. */
+      if (c.resolved_model !== undefined && c.resolved_model !== null)
+        meta.push(c.resolved_model === ''
+          ? '<span title="CLI 未回報型號,依約定留空而非回填 alias">無 readback</span>'
+          : `實際型號 <b>${esc(c.resolved_model)}</b>`);
       if (c.self_confidence != null) meta.push(`自報 ${c.self_confidence}`);
       if (c.sn_coverage != null) meta.push(`SN 覆蓋 ${c.sn_coverage}`);
       if (c.opinion) meta.push(esc(c.opinion));

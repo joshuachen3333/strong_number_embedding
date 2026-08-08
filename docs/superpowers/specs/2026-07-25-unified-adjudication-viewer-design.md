@@ -205,6 +205,7 @@ viewer 改為按章 lazy load。
     "role": "panelist",        // final|panelist|judge_corrected|arm|pass|baseline|human
     "arm": null,               // s5:"A"/"B" · s11:"B"/"B0"/"B_noeng"
     "model": "opus", "brand": "claude",
+    "resolved_model": "claude-opus-5",   // CLI 實際回報的型號;""=無 readback(見下)
     "prompt_version": "v1.3", "conventions_version": null,
     "self_confidence": 0.97,   // 模型自報,非客觀
     "run_key": "s1-gold",      // ★ 非識別性 metadata,不進 cid
@@ -519,6 +520,17 @@ s1-obe 已排除「併發競爭」解釋(ch19 後段單車獨跑、競爭最低,
 | 隱形模式 | 實測 | 掃 gold 目錄的表象 | 偵測判準 |
 |---|---|---|---|
 | **A. 檔案在,但 `trust_tier: null`** | s10 **56** 節 · s1 **72** 節 | 像正常成品(`lcc_sn` 欄位是**滿的**,舊值或部分結果) | `trust_tier is None` |
+
+> **數字更新(2026-08-08,s10obe 來信 + showoff-obe 複核)**:**s10 的洞已歸零** ——
+> Gen 1–20 共 514 節,`c_consensus` 495 + `d_deliberation` 19,**無 null**。上表的「s10 56 節」
+> 是 2026-07-26 的快照。**但規則本身完全不變** —— 正是「判準只能是 `trust_tier`」這條硬規則
+> 才把那些洞挖出來並填掉的;若當初用檔案存在計算完成度,那 56 節到今天仍是隱形的。
+> s1 仍有 72 節 null(508 節中)。
+>
+> 連帶結論:**「已定案」不等於「不需要人看」。** s10 現在真正該過目的是 19 節
+> `d_deliberation`(三方真發散後靠額外機制才收斂),s1 則另有 48 節
+> `c_consensus_over_wlc_divergence`。§11.4 早已把這兩者列為「值得抽看」,
+> MVP 已於 2026-08-08 納入,並與「未定案必須看」在 UI 上明確分流。
 | **B. 完全沒有檔案** | s1 那 17 節,**17/17 實測確認無檔** | 表現成「沒跑到」,而它們是**跑最多次**的一批 | 需外部經節普查(§11.3) |
 | **C. 檔案被截斷/半寫入** | 掃描當下 **0** 個(已被 s1-obe 的 sweep 清除) | parse 失敗 | **`try/except` on parse** |
 
@@ -635,6 +647,18 @@ attempt 3: …我主<02009><04994><0113>，請轉到<05493><8798><0413>…
 - 點紅/橙/深紅格 → 直接進入對應形態的裁決動線(A/B/C 三種佈局不同,§11.5)。
 - 頂層過濾器第一順位:**「只看待人工的節」** —— 這是複審者的第一個動作。
 - `corrupt` 格顯示為紫並標「紀錄毀損」,不阻斷整頁。
+
+## 11.8b `resolved_model` — 空字串是資訊,不是缺值
+
+`round1[model].resolved_model` 記錄 CLI **實際回報**的型號(`claude-opus-5` / `gpt-5.6-sol`)。
+實測:s10 有 105 節、s1 有 12 節帶此欄位。
+
+**空字串必須呈現為「無 readback」,絕不可顯示成「未知模型」。** agy 印純文字、沒有 session
+header,拿不到 readback;約定是**寧可留空也不回填送進去的 alias** —— 否則 agy 哪天默默換了
+模型,欄位還顯示著我們以為的值。空字串代表「我們誠實地不知道」,是比假資料更強的狀態。
+
+⚠️ **不可特判 agy。** 實測 s1 也有 `opus` 為空字串的節,所以判斷依據是**值為空**,
+不是**模型叫什麼名字**。
 
 ## 11.9 路徑陷阱 — R1 與 R2 命名不一致(已實測確認)
 

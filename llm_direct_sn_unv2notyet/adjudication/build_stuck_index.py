@@ -16,6 +16,15 @@ file at all. Both invisibility modes are handled:
   form=no_file          no gold file; listed in deferred_ch*/accept_empty_confirmed
   form=corrupt          file exists but does not parse
 
+Two SETTLED tiers are pulled in as well, because "settled" does not mean "no
+human should look" (s10obe, 2026-08-08 — s10's null holes are now zero, so
+d_deliberation is what actually wants eyes there):
+
+  form=deliberated      trust_tier d_deliberation — three-way divergence that
+                        only closed via deliberation; settled, worth sampling
+  form=wlc_divergence   trust_tier c_consensus_over_wlc_divergence — consensus
+                        overrode the Hebrew source; settled, worth sampling
+
 Reads only; writes one bundle to adjudication/stuck_index.json.
 
 Usage:
@@ -52,6 +61,14 @@ UNV_DB = os.path.join(REPO_ROOT, "original_text_preparation", "source_sqlite", "
 LCC_DB = os.path.join(REPO_ROOT, "original_text_preparation", "source_sqlite", "bible_lcc.db")
 
 DEFAULT_OUT = os.path.join(HERE, "stuck_index.json")
+
+# Tiers that are settled AND need no human look — the only ones skipped outright.
+SETTLED_NO_REVIEW = {"c_consensus", "c_consensus+wlc_corroborated"}
+# Settled, but a human should still sample them; each keeps its own form.
+SETTLED_REVIEW_FORMS = {
+    "d_deliberation": "deliberated",
+    "c_consensus_over_wlc_divergence": "wlc_divergence",
+}
 
 # Attempt labels come from judge.py:_r2_label — R1, then R2a, R2b, ... We only
 # need to *render* them, and the stored `attempts` list is positional, so mirror
@@ -118,10 +135,18 @@ def _candidates_from_round1(round1):
     for model in sorted((round1 or {}).keys()):
         entry = round1[model] or {}
         sn = entry.get("lcc_sn", "") or ""
+        # resolved_model = the generation the CLI actually reported. An EMPTY
+        # STRING is meaningful and must survive to the UI as "no readback", not
+        # be shown as an unknown model: agy prints plain text with no session
+        # header, so nothing can be read back, and the convention is to leave it
+        # blank rather than backfill the alias we sent (which would keep showing
+        # a stale value if agy silently switched models). Not agy-only — s1 has
+        # verses where opus's is empty too, so never special-case by model name.
         out.append({
             "cid": f"panelist/{model}",
             "role": "panelist",
             "model": model,
+            "resolved_model": entry.get("resolved_model"),
             "sn_text": sn,
             "blank": _blank(sn),
             "self_confidence": entry.get("confidence"),
@@ -340,14 +365,18 @@ def build(surveys, out_path):
                             })
                             continue
 
-                        if gold.get("trust_tier") is not None:
+                        tier = gold.get("trust_tier")
+                        if tier in SETTLED_NO_REVIEW:
                             stats[f"{sid}:resolved"] += 1
                             continue
 
                         cands = _candidates_from_round1(gold.get("round1"))
                         jcands, judges = _judge_candidates(gold)
                         cands += jcands
-                        form = _classify(gold, cands)
+                        # settled-but-worth-sampling tiers keep their own form;
+                        # only an absent tier means the pipeline never closed it
+                        form = (SETTLED_REVIEW_FORMS.get(tier) if tier
+                                else _classify(gold, cands))
                         stats[f"{sid}:{form}"] += 1
                         verses.append({
                             "survey": sid, "book": book, "chap": chap, "sec": sec,
