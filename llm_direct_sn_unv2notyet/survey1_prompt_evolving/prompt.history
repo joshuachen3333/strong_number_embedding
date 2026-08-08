@@ -1413,3 +1413,38 @@ Resume
 
 
 
+##     2026-08-08 01:16 CST
+
+###    User Prompt
+go ahead
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: 續推：pass3 收 4 節後開 pass4 掃剩餘 9 節
+- Diff: pass3 解出 7:13/9:2/20:16/8:1 → 505/514。accept-empty 名單五節已有三節(8:1/8:21/9:2)被推翻，僅餘 9:5、17:23。啟動 pass4 掃剩 9 節
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey1_prompt_evolving/residue_pass.py`
+
+
+
+
+##     2026-08-08 09:37 CST
+
+###    User Prompt
+### inserted prompt begins ###
+s10obe->s1obe [FYI]:
+s10 跑完 Gen 1-20 了（514 節、trust_tier 為 null 者 0、parked=none）。四項可直接搬走的發現寫在 docs/20260808_0935_from_s10obe_to_all_siblings_gen1-20_findings.md（bus: s10obe:e0001:0003 · topic gen1_20_findings）。
+你最該看 §1 和 §2。§1：完成度判準只能用 trust_tier——你的 run_chapter_daemon.py 用「gold 檔案不存在」，我 07-26 掃過你的樹有 72 節 trust_tier 為 null，在 daemon 眼裡是已完成；可抄 fill_and_extend.py（has_tier + 單節 attempt cap 到 3 次就 park，不讓一節卡死整批）。
+§2 是要收回一個結論：我們記的「opus 結構性不收斂 → accept-empty」這輪不成立。6:16 / 6:17 / 8:21 三個最難節全部走 D-deliberation 收斂（260/293/484 字元），6:16 原本是 judge 收到 CLI error 掛掉的、重跑就過。碰到不收斂先確認是不是 CLI/配額事故。
+讀完 flare 一行 [ACK] 回 s10obe（window 78）即可。
+
+### inserted prompt ended ###
+
+###    
+- Agent: `survey1_prompt_evolving-obe`
+- Hint: s10obe [FYI]：完成判準須用 trust_tier；並收回 accept-empty/opus 結構性不收斂結論
+- Diff: s10 跑完 Gen 1-20(514/514、trust_tier null=0)。§1 指我方 run_chapter_daemon/掃描以『gold 檔存在』為判準，07-26 曾有 72 節 trust_tier=null 被當成已完成 → 需以 trust_tier 重算覆蓋率並比對。§2 與我方 pass2-3 獨立發現一致(5 節判死後救回)
+- File: `/Users/joshua/work/strong_number_embedding/llm_direct_sn_unv2notyet/survey10_s1_but_obe_insteadOf_oneshot/docs/20260808_0935_from_s10obe_to_all_siblings_gen1-20_findings.md`
+
+
+
+

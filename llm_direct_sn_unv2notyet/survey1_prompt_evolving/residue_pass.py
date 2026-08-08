@@ -54,18 +54,37 @@ def gold_path(ch, sec):
     return os.path.join(SURVEY_DIR, "gold_standard", "Gen", str(ch), f"{sec}.json")
 
 
+_DONE_RESOLUTIONS = {"round1", "round2", "round3", "r2_model_patch"}
+
+
 def has_gold(ch, sec):
-    """Parse-fail is the poison test, not file size: a write killed partway can
-    leave hundreds of bytes that still will not parse (s10obe, 2026-07-27)."""
+    """Is this verse actually FINISHED?
+
+    File existence is not the predicate (s10obe, 2026-08-08): a run that ends in
+    `resolved_at: "unresolved"` still writes a gold file, usually with an EMPTY
+    `lcc_sn`. Scanning for the file counted 508/514 in this tree when only 436
+    verses carried a trust_tier -- 50 of the rest were empty shells. A whole batch
+    lost to a codex usage-limit looks identical to a finished chapter.
+
+    trust_tier alone is too strict the other way: 16 verses predate the field
+    (v1.1/v1.2) yet have real text and a real resolution, and re-running them
+    would burn quota to replace good gold. So: tiered, OR resolved with content.
+
+    Parse-fail (not file size) remains the poison test -- a write killed partway
+    can leave hundreds of bytes that still will not parse (s10obe, 2026-07-27).
+    """
     p = gold_path(ch, sec)
     if not os.path.isfile(p) or os.path.getsize(p) == 0:
         return False
     try:
         with open(p, encoding="utf-8") as f:
-            json.load(f)
-        return True
+            d = json.load(f)
     except (json.JSONDecodeError, ValueError, OSError):
         return False
+    if d.get("trust_tier"):
+        return True
+    return bool((d.get("lcc_sn") or "").strip()
+                and d.get("resolved_at") in _DONE_RESOLUTIONS)
 
 
 def assign_chapters():
