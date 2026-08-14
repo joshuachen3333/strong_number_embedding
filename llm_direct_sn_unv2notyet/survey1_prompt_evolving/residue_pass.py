@@ -36,10 +36,14 @@ from datetime import datetime
 SURVEY_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(SURVEY_DIR)
 
-# Genesis 1-20 verse counts (UNV versification) -- the universe we sweep.
+# Genesis 1-25 verse counts (UNV versification, read off bible_little.db) -- the
+# universe we sweep. Joshua 2026-08-10 raised the ceiling from ch20 to ch25 and
+# capped it there: "only to ch25, no more". Do not extend past 25 without a new
+# instruction; ch21-25 is 179 fresh verses on top of the 1-20 residue.
 VERSE_COUNTS = {1: 31, 2: 25, 3: 24, 4: 26, 5: 32, 6: 22, 7: 24, 8: 22,
                 9: 29, 10: 32, 11: 32, 12: 20, 13: 18, 14: 24, 15: 21,
-                16: 16, 17: 27, 18: 33, 19: 38, 20: 18}
+                16: 16, 17: 27, 18: 33, 19: 38, 20: 18,
+                21: 34, 22: 24, 23: 20, 24: 67, 25: 34}
 PER_VERSE_TIMEOUT = 2400   # 40 min
 BACKOFF_S = 1800
 MAX_SWEEPS = 3             # attempts per verse before it is parked
@@ -98,17 +102,55 @@ def has_gold(ch, sec):
                 and d.get("resolved_at") in _DONE_RESOLUTIONS)
 
 
+def known_hard():
+    """Verses an earlier pass already failed to close, from the JSONL ledgers.
+
+    Not a verdict on the verse (that inference was retracted -- see
+    memory: opus_structural_nonconvergence) -- purely a cost signal. A verse that
+    has timed out before will most likely burn the full 40-min ceiling again, so
+    it should not sit in front of never-attempted verses that usually close in
+    two or three minutes.
+    """
+    hard = set()
+    d = os.path.join(SURVEY_DIR, "run_logs")
+    for fn in sorted(os.listdir(d)) if os.path.isdir(d) else []:
+        if not (fn.startswith(("residue_pass", "second_pass")) and fn.endswith(".jsonl")):
+            continue
+        with open(os.path.join(d, fn), encoding="utf-8") as f:
+            for line in f:
+                try:
+                    r = json.loads(line)
+                except (json.JSONDecodeError, ValueError):
+                    continue
+                if r.get("outcome") in ("still_non_convergent", "no_gold_clean_run",
+                                        "parked"):
+                    hard.add((r.get("chap"), r.get("sec")))
+    return hard
+
+
 def pending_verses():
-    """Every Gen 1-20 verse that is not finished, in canonical order."""
-    return [(ch, sec) for ch in sorted(VERSE_COUNTS)
+    """Every Gen 1-25 verse that is not finished.
+
+    Cheap-first ordering: never-attempted verses ahead of known-hard ones, each
+    group in canonical order. If the run is stopped early, coverage is what got
+    maximized rather than time spent on the same handful of timeouts.
+    """
+    hard = known_hard()
+    allv = [(ch, sec) for ch in sorted(VERSE_COUNTS)
             for sec in range(1, VERSE_COUNTS[ch] + 1) if not has_gold(ch, sec)]
+    return sorted(allv, key=lambda v: (v in hard, v[0], v[1]))
 
 
 def assign_chapters():
     """Partition the still-missing verses across cars by CHAPTER (never split a
     chapter), largest chapter first onto the currently lightest car -- keeps the
     cars balanced while guaranteeing they never touch the same chapter's caches.
-    With CAR_COUNT == 1 this is just the whole residue."""
+
+    A single car takes the whole worklist untouched -- there is nothing to keep
+    apart, and grouping by chapter would throw away pending_verses()' cheap-first
+    ordering."""
+    if len(CARS) == 1:
+        return {CARS[0]: pending_verses()}
     by_chap = {}
     for ch, sec in pending_verses():
         by_chap.setdefault(ch, []).append((ch, sec))
