@@ -41,12 +41,14 @@ POLL_S = 60
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--pid", type=int, required=True, help="residue_pass.py pid")
-ap.add_argument("--deadline", required=True, help='"YYYY-MM-DD HH:MM" local time')
+ap.add_argument("--deadline", default=None,
+                help='"YYYY-MM-DD HH:MM" local time; omit to guard on quota alone')
 ap.add_argument("--codex-floor", type=float, default=5.0,
                 help="stop when codex weekly REMAINING %% <= this")
 args = ap.parse_args()
 
-DEADLINE = datetime.strptime(args.deadline, "%Y-%m-%d %H:%M")
+DEADLINE = (datetime.strptime(args.deadline, "%Y-%m-%d %H:%M")
+            if args.deadline else None)
 LOG = os.path.join(SURVEY_DIR, "run_logs",
                    f"stop_watchdog_{datetime.now():%Y%m%d_%H%M%S}.log")
 os.makedirs(os.path.dirname(LOG), exist_ok=True)
@@ -218,7 +220,8 @@ def stop_car(reason):
     log("watchdog done")
 
 
-log(f"watching pid {args.pid}; deadline {DEADLINE:%Y-%m-%d %H:%M}; "
+log(f"watching pid {args.pid}; "
+    f"deadline {f'{DEADLINE:%Y-%m-%d %H:%M}' if DEADLINE else 'none (quota guard only)'}; "
     f"codex weekly floor {args.codex_floor}%")
 rem0, ts0 = codex_weekly_remaining()
 log(f"codex weekly remaining at start: "
@@ -230,7 +233,7 @@ while True:
         log("car exited on its own — nothing to stop")
         break
     now = datetime.now()
-    if now >= DEADLINE:
+    if DEADLINE and now >= DEADLINE:
         stop_car(f"deadline {DEADLINE:%Y-%m-%d %H:%M} reached")
         break
     rem, ts = codex_weekly_remaining()
@@ -239,8 +242,9 @@ while True:
                  f"(reading {ts})")
         break
     if time.time() - last_report > 1800:      # a heartbeat every 30 min
-        log(f"alive; {(DEADLINE - now).total_seconds()/3600:.1f}h to deadline; "
-            f"codex weekly remaining "
+        eta = (f"{(DEADLINE - now).total_seconds()/3600:.1f}h to deadline"
+               if DEADLINE else "no deadline")
+        log(f"alive; {eta}; codex weekly remaining "
             f"{'unknown' if rem is None else f'{rem:.1f}%'}")
         last_report = time.time()
     time.sleep(POLL_S)
